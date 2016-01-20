@@ -1,0 +1,19 @@
+extends ../layout
+
+block content
+  h1 To-Do List
+  div.tasks
+    form#addTask(action='/', method='post', autocomplete='off')
+      | Add Task:
+      br
+      input(type='hidden', name='command', value='addTask')
+      input#taskDescription(type='text', name='description')
+      input(type='submit', value='Submit')
+    each task in tasks
+      div(id = 'task' + task.id)
+        p !{task.description}
+          span(id = 'taskDelete' + task.id)  X
+
+  script(src='/js/vendor/jquery.min.js')
+  script var tasks = !{JSON.stringify(tasks)}
+  script(src='/js/toDoList/client.js')

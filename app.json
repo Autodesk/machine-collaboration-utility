@@ -1,0 +1,8 @@
+{
+  "name": "Koa-co",
+  "description": "An opinionated Koa app",
+  "repository": "",
+  "logo": "",
+  "keywords": [],
+  "image": "heroku/nodejs"
+}
