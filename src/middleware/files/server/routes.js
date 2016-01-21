@@ -2,9 +2,7 @@ const convert = require(`koa-convert`);
 const body = require(`koa-body`);
 const fs = require(`fs-promise`);
 const Promise = require(`bluebird`);
-const unzip = Promise.promisifyAll(require(`unzip2`));
 const ip = Promise.promisifyAll(require(`ip`));
-const config = require(`../../config`);
 
 /**
  * Render the to-do list's documentation
@@ -28,32 +26,38 @@ const getDocs = (self) => {
 const uploadFile = (self) => {
   self.router.post(
     self.routeEndpoint + '/',
-    convert(body(
-      {
-        multipart: true,
-        formidable: {
-          uploadDir: self.uploadDir,
-          onFileBegin: (field, file) => {
-            try {
-              // TODO abort if the file extension is not supported
-              const fileNameArray = file.name.split(`.`);
-              const fileName = self.uploadDir + `/` + fileNameArray[0];
-              const fileExt = `.` + fileNameArray[1];
-              const fullFileName = fileName + fileExt;
-              file.path = fullFileName;
-              self.mostRecentUpload = fullFileName;
-            } catch (ex) {
-              self.logger.error(`File Upload Error`, ex);
-            }
-          },
-        },
-      }
-    )),
+    convert(body({ multipart: true })),
     async (ctx) => {
       try {
-        // Once the file is uploaded, then add it to the array of available files
-        self.files.push(self.mostRecentUpload);
-        ctx.body = `File successfully uploaded`;
+        const files = ctx.request.body.files;
+
+        if (files) {
+          // Rename each file to be its filename plus a timestamp
+          // Iterate through every single file in the 'files' object
+          await Promise.map(
+            Object.keys(files),
+            async (theFile) => {
+              // If multiple files are passed with the same key, they are an Array
+              if (Array.isArray(files[theFile])) {
+                await Promise.map(
+                  files[theFile],
+                  async (file) => {
+                    await self.createFileObject(file);
+                  },
+                  { concurrency: 4 }
+                );
+              } else {
+                await self.createFileObject(files[theFile]);
+              }
+            },
+            { concurrency: 4 }
+          );
+          // Once the file is uploaded, then add it to the array of available files
+          ctx.body = `File successfully uploaded`;
+        } else {
+          ctx.body = `Error: No file was received.`;
+          ctx.status = 404;
+        }
       } catch (ex) {
         ctx.body = { status: `Server error: ` + ex };
         ctx.status = 500;
@@ -63,18 +67,37 @@ const uploadFile = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for deleting a task
+ * Handle all logic at this endpoint for deleting a file
  */
 const deleteFile = (self) => {
   self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
-      // see if file exists
-      // if (taskId === undefined || isNaN(taskId) || taskId <= 0) {
-      //   ctx.status = 404;
-      //   ctx.body = `File does not exist`;
-      // } else {
-      // if it does, delete it and remove it from the file array
-      ctx.body = `File deleted`;
+      const fileId = Number(ctx.request.body.id);
+      const file = self.files.find((inFile) => {
+        return Number(inFile.id) === fileId;
+      });
+      if (fileId === undefined) {
+        ctx.status = 404;
+        ctx.body = { error: `No file "id" was provided` };
+      } else if (file === undefined) {
+        ctx.status = 404;
+        ctx.body = { error: `File ${fileId} not found` };
+      } else {
+        const filePath = self.getFilepath(file);
+        const fileExists = await fs.exists(filePath);
+        if (fileExists) {
+          // Delete the file
+          await fs.unlink(filePath);
+
+          // Remove the file object from the 'files' array
+          for (let i = 0; i < self.files.length; i++) {
+            if (Number(self.files[i].id) === fileId) {
+              self.files.splice(i, 1);
+            }
+          }
+          ctx.body = `File deleted`;
+        }
+      }
     } catch (ex) {
       ctx.body = { status: `"Delete File" request error: ${ex}` };
       ctx.status = 500;
@@ -88,7 +111,7 @@ const deleteFile = (self) => {
 const getFiles = (self) => {
   self.router.get(self.routeEndpoint + '/', async (ctx) => {
     try {
-      ctx.body = 'sup';
+      ctx.body = self.files;
     } catch (ex) {
       ctx.body = { status: `To-do list "Read Tasks" request error: ${ex}` };
       ctx.status = 500;
@@ -99,55 +122,20 @@ const getFiles = (self) => {
 /**
  * Handle all logic at this endpoint for reading a single task
  */
-const readTask = (self) => {
-  self.router.get(self.routeEndpoint + `:id`, async (ctx) => {
+const getFile = (self) => {
+  self.router.get(self.routeEndpoint + `/:id`, async (ctx) => {
     try {
-      if (ctx.header.accept.toLowerCase() === `application/json`) {
-        const taskId = ctx.params.id;
-        const task = await self.Task.findById(taskId);
+      const fileId = ctx.params.id;
+      const file = self.files.find((inFile) => {
+        return inFile.id === fileId;
+      });
+      if (file) {
+        ctx.body = file;
+      } else {
+        ctx.status = 404;
         ctx.body = {
-          description: task.description,
-          id: task.id,
+          error: `File ${fileId} not found`,
         };
-      } else {
-        ctx.status = 404;
-        ctx.body = `Only accepts application/json requests`;
-      }
-    } catch (ex) {
-      ctx.body = { status: `To-do list "Read Task ${ctx.params.id}" request error: ${ex}` };
-      ctx.status = 500;
-    }
-  });
-};
-
-/**
- * Handle all logic at this endpoint for updating a single task
- */
-const updateTask = (self) => {
-  self.router.put(`/`, async (ctx) => {
-    console.log('task request\n', ctx);
-    try {
-      if (ctx.header.accept.toLowerCase() === `application/json`) {
-        const taskId = ctx.request.body.id;
-        const description = ctx.request.body.description;
-        console.log('request', ctx.request, ctx.request.body);
-        console.log('description', description);
-        if (description === undefined || typeof description !== 'string' || description.length <= 0) {
-          ctx.status = 404;
-          ctx.body = `Task description "${description}" is not valid.`;
-        } else {
-          const task = await self.Task.findById(taskId);
-          task.updateAttributes({
-            description,
-          });
-          ctx.body = {
-            description: task.description,
-            id: task.id,
-          };
-        }
-      } else {
-        ctx.status = 404;
-        ctx.body = `Only accepts application/json requests`;
       }
     } catch (ex) {
       ctx.body = { status: `To-do list "Read Task ${ctx.params.id}" request error: ${ex}` };
@@ -158,11 +146,10 @@ const updateTask = (self) => {
 
 const filesRoutes = (self) => {
   getDocs(self);
-  // uploadFile(self);
-  // deleteFile(self);
-  // getFiles(self);
-  // readTask(self);
-  // updateTask(self);
+  uploadFile(self);
+  deleteFile(self);
+  getFiles(self);
+  getFile(self);
 };
 
 module.exports = filesRoutes;

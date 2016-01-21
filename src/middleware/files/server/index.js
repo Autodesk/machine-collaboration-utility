@@ -21,7 +21,6 @@ class Files {
     this.router = router;
     this.uploadDir = path.join(__dirname, `./uploads`);
     this.files = [];
-    this.mostRecentUpload = undefined;
   }
 
   /**
@@ -54,8 +53,13 @@ class Files {
    */
   async scanUploadDirectory() {
     walk.walkSync(this.uploadDir, (basedir, filename) => {
-      // Add each file's filepath to an array
-      this.files.push(filename);
+      const timestamp = filename.split('_')[filename.split('_').length - 1].split('.')[0];
+      const filenameWithoutTimestamp = filename.split('_')[0] + '.' + filename.split('.')[1];
+      const fileObject = {
+        id: timestamp,
+        filename: filenameWithoutTimestamp,
+      };
+      this.files.push(fileObject);
     });
   }
 
@@ -66,15 +70,33 @@ class Files {
     try {
       // Populate this.router with all routes
       // Then register all routes with the app
-      filesRoutes(this);
+      await filesRoutes(this);
+
       // Register all router routes with the app
-      this.app
-      .use(this.router.routes())
-      .use(this.router.allowedMethods());
+      this.app.use(this.router.routes()).use(this.router.allowedMethods());
       this.logger.info(`Files router setup complete`);
     } catch (ex) {
       this.logger.error(`Files router setup error`, ex);
     }
+  }
+
+  /**
+   * Add a UTC timestamp to the uploaded file
+   */
+  async createFileObject(file) {
+    const timestamp = String(new Date().getTime());
+    const filename = file.name;
+    const fileObject = {
+      id: timestamp,
+      filename,
+    };
+    const filenameWithTimestamp = this.uploadDir + `/` + filename.split(`.`)[0] + `_` + timestamp + `.` + filename.split(`.`)[1];
+    await fs.rename(file.path, filenameWithTimestamp);
+    this.files.push(fileObject);
+  }
+
+  getFilepath(fileObject) {
+    return this.uploadDir + `/` + fileObject.filename.split(`.`)[0] + `_` + fileObject.id + `.` + fileObject.filename.split(`.`)[1];
   }
 }
 
