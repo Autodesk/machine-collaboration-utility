@@ -13,6 +13,7 @@ const Sequelize = require('sequelize');
 
 // Import custom middleware libraries
 const Files = require('./middleware/files');
+const UI = require('./middleware/ui');
 const config = require('./config');
 
 // Create Koa app
@@ -60,12 +61,17 @@ try {
       app.context.logger.error('Unable to connect to the database:', err);
     } else {
       app.context.db = sequelize;
-      // add custom middleware here
-      const files = new Files(app, '/files');
-      files.initialize();
-
-      app.context.logger.info('Hydraprint has been initialized successfully.');
     }
+  })
+  // add custom middleware here
+  .then(async () => {
+    const ui = new UI(app, '');
+    await ui.initialize();
+
+    const files = new Files(app, '/files');
+    await files.initialize();
+
+    app.context.logger.info('Hydraprint has been initialized successfully.');
   });
 
   app.on('error', (err, ctx) => {

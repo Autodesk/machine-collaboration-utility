@@ -1,9 +1,8 @@
 swagger: '2.0'
 info:
   version: 1.0.0
-  title: To-Do List REST API
-  description: A REST API for a to-do list
-host: localhost:9000
+  title: Hydra Print API Documentation
+  description: Hooray Docs
 basePath: /
 schemes:
   - http

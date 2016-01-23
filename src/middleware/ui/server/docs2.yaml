@@ -1,0 +1,218 @@
+---
+  swagger: "2.0"
+  info:
+    version: "1.0.0"
+    title: Hydra Print API Documentation
+    description: Hooray Docs
+  basePath: "/v1"
+  tags:
+    -
+      name: "Files"
+    -
+      name: "Jobs"
+    -
+      name: "Printers"
+  schemes:
+    - "http"
+  paths:
+    /files:
+      post:
+        tags:
+          - "Files"
+        summary: "Upload file(s)"
+        description: ""
+        consumes:
+          - multipart/form-data
+        produces:
+          - application/json
+        parameters:
+          - name: file
+            in: formData
+            description: "File to uploaded"
+            required: true
+            type: file
+        responses:
+          201:
+            description: "File(s) successfully uploaded"
+          405:
+            description: "Invalid input"
+      get:
+        tags:
+          - "Files"
+        summary: "Retrieve a list of all available files"
+        description: ""
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          200:
+            description: "An array of all available files"
+          405:
+            description: "Invalid input"
+    /files/{fileId}:
+      get:
+        tags:
+          - "Files"
+        summary: "Retrieve a file object"
+        description: ""
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: fileId
+            description: ID of file to be fetched
+            required: true
+            type: integer
+            format: int64
+        responses:
+          200:
+            description: "A file object"
+          405:
+            description: "Invalid input"
+      delete:
+        tags:
+          - "Files"
+        summary: "Delete a file"
+        description: ""
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: fileId
+            description: ID of file to be deleted
+            required: true
+            type: integer
+            format: int64
+        responses:
+          200:
+            description: "A file object"
+          405:
+            description: "Invalid input"
+    /files/{fileId}/download:
+      get:
+        tags:
+          - "Files"
+        summary: "Retrieve a file"
+        description: ""
+        consumes:
+          - application/json
+        produces:
+          - file
+        parameters:
+          - in: path
+            name: fileId
+            description: ID of file that needs to be fetched
+            required: true
+            type: integer
+            format: int64
+        responses:
+          200:
+            description: "A file"
+          405:
+            description: "Invalid input"
+    /jobs:
+      post:
+        tags:
+          - "Jobs"
+        summary: "Create a job object"
+        description: ""
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: printerId
+            in: body
+            description: The printer that this job is associated with
+            defaultValue: '{ "printerId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" }'
+            required: true
+          - name: jobId
+            in: body
+            description: Instead of generating a UUID, a custom UUID can be provied
+            required: false
+        responses:
+          201:
+            description: "Job created"
+          405:
+            description: "Invalid input"
+      delete:
+        tags:
+          - "Jobs"
+        summary: "Deletes a job object"
+        description: ""
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: jobId
+            in: body
+            description: The ID of the job to be deleted
+            required: true
+            defaultValue: '{ "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" }'
+        responses:
+          200:
+            description: "Job deleted"
+          405:
+            description: "Invalid input"
+      get:
+        tags:
+          - "Jobs"
+        summary: "Get all the jobs"
+        description: "Retreives an array of all of the job objects from the database"
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          200:
+            description: "Jobs retreived successfully"
+          405:
+            description: "Invalid input"
+    /jobs/{jobId}:
+      get:
+        tags:
+          - "Jobs"
+        summary: "Gets a object"
+        description: ""
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: jobId
+            description: ID of the job that needs to be fetched
+            required: true
+            type: integer
+            format: int64
+        responses:
+          200:
+            description: "Job retreived"
+          405:
+            description: "Invalid input"
+      post:
+        tags:
+          - "Jobs"
+        summary: "Issue a command to a job"
+        description: ""
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: command
+            description: A job command
+            required: true
+            type: string
+        responses:
+          200:
+            description: "Job command executed"
+          405:
+            description: "Invalid input"
