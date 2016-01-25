@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "install": "node install_os_dependencies.js",
     "start": "node node_modules/gulp/bin/gulp.js",
     "test": "node node_modules/gulp/bin/gulp.js test"
   },
@@ -10,9 +11,7 @@
     "bluebird": "^3.1.1",
     "co": "^4.6.0",
     "debug": "^2.2.0",
-    "decorator-debug": "^1.0.3",
     "dotenv": "^1.2.0",
-    "foreman": "^1.4.1",
     "fs-promise": "^0.3.1",
     "ip": "^1.1.0",
     "jade": "~1.11.0",
@@ -30,7 +29,6 @@
     "lodash": "^3.10.1",
     "path": "^0.12.7",
     "pg": "^4.4.3",
-    "pg-hstore": "^2.3.2",
     "request-promise": "^1.0.2",
     "sequelize": "^3.17.1",
     "source-map-support": "^0.4.0",
@@ -39,7 +37,6 @@
   },
   "devDependencies": {
     "babel-core": "^6.3.26",
-    "babel-eslint": "^4.1.6",
     "babel-node-debug": "^1.3.0",
     "babel-plugin-syntax-async-functions": "^6.3.13",
     "babel-plugin-transform-async-to-generator": "^6.3.13",
@@ -47,28 +44,21 @@
     "babel-polyfill": "^6.3.14",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-es2015-node4": "^2.0.2",
-    "babel-preset-stage-0": "^6.3.13",
-    "eslint": "^1.10.3",
-    "eslint-config-airbnb": "^2.0.0",
-    "eslint-plugin-babel": "^3.0.0",
-    "eslint-plugin-react": "^3.11.3",
     "fs-walk": "0.0.1",
     "gulp": "^3.9.0",
     "gulp-autoprefixer": "^3.1.0",
     "gulp-babel": "^6.1.1",
     "gulp-concat": "^2.6.0",
-    "gulp-foreman": "^0.2.0",
     "gulp-mocha": "^2.2.0",
     "gulp-nodemon": "^2.0.4",
     "gulp-rename": "^1.2.2",
     "gulp-sass": "^2.1.0",
     "gulp-sourcemaps": "^1.6.0",
-    "mocha": "^2.3.4",
     "should": "^8.0.2",
     "supertest": "^1.1.0"
   },
   "engines": {
-    "node": "5.4.1",
-    "npm": "3.5.2"
+    "node": "^4.2",
+    "npm": "^3.5"
   }
 }
