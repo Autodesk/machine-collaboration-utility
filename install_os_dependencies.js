@@ -10,8 +10,8 @@ if (process.platform === `win32` || process.platform === `darwin`) {
 }
 
 if (dependencies) {
-  for (let package in dependencies) {
-     var oscmd = "npm install " + package;
+  for (let dep in dependencies) {
+     var oscmd = "npm install " + dep;
      exec(oscmd, function(error, stdout, stderr) {
        if (error)  console.log("ERROR:", error);
        if (stdout) console.log( stdout );
