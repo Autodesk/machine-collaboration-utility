@@ -2,23 +2,6 @@ const convert = require(`koa-convert`);
 const body = require(`koa-body`);
 const fs = require(`fs-promise`);
 const Promise = require(`bluebird`);
-const ip = Promise.promisifyAll(require(`ip`));
-
-/**
- * Render the to-do list's documentation
- */
-const getDocs = (self) => {
-  self.router.get(self.routeEndpoint + '/docs', async (ctx) => {
-    const serverIpAddress = await ip.address();
-    const docLocation = `docs/middleware/files.yaml`;
-    const middlewareLocation = `http://${serverIpAddress}:${process.env.PORT}/${docLocation}`;
-    // TODO ^ may need to modify path based on static file server path
-    ctx.render(`docs`, {
-      title: `Files List Docs`,
-      middlewareLocation,
-    });
-  });
-};
 
 /**
  * Handle all file upload requests for the Conductor + '/upload' endpoint
@@ -53,12 +36,14 @@ const uploadFile = (self) => {
             { concurrency: 4 }
           );
           // Once the file is uploaded, then add it to the array of available files
+          ctx.status = 201;
           ctx.body = `File successfully uploaded`;
         } else {
           ctx.body = `Error: No file was received.`;
           ctx.status = 404;
         }
       } catch (ex) {
+        self.logger.error('Upload file error', ex);
         ctx.body = { status: `Server error: ` + ex };
         ctx.status = 500;
       }
@@ -72,9 +57,9 @@ const uploadFile = (self) => {
 const deleteFile = (self) => {
   self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
-      const fileId = Number(ctx.request.body.id);
+      const fileId = ctx.request.body.id;
       const file = self.files.find((inFile) => {
-        return Number(inFile.id) === fileId;
+        return inFile.id === fileId;
       });
       if (fileId === undefined) {
         ctx.status = 404;
@@ -91,7 +76,7 @@ const deleteFile = (self) => {
 
           // Remove the file object from the 'files' array
           for (let i = 0; i < self.files.length; i++) {
-            if (Number(self.files[i].id) === fileId) {
+            if (self.files[i].id === fileId) {
               self.files.splice(i, 1);
             }
           }
@@ -99,6 +84,7 @@ const deleteFile = (self) => {
         }
       }
     } catch (ex) {
+      self.logger.error('Delete file error', ex);
       ctx.body = { status: `"Delete File" request error: ${ex}` };
       ctx.status = 500;
     }
@@ -145,7 +131,6 @@ const getFile = (self) => {
 };
 
 const filesRoutes = (self) => {
-  getDocs(self);
   uploadFile(self);
   deleteFile(self);
   getFiles(self);

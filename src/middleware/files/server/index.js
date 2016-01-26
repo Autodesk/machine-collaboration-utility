@@ -2,6 +2,7 @@ const router = require(`koa-router`)();
 const path = require(`path`);
 const fs = require(`fs-promise`);
 const walk = require(`fs-walk`);
+const uuid = require(`node-uuid`);
 
 const filesRoutes = require(`./routes`);
 
@@ -17,7 +18,7 @@ class Files {
   constructor(app, routeEndpoint) {
     this.app = app;
     this.logger = app.context.logger;
-    this.routeEndpoint = routeEndpoint;
+    this.routeEndpoint = app.context.version + routeEndpoint;
     this.router = router;
     this.uploadDir = path.join(__dirname, `./uploads`);
     this.files = [];
@@ -53,11 +54,11 @@ class Files {
    */
   async scanUploadDirectory() {
     walk.walkSync(this.uploadDir, (basedir, filename) => {
-      const timestamp = filename.split('_')[filename.split('_').length - 1].split('.')[0];
-      const filenameWithoutTimestamp = filename.split('_')[0] + '.' + filename.split('.')[1];
+      const id = filename.split('_')[filename.split('_').length - 1].split('.')[0];
+      const name = filename.split('_')[0] + '.' + filename.split('.')[1];
       const fileObject = {
-        id: timestamp,
-        filename: filenameWithoutTimestamp,
+        id,
+        name,
       };
       this.files.push(fileObject);
     });
@@ -81,22 +82,20 @@ class Files {
   }
 
   /**
-   * Add a UTC timestamp to the uploaded file
+   * Create the file object
+   * Allow the option for the user to set their own uuid for the file
    */
-  async createFileObject(file) {
-    const timestamp = String(new Date().getTime());
-    const filename = file.name;
-    const fileObject = {
-      id: timestamp,
-      filename,
-    };
-    const filenameWithTimestamp = this.uploadDir + `/` + filename.split(`.`)[0] + `_` + timestamp + `.` + filename.split(`.`)[1];
-    await fs.rename(file.path, filenameWithTimestamp);
+  async createFileObject(file, userUuid) {
+    const id = userUuid ? userUuid : await uuid.v1();
+    const name = file.name;
+    const fileObject = { id, name };
+    const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + id + `.` + name.split(`.`)[1];
+    await fs.rename(file.path, filenameWithUuid);
     this.files.push(fileObject);
   }
 
   getFilepath(fileObject) {
-    return this.uploadDir + `/` + fileObject.filename.split(`.`)[0] + `_` + fileObject.id + `.` + fileObject.filename.split(`.`)[1];
+    return this.uploadDir + `/` + fileObject.name.split(`.`)[0] + `_` + fileObject.id + `.` + fileObject.name.split(`.`)[1];
   }
 }
 
