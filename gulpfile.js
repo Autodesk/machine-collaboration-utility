@@ -6,7 +6,6 @@ const sass = require(`gulp-sass`);
 const autoprefixer = require(`gulp-autoprefixer`);
 const mocha = require(`gulp-mocha`);
 const rename = require(`gulp-rename`);
-const foreman = require('gulp-foreman');
 
 // TODO make sure the foreman server restarts on change
 
