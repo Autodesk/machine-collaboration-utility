@@ -32,3 +32,21 @@ Run tests
 ```
 npm test
 ```
+
+### Setting up postgres on a raspberry pi
+These instructions assume setting both the username and database to "postgres"  
+```
+sudo mkdir /var/local/repository  
+cd /var/local/repository  
+sudo wget -O postgresql-9.4.4-raspbian.tgz https://www.dropbox.com/s/t9x78hbfo2mb8yi/postgresql-9.4.4-raspbian.tgz?dl=1  
+sudo tar -xvzf postgresql-9.4.4-raspbian.tgz  
+echo "deb [ trusted=yes ] file:///var/local/repository ./" | sudo tee /etc/apt/sources.list.d/my_own_repo.list  
+sudo apt-get update  
+sudo apt-get install postgresql-9.4  
+
+```
+
+### Then set the psql password
+```
+sudo -iu postgres psql -c "\password postgres"
+```
