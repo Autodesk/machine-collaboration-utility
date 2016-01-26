@@ -17,7 +17,7 @@ class Jobs {
   constructor(app, routeEndpoint) {
     this.app = app;
     this.logger = app.context.logger;
-    this.routeEndpoint = app.context.version + routeEndpoint;
+    this.routeEndpoint = routeEndpoint;
     this.router = router;
     this.jobs = [];
 

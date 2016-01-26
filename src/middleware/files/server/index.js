@@ -18,7 +18,7 @@ class Files {
   constructor(app, routeEndpoint) {
     this.app = app;
     this.logger = app.context.logger;
-    this.routeEndpoint = app.context.version + routeEndpoint;
+    this.routeEndpoint = routeEndpoint;
     this.router = router;
     this.uploadDir = path.join(__dirname, `./uploads`);
     this.files = [];

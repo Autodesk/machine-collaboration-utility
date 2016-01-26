@@ -19,7 +19,6 @@ const config = require('./config');
 
 // Create Koa app
 const app = new Koa();
-app.context.version = '/v1';
 
 try {
   // Setup logger
@@ -67,13 +66,14 @@ try {
   })
   // add custom middleware here
   .then(async () => {
-    const files = new Files(app, '/files');
+    const apiVersion = `/v1`;
+    const files = new Files(app, `${apiVersion}/files`);
     await files.initialize();
 
-    const jobs = new Jobs(app, '/jobs');
+    const jobs = new Jobs(app, `${apiVersion}/jobs`);
     await jobs.initialize();
 
-    const ui = new UI(app, '');
+    const ui = new UI(app, ``);
     await ui.initialize();
 
     app.context.logger.info('Hydraprint has been initialized successfully.');
