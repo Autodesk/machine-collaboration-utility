@@ -3,11 +3,11 @@
  */
 const getDocs = (self) => {
   self.router.get(self.routeEndpoint + '/docs', async (ctx) => {
-    const docLocation = `middleware/docs2.yaml`;
+    const docLocation = `middleware/docs.yaml`;
     const middlewareLocation = [docLocation]; // Not sure why this needs to be in an array
 
     ctx.render(`docs`, {
-      title: `Hydraprint Docs`,
+      title: `Hydra-Print Docs`,
       middlewareLocation,
     });
   });

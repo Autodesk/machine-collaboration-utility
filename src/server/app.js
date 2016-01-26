@@ -13,11 +13,13 @@ const Sequelize = require('sequelize');
 
 // Import custom middleware libraries
 const Files = require('./middleware/files');
+const Jobs = require('./middleware/jobs');
 const UI = require('./middleware/ui');
 const config = require('./config');
 
 // Create Koa app
 const app = new Koa();
+app.context.version = '/v1';
 
 try {
   // Setup logger
@@ -65,11 +67,14 @@ try {
   })
   // add custom middleware here
   .then(async () => {
-    const ui = new UI(app, '');
-    await ui.initialize();
-
     const files = new Files(app, '/files');
     await files.initialize();
+
+    const jobs = new Jobs(app, '/jobs');
+    await jobs.initialize();
+
+    const ui = new UI(app, '');
+    await ui.initialize();
 
     app.context.logger.info('Hydraprint has been initialized successfully.');
   });
