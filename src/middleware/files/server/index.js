@@ -92,6 +92,7 @@ class Files {
     const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + id + `.` + name.split(`.`)[1];
     await fs.rename(file.path, filenameWithUuid);
     this.files.push(fileObject);
+    return fileObject;
   }
 
   getFilepath(fileObject) {

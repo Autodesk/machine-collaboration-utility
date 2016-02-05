@@ -22,11 +22,12 @@ class Jobs {
     this.jobs = [];
 
     const pauseable = ['running', 'paused'];
-    const cancelable = ['running', 'paused', 'connected'];
+    const cancelable = ['running', 'paused'];
     this.fsm = {
       initial: 'created',
       error: (one, two, three) => {
-        throw `invalid state change ${one} ${two} ${three}`;
+        this.logger.error(`Invalid state change: ${one}, ${two}, ${three}`);
+        return false;
       },
       events: [
         /* eslint-disable no-multi-spaces */
@@ -48,7 +49,7 @@ class Jobs {
       ],
       callbacks: {
         onenterstate: (event, from, to) => {
-          console.log(`Job event ${event}: Transitioning from ${from} to ${to}.`);
+          this.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
         },
       },
     };
@@ -93,6 +94,39 @@ class Jobs {
     } catch (ex) {
       this.logger.error(`Jobs router setup error`, ex);
     }
+  }
+
+  /**
+   * Set a file id to a corresponding job
+   */
+  async setFile(jobId, fileId) {
+    this.logger.debug('heeeere!');
+    try {
+      this.logger.info('job id', jobId);
+      this.logger.info('file id', fileId);
+      this.logger.info('all the jobs', this.jobs);
+    } catch (ex) {
+      this.logger.error('fail', ex);
+    }
+  }
+
+  /**
+   * Turn a job object into a REST reply friendly object
+   */
+  jobToJson(job) {
+    return {
+      id: job.id,
+      state: job.fsm.current,
+    };
+  }
+
+  /**
+   * Turn an array of job objects into a REST reply friendly array of jobs
+   */
+  jobsToJson(jobs) {
+    return jobs.map((job) => {
+      return this.jobToJson(job);
+    });
   }
 }
 

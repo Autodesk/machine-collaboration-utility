@@ -7,8 +7,10 @@ const Promise = require(`bluebird`);
  * Handle all file upload requests for the Conductor + '/upload' endpoint
  */
 const uploadFile = (self) => {
+  // Populate this array with file objects for every file that is successfully uploaded
+  let uploadedFiles = [];
   self.router.post(
-    self.routeEndpoint + '/',
+    `${self.routeEndpoint}/`,
     convert(body({ multipart: true })),
     async (ctx) => {
       try {
@@ -25,19 +27,19 @@ const uploadFile = (self) => {
                 await Promise.map(
                   files[theFile],
                   async (file) => {
-                    await self.createFileObject(file);
+                    uploadedFiles.push(await self.createFileObject(file));
                   },
                   { concurrency: 4 }
                 );
               } else {
-                await self.createFileObject(files[theFile]);
+                uploadedFiles.push(await self.createFileObject(files[theFile]));
               }
             },
             { concurrency: 4 }
           );
           // Once the file is uploaded, then add it to the array of available files
           ctx.status = 201;
-          ctx.body = `File successfully uploaded`;
+          ctx.body = uploadedFiles;
         } else {
           ctx.body = `Error: No file was received.`;
           ctx.status = 404;
@@ -80,7 +82,7 @@ const deleteFile = (self) => {
               self.files.splice(i, 1);
             }
           }
-          ctx.body = `File deleted`;
+          ctx.body = { status: `File deleted` };
         }
       }
     } catch (ex) {

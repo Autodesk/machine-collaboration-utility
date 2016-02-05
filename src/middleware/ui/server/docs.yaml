@@ -198,6 +198,7 @@
           - "Jobs"
         summary: "Issue a command to a job"
         description: "The following are valid job commands:  \n
+          - setFile \n
           - start  \n
           - pause  \n
           - resume  \n
@@ -208,10 +209,21 @@
         produces:
           - application/json
         parameters:
+          - in: path
+            name: jobId
+            description: ID of the job that needs to be posted to
+            required: true
+            type: integer
+            format: int64
           - in: body
             name: command
             description: A job command
             required: true
+            type: string
+          - in: body
+            name: fileId
+            description: File to be assigned to job
+            required: false
             type: string
         responses:
           200:

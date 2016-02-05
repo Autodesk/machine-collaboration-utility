@@ -18,6 +18,8 @@ const src = {
   viewsMiddleware: `src/middleware/**/client/**/*.jade`,
   swaggerYaml: `src/middleware/**/*.yaml`,
   docs: `src/docs/**/*.*`,
+  tests: `src/middleware/**/test/test.js`,
+  testAssets: `src/middleware/**/test/**/*`,
 };
 
 const dest = {
@@ -27,6 +29,8 @@ const dest = {
   views: `dist/server/views`,
   docs: `dist/client/docs`,
   yaml: `dist/client/docs/middleware`,
+  src: `src/middleware/**/test/test.js`,
+  tests: `dist/tests`,
 };
 
 gulp.task(`build`, [
@@ -38,6 +42,7 @@ gulp.task(`build`, [
   `build-client-js-middleware`,
   `build-docs`,
   `build-doc-yaml`,
+  `build-tests`,
 ]);
 
 gulp.task(`watch`, () => {
@@ -70,7 +75,7 @@ gulp.task(`build-server-middleware`, () => {
   .pipe(sourcemaps.init())
 	.pipe(
     babel({
-      presets: [`es2015-node4`],
+      presets: [`es2015-node5`],
       plugins: [`transform-async-to-generator`],
     })
   )
@@ -130,6 +135,31 @@ gulp.task(`build-views-middleware`, () => {
     middlewarePath.dirname = middlewarePath.dirname.replace(`/client`, ``);
   }))
   .pipe(gulp.dest(dest.views));
+});
+
+gulp.task(`build-test-assets`, () => {
+  return gulp.src(src.testAssets)
+  .pipe(rename((testPath) => {
+    testPath.dirname = testPath.dirname.replace(`/test`, ``);
+  }))
+  .pipe(gulp.dest(dest.tests));
+});
+
+
+gulp.task(`build-tests`, [`build-test-assets`], () => {
+  return gulp.src(src.tests)
+  .pipe(sourcemaps.init())
+	.pipe(
+    babel({
+      presets: [`es2015-node5`],
+      plugins: [`transform-async-to-generator`],
+    })
+  )
+  .pipe(rename((testPath) => {
+    testPath.dirname = testPath.dirname.replace(`/test`, ``);
+  }))
+  .pipe(sourcemaps.write(`.`))
+  .pipe(gulp.dest(dest.tests));
 });
 
 gulp.task(`build-docs`, () => {
