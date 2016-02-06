@@ -1,6 +1,6 @@
 # Hydra-Print
 
-An es7 friendly 3D Printer Manager
+An es7 friendly Gcode Client
 
 The framework is built on top of
 - Koa 2
