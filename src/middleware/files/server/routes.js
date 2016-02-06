@@ -8,11 +8,11 @@ const Promise = require(`bluebird`);
  */
 const uploadFile = (self) => {
   // Populate this array with file objects for every file that is successfully uploaded
-  let uploadedFiles = [];
   self.router.post(
     `${self.routeEndpoint}/`,
     convert(body({ multipart: true })),
     async (ctx) => {
+      let uploadedFiles = [];
       try {
         const files = ctx.request.body.files;
 

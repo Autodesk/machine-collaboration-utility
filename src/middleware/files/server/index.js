@@ -16,6 +16,8 @@ class Files {
    * @param {string} routeEndpoint - The relative endpoint.
    */
   constructor(app, routeEndpoint) {
+    app.context.files = this; // External app reference variable
+
     this.app = app;
     this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
@@ -97,6 +99,12 @@ class Files {
 
   getFilepath(fileObject) {
     return this.uploadDir + `/` + fileObject.name.split(`.`)[0] + `_` + fileObject.id + `.` + fileObject.name.split(`.`)[1];
+  }
+
+  getFile(fileUuid) {
+    return this.files.find((file) => {
+      return file.id === fileUuid;
+    });
   }
 }
 
