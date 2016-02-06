@@ -15,6 +15,8 @@ class Jobs {
    * @param {string} routeEndpoint - The relative endpoint.
    */
   constructor(app, routeEndpoint) {
+    app.context.jobs = this; // External app reference variable
+
     this.app = app;
     this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
@@ -25,7 +27,7 @@ class Jobs {
     const cancelable = ['running', 'paused'];
     this.fsm = {
       initial: 'created',
-      error: (one, two, three) => {
+      error: (one, two) => {
         const errorMessage = `Invalid state change action "${one}". State at "${two}".`;
         this.logger.error(errorMessage);
         throw errorMessage;
@@ -75,6 +77,7 @@ class Jobs {
     const jobObject = {
       id: userUuid ? userUuid : await uuid.v1(),
       fsm: await StateMachine.create(this.fsm),
+      fileId: undefined,
     };
     this.jobs.push(jobObject);
     return jobObject;
@@ -98,26 +101,13 @@ class Jobs {
   }
 
   /**
-   * Set a file id to a corresponding job
-   */
-  async setFile(jobId, fileId) {
-    this.logger.debug('heeeere!');
-    try {
-      this.logger.info('job id', jobId);
-      this.logger.info('file id', fileId);
-      this.logger.info('all the jobs', this.jobs);
-    } catch (ex) {
-      this.logger.error('fail', ex);
-    }
-  }
-
-  /**
    * Turn a job object into a REST reply friendly object
    */
   jobToJson(job) {
     return {
       id: job.id,
       state: job.fsm.current,
+      fileId: job.fileId,
     };
   }
 

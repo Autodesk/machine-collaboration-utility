@@ -41,20 +41,21 @@ module.exports = function toDoListTests() {
     it('should assign a file to a job', async function (done) {
       // Upload a file
       const testFilePath = path.join(__dirname, `blah.txt`);
-      const file = await fs.createReadStream(testFilePath);
-      const formData = { file };
+      const fileStream = await fs.createReadStream(testFilePath);
+      const formData = { file: fileStream };
       const fileUploadParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/files`,
         formData,
       };
       const uploadResponse = JSON.parse(await request(fileUploadParams));
-      const fileId = uploadResponse[0].id;
+      const file = uploadResponse[0];
 
+      // Set the file to the job
       const requestParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/jobs/${job.id}/setFile`,
-        body: { fileId },
+        body: { fileId: file.id },
         json: true,
       };
       job = await request(requestParams);
@@ -64,23 +65,23 @@ module.exports = function toDoListTests() {
       done();
     });
 
-    it('should try to assign a second file to a job', async function (done) {
+    it('should fail if it trys to assign a second file to a job', async function (done) {
       // Upload a file
       const testFilePath = path.join(__dirname, `blah.txt`);
-      const file = await fs.createReadStream(testFilePath);
-      const formData = { file };
+      const fileStream = await fs.createReadStream(testFilePath);
+      const formData = { file: fileStream };
       const fileUploadParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/files`,
         formData,
       };
       const uploadResponse = JSON.parse(await request(fileUploadParams));
-      const fileId = uploadResponse[0].id;
+      const file = uploadResponse[0];
 
       const requestParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/jobs/${job.id}/setFile`,
-        body: { fileId },
+        body: { fileId: file.id },
         json: true,
       };
 
