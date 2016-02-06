@@ -33,7 +33,7 @@ const createJob = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for reading a single task
+ * Handle all logic at this endpoint for reading a single job
  */
 const getJob = (self) => {
   self.router.get(`${self.routeEndpoint}/:id`, async (ctx) => {
@@ -90,7 +90,8 @@ const setFile = (self) => {
         };
       }
     } catch (ex) {
-      ctx.body = { status: `Set file to job ${ctx.params.id} request error: ${ex}` };
+      ctx.body = {
+        status: `Set file to job ${ctx.params.id} request error: ${ex}` };
       ctx.status = 500;
     }
   });

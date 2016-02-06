@@ -19,11 +19,13 @@ module.exports = function toDoListTests() {
       should(!!job.state);
       done();
     });
+
     it('should have a job state of "created"', async function (done) {
       // TODO instead of referring to the job object, query the job again from the API
       should(job.state === `created`);
       done();
     });
+
     it('should retreive an array of existing jobs', async function (done) {
       const requestParams = {
         method: `GET`,
@@ -35,6 +37,7 @@ module.exports = function toDoListTests() {
       nJobs = jobs.length;
       done();
     });
+
     it('should assign a file to a job', async function (done) {
       // Upload a file
       const testFilePath = path.join(__dirname, `blah.txt`);
@@ -59,6 +62,37 @@ module.exports = function toDoListTests() {
       should(!!job.fileId);
       should(job.state).equal(`ready`);
       done();
+    });
+
+    it('should try to assign a second file to a job', async function (done) {
+      // Upload a file
+      const testFilePath = path.join(__dirname, `blah.txt`);
+      const file = await fs.createReadStream(testFilePath);
+      const formData = { file };
+      const fileUploadParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/files`,
+        formData,
+      };
+      const uploadResponse = JSON.parse(await request(fileUploadParams));
+      const fileId = uploadResponse[0].id;
+
+      const requestParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/jobs/${job.id}/setFile`,
+        body: { fileId },
+        json: true,
+      };
+
+      try {
+        const res = await request(requestParams);
+        // request should fail
+        should(0).equal(1);
+        done();
+      } catch (ex) {
+        should(!!ex.error);
+        done();
+      }
     });
   });
 };

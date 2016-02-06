@@ -26,8 +26,9 @@ class Jobs {
     this.fsm = {
       initial: 'created',
       error: (one, two, three) => {
-        this.logger.error(`Invalid state change: ${one}, ${two}, ${three}`);
-        return false;
+        const errorMessage = `Invalid state change action "${one}". State at "${two}".`;
+        this.logger.error(errorMessage);
+        throw errorMessage;
       },
       events: [
         /* eslint-disable no-multi-spaces */
