@@ -119,6 +119,74 @@ class Jobs {
       return this.jobToJson(job);
     });
   }
+
+  /*
+   * Start processing a job
+   */
+  async startJob(job) {
+    try {
+      job.fsm.start();
+      await this.app.context.client.startJob();
+      job.fsm.startDone();
+      return this.jobToJson(job);
+    } catch (ex) {
+      job.fsm.startFail();
+      const errorMessage = `Job start failure ${ex}`;
+      this.logger.error(errorMessage);
+      return errorMessage;
+    }
+  }
+
+  /*
+   * Pause processing a job
+   */
+  async pauseJob(job) {
+    try {
+      job.fsm.pause();
+      await this.app.context.client.pauseJob();
+      job.fsm.pauseDone();
+      return this.jobToJson(job);
+    } catch (ex) {
+      job.fsm.pauseFail();
+      const errorMessage = `Job pause failure ${ex}`;
+      this.logger.error(errorMessage);
+      return errorMessage;
+    }
+  }
+
+  /*
+   * Resume processing a job
+   */
+  async resumeJob(job) {
+    try {
+      job.fsm.resume();
+      await this.app.context.client.resumeJob();
+      job.fsm.resumeDone();
+      return this.jobToJson(job);
+    } catch (ex) {
+      job.fsm.resumeFail();
+      const errorMessage = `Job resyne failure ${ex}`;
+      this.logger.error(errorMessage);
+      return errorMessage;
+    }
+  }
+
+  /*
+   * Stop processing a job
+   */
+  async stopJob(job) {
+    try {
+      job.fsm.stop();
+      await this.app.context.client.stopJob();
+      job.fsm.stopDone();
+      return this.jobToJson(job);
+    } catch (ex) {
+      job.fsm.stopFail();
+      const errorMessage = `Job stop failure ${ex}`;
+      this.logger.error(errorMessage);
+      return errorMessage;
+    }
+  }
 }
 
 module.exports = Jobs;

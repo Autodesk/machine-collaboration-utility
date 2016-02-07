@@ -3,25 +3,26 @@ const uuid = require(`node-uuid`);
 const Promise = require(`bluebird`);
 const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 
-const gcodeClientRoutes = require(`./routes`);
+const clientRoutes = require(`./routes`);
 
 /**
- * This is a Machine class.
+ * This is a Machine Client class.
  */
-class GcodeClient {
+class Client {
   /**
-   * A GcodeClient server class
+   * A client server class
    * @param {Object} app - The parent Koa app.
    * @param {string} routeEndpoint - The relative endpoint.
    */
   constructor(app, routeEndpoint) {
-    app.context.gcodeClient = this; // External app reference variable
+    app.context.client = this; // External app reference variable
 
     this.app = app;
     this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
     this.router = router;
     this.virtual = false;
+
     this.fsm = StateMachine.create({
       initial: 'unavailable',
       error: (one, two) => {
@@ -40,7 +41,9 @@ class GcodeClient {
         { name: 'start',              from: 'connected',       to: 'startingJob'     },
         { name: 'startFail',          from: 'startingJob',     to: 'connected'       },
         { name: 'startDone',          from: 'startingJob',     to: 'processingJob'   },
-        { name: 'stop',               from: 'processingJob',   to: 'connected'       },
+        { name: 'stop',               from: 'processingJob',   to: 'stopping'        },
+        { name: 'stopDone',           from: 'stopping',        to: 'connected'       },
+        { name: 'stopFail',           from: 'stopping',        to: 'connected'       },
         { name: 'jobToGcode',         from: 'processingJob',   to: 'processingGcode' },
         { name: 'jobGcodeFail',       from: 'processingGcode', to: 'processingJob'   },
         { name: 'jobGcodeDone',       from: 'processingGcode', to: 'processingJob'   },
@@ -55,7 +58,7 @@ class GcodeClient {
       ],
       callbacks: {
         onenterstate: (event, from, to) => {
-          this.logger.info(`GCode Client event ${event}: Transitioning from ${from} to ${to}.`);
+          this.logger.info(`Client event ${event}: Transitioning from ${from} to ${to}.`);
         },
       },
     });
@@ -67,16 +70,16 @@ class GcodeClient {
   async initialize() {
     try {
       await this.setupRouter();
-      this.logger.info(`Gcode Client instance initialized`);
+      this.logger.info(`Client instance initialized`);
     } catch (ex) {
-      this.logger.error(`Gcode Client initialization error`, ex);
+      this.logger.error(`Client initialization error`, ex);
     }
   }
 
   /*
-   * get a json friendly description of the Gcode Client
+   * get a json friendly description of the Client
    */
-  getGcodeClient() {
+  getClient() {
     return {
       state: this.fsm.current,
     };
@@ -84,46 +87,72 @@ class GcodeClient {
 
   async processCommand(command) {
     switch (command) {
+      // Create a virtual printer
+      // If the virtual printer is already created, just return the printer object
       case `createVirtualClient`:
-        await this.fsm.unplug();
-        this.virtual = true;
-        await this.fsm.detect();
-        await this.fsm.detectDone();
-        return this.getGcodeClient();
+        if (!this.virtual) {
+          this.virtual = true;
+          await this.fsm.detect();
+          await this.fsm.detectDone();
+        }
+        return this.getClient();
       case `destroyVirtualClient`:
         if (this.virtual) {
           await this.fsm.unplug();
           this.virtual = false;
-        } else {
-          throw `No virtual client available to destroy`;
         }
-        return this.getGcodeClient();
+        return this.getClient();
       case `connect`:
         if (this.virtual) {
           await this.fsm.connect();
           await this.fsm.connectDone();
         } else {
-          throw `Command only supported for virtual gcode client`;
+          throw `Command only supported for virtual client`;
         }
-        return this.getGcodeClient();
+        return this.getClient();
       case `disconnect`:
         if (this.virtual) {
           await this.fsm.disconnect();
           await this.fsm.disconnectDone();
         } else {
-          throw `Command only supported for virtual gcode client`;
+          throw `Command only supported for virtual client`;
         }
-        return this.getGcodeClient();
+        return this.getClient();
       default:
         throw `Command "${command}" is not supported.`;
     }
   }
 
-  async startJob() {
+  async startJob(job) {
     await this.fsm.start();
+    await Promise.delay(500);
     await this.fsm.startDone();
-    await Promise.delay(2000);
   }
+
+  async pauseJob(job) {
+    if (this.fsm.current !== `connected`) {
+      await this.fsm.stop();
+      await Promise.delay(500);
+      await this.fsm.stopDone();
+    }
+  }
+
+  async resumeJob(job) {
+    if (this.fsm.current !== `processingJob`) {
+      await this.fsm.start();
+      await Promise.delay(500);
+      await this.fsm.startDone();
+    }
+  }
+
+  async stopJob(job) {
+    if (this.fsm.current !== `connected`) {
+      await this.fsm.stop();
+      await Promise.delay(500);
+      await this.fsm.stopDone();
+    }
+  }
+
 
   /**
    * Set up the client's instance's router
@@ -132,15 +161,15 @@ class GcodeClient {
     try {
       // Populate this.router with all routes
       // Then register all routes with the app
-      await gcodeClientRoutes(this);
+      await clientRoutes(this);
 
       // Register all router routes with the app
       this.app.use(this.router.routes()).use(this.router.allowedMethods());
-      this.logger.info(`Gcode Client router setup complete`);
+      this.logger.info(`Client router setup complete`);
     } catch (ex) {
-      this.logger.error(`Gcode Client router setup error`, ex);
+      this.logger.error(`Client router setup error`, ex);
     }
   }
 }
 
-module.exports = GcodeClient;
+module.exports = Client;

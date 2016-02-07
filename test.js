@@ -7,7 +7,7 @@ const winston = require('winston');
 
 const tests = [];
 const config = require(`./dist/server/config`);
-console.log('current directory', __dirname);
+
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);
 const logger = new (winston.Logger)({
@@ -17,7 +17,7 @@ const logger = new (winston.Logger)({
     new (winston.transports.File)({ filename }),
   ],
 });
-logger.info(`test initialized`);
+logger.info(`Test initialized.`);
 
 // Collect the test file from each middleware module
 walk.walkSync('./dist/tests', (basedir, filename) => {

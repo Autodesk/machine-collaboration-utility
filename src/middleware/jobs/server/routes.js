@@ -135,11 +135,20 @@ const processJobCommand = (self) => {
       }
 
       switch (command) {
-        case `foo`:
-          console.log(`yooooo`);
+        case `start`:
+          ctx.body = await self.startJob(job);
+          break;
+        case `pause`:
+          ctx.body = await self.pauseJob(job);
+          break;
+        case `resume`:
+          ctx.body = await self.resumeJob(job);
+          break;
+        case `stop`:
+          ctx.body = await self.stopJob(job);
           break;
         default:
-          console.log(`eyyy`);
+          console.log(`default... eyyy`);
       }
     } catch (ex) {
       ctx.body = { status: `Job ${ctx.params.id} command request error: ${ex}` };

@@ -14,7 +14,7 @@ const Sequelize = require('sequelize');
 // Import custom middleware libraries
 const Files = require('./middleware/files');
 const Jobs = require('./middleware/jobs');
-const GcodeClient = require('./middleware/gcodeClient');
+const Client = require('./middleware/client');
 const UI = require('./middleware/ui');
 const config = require('./config');
 
@@ -74,8 +74,8 @@ try {
     const jobs = new Jobs(app, `${apiVersion}/jobs`);
     await jobs.initialize();
 
-    const gcodeClient = new GcodeClient(app, `${apiVersion}/client`);
-    await gcodeClient.initialize();
+    const client = new Client(app, `${apiVersion}/client`);
+    await client.initialize();
 
     const ui = new UI(app, ``);
     await ui.initialize();
