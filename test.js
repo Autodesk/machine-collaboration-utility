@@ -2,9 +2,22 @@
 'use strict';
 const supertest = require(`supertest`);
 const path = require(`path`);
-const walk = require('fs-walk');
-const tests = [];
+const walk = require(`fs-walk`);
+const winston = require('winston');
 
+const tests = [];
+const config = require(`./dist/server/config`);
+console.log('current directory', __dirname);
+// Setup logger
+const filename = path.join(__dirname, `./${config.testLogFileName}`);
+const logger = new (winston.Logger)({
+  level: 'debug',
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename }),
+  ],
+});
+logger.info(`test initialized`);
 
 // Collect the test file from each middleware module
 walk.walkSync('./dist/tests', (basedir, filename) => {
@@ -17,6 +30,10 @@ walk.walkSync('./dist/tests', (basedir, filename) => {
 // Run each middleware test
 describe('Server Tests', function middlewareTest() {
   for (let i = 0; i < tests.length; i++) {
-    tests[i]();
+    try {
+      tests[i]();
+    } catch (ex) {
+      logger.error(ex);
+    }
   }
 });
