@@ -23,14 +23,13 @@ class Jobs {
     this.router = router;
     this.jobs = [];
 
-    const pauseable = ['running', 'paused'];
     const cancelable = ['running', 'paused'];
     this.fsm = {
       initial: 'created',
-      error: (one, two) => {
-        const errorMessage = `Invalid state change action "${one}". State at "${two}".`;
-        this.logger.error(errorMessage);
-        throw errorMessage;
+      error: (eventName, from, to, args, errorCode, errorMessage) => {
+        const fsmError = `Invalid state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
+        this.logger.error(fsmError);
+        throw fsmError;
       },
       events: [
         /* eslint-disable no-multi-spaces */
@@ -40,10 +39,12 @@ class Jobs {
         { name: 'start',       from: 'ready',       to: 'starting'    },
         { name: 'startFail',   from: 'starting',    to: 'ready'       },
         { name: 'startDone',   from: 'starting',    to: 'running'     },
-        { name: 'pause',       from: pauseable,     to: 'pausing'     },
+        { name: 'pause',       from: 'running',     to: 'pausing'     },
+        { name: 'pause',       from: 'paused',      to: 'paused'      },
         { name: 'pauseFail',   from: 'pausing',     to: 'running'     },
         { name: 'pauseDone',   from: 'pausing',     to: 'paused'      },
-        { name: 'resume',      from: pauseable,     to: 'resuming'    },
+        { name: 'resume',      from: 'paused',      to: 'resuming'    },
+        { name: 'resume',      from: 'running',     to: 'running'    },
         { name: 'resumeFail',  from: 'resuming',    to: 'paused'      },
         { name: 'resumeDone',  from: 'resuming',    to: 'running'     },
         { name: 'complete',    from: 'running',     to: 'complete'    },
@@ -126,14 +127,12 @@ class Jobs {
   async startJob(job) {
     try {
       job.fsm.start();
-      await this.app.context.client.startJob();
+      await this.app.context.bot.startJob(job);
       job.fsm.startDone();
-      return this.jobToJson(job);
     } catch (ex) {
       job.fsm.startFail();
       const errorMessage = `Job start failure ${ex}`;
       this.logger.error(errorMessage);
-      return errorMessage;
     }
   }
 
@@ -142,15 +141,14 @@ class Jobs {
    */
   async pauseJob(job) {
     try {
-      job.fsm.pause();
-      await this.app.context.client.pauseJob();
+      const eventRes = job.fsm.pause();
+      console.log('Event response:', eventRes);
+      await this.app.context.bot.pauseJob();
       job.fsm.pauseDone();
-      return this.jobToJson(job);
     } catch (ex) {
       job.fsm.pauseFail();
       const errorMessage = `Job pause failure ${ex}`;
       this.logger.error(errorMessage);
-      return errorMessage;
     }
   }
 
@@ -160,14 +158,12 @@ class Jobs {
   async resumeJob(job) {
     try {
       job.fsm.resume();
-      await this.app.context.client.resumeJob();
+      await this.app.context.bot.resumeJob();
       job.fsm.resumeDone();
-      return this.jobToJson(job);
     } catch (ex) {
       job.fsm.resumeFail();
       const errorMessage = `Job resyne failure ${ex}`;
       this.logger.error(errorMessage);
-      return errorMessage;
     }
   }
 
@@ -177,14 +173,12 @@ class Jobs {
   async stopJob(job) {
     try {
       job.fsm.stop();
-      await this.app.context.client.stopJob();
+      await this.app.context.bot.stopJob();
       job.fsm.stopDone();
-      return this.jobToJson(job);
     } catch (ex) {
       job.fsm.stopFail();
       const errorMessage = `Job stop failure ${ex}`;
       this.logger.error(errorMessage);
-      return errorMessage;
     }
   }
 }

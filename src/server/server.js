@@ -7,6 +7,7 @@ const http = require(`http`);
 
 const debugInstance = debug(`demo:server`);
 const server = http.createServer(app.callback());
+
 const config = require(`./config`);
 
 /**

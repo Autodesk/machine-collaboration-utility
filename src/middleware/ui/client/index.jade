@@ -1,0 +1,9 @@
+extends ../layout
+
+block content
+  p Hardware State: 
+    span#hardwareState= clientState
+
+  script(src='/js/vendor/jquery.min.js')
+  script(src='/socket.io/socket.io.js')
+  script(src='/js/ui/client.js')

@@ -70,7 +70,7 @@ const deleteFile = (self) => {
         ctx.status = 404;
         ctx.body = { error: `File ${fileId} not found` };
       } else {
-        const filePath = self.getFilepath(file);
+        const filePath = self.getFilePath(file);
         const fileExists = await fs.exists(filePath);
         if (fileExists) {
           // Delete the file

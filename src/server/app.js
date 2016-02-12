@@ -14,7 +14,7 @@ const Sequelize = require('sequelize');
 // Import custom middleware libraries
 const Files = require('./middleware/files');
 const Jobs = require('./middleware/jobs');
-const Client = require('./middleware/client');
+const Bot = require('./middleware/bot');
 const UI = require('./middleware/ui');
 const config = require('./config');
 
@@ -74,8 +74,8 @@ try {
     const jobs = new Jobs(app, `${apiVersion}/jobs`);
     await jobs.initialize();
 
-    const client = new Client(app, `${apiVersion}/client`);
-    await client.initialize();
+    const bot = new Bot(app, `${apiVersion}/bot`);
+    await bot.initialize();
 
     const ui = new UI(app, ``);
     await ui.initialize();

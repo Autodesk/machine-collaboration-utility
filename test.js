@@ -29,6 +29,7 @@ walk.walkSync('./dist/tests', (basedir, filename) => {
 
 // Run each middleware test
 describe('Server Tests', function middlewareTest() {
+  this.timeout(config.virtualDelay * 4);
   for (let i = 0; i < tests.length; i++) {
     try {
       tests[i]();

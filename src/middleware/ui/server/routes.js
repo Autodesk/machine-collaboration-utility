@@ -13,8 +13,21 @@ const getDocs = (self) => {
   });
 };
 
+/**
+ * Render the app
+ */
+const getApp = (self) => {
+  self.router.get(self.routeEndpoint, async (ctx) => {
+    await ctx.render(`ui/index`, {
+      title: `Hydra-Print`,
+      clientState: self.app.context.bot.getBot().state,
+    });
+  });
+};
+
 const uiRoutes = (self) => {
   getDocs(self);
+  getApp(self);
 };
 
 module.exports = uiRoutes;

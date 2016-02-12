@@ -4,9 +4,10 @@ const request = require(`request-promise`);
 const fs = require(`fs-promise`);
 const path = require(`path`);
 const Promise = require(`bluebird`);
+const config = require(`../../server/config`);
 
-module.exports = function toDoListTests() {
-  describe('Gcode Client unit test', function() {
+module.exports = function botTests() {
+  describe('Bot unit test', function() {
     let job;
 
     it('should setup a job and a file', async function(done) {
@@ -52,10 +53,22 @@ module.exports = function toDoListTests() {
     it('should initialize a virtual printer', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/client/`,
-        body: { command: `createVirtualClient` },
+        uri: `http://localhost:9000/v1/bot/`,
+        body: { command: `createVirtualBot` },
         json: true,
       };
+      const res = await request(requestParams);
+      should(res.state).equal(`detecting`);
+      done();
+    });
+
+    it('should transition from detecting to ready', async function (done) {
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/bot/`,
+        json: true,
+      };
+      await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
       const res = await request(requestParams);
       should(res.state).equal(`ready`);
       done();
@@ -64,8 +77,8 @@ module.exports = function toDoListTests() {
     it('initializing a virtual printer should be idempotent', async function(done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/client/`,
-        body: { command: `createVirtualClient` },
+        uri: `http://localhost:9000/v1/bot/`,
+        body: { command: `createVirtualBot` },
         json: true,
       };
       const res = await request(requestParams);
@@ -76,8 +89,8 @@ module.exports = function toDoListTests() {
     it('should destroy a virtual printer', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/client/`,
-        body: { command: `destroyVirtualClient` },
+        uri: `http://localhost:9000/v1/bot/`,
+        body: { command: `destroyVirtualBot` },
         json: true,
       };
       const res = await request(requestParams);
@@ -88,8 +101,8 @@ module.exports = function toDoListTests() {
     it('destroying a virtual printer should be idempotent', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/client/`,
-        body: { command: `destroyVirtualClient` },
+        uri: `http://localhost:9000/v1/bot/`,
+        body: { command: `destroyVirtualBot` },
         json: true,
       };
       const res = await request(requestParams);
@@ -100,10 +113,22 @@ module.exports = function toDoListTests() {
     it('should initialize a virtual printer, again', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/client/`,
-        body: { command: `createVirtualClient` },
+        uri: `http://localhost:9000/v1/bot/`,
+        body: { command: `createVirtualBot` },
         json: true,
       };
+      const res = await request(requestParams);
+      should(res.state).equal(`detecting`);
+      done();
+    });
+
+    it('should transition from detecting to ready, again', async function (done) {
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/bot/`,
+        json: true,
+      };
+      await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
       const res = await request(requestParams);
       should(res.state).equal(`ready`);
       done();
@@ -112,8 +137,20 @@ module.exports = function toDoListTests() {
     it('should connect', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/client/`,
+        uri: `http://localhost:9000/v1/bot/`,
         body: { command: `connect` },
+        json: true,
+      };
+      const res = await request(requestParams);
+      should(res.state).equal(`connecting`);
+      done();
+    });
+
+    it('should finish connecting', async function (done) {
+      await Promise.delay(config.virtualDelay);
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/bot/`,
         json: true,
       };
       const res = await request(requestParams);
@@ -129,6 +166,18 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const res = await request(requestParams);
+      should(res.state).equal(`starting`);
+      done();
+    });
+
+    it('should be running a job', async function (done) {
+      await Promise.delay(config.virtualDelay); // wait for bot job to start
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        json: true,
+      };
+      const res = await request(requestParams);
       should(res.state).equal(`running`);
       done();
     });
@@ -138,6 +187,18 @@ module.exports = function toDoListTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/jobs/${job.id}`,
         body: { command: `pause` },
+        json: true,
+      };
+      const res = await request(requestParams);
+      should(res.state).equal(`pausing`);
+      done();
+    });
+
+    it('should become paused', async function (done) {
+      await Promise.delay(config.virtualDelay * 2); // Wait for bot to pause
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/jobs/${job.id}`,
         json: true,
       };
       const res = await request(requestParams);
@@ -162,6 +223,18 @@ module.exports = function toDoListTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/jobs/${job.id}`,
         body: { command: `resume` },
+        json: true,
+      };
+      const res = await request(requestParams);
+      should(res.state).equal(`resuming`);
+      done();
+    });
+
+    it('should become resumed', async function (done) {
+      await Promise.delay(config.virtualDelay * 2); // Wait for bot to resume
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/jobs/${job.id}`,
         json: true,
       };
       const res = await request(requestParams);

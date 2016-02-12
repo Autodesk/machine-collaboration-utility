@@ -43,7 +43,7 @@ const getJob = (self) => {
         return inJob.id === jobId;
       });
       if (job) {
-        ctx.body = job;
+        ctx.body = self.jobToJson(job);
       } else {
         ctx.status = 404;
         ctx.body = {
@@ -136,19 +136,24 @@ const processJobCommand = (self) => {
 
       switch (command) {
         case `start`:
-          ctx.body = await self.startJob(job);
+          self.startJob(job);
+          ctx.body = await self.jobToJson(job);
           break;
         case `pause`:
-          ctx.body = await self.pauseJob(job);
+          self.pauseJob(job);
+          ctx.body = await self.jobToJson(job);
           break;
         case `resume`:
-          ctx.body = await self.resumeJob(job);
+          self.resumeJob(job);
+          ctx.body = await self.jobToJson(job);
           break;
         case `stop`:
-          ctx.body = await self.stopJob(job);
+          self.stopJob(job);
+          ctx.body = await self.jobToJson(job);
           break;
         default:
-          console.log(`default... eyyy`);
+          const errorMessage = `Command ${command} is not supported`;
+          throw errorMessage;
       }
     } catch (ex) {
       ctx.body = { status: `Job ${ctx.params.id} command request error: ${ex}` };

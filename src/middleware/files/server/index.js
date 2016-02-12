@@ -97,7 +97,7 @@ class Files {
     return fileObject;
   }
 
-  getFilepath(fileObject) {
+  getFilePath(fileObject) {
     return this.uploadDir + `/` + fileObject.name.split(`.`)[0] + `_` + fileObject.id + `.` + fileObject.name.split(`.`)[1];
   }
 
