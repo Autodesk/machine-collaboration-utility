@@ -1,14 +1,15 @@
 const router = require(`koa-router`)();
 const uuid = require(`node-uuid`);
 const Promise = require(`bluebird`);
-const LineByLineReader = require(`line-by-line`);
+const LineByLineReader = Promise.promisifyAll(require(`line-by-line`));
 const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 const fs = require(`fs`);
 const SerialPort = require(`serialport`).SerialPort;
-
+const FakeMarlin = require(`./fakeMarlin`);
 
 const config = require(`../../config`);
 const botRoutes = require(`./routes`);
+
 /**
  * This is a Bot class representing hardware that can process jobs.
  */
@@ -26,6 +27,8 @@ class Bot {
     this.routeEndpoint = routeEndpoint;
     this.router = router;
     this.virtual = false;
+    this.fakePort = new FakeMarlin(app);
+    this.currentJob = undefined;
 
     // File reading assets
     this.lr = undefined; // buffered file line reader
@@ -122,6 +125,7 @@ class Bot {
   }
 
   async startJob(job) {
+    this.currentJob = job;
     const self = this;
     await this.fsm.start();
     const filesApp = this.app.context.files;
@@ -129,7 +133,7 @@ class Bot {
     const filePath = filesApp.getFilePath(theFile);
     this.lr = new LineByLineReader(filePath);
     this.currentLine = 0;
-    this.lr.pause(); // redundant
+    await this.lr.pause(); // redundant
     // open the file
     // start reading line by line...
 
@@ -141,7 +145,7 @@ class Bot {
     this.lr.on('line', async (line) => {
       // pause the line reader immediately
       // we will resume it as soon as the line is done processing
-      self.lr.pause();
+      await self.lr.pause();
       self.currentLine += 1;
 
       // We only care about the info prior to the first semicolon
@@ -149,11 +153,14 @@ class Bot {
 
       if (strippedLine.length <= 0) {
         // If the line is blank, move on to the next line
-        this.lr.resume();
+        await self.lr.resume();
       } else {
         console.log('a line!', strippedLine);
-        await Promise.delay(50);
-        self.lr.resume();
+        await self.fakePort.write(strippedLine);
+        console.log('not gunna write a line', self.currentJob.fsm.current);
+        if (self.currentJob.fsm.current === `running`) {
+          await self.lr.resume();
+        }
         // this.mQueue.queueCommands({
         //   code: strippedLine,
         //   postCallback: () => {
@@ -212,14 +219,14 @@ class Bot {
     });
 
     await fsPromise;
-    this.lr.resume();
+    await this.lr.resume();
     await this.fsm.startDone();
   }
 
   async pauseJob(job) {
     if (this.fsm.current !== `connected`) {
       await this.fsm.stop();
-      await Promise.delay(config.virtualDelay);
+      await this.lr.pause();
       await this.fsm.stopDone();
     }
   }
@@ -227,7 +234,7 @@ class Bot {
   async resumeJob(job) {
     if (this.fsm.current !== `processingJob`) {
       await this.fsm.start();
-      await Promise.delay(config.virtualDelay);
+      await this.lr.resume();
       await this.fsm.startDone();
     }
   }
