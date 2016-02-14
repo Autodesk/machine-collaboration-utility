@@ -157,24 +157,18 @@ class Bot {
       } else {
         console.log('a line!', strippedLine);
         await self.fakePort.write(strippedLine);
-        console.log('not gunna write a line', self.currentJob.fsm.current);
         if (self.currentJob.fsm.current === `running`) {
           await self.lr.resume();
         }
-        // this.mQueue.queueCommands({
-        //   code: strippedLine,
-        //   postCallback: () => {
-        //     this.mPercentComplete = parseInt(this.currentLine / this.numLines * 100);
-        //     if (this.getState() === Status.State.PRINTING) {
-        //       this.lr.resume();
-        //     }
-        //   },
-        // });
       }
     });
 
-    this.lr.on('end', () => {
+    this.lr.on('end', async () => {
+      await this.fsm.stop();
+      await this.lr.close();
       this.logger.info('completed reading file,', filePath, 'is closed now.');
+      await this.fsm.stopDone();
+      await this.currentJob.fsm.complete();
       //
       // // Turn off the printer and put it into parked position
       // this.mQueue.queueCommands(this.mCompleteCommands(this));
@@ -242,7 +236,8 @@ class Bot {
   async stopJob(job) {
     if (this.fsm.current !== `connected`) {
       await this.fsm.stop();
-      await Promise.delay(config.virtualDelay);
+      await this.lr.close();
+      this.lr = undefined;
       await this.fsm.stopDone();
     }
   }

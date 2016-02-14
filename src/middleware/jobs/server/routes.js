@@ -78,8 +78,9 @@ const setFile = (self) => {
         job.fsm.setFile();
       }
       // Find the File
+      let fileId
       try {
-        const fileId = ctx.request.body.fileId;
+        fileId = ctx.request.body.fileId;
         if (fileId) {
           job.fileId = fileId;
           ctx.body = self.jobToJson(job);
@@ -88,6 +89,7 @@ const setFile = (self) => {
         }
         file = self.app.context.files.getFile(fileId);
       } catch (ex) {
+        self.logger.error(`Error setting file ${fileId} to job ${job.id}`);
         job.fsm.setFileFail();
         ctx.status = 405;
         ctx.body = { error: ex };
@@ -99,6 +101,7 @@ const setFile = (self) => {
         await job.fsm.setFileDone();
         ctx.body = self.jobToJson(job);
       } catch (ex) {
+        self.logger.error(`Error setting file ${fileId} to job ${job.id}: ${ex}`);
         job.fsm.setFileFail();
         ctx.body = { status: `Set file to job ${ctx.params.id} request error: ${ex}` };
         ctx.status = 500;
@@ -136,6 +139,7 @@ const processJobCommand = (self) => {
 
       switch (command) {
         case `start`:
+          // TODO provide feedback if printer is unavailable, before starting the job
           self.startJob(job);
           ctx.body = await self.jobToJson(job);
           break;
@@ -147,8 +151,8 @@ const processJobCommand = (self) => {
           self.resumeJob(job);
           ctx.body = await self.jobToJson(job);
           break;
-        case `stop`:
-          self.stopJob(job);
+        case `cancel`:
+          self.cancelJob(job);
           ctx.body = await self.jobToJson(job);
           break;
         default:

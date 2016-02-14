@@ -22,7 +22,7 @@ module.exports = function botTests() {
       should(job.state).equal(`created`);
 
       // Upload a file
-      const testFilePath = path.join(__dirname, `wait.gcode`);
+      const testFilePath = path.join(__dirname, `jibberish.gcode`);
       const fileStream = await fs.createReadStream(testFilePath);
       const formData = { file: fileStream };
       const fileParams = {
@@ -251,6 +251,32 @@ module.exports = function botTests() {
       };
       const res = await request(requestParams);
       should(res.state).equal(`running`);
+      done();
+    });
+
+    it('should cancel a job', async function (done) {
+      this.timeout(10000);
+      await Promise.delay(5000);
+      const requestParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        body: { command: `cancel` },
+        json: true,
+      };
+      const res = await request(requestParams);
+      should(res.state).equal(`canceling`);
+      done();
+    });
+
+    it('should become cancelled', async function (done) {
+      await Promise.delay(config.virtualDelay * 2); // Wait for bot to resume
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        json: true,
+      };
+      const res = await request(requestParams);
+      should(res.state).equal(`canceled`);
       done();
     });
   });

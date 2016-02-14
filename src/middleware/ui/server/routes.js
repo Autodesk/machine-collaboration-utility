@@ -21,6 +21,7 @@ const getApp = (self) => {
     await ctx.render(`ui/index`, {
       title: `Hydra-Print`,
       clientState: self.app.context.bot.getBot().state,
+      jobs: self.app.context.jobs.getJobs(),
     });
   });
 };

@@ -3,6 +3,11 @@ extends ../layout
 block content
   p Hardware State: 
     span#hardwareState= clientState
+  div#jobs
+    each job in jobs
+      div(id = 'job_' + job.id)
+        p ID: !{job.id} State: 
+          span(id = 'job_' + job.id + '_state') !{job.state}
 
   script(src='/js/vendor/jquery.min.js')
   script(src='/socket.io/socket.io.js')

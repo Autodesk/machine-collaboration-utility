@@ -1,7 +1,7 @@
 const router = require(`koa-router`)();
 const uuid = require(`node-uuid`);
 const Promise = require(`bluebird`);
-const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
+const StateMachine = Promise.promisifyAll(require(`./stateMachine`));
 
 const jobsRouter = require(`./routes`);
 
@@ -22,9 +22,30 @@ class Jobs {
     this.routeEndpoint = routeEndpoint;
     this.router = router;
     this.jobs = [];
+  }
+
+  /**
+   * initialize the jobs endpoint
+   */
+  async initialize() {
+    try {
+      await this.setupRouter();
+      this.logger.info(`Jobs instance initialized`);
+    } catch (ex) {
+      this.logger.error(`Jobs initialization error`, ex);
+    }
+  }
+
+  /**
+   * Create a job object
+   */
+  async createJobObject(userUuid) {
+    let jobObject;
 
     const cancelable = ['running', 'paused'];
-    this.fsm = {
+    const id = userUuid ? userUuid : await uuid.v1();
+    const fsm = {
+      id,
       initial: 'created',
       error: (eventName, from, to, args, errorCode, errorMessage) => {
         const fsmError = `Invalid state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
@@ -44,42 +65,35 @@ class Jobs {
         { name: 'pauseFail',   from: 'pausing',     to: 'running'     },
         { name: 'pauseDone',   from: 'pausing',     to: 'paused'      },
         { name: 'resume',      from: 'paused',      to: 'resuming'    },
-        { name: 'resume',      from: 'running',     to: 'running'    },
+        { name: 'resume',      from: 'running',     to: 'running'     },
         { name: 'resumeFail',  from: 'resuming',    to: 'paused'      },
         { name: 'resumeDone',  from: 'resuming',    to: 'running'     },
         { name: 'complete',    from: 'running',     to: 'complete'    },
-        { name: 'cancel',      from: cancelable,    to: 'canceled'    },
+        { name: 'cancel',      from: cancelable,    to: 'canceling'  },
+        { name: 'cancelFail',  from: 'canceling',  to: 'canceled'    },
+        { name: 'cancelDone',  from: 'canceling',  to: 'canceled'    },
         /* eslint-enable no-multi-spaces */
       ],
       callbacks: {
         onenterstate: (event, from, to) => {
           this.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
+          this.app.io.emit(`jobEvent`, { id, state: to });
         },
       },
     };
-  }
 
-  /**
-   * initialize the jobs endpoint
-   */
-  async initialize() {
-    try {
-      await this.setupRouter();
-      this.logger.info(`Jobs instance initialized`);
-    } catch (ex) {
-      this.logger.error(`Jobs initialization error`, ex);
-    }
-  }
-
-  /**
-   * Create a job object
-   */
-  async createJobObject(userUuid) {
-    const jobObject = {
-      id: userUuid ? userUuid : await uuid.v1(),
-      fsm: await StateMachine.create(this.fsm),
+    jobObject = {
+      id,
+      fsm: await StateMachine.create(fsm),
       fileId: undefined,
     };
+
+    // injecting the fsm callback after the fsm object is created to create a job reference within the socket event
+    // jobObject.fsm.callbacks.onenterstate = (event, from, to) => {
+    //   this.app.io.emit(`jobEvent`, jobObject);
+    //   this.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
+    // };
+
     this.jobs.push(jobObject);
     return jobObject;
   }
@@ -119,6 +133,13 @@ class Jobs {
     return jobs.map((job) => {
       return this.jobToJson(job);
     });
+  }
+
+  /**
+   * A generic call to retreive a json friendly list of jobs
+   */
+  getJobs() {
+    return this.jobsToJson(this.jobs);
   }
 
   /*
@@ -170,15 +191,15 @@ class Jobs {
   /*
    * Stop processing a job
    */
-  async stopJob(job) {
+  async cancelJob(job) {
     try {
-      job.fsm.stop();
-      await this.app.context.bot.stopJob();
-      job.fsm.stopDone();
+      await job.fsm.cancel();
+      await this.app.context.bot.stopJob(job);
+      await job.fsm.cancelDone();
     } catch (ex) {
-      job.fsm.stopFail();
       const errorMessage = `Job stop failure ${ex}`;
       this.logger.error(errorMessage);
+      await job.fsm.cancelFail();
     }
   }
 }
