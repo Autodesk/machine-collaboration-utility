@@ -11,7 +11,7 @@ const SerialCommandExecutor = require('./serialCommandExecutor');
 const FakeMarlin = require(`./fakeMarlin`);
 const config = require(`../../config`);
 const botRoutes = require(`./routes`);
-const CommandQueue = require(`./commandQueue3`);
+const CommandQueue = require(`./commandQueue`);
 
 /**
  * This is a Bot class representing hardware that can process jobs.
