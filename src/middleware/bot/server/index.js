@@ -48,7 +48,7 @@ class Bot {
     this.fsm = StateMachine.create({
       initial: 'unavailable',
       error: (one, two) => {
-        const errorMessage = `Invalid state change action "${one}". State at "${two}".`;
+        const errorMessage = `Invalid bot state change action "${one}". State at "${two}".`;
         this.logger.error(errorMessage);
         throw errorMessage;
       },
@@ -177,7 +177,6 @@ class Bot {
       // pause the line reader immediately
       // we will resume it as soon as the line is done processing
       await self.lr.pause();
-      self.currentLine += 1;
 
       // We only care about the info prior to the first semicolon
       const strippedLine = line.split(';')[0];
@@ -186,9 +185,13 @@ class Bot {
         // If the line is blank, move on to the next line
         await self.lr.resume();
       } else {
-        console.log('a line!', strippedLine);
-        await Promise.delay(100);
-        self.queue.queueCommands(strippedLine);
+        self.queue.queueCommands({
+          code: strippedLine,
+          postCallback: () => {
+            self.currentLine += 1;
+            self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
+          },
+        });
         // await self.fakePort.write(strippedLine);
         if (self.currentJob.fsm.current === `running`) {
           await self.lr.resume();
@@ -197,12 +200,16 @@ class Bot {
     });
 
     self.lr.on('end', async () => {
-      await self.fsm.stop();
-      await self.lr.close();
       self.logger.info('completed reading file,', filePath, 'is closed now.');
-      await self.fsm.stopDone();
-      await self.currentJob.fsm.complete();
-      await self.currentJob.stopwatch.stop();
+      await self.lr.close();
+      self.queue.queueCommands({
+        postCallback: async() => {
+          await self.fsm.stop();
+          await self.fsm.stopDone();
+          await self.currentJob.fsm.complete();
+          await self.currentJob.stopwatch.stop();
+        },
+      });
     });
 
     // Get the number of lines in the file
@@ -229,15 +236,22 @@ class Bot {
 
   async pauseJob() {
     if (this.fsm.current !== `connected`) {
-      await this.fsm.stop();
-      await this.lr.pause();
-      await this.fsm.stopDone();
+      try {
+        await this.fsm.stop();
+        await this.queue.pause();
+        await this.fsm.stopDone();
+      } catch (ex) {
+        const errorMessage = `Bot pause error ${ex}`;
+        this.logger.error(errorMessage);
+        await this.fsm.stopFail();
+      }
     }
   }
 
   async resumeJob() {
     if (this.fsm.current !== `processingJob`) {
       await this.fsm.start();
+      await this.queue.resume();
       await this.lr.resume();
       await this.fsm.startDone();
     }

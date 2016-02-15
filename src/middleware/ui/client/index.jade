@@ -12,6 +12,7 @@ block content
             span(id = 'job_' + job.id + '_state') !{job.state}
           li Started: !{job.started}
           li Elapsed: !{job.elapsed}
+          li Percent Complete: !{job.percentComplete}
 
   script(src='/js/vendor/jquery.min.js')
   script(src='/socket.io/socket.io.js')

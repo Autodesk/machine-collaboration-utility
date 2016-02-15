@@ -22,7 +22,7 @@ module.exports = function botTests() {
       should(job.state).equal(`created`);
 
       // Upload a file
-      const testFilePath = path.join(__dirname, `jibberish.gcode`);
+      const testFilePath = path.join(__dirname, `pause.gcode`);
       const fileStream = await fs.createReadStream(testFilePath);
       const formData = { file: fileStream };
       const fileParams = {

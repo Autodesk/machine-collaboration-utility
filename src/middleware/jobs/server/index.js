@@ -49,7 +49,7 @@ class Jobs {
       id,
       initial: 'created',
       error: (eventName, from, to, args, errorCode, errorMessage) => {
-        const fsmError = `Invalid state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
+        const fsmError = `Invalid job ${id} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
         this.logger.error(fsmError);
         throw fsmError;
       },
@@ -78,16 +78,18 @@ class Jobs {
       callbacks: {
         onenterstate: (event, from, to) => {
           this.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
-          this.app.io.emit(`jobEvent`, { id, state: to });
+          const theJob = this.getJob(id);
+          if (event === `startup`) {
+            this.app.io.emit(`jobEvent`, { state: `created`, id, created: undefined, elapsed: undefined, percentComplete: 0 });
+          } else {
+            this.app.io.emit(`jobEvent`, theJob);
+          }
         },
       },
     };
 
     const fsm = await StateMachine.create(fsmSettings);
-    const stopwatch = await new Stopwatch(false, { refreshRateMS: 5000 });
-    stopwatch.onTime(function(time) {
-        console.log(time.ms); // number of milliseconds past (or remaining);
-    });
+    const stopwatch = await new Stopwatch(false, { refreshRateMS: 1000 });
 
     jobObject = {
       id,
@@ -96,8 +98,13 @@ class Jobs {
       fileId: undefined,
       started: undefined,
       elapsed: undefined,
+      percentComplete: 0,
     };
 
+    stopwatch.onTime((time) => {
+      this.app.io.emit('jobEvent', this.jobToJson(jobObject));
+        // console.log(time.ms, jobObject); // number of milliseconds past (or remaining);
+    });
     // injecting the fsm callback after the fsm object is created to create a job reference within the socket event
     // jobObject.fsm.callbacks.onenterstate = (event, from, to) => {
     //   this.app.io.emit(`jobEvent`, jobObject);
@@ -137,6 +144,7 @@ class Jobs {
       fileId: job.fileId,
       started,
       elapsed,
+      percentComplete: job.percentComplete,
     };
   }
 
@@ -146,6 +154,15 @@ class Jobs {
   jobsToJson(jobs) {
     return jobs.map((job) => {
       return this.jobToJson(job);
+    });
+  }
+
+  /**
+   * A generic call to retreive a job by its uuid
+   */
+  getJob(jobId) {
+    return this.jobsToJson(this.jobs).find((job) => {
+      return job.id === jobId;
     });
   }
 
@@ -200,7 +217,7 @@ class Jobs {
       job.fsm.resumeDone();
     } catch (ex) {
       job.fsm.resumeFail();
-      const errorMessage = `Job resyne failure ${ex}`;
+      const errorMessage = `Job resume failure ${ex}`;
       this.logger.error(errorMessage);
     }
   }
