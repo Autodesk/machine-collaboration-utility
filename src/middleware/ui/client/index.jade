@@ -6,8 +6,12 @@ block content
   div#jobs
     each job in jobs
       div(id = 'job_' + job.id)
-        p ID: !{job.id} State: 
-          span(id = 'job_' + job.id + '_state') !{job.state}
+        ul
+          li ID: !{job.id}
+          li State: 
+            span(id = 'job_' + job.id + '_state') !{job.state}
+          li Started: !{job.started}
+          li Elapsed: !{job.elapsed}
 
   script(src='/js/vendor/jquery.min.js')
   script(src='/socket.io/socket.io.js')

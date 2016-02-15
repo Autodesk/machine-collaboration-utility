@@ -2,6 +2,7 @@ const router = require(`koa-router`)();
 const uuid = require(`node-uuid`);
 const Promise = require(`bluebird`);
 const StateMachine = Promise.promisifyAll(require(`./stateMachine`));
+const Stopwatch = Promise.promisifyAll(require('timer-stopwatch'));
 
 const jobsRouter = require(`./routes`);
 
@@ -44,7 +45,7 @@ class Jobs {
 
     const cancelable = ['running', 'paused'];
     const id = userUuid ? userUuid : await uuid.v1();
-    const fsm = {
+    const fsmSettings = {
       id,
       initial: 'created',
       error: (eventName, from, to, args, errorCode, errorMessage) => {
@@ -82,10 +83,19 @@ class Jobs {
       },
     };
 
+    const fsm = await StateMachine.create(fsmSettings);
+    const stopwatch = await new Stopwatch(false, { refreshRateMS: 5000 });
+    stopwatch.onTime(function(time) {
+        console.log(time.ms); // number of milliseconds past (or remaining);
+    });
+
     jobObject = {
       id,
-      fsm: await StateMachine.create(fsm),
+      fsm,
+      stopwatch,
       fileId: undefined,
+      started: undefined,
+      elapsed: undefined,
     };
 
     // injecting the fsm callback after the fsm object is created to create a job reference within the socket event
@@ -119,10 +129,14 @@ class Jobs {
    * Turn a job object into a REST reply friendly object
    */
   jobToJson(job) {
+    const started = !!job.started ? job.started : null;
+    const elapsed = !!job.started ? job.stopwatch.ms : null;
     return {
       id: job.id,
       state: job.fsm.current,
       fileId: job.fileId,
+      started,
+      elapsed,
     };
   }
 
@@ -149,6 +163,8 @@ class Jobs {
     try {
       job.fsm.start();
       await this.app.context.bot.startJob(job);
+      job.started = new Date().getTime();
+      await job.stopwatch.start();
       job.fsm.startDone();
     } catch (ex) {
       job.fsm.startFail();
@@ -162,12 +178,12 @@ class Jobs {
    */
   async pauseJob(job) {
     try {
-      const eventRes = job.fsm.pause();
-      console.log('Event response:', eventRes);
+      await job.fsm.pause();
       await this.app.context.bot.pauseJob();
-      job.fsm.pauseDone();
+      await job.stopwatch.stop();
+      await job.fsm.pauseDone();
     } catch (ex) {
-      job.fsm.pauseFail();
+      await job.fsm.pauseFail();
       const errorMessage = `Job pause failure ${ex}`;
       this.logger.error(errorMessage);
     }
@@ -180,6 +196,7 @@ class Jobs {
     try {
       job.fsm.resume();
       await this.app.context.bot.resumeJob();
+      await job.stopwatch.start();
       job.fsm.resumeDone();
     } catch (ex) {
       job.fsm.resumeFail();
@@ -195,6 +212,7 @@ class Jobs {
     try {
       await job.fsm.cancel();
       await this.app.context.bot.stopJob(job);
+      await job.stopwatch.stop();
       await job.fsm.cancelDone();
     } catch (ex) {
       const errorMessage = `Job stop failure ${ex}`;

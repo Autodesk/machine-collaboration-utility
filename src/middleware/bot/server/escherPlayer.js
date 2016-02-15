@@ -13,7 +13,7 @@ const logger = require('../logger');
 
 // START GCodeClient API FUNCTIONS //
 
-const cancelCommands = function stopCommands(that) {
+const cancelCommands = function cancelCommands(that) {
   return [
     'G91',
     'G1 Z10',
@@ -22,7 +22,7 @@ const cancelCommands = function stopCommands(that) {
   ];
 };
 
-const completeCommands = function stopCommands(that) {
+const completeCommands = function completeCommands(that) {
   return [
     '',
   ];

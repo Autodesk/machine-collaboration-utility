@@ -10,6 +10,7 @@ const views = require('koa-views');
 const IO = require('koa-socket');
 const path = require('path');
 const Sequelize = require('sequelize');
+const Promise = require(`bluebird`);
 
 // Import custom middleware libraries
 const Files = require('./middleware/files');

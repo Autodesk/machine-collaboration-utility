@@ -29,6 +29,7 @@
     "gulp-nodemon": "^2.0.4",
     "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^1.6.0",
+    "heartbeater": "^0.1.0",
     "ip": "^1.1.0",
     "jade": "~1.11.0",
     "javascript-state-machine": "^2.3.5",
@@ -53,7 +54,10 @@
     "should": "^8.0.2",
     "source-map-support": "^0.4.0",
     "supertest": "^1.1.0",
+    "timer-stopwatch": "^0.2.0",
+    "underscore": "^1.8.3",
     "unzip2": "^0.2.5",
+    "usb": "^1.1.1",
     "winston": "^2.1.1"
   },
   "engines": {

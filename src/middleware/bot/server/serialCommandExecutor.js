@@ -13,8 +13,7 @@
  *         inOpenPrimeStr - function a string of commands to send to prime the conn
  */
 
-var SerialConnection = require('./serialConnection'),
-    logger = require('../../logger');
+var SerialConnection = require('./serialConnection');
 
 var SerialCommandExecutor = function (inComName, inBaud, inOpenPrimeStr) {
     this.mComName = inComName;
@@ -49,7 +48,7 @@ SerialCommandExecutor.prototype.open = function (inDoneFunc) {
         that.mBaud,
         that.mOpenPrimeStr,
         function (inData) {
-            logger.debug("Initial serial connection response\n", inData);
+          console.log('whooooa', inData);
         },
         function () { inDoneFunc(true); }
     );
