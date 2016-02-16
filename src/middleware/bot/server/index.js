@@ -8,7 +8,7 @@ const SerialPort = require(`serialport`);
 const _ = require(`underscore`);
 
 const SerialCommandExecutor = require('./serialCommandExecutor');
-const FakeMarlin = require(`./fakeMarlin`);
+const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
 const config = require(`../../config`);
 const botRoutes = require(`./routes`);
 const CommandQueue = require(`./commandQueue`);
@@ -37,7 +37,6 @@ class Bot {
     this.router = router;
 
     this.virtual = false;
-    this.fakePort = new FakeMarlin(app);
     this.queue = undefined;
 
     // File reading assets
@@ -288,28 +287,11 @@ class Bot {
     this.fsm.detect();
     try {
       if (this.virtual) {
-        // spoofed usb data for a virtual device
-        this.device = {
-          busNumber: 20,
-          deviceAddress: 19,
-          deviceDescriptor: {
-            bLength: 18,
-            bDescriptorType: 1,
-            bcdUSB: 512,
-            bDeviceClass: 2,
-            bDeviceSubClass: 0,
-            bDeviceProtocol: 0,
-            bMaxPacketSize0: 32,
-            idVendor: 5824,
-            idProduct: 1155,
-            bcdDevice: 256,
-            iManufacturer: 1,
-            iProduct: 2,
-            iSerialNumber: 3,
-            bNumConfigurations: 1,
-          },
-          portNumbers: [5],
-        };
+        this.queue = new CommandQueue(
+          new FakeMarlinExecutor(),
+          this.expandCode,
+          this.validateReply
+        );
       } else {
         this.queue = new CommandQueue(
           this.setupExecutor(this.port, config.bot.baudrate),
@@ -331,16 +313,12 @@ class Bot {
   async connect() {
     try {
       this.fsm.connect();
-      if (this.virtual) {
-        await Promise.delay(config.virtualDelay);
-        await this.fsm.connectDone();
-      } else {
-        // TODO write connection logic here
-        this.queue.queueCommands({
-          open: true,
-        });
-        await this.fsm.connectDone();
-      }
+      this.queue.queueCommands({
+        open: true,
+        postCallback: () => {
+          this.fsm.connectDone();
+        },
+      });
     } catch (ex) {
       this.fsm.connectFail();
     }
@@ -349,14 +327,12 @@ class Bot {
   async disconnect() {
     try {
       this.fsm.disconnect();
-      if (this.virtual) {
-        await Promise.delay(config.virtualDelay);
-        await this.fsm.disconnectDone();
-      } else {
-        // TODO write disconnect logic here
-        await Promise.delay(config.virtualDelay);
-        await this.fsm.disconnectDone();
-      }
+      this.queue.queueCommands({
+        close: true,
+        postCallback: () => {
+          this.fsm.disconnectDone();
+        },
+      });
     } catch (ex) {
       this.fsm.disconnectFail();
     }
