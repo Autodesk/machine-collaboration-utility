@@ -55,14 +55,18 @@ class Files {
    * Scan the upload directory and add references to all files to an array
    */
   async scanUploadDirectory() {
-    walk.walkSync(this.uploadDir, (basedir, filename) => {
+    const self = this;
+    walk.walkSync(self.uploadDir, async(basedir, filename) => {
       const id = filename.split('_')[filename.split('_').length - 1].split('.')[0];
       const name = filename.split('_')[0] + '.' + filename.split('.')[1];
+      const fileStats = await fs.stat(`${basedir}/${filename}`);
+      const dateModified = new Date().getTime(fileStats.mtime);
       const fileObject = {
         id,
         name,
+        dateModified,
       };
-      this.files.push(fileObject);
+      self.files.push(fileObject);
     });
   }
 
@@ -85,12 +89,17 @@ class Files {
 
   /**
    * Create the file object
+   * Add a unique uuid or allow it to be set by the user
    * Allow the option for the user to set their own uuid for the file
    */
   async createFileObject(file, userUuid) {
     const id = userUuid ? userUuid : await uuid.v1();
     const name = file.name;
-    const fileObject = { id, name };
+    const fileStats = await fs.stat(file.path);
+    const dateModified = new Date().getTime(fileStats.mtime);
+    const fileObject = { id, name, dateModified };
+
+    // Rename the file from it's random name to the file's name plus the uuid
     const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + id + `.` + name.split(`.`)[1];
     await fs.rename(file.path, filenameWithUuid);
     this.files.push(fileObject);
