@@ -59,26 +59,26 @@ const uploadFile = (self) => {
 const deleteFile = (self) => {
   self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
-      const fileId = ctx.request.body.id;
+      const fileUuid = ctx.request.body.uuid;
       const file = self.files.find((inFile) => {
-        return inFile.id === fileId;
+        return inFile.uuid === fileUuid;
       });
-      if (fileId === undefined) {
+      if (fileUuid === undefined) {
         ctx.status = 404;
-        ctx.body = { error: `No file "id" was provided` };
+        ctx.body = { error: `No file "uuid" was provided` };
       } else if (file === undefined) {
         ctx.status = 404;
-        ctx.body = { error: `File ${fileId} not found` };
+        ctx.body = { error: `File ${fileUuid} not found` };
       } else {
         const filePath = self.getFilePath(file);
         const fileExists = await fs.exists(filePath);
         if (fileExists) {
           // Delete the file
           await fs.unlink(filePath);
-
+          self.logger.info('Just deleted file', filePath);
           // Remove the file object from the 'files' array
           for (let i = 0; i < self.files.length; i++) {
-            if (self.files[i].id === fileId) {
+            if (self.files[i].uuid === fileUuid) {
               self.files.splice(i, 1);
             }
           }
@@ -111,22 +111,22 @@ const getFiles = (self) => {
  * Handle all logic at this endpoint for reading a single task
  */
 const getFile = (self) => {
-  self.router.get(self.routeEndpoint + `/:id`, async (ctx) => {
+  self.router.get(self.routeEndpoint + `/:uuid`, async (ctx) => {
     try {
-      const fileId = ctx.params.id;
+      const fileUuid = ctx.params.uuid;
       const file = self.files.find((inFile) => {
-        return inFile.id === fileId;
+        return inFile.uuid === fileUuid;
       });
       if (file) {
         ctx.body = file;
       } else {
         ctx.status = 404;
         ctx.body = {
-          error: `File ${fileId} not found`,
+          error: `File ${fileUuid} not found`,
         };
       }
     } catch (ex) {
-      ctx.body = { status: `To-do list "Read Task ${ctx.params.id}" request error: ${ex}` };
+      ctx.body = { status: `To-do list "Read Task ${ctx.params.uuid}" request error: ${ex}` };
       ctx.status = 500;
     }
   });

@@ -6,7 +6,7 @@ const fs = require(`fs-promise`);
 const path = require(`path`);
 
 module.exports = function toDoListTests() {
-  let fileId;
+  let fileUuid;
   let fileArrayLength;
 
   describe('Files unit test', async function () {
@@ -21,9 +21,9 @@ module.exports = function toDoListTests() {
       };
       const uploadResponse = JSON.parse(await request(requestParams));
       // Check that the returned object is an array with a single file object
-      // The file object should have an id and a name
+      // The file object should have a uuid and a name
       should(uploadResponse.length).equal(1);
-      should(!!uploadResponse.id);
+      should(!!uploadResponse.uuid);
       should(!!uploadResponse.name);
       done();
     });
@@ -37,18 +37,18 @@ module.exports = function toDoListTests() {
       const res = await request(requestParams);
       should(Array.isArray(res)).equal(true);
       fileArrayLength = res.length;
-      fileId = res[0].id;
+      fileUuid = res[0].uuid;
       done();
     });
 
     it('should retrieve an a single file', async function (done) {
       const requestParams = {
         method: `GET`,
-        uri: `http://localhost:9000/v1/files/${fileId}`,
+        uri: `http://localhost:9000/v1/files/${fileUuid}`,
         json: true,
       };
       const res = await request(requestParams);
-      should(res.id).equal(fileId);
+      should(res.uuid).equal(fileUuid);
       done();
     });
 
@@ -56,7 +56,7 @@ module.exports = function toDoListTests() {
       try {
         const requestParams = {
           method: `GET`,
-          uri: `http://localhost:9000/v1/files/${fileId}foobar`,
+          uri: `http://localhost:9000/v1/files/${fileUuid}foobar`,
           json: true,
         };
         const res = await request(requestParams);
@@ -75,7 +75,7 @@ module.exports = function toDoListTests() {
         method: `DELETE`,
         uri: `http://localhost:9000/v1/files/`,
         body: {
-          id: fileId,
+          uuid: fileUuid,
         },
         json: true,
       };

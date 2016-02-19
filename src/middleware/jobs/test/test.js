@@ -15,7 +15,7 @@ module.exports = function toDoListTests() {
         json: true,
       };
       job = await request(requestParams);
-      should(!!job.id);
+      should(!!job.uuid);
       should(!!job.state);
       done();
     });
@@ -54,13 +54,13 @@ module.exports = function toDoListTests() {
       // Set the file to the job
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}/setFile`,
-        body: { fileId: file.id },
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}/setFile`,
+        body: { fileUuid: file.uuid },
         json: true,
       };
       job = await request(requestParams);
-      should(!!job.id);
-      should(!!job.fileId);
+      should(!!job.uuid);
+      should(!!job.fileUuid);
       should(job.state).equal(`ready`);
       done();
     });
@@ -80,8 +80,8 @@ module.exports = function toDoListTests() {
 
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}/setFile`,
-        body: { fileId: file.id },
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}/setFile`,
+        body: { fileUuid: file.uuid },
         json: true,
       };
 

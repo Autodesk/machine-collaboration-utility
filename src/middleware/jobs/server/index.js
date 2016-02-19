@@ -1,10 +1,11 @@
 const router = require(`koa-router`)();
-const uuid = require(`node-uuid`);
+const uuidGenerator = require(`node-uuid`);
 const Promise = require(`bluebird`);
 const StateMachine = Promise.promisifyAll(require(`./stateMachine`));
 const Stopwatch = Promise.promisifyAll(require('timer-stopwatch'));
 
 const jobsRouter = require(`./routes`);
+const job = require(`./model/job`);
 
 /**
  * This is a Jobs class.
@@ -31,6 +32,9 @@ class Jobs {
   async initialize() {
     try {
       await this.setupRouter();
+      // initial setup of the db
+      this.Job = await job(this.app);
+
       this.logger.info(`Jobs instance initialized`);
     } catch (ex) {
       this.logger.error(`Jobs initialization error`, ex);
@@ -44,12 +48,12 @@ class Jobs {
     let jobObject;
 
     const cancelable = ['running', 'paused'];
-    const id = userUuid ? userUuid : await uuid.v1();
+    const uuid = userUuid ? userUuid : await uuidGenerator.v1();
     const fsmSettings = {
-      id,
+      uuid,
       initial: 'created',
       error: (eventName, from, to, args, errorCode, errorMessage) => {
-        const fsmError = `Invalid job ${id} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
+        const fsmError = `Invalid job ${uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
         this.logger.error(fsmError);
         throw fsmError;
       },
@@ -78,9 +82,9 @@ class Jobs {
       callbacks: {
         onenterstate: (event, from, to) => {
           this.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
-          const theJob = this.getJob(id);
+          const theJob = this.getJob(uuid);
           if (event === `startup`) {
-            this.app.io.emit(`jobEvent`, { state: `created`, id, created: undefined, elapsed: undefined, percentComplete: 0 });
+            this.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
           } else {
             this.app.io.emit(`jobEvent`, theJob);
           }
@@ -92,10 +96,10 @@ class Jobs {
     const stopwatch = await new Stopwatch(false, { refreshRateMS: 1000 });
 
     jobObject = {
-      id,
+      uuid,
       fsm,
       stopwatch,
-      fileId: undefined,
+      fileUuid: undefined,
       started: undefined,
       elapsed: undefined,
       percentComplete: 0,
@@ -103,14 +107,12 @@ class Jobs {
 
     stopwatch.onTime((time) => {
       this.app.io.emit('jobEvent', this.jobToJson(jobObject));
-        // console.log(time.ms, jobObject); // number of milliseconds past (or remaining);
     });
     // injecting the fsm callback after the fsm object is created to create a job reference within the socket event
     // jobObject.fsm.callbacks.onenterstate = (event, from, to) => {
     //   this.app.io.emit(`jobEvent`, jobObject);
     //   this.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
     // };
-
     this.jobs.push(jobObject);
     return jobObject;
   }
@@ -139,9 +141,9 @@ class Jobs {
     const started = !!job.started ? job.started : null;
     const elapsed = !!job.started ? job.stopwatch.ms : null;
     return {
-      id: job.id,
+      uuid: job.uuid,
       state: job.fsm.current,
-      fileId: job.fileId,
+      fileUuid: job.fileUuid,
       started,
       elapsed,
       percentComplete: job.percentComplete,
@@ -160,9 +162,9 @@ class Jobs {
   /**
    * A generic call to retreive a job by its uuid
    */
-  getJob(jobId) {
+  getJob(jobUuid) {
     return this.jobsToJson(this.jobs).find((job) => {
-      return job.id === jobId;
+      return job.uuid === jobUuid;
     });
   }
 
@@ -178,13 +180,13 @@ class Jobs {
    */
   async startJob(job) {
     try {
-      job.fsm.start();
+      await job.fsm.start();
       await this.app.context.bot.startJob(job);
       job.started = new Date().getTime();
       await job.stopwatch.start();
-      job.fsm.startDone();
+      await job.fsm.startDone();
     } catch (ex) {
-      job.fsm.startFail();
+      await job.fsm.startFail();
       const errorMessage = `Job start failure ${ex}`;
       this.logger.error(errorMessage);
     }

@@ -18,7 +18,7 @@ module.exports = function botTests() {
         json: true,
       };
       job = await request(jobParams);
-      should(!!job.id);
+      should(!!job.uuid);
       should(job.state).equal(`created`);
 
       // Upload a file
@@ -36,8 +36,8 @@ module.exports = function botTests() {
       // Assign a file to a job
       const setFileToJobParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}/setFile`,
-        body: { fileId: file.id },
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}/setFile`,
+        body: { fileUuid: file.uuid },
         json: true,
       };
       job = await request(setFileToJobParams);
@@ -161,7 +161,7 @@ module.exports = function botTests() {
     it('should start a job', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { command: `start` },
         json: true,
       };
@@ -174,7 +174,7 @@ module.exports = function botTests() {
       await Promise.delay(config.virtualDelay); // wait for bot job to start
       const requestParams = {
         method: `GET`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
       const res = await request(requestParams);
@@ -185,7 +185,7 @@ module.exports = function botTests() {
     it('should pause a job', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { command: `pause` },
         json: true,
       };
@@ -198,7 +198,7 @@ module.exports = function botTests() {
       await Promise.delay(config.virtualDelay * 2); // Wait for bot to pause
       const requestParams = {
         method: `GET`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
       const res = await request(requestParams);
@@ -209,7 +209,7 @@ module.exports = function botTests() {
     it('pause should be idempotent', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { command: `pause` },
         json: true,
       };
@@ -221,7 +221,7 @@ module.exports = function botTests() {
     it('should resume a job', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { command: `resume` },
         json: true,
       };
@@ -234,7 +234,7 @@ module.exports = function botTests() {
       await Promise.delay(config.virtualDelay * 2); // Wait for bot to resume
       const requestParams = {
         method: `GET`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
       const res = await request(requestParams);
@@ -245,7 +245,7 @@ module.exports = function botTests() {
     it('resume should be idempotent', async function (done) {
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { command: `resume` },
         json: true,
       };
@@ -259,7 +259,7 @@ module.exports = function botTests() {
       await Promise.delay(5000);
       const requestParams = {
         method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { command: `cancel` },
         json: true,
       };
@@ -272,7 +272,7 @@ module.exports = function botTests() {
       await Promise.delay(config.virtualDelay * 2); // Wait for bot to resume
       const requestParams = {
         method: `GET`,
-        uri: `http://localhost:9000/v1/jobs/${job.id}`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
       const res = await request(requestParams);

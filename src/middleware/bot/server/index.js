@@ -159,7 +159,7 @@ class Bot {
     self.currentJob = job;
     await self.fsm.start();
     const filesApp = self.app.context.files;
-    const theFile = filesApp.getFile(job.fileId);
+    const theFile = filesApp.getFile(job.fileUuid);
     const filePath = filesApp.getFilePath(theFile);
     self.lr = new LineByLineReader(filePath);
     self.currentLine = 0;
@@ -284,7 +284,7 @@ class Bot {
   }
 
   async detect(device) {
-    this.fsm.detect();
+    await this.fsm.detect();
     try {
       if (this.virtual) {
         this.queue = new CommandQueue(
@@ -299,9 +299,9 @@ class Bot {
           this.validateReply
         );
       }
-      this.fsm.detectDone();
+      await this.fsm.detectDone();
     } catch (ex) {
-      this.fsm.detectFail();
+      await this.fsm.detectFail();
     }
   }
 

@@ -20,10 +20,9 @@ const createJob = (self) => {
     try {
       const uuid = ctx.request.body.uuid;
       const job = await self.createJobObject(uuid);
-      ctx.body = {
-        id: job.id,
-        state: job.fsm.current,
-      };
+      await self.Job.create(self.jobToJson(job));
+
+      ctx.body = self.jobToJson(job);
       ctx.status = 201;
     } catch (ex) {
       ctx.body = { status: `Jobs API "Create Job" request error: ${ex}` };
@@ -36,22 +35,22 @@ const createJob = (self) => {
  * Handle all logic at this endpoint for reading a single job
  */
 const getJob = (self) => {
-  self.router.get(`${self.routeEndpoint}/:id`, async (ctx) => {
+  self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
-      const jobId = ctx.params.id;
+      const jobUuid = ctx.params.uuid;
       const job = self.jobs.find((inJob) => {
-        return inJob.id === jobId;
+        return inJob.uuid === jobUuid;
       });
       if (job) {
         ctx.body = self.jobToJson(job);
       } else {
         ctx.status = 404;
         ctx.body = {
-          error: `Job ${jobId} not found`,
+          error: `Job ${jobUuid} not found`,
         };
       }
     } catch (ex) {
-      ctx.body = { status: `Get Job ${ctx.params.id}" request error: ${ex}` };
+      ctx.body = { status: `Get Job ${ctx.params.uuid}" request error: ${ex}` };
       ctx.status = 500;
     }
   });
@@ -61,35 +60,35 @@ const getJob = (self) => {
  * Should assign a specific file to a job
  */
 const setFile = (self) => {
-  self.router.post(`${self.routeEndpoint}/:id/setFile`, async (ctx) => {
+  self.router.post(`${self.routeEndpoint}/:uuid/setFile`, async (ctx) => {
     let job;
     let file;
 
     // Find the job
     try {
-      const jobId = ctx.params.id;
+      const jobUuid = ctx.params.uuid;
       job = self.jobs.find((inJob) => {
-        return inJob.id === jobId;
+        return inJob.uuid === jobUuid;
       });
 
       if (!job) {
         throw `job is undefined`;
       } else {
-        job.fsm.setFile();
+        await job.fsm.setFile();
       }
       // Find the File
-      let fileId
+      let fileUuid
       try {
-        fileId = ctx.request.body.fileId;
-        if (fileId) {
-          job.fileId = fileId;
+        fileUuid = ctx.request.body.fileUuid;
+        if (fileUuid) {
+          job.fileUuid = fileUuid;
           ctx.body = self.jobToJson(job);
         } else {
-          throw `fileId undefined`;
+          throw `file uuid undefined`;
         }
-        file = self.app.context.files.getFile(fileId);
+        file = self.app.context.files.getFile(fileUuid);
       } catch (ex) {
-        self.logger.error(`Error setting file ${fileId} to job ${job.id}`);
+        self.logger.error(`Error setting file ${fileUuid} to job ${job.uuid}`);
         job.fsm.setFileFail();
         ctx.status = 405;
         ctx.body = { error: ex };
@@ -97,17 +96,17 @@ const setFile = (self) => {
 
       // Assign the file to the job
       try {
-        job.fileId = file.id;
+        job.fileUuid = file.uuid;
         await job.fsm.setFileDone();
         ctx.body = self.jobToJson(job);
       } catch (ex) {
-        self.logger.error(`Error setting file ${fileId} to job ${job.id}: ${ex}`);
+        self.logger.error(`Error setting file ${fileUuid} to job ${job.uuid}: ${ex}`);
         job.fsm.setFileFail();
-        ctx.body = { status: `Set file to job ${ctx.params.id} request error: ${ex}` };
+        ctx.body = { status: `Set file to job ${ctx.params.uuid} request error: ${ex}` };
         ctx.status = 500;
       }
     } catch (ex) {
-      ctx.body = { status: `Job "${ctx.params.id}" error: ${ex}` };
+      ctx.body = { status: `Job "${ctx.params.uuid}" error: ${ex}` };
       ctx.status = 500;
     }
   });
@@ -119,12 +118,12 @@ const setFile = (self) => {
  */
 const processJobCommand = (self) => {
 // TODO kick off print of the file via the app.context.gcodeClient.startJob(some variable)
-  self.router.post(`${self.routeEndpoint}/:id/`, async (ctx) => {
+  self.router.post(`${self.routeEndpoint}/:uuid/`, async (ctx) => {
     try {
       // Find the job
-      const jobId = ctx.params.id;
+      const jobUuid = ctx.params.uuid;
       const job = self.jobs.find((inJob) => {
-        return inJob.id === jobId;
+        return inJob.uuid === jobUuid;
       });
 
       if (!job) {
@@ -160,7 +159,7 @@ const processJobCommand = (self) => {
           throw errorMessage;
       }
     } catch (ex) {
-      ctx.body = { status: `Job ${ctx.params.id} command request error: ${ex}` };
+      ctx.body = { status: `Job ${ctx.params.uuid} command request error: ${ex}` };
       ctx.status = 500;
     }
   });

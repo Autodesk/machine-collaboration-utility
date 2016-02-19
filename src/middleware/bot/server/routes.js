@@ -25,7 +25,7 @@ const processBotCommand = (self) => {
         throw `Command is undefined.`;
       }
     } catch (ex) {
-      ctx.body = { status: `Job ${ctx.params.id} command request error: ${ex}` };
+      ctx.body = { status: `Bot command request error: ${ex}` };
       ctx.status = 500;
     }
   });

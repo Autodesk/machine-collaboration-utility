@@ -46,7 +46,7 @@
       var transitions  = {}; // track events allowed from a state            { state: [ event ] }
 
       // Injected id to identify each job's state machine
-      fsm.id           = cfg.id;
+      fsm.uuid           = cfg.uuid;
 
       var add = function(e) {
         var from = (e.from instanceof Array) ? e.from : (e.from ? [e.from] : [StateMachine.WILDCARD]); // allow 'wildcard' transition if 'from' is not specified

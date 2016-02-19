@@ -2,7 +2,7 @@ const router = require(`koa-router`)();
 const path = require(`path`);
 const fs = require(`fs-promise`);
 const walk = require(`fs-walk`);
-const uuid = require(`node-uuid`);
+const uuidGenerator = require(`node-uuid`);
 
 const filesRoutes = require(`./routes`);
 
@@ -57,12 +57,12 @@ class Files {
   async scanUploadDirectory() {
     const self = this;
     walk.walkSync(self.uploadDir, async(basedir, filename) => {
-      const id = filename.split('_')[filename.split('_').length - 1].split('.')[0];
-      const name = filename.split('_')[0] + '.' + filename.split('.')[1];
+      const uuid = filename.split('_')[filename.split('_').length - 1].split('.')[0];
+      const name = filename.split('_' + uuid)[0] + '.' + filename.split('.')[1];
       const fileStats = await fs.stat(`${basedir}/${filename}`);
       const dateModified = new Date().getTime(fileStats.mtime);
       const fileObject = {
-        id,
+        uuid,
         name,
         dateModified,
       };
@@ -93,26 +93,26 @@ class Files {
    * Allow the option for the user to set their own uuid for the file
    */
   async createFileObject(file, userUuid) {
-    const id = userUuid ? userUuid : await uuid.v1();
+    const uuid = userUuid ? userUuid : await uuidGenerator.v1();
     const name = file.name;
     const fileStats = await fs.stat(file.path);
     const dateModified = new Date().getTime(fileStats.mtime);
-    const fileObject = { id, name, dateModified };
+    const fileObject = { uuid, name, dateModified };
 
     // Rename the file from it's random name to the file's name plus the uuid
-    const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + id + `.` + name.split(`.`)[1];
+    const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
     await fs.rename(file.path, filenameWithUuid);
     this.files.push(fileObject);
     return fileObject;
   }
 
   getFilePath(fileObject) {
-    return this.uploadDir + `/` + fileObject.name.split(`.`)[0] + `_` + fileObject.id + `.` + fileObject.name.split(`.`)[1];
+    return this.uploadDir + `/` + fileObject.name.split(`.`)[0] + `_` + fileObject.uuid + `.` + fileObject.name.split(`.`)[1];
   }
 
   getFile(fileUuid) {
     return this.files.find((file) => {
-      return file.id === fileUuid;
+      return file.uuid === fileUuid;
     });
   }
 }
