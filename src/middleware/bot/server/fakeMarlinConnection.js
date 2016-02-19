@@ -64,10 +64,18 @@ FakeMarlinConnection.prototype.setErrorFunc = function (inErrorFunc) {
  */
 FakeMarlinConnection.prototype.send = async function (inCommandStr) {
   if (_.isFunction(this.mDataFunc)) {
-    if (inCommandStr.indexOf(`G4 P`) !== -1) {
-      await Promise.delay(parseInt(inCommandStr.split(`G4 P`).pop().split(`\n`).shift(), 10));
+    const commandPrefix = inCommandStr.split(` `).shift();
+    switch (commandPrefix) {
+      case 'G4':
+        if (inCommandStr.indexOf(`G4 P`) !== -1) {
+          await Promise.delay(parseInt(inCommandStr.split(`G4 P`).pop().split(`\n`).shift(), 10));
+        }
+        this.mDataFunc('ok');
+        break;
+      default:
+        console.log(`command not supported`);
+        this.mDataFunc('ok');
     }
-    this.mDataFunc('ok');
   }
 };
 
