@@ -5,7 +5,7 @@ const StateMachine = Promise.promisifyAll(require(`./stateMachine`));
 const Stopwatch = Promise.promisifyAll(require('timer-stopwatch'));
 
 const jobsRouter = require(`./routes`);
-const job = require(`./model/job`);
+const jobModel = require(`./model/job`);
 
 /**
  * This is a Jobs class.
@@ -30,10 +30,20 @@ class Jobs {
    * initialize the jobs endpoint
    */
   async initialize() {
+    const self = this;
     try {
       await this.setupRouter();
       // initial setup of the db
-      this.Job = await job(this.app);
+      this.Job = await jobModel(this.app);
+
+      // load all existing jobs from the database
+      this.Job.findAll().map(async (job) => {
+        const uuid = job.dataValues.uuid;
+        const state = job.dataValues.state;
+        const id = job.dataValues.id;
+        const jobObject = await self.createJobObject(uuid, state, id);
+        self.jobs.push(jobObject);
+      });
 
       this.logger.info(`Jobs instance initialized`);
     } catch (ex) {
@@ -44,14 +54,15 @@ class Jobs {
   /**
    * Create a job object
    */
-  async createJobObject(userUuid) {
+  async createJobObject(userUuid, initialState, id) {
+    const self = this;
     let jobObject;
 
     const cancelable = ['running', 'paused'];
     const uuid = userUuid ? userUuid : await uuidGenerator.v1();
     const fsmSettings = {
       uuid,
-      initial: 'created',
+      initial: initialState ? initialState : 'created',
       error: (eventName, from, to, args, errorCode, errorMessage) => {
         const fsmError = `Invalid job ${uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
         this.logger.error(fsmError);
@@ -80,13 +91,28 @@ class Jobs {
         /* eslint-enable no-multi-spaces */
       ],
       callbacks: {
-        onenterstate: (event, from, to) => {
-          this.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
-          const theJob = this.getJob(uuid);
+        onenterstate: async (event, from, to) => {
+          self.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
+          const theJob = self.getJob(uuid);
+          if (event.indexOf('Done') !== -1) {
+            const dbJob = await self.Job.findById(id);
+            dbJob.updateAttributes({
+              state: theJob.state,
+              fileId: theJob.fileId,
+              started: theJob.started,
+              elapsed: theJob.elapsed,
+              percentComplete: theJob.percentComplete,
+            });
+            // task.updateAttributes({
+            //   description,
+            // });
+
+            console.log('dooo it!', theJob);
+          }
           if (event === `startup`) {
-            this.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
+            self.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
           } else {
-            this.app.io.emit(`jobEvent`, theJob);
+            self.app.io.emit(`jobEvent`, theJob);
           }
         },
       },
@@ -96,6 +122,7 @@ class Jobs {
     const stopwatch = await new Stopwatch(false, { refreshRateMS: 1000 });
 
     jobObject = {
+      id,
       uuid,
       fsm,
       stopwatch,
