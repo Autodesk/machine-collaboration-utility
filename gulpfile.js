@@ -14,7 +14,7 @@ const src = {
   middlewareServerJs: `src/middleware/**/server/**/*.js`,
   middlewareModelJs: `src/middleware/**/model/**/*.js`,
   middlewareClientJs: `src/middleware/**/client/**/*.js`,
-  views: `src/server/views/**/*.jade`,
+  views: `src/app/views/**/*.jade`,
   viewsMiddleware: `src/middleware/**/client/**/*.jade`,
   swaggerYaml: `src/middleware/**/*.yaml`,
   docs: `src/docs/**/*.*`,
