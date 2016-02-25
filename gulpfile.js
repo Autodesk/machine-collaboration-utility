@@ -9,7 +9,7 @@ const rename = require(`gulp-rename`);
 // TODO make sure the foreman server restarts on change
 
 const src = {
-  serverJs: `src/server/**/*.js`,
+  serverJs: `src/app/**/*.js`,
   clientJs: `src/client/**/*.js`,
   middlewareServerJs: `src/middleware/**/server/**/*.js`,
   middlewareModelJs: `src/middleware/**/model/**/*.js`,

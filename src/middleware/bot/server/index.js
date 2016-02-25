@@ -341,6 +341,7 @@ class Bot {
   async setupUsbScanner() {
     const self = this;
     usb.on('attach', async (device) => {
+      console.log('look!, a device:', device);
       if (self.verifyVidPid(device) && await self.getPort()) {
         self.detect(device);
       }
@@ -352,6 +353,7 @@ class Bot {
     });
     const devices = await usb.getDeviceList();
     devices.forEach(async (device) => {
+      console.log('look!, a device:', device);
       if (self.verifyVidPid(device) && await self.getPort()) {
         self.detect(device);
       }
