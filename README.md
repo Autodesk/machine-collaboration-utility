@@ -43,7 +43,7 @@ sudo tar -xvzf postgresql-9.4.4-raspbian.tgz
 echo "deb [ trusted=yes ] file:///var/local/repository ./" | sudo tee /etc/apt/sources.list.d/my_own_repo.list  
 sudo apt-get update  
 sudo apt-get install postgresql-9.4  
-
+sudo service postgresql start  
 ```
 
 ### Then set the psql password
