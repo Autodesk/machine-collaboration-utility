@@ -11,7 +11,7 @@
     -
       name: "Jobs"
     -
-      name: "Printer"
+      name: "Bot"
   schemes:
     - "http"
   paths:
@@ -258,11 +258,11 @@
             description: "File set to job"
           405:
             description: "Invalid input"
-    /printer:
+    /bot:
       get:
         tags:
-          - "Printer"
-        summary: "Get the printer object"
+          - "Bot"
+        summary: "Get the bot object"
         description: ""
         consumes:
           - application/json
@@ -270,14 +270,14 @@
           - application/json
         responses:
           200:
-            description: "Printer retreived"
+            description: "Bot retreived"
           405:
             description: "Invalid input"
       post:
         tags:
-          - "Printer"
-        summary: "Issue a command to a printer"
-        description: "The following are valid printer commands:  \n
+          - "Bot"
+        summary: "Issue a command to a bot"
+        description: "The following are valid bot commands:  \n
           - connect  \n
           - disconnect  \n
           "
@@ -288,7 +288,7 @@
         parameters:
           - in: body
             name: command
-            description: A printer command
+            description: A bot command
             required: false
             type: string
           - in: body
@@ -303,14 +303,14 @@
             type: array
         responses:
           200:
-            description: "Printer command executed"
+            description: "Bot command executed"
           405:
             description: "Invalid input"
-    /printer/status:
+    /bot/status:
       get:
         tags:
-          - "Printer"
-        summary: "Get the current status of the printer"
+          - "Bot"
+        summary: "Get the current status of the bot"
         description: ""
         consumes:
           - application/json
@@ -318,6 +318,6 @@
           - application/json
         responses:
           200:
-            description: "Printer status retreived"
+            description: "Bot status retreived"
           405:
             description: "Invalid input"

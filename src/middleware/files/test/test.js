@@ -48,7 +48,6 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const res = await request(requestParams);
-      console.log('single file', res);
       should(res.uuid).equal(fileUuid);
       done();
     });

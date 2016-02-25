@@ -19,6 +19,10 @@ const createJob = (self) => {
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       let uuid = ctx.request.body.uuid;
+      if (self.jobs[uuid] !== undefined) {
+        const errorMessage = `Job ${uuid} is already defined`;
+        throw errorMessage;
+      }
       // Create the job object
       const jobObject = await self.createJobObject(uuid);
       const jobJson = self.jobToJson(jobObject);
@@ -166,36 +170,29 @@ const processJobCommand = (self) => {
   });
 };
 
-// /**
-//  * Handle all logic at this endpoint for deleting a job
-//  */
-// const deleteJob = (self) => {
-//   self.router.delete(self.routeEndpoint, async (ctx) => {
-//     try {
-//       const jobUuid = ctx.request.body.jobUuid;
-//       if (jobUuid === undefined) {
-//         ctx.status = 404;
-//         ctx.body = `Job uuid "${jobUuid}" is not valid.`;
-//       } else {
-//         const theJob = self.getJob(jobUuid);
-//         await self.Job.findById(theJob.id).then(async (job) => {
-//           await job.destroy();
-//           let jobIndex;
-//           for (let i = 0; i < self.jobs.length; i++) {
-//             if (self.jobs[i].uuid === theJob.uuid) {
-//               jobIndex = i;
-//             }
-//           }
-//           delete self.jobs[jobIndex];
-//         });
-//         ctx.body = `Job ${jobUuid} deleted`;
-//       }
-//     } catch (ex) {
-//       ctx.body = { status: `To-do list "Delete Job" request error: ${ex}` };
-//       ctx.status = 500;
-//     }
-//   });
-// };
+/**
+ * Handle all logic at this endpoint for deleting a job
+ */
+const deleteJob = (self) => {
+  self.router.delete(self.routeEndpoint, async (ctx) => {
+    try {
+      const jobUuid = ctx.request.body.jobUuid;
+      if (jobUuid === undefined) {
+        ctx.status = 404;
+        ctx.body = `Job uuid "${jobUuid}" is not valid.`;
+      } else {
+        const theJob = self.jobs[jobUuid];
+        const dbJob = await self.Job.findById(theJob.id);
+        await dbJob.destroy();
+        delete self.jobs[jobUuid];
+        ctx.body = `Job ${jobUuid} deleted`;
+      }
+    } catch (ex) {
+      ctx.body = { status: `To-do list "Delete Job" request error: ${ex}` };
+      ctx.status = 500;
+    }
+  });
+};
 
 
 const jobsRoutes = (self) => {
@@ -204,7 +201,7 @@ const jobsRoutes = (self) => {
   getJob(self);
   setFile(self);
   processJobCommand(self);
-//  deleteJob(self);
+ deleteJob(self);
 };
 
 module.exports = jobsRoutes;
