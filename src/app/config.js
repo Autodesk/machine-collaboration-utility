@@ -3,8 +3,8 @@ module.exports = {
   testLogFileName: `hydra-print-test.log`,
   virtualDelay: 1000,
   bot: {
-    vid: 5824,
-    pid: 1155,
+    vid: 10612,
+    pid: 1283,
     baudrate: 230400,
   },
 };
