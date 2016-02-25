@@ -60,9 +60,7 @@ const deleteFile = (self) => {
   self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
       const fileUuid = ctx.request.body.uuid;
-      const file = self.files.find((inFile) => {
-        return inFile.uuid === fileUuid;
-      });
+      const file = self.files[fileUuid];
       if (fileUuid === undefined) {
         ctx.status = 404;
         ctx.body = { error: `No file "uuid" was provided` };
@@ -77,11 +75,7 @@ const deleteFile = (self) => {
           await fs.unlink(filePath);
           self.logger.info('Just deleted file', filePath);
           // Remove the file object from the 'files' array
-          for (let i = 0; i < self.files.length; i++) {
-            if (self.files[i].uuid === fileUuid) {
-              self.files.splice(i, 1);
-            }
-          }
+          delete self.files[fileUuid];
           ctx.body = { status: `File deleted` };
         }
       }
@@ -114,9 +108,7 @@ const getFile = (self) => {
   self.router.get(self.routeEndpoint + `/:uuid`, async (ctx) => {
     try {
       const fileUuid = ctx.params.uuid;
-      const file = self.files.find((inFile) => {
-        return inFile.uuid === fileUuid;
-      });
+      const file = self.files[fileUuid];
       if (file) {
         ctx.body = file;
       } else {

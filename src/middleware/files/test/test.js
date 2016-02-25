@@ -28,16 +28,16 @@ module.exports = function toDoListTests() {
       done();
     });
 
-    it('should retrieve an array of files', async function (done) {
+    it('should retrieve a dictionary of files', async function (done) {
       const requestParams = {
         method: `GET`,
         uri: `http://localhost:9000/v1/files`,
         json: true,
       };
       const res = await request(requestParams);
-      should(Array.isArray(res)).equal(true);
-      fileArrayLength = res.length;
-      fileUuid = res[0].uuid;
+      should(res.constructor).equal(Object);
+      fileArrayLength = Object.keys(res).length;
+      fileUuid = res[Object.keys(res)[0]].uuid;
       done();
     });
 
@@ -48,6 +48,7 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const res = await request(requestParams);
+      console.log('single file', res);
       should(res.uuid).equal(fileUuid);
       done();
     });
@@ -91,8 +92,9 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const res = await request(requestParams);
-      should(Array.isArray(res)).equal(true);
-      should(res.length).equal(fileArrayLength - 1);
+      should(res.constructor).equal(Object);
+      const newFileArrayLength = Object.keys(res).length;
+      should(newFileArrayLength).equal(fileArrayLength - 1);
       done();
     });
   });

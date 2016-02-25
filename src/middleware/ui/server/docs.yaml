@@ -147,11 +147,11 @@
         produces:
           - application/json
         parameters:
-          - name: jobId
+          - name: jobUuid
             in: body
-            description: The ID of the job to be deleted
+            description: The UUID of the job to be deleted
             required: true
-            defaultValue: '{ "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" }'
+            defaultValue: '{ "jobUuid": "" }'
         responses:
           200:
             description: "Job deleted"
@@ -171,7 +171,7 @@
             description: "Jobs retreived successfully"
           405:
             description: "Invalid input"
-    /jobs/{jobId}:
+    /jobs/{jobUuid}:
       get:
         tags:
           - "Jobs"
@@ -183,8 +183,8 @@
           - application/json
         parameters:
           - in: path
-            name: jobId
-            description: ID of the job that needs to be fetched
+            name: jobUuid
+            description: UUID of the job that needs to be fetched
             required: true
             type: integer
             format: int64
@@ -210,8 +210,8 @@
           - application/json
         parameters:
           - in: path
-            name: jobId
-            description: ID of the job that needs to be posted to
+            name: jobUuid
+            description: UUID of the job that needs to be posted to
             required: true
             type: integer
             format: int64
@@ -221,7 +221,7 @@
             required: true
             type: string
           - in: body
-            name: fileId
+            name: fileUuid
             description: File to be assigned to job
             required: false
             type: string
@@ -230,7 +230,7 @@
             description: "Job command executed"
           405:
             description: "Invalid input"
-    /jobs/{jobId}/setFile:
+    /jobs/{jobUuid}/setFile:
       post:
         tags:
           - "Jobs"
@@ -241,11 +241,18 @@
         produces:
           - application/json
         parameters:
+          - in: path
+            name: jobUuid
+            description: UUID of the job that needs to be posted to
+            required: true
+            type: integer
+            format: int64
           - in: body
-            name: fileId
+            name: fileUuid
             description: The file to be consumed by the job
             required: true
             type: string
+            defaultValue: '{ "fileUuid": "" }'
         responses:
           200:
             description: "File set to job"

@@ -10,15 +10,15 @@ $(document).ready(() => {
   //   consol
   // }
   socket.on('jobEvent', (job) => {
-    var ourJob = $(`#job_${job.id}`);
+    var ourJob = $(`#job_${job.uuid}`);
     if (ourJob.length === 0) {
-      const jobDiv = `<div id="job_${job.id}"><ul><li>ID: ${job.id}</li><li>State: <span id="job_${job.id}_state">${job.state}</span></li><li>Started: <span id="job_${job.id}_started">${job.started}</span></li><li>Elapsed: <span id="job_${job.id}_elapsed">${job.elapsed}</span></li><li>Percent Complete: <span id="job_${job.id}_percent_complete">${job.percentComplete}</span></li></ul></div>`;
+      const jobDiv = `<div id="job_${job.uuid}"><ul><li>ID: ${job.uuid}</li><li>State: <span id="job_${job.uuid}_state">${job.state}</span></li><li>Started: <span id="job_${job.uuid}_started">${job.started}</span></li><li>Elapsed: <span id="job_${job.uuid}_elapsed">${job.elapsed}</span></li><li>Percent Complete: <span id="job_${job.uuid}_percent_complete">${job.percentComplete}</span></li></ul></div>`;
       $('#jobs').append(jobDiv);
     } else {
-      $(`#job_${job.id}_state`).text(job.state);
-      $(`#job_${job.id}_started`).text(job.started);
-      $(`#job_${job.id}_elapsed`).text(job.elapsed);
-      $(`#job_${job.id}_percent_complete`).text(job.percentComplete);
+      $(`#job_${job.uuid}_state`).text(job.state);
+      $(`#job_${job.uuid}_started`).text(job.started);
+      $(`#job_${job.uuid}_elapsed`).text(job.elapsed);
+      $(`#job_${job.uuid}_percent_complete`).text(job.percentComplete);
     }
   });
 });

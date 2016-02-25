@@ -23,7 +23,7 @@ class Files {
     this.routeEndpoint = routeEndpoint;
     this.router = router;
     this.uploadDir = path.join(__dirname, `./uploads`);
-    this.files = [];
+    this.files = {};
   }
 
   /**
@@ -66,7 +66,7 @@ class Files {
         name,
         dateModified,
       };
-      self.files.push(fileObject);
+      self.files[uuid] = fileObject;
     });
   }
 
@@ -102,7 +102,7 @@ class Files {
     // Rename the file from it's random name to the file's name plus the uuid
     const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
     await fs.rename(file.path, filenameWithUuid);
-    this.files.push(fileObject);
+    this.files[uuid] = fileObject;
     return fileObject;
   }
 
@@ -111,9 +111,7 @@ class Files {
   }
 
   getFile(fileUuid) {
-    return this.files.find((file) => {
-      return file.uuid === fileUuid;
-    });
+    return this.files[fileUuid];
   }
 }
 

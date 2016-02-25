@@ -5,11 +5,11 @@ block content
     span#hardwareState= clientState
   div#jobs
     each job in jobs
-      div(id = 'job_' + job.id)
+      div(id = 'job_' + job.uuid)
         ul
-          li ID: !{job.id}
+          li UUID: !{job.uuid}
           li State: 
-            span(id = 'job_' + job.id + '_state') !{job.state}
+            span(id = 'job_' + job.uuid + '_state') !{job.state}
           li Started: !{job.started}
           li Elapsed: !{job.elapsed}
           li Percent Complete: !{job.percentComplete}

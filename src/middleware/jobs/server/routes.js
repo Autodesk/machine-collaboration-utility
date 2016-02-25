@@ -18,11 +18,16 @@ const getJobs = (self) => {
 const createJob = (self) => {
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const uuid = ctx.request.body.uuid;
-      const job = await self.createJobObject(uuid);
-      await self.Job.create(self.jobToJson(job));
-
-      ctx.body = self.jobToJson(job);
+      let uuid = ctx.request.body.uuid;
+      // Create the job object
+      const jobObject = await self.createJobObject(uuid);
+      const jobJson = self.jobToJson(jobObject);
+      const dbJob = await self.Job.create(jobJson);
+      uuid = dbJob.dataValues.uuid;
+      jobJson.id = dbJob.dataValues.id;
+      jobObject.id = dbJob.dataValues.id;
+      self.jobs[uuid] = jobObject;
+      ctx.body = jobJson;
       ctx.status = 201;
     } catch (ex) {
       ctx.body = { status: `Jobs API "Create Job" request error: ${ex}` };
@@ -38,9 +43,7 @@ const getJob = (self) => {
   self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       const jobUuid = ctx.params.uuid;
-      const job = self.jobs.find((inJob) => {
-        return inJob.uuid === jobUuid;
-      });
+      const job = self.jobs[jobUuid];
       if (job) {
         ctx.body = self.jobToJson(job);
       } else {
@@ -61,15 +64,14 @@ const getJob = (self) => {
  */
 const setFile = (self) => {
   self.router.post(`${self.routeEndpoint}/:uuid/setFile`, async (ctx) => {
+    debugger;
     let job;
     let file;
 
     // Find the job
     try {
       const jobUuid = ctx.params.uuid;
-      job = self.jobs.find((inJob) => {
-        return inJob.uuid === jobUuid;
-      });
+      job = self.jobs[jobUuid];
 
       if (!job) {
         throw `job is undefined`;
@@ -106,6 +108,7 @@ const setFile = (self) => {
         ctx.status = 500;
       }
     } catch (ex) {
+      self.logger.error(`Set File Fail ${ex}`);
       ctx.body = { status: `Job "${ctx.params.uuid}" error: ${ex}` };
       ctx.status = 500;
     }
@@ -122,9 +125,7 @@ const processJobCommand = (self) => {
     try {
       // Find the job
       const jobUuid = ctx.params.uuid;
-      const job = self.jobs.find((inJob) => {
-        return inJob.uuid === jobUuid;
-      });
+      const job = self.jobs[jobUuid];
 
       if (!job) {
         throw `job is undefined`;
@@ -140,19 +141,19 @@ const processJobCommand = (self) => {
         case `start`:
           // TODO provide feedback if printer is unavailable, before starting the job
           self.startJob(job);
-          ctx.body = await self.jobToJson(job);
+          ctx.body = self.jobToJson(job);
           break;
         case `pause`:
           self.pauseJob(job);
-          ctx.body = await self.jobToJson(job);
+          ctx.body = self.jobToJson(job);
           break;
         case `resume`:
           self.resumeJob(job);
-          ctx.body = await self.jobToJson(job);
+          ctx.body = self.jobToJson(job);
           break;
         case `cancel`:
           self.cancelJob(job);
-          ctx.body = await self.jobToJson(job);
+          ctx.body = self.jobToJson(job);
           break;
         default:
           const errorMessage = `Command ${command} is not supported`;
@@ -165,12 +166,45 @@ const processJobCommand = (self) => {
   });
 };
 
+// /**
+//  * Handle all logic at this endpoint for deleting a job
+//  */
+// const deleteJob = (self) => {
+//   self.router.delete(self.routeEndpoint, async (ctx) => {
+//     try {
+//       const jobUuid = ctx.request.body.jobUuid;
+//       if (jobUuid === undefined) {
+//         ctx.status = 404;
+//         ctx.body = `Job uuid "${jobUuid}" is not valid.`;
+//       } else {
+//         const theJob = self.getJob(jobUuid);
+//         await self.Job.findById(theJob.id).then(async (job) => {
+//           await job.destroy();
+//           let jobIndex;
+//           for (let i = 0; i < self.jobs.length; i++) {
+//             if (self.jobs[i].uuid === theJob.uuid) {
+//               jobIndex = i;
+//             }
+//           }
+//           delete self.jobs[jobIndex];
+//         });
+//         ctx.body = `Job ${jobUuid} deleted`;
+//       }
+//     } catch (ex) {
+//       ctx.body = { status: `To-do list "Delete Job" request error: ${ex}` };
+//       ctx.status = 500;
+//     }
+//   });
+// };
+
+
 const jobsRoutes = (self) => {
   getJobs(self);
   createJob(self);
   getJob(self);
   setFile(self);
   processJobCommand(self);
+//  deleteJob(self);
 };
 
 module.exports = jobsRoutes;

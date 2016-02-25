@@ -40,8 +40,9 @@ module.exports = function botTests() {
         body: { fileUuid: file.uuid },
         json: true,
       };
+      console.log('about to make a request', setFileToJobParams);
       job = await request(setFileToJobParams);
-
+      console.log('5', job);
       done();
     });
 

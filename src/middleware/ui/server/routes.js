@@ -18,10 +18,12 @@ const getDocs = (self) => {
  */
 const getApp = (self) => {
   self.router.get(self.routeEndpoint, async (ctx) => {
+    const jobs = self.app.context.jobs.getJobs();
+    const clientState = self.app.context.bot.getBot().state;
     await ctx.render(`ui/index`, {
       title: `Hydra-Print`,
-      clientState: self.app.context.bot.getBot().state,
-      jobs: self.app.context.jobs.getJobs(),
+      clientState,
+      jobs,
     });
   });
 };

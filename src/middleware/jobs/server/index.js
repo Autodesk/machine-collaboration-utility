@@ -3,6 +3,7 @@ const uuidGenerator = require(`node-uuid`);
 const Promise = require(`bluebird`);
 const StateMachine = Promise.promisifyAll(require(`./stateMachine`));
 const Stopwatch = Promise.promisifyAll(require('timer-stopwatch'));
+const _ = Promise.promisifyAll(require(`underscore`));
 
 const jobsRouter = require(`./routes`);
 const jobModel = require(`./model/job`);
@@ -23,7 +24,7 @@ class Jobs {
     this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
     this.router = router;
-    this.jobs = [];
+    this.jobs = {};
   }
 
   /**
@@ -37,13 +38,15 @@ class Jobs {
       this.Job = await jobModel(this.app);
 
       // load all existing jobs from the database
-      this.Job.findAll().map(async (job) => {
+      const jobs = await this.Job.findAll();
+      for (let i = 0; i < jobs.length; i++) {
+        const job = jobs[i];
         const uuid = job.dataValues.uuid;
         const state = job.dataValues.state;
         const id = job.dataValues.id;
         const jobObject = await self.createJobObject(uuid, state, id);
-        self.jobs.push(jobObject);
-      });
+        self.jobs[uuid] = jobObject;
+      }
 
       this.logger.info(`Jobs instance initialized`);
     } catch (ex) {
@@ -56,7 +59,6 @@ class Jobs {
    */
   async createJobObject(userUuid, initialState, id) {
     const self = this;
-    let jobObject;
 
     const cancelable = ['running', 'paused'];
     const uuid = userUuid ? userUuid : await uuidGenerator.v1();
@@ -85,34 +87,38 @@ class Jobs {
         { name: 'resumeFail',  from: 'resuming',    to: 'paused'      },
         { name: 'resumeDone',  from: 'resuming',    to: 'running'     },
         { name: 'complete',    from: 'running',     to: 'complete'    },
-        { name: 'cancel',      from: cancelable,    to: 'canceling'  },
-        { name: 'cancelFail',  from: 'canceling',  to: 'canceled'    },
-        { name: 'cancelDone',  from: 'canceling',  to: 'canceled'    },
+        { name: 'cancel',      from: cancelable,    to: 'canceling'   },
+        { name: 'cancelFail',  from: 'canceling',   to: 'canceled'    },
+        { name: 'cancelDone',  from: 'canceling',   to: 'canceled'    },
         /* eslint-enable no-multi-spaces */
       ],
       callbacks: {
         onenterstate: async (event, from, to) => {
           self.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
-          const theJob = self.getJob(uuid);
-          if (event.indexOf('Done') !== -1) {
-            const dbJob = await self.Job.findById(id);
-            dbJob.updateAttributes({
-              state: theJob.state,
-              fileId: theJob.fileId,
-              started: theJob.started,
-              elapsed: theJob.elapsed,
-              percentComplete: theJob.percentComplete,
-            });
-            // task.updateAttributes({
-            //   description,
-            // });
+          if (from !== `none`) {
+            const theJob = self.getJob(uuid);
+            if (event.indexOf('Done') !== -1) {
+              try {
+                // As soon as an event successfully transistions, update it in the database
+                const dbJob = await self.Job.findById(id);
 
-            console.log('dooo it!', theJob);
-          }
-          if (event === `startup`) {
-            self.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
-          } else {
-            self.app.io.emit(`jobEvent`, theJob);
+                await dbJob.updateAttributes({
+                  state: theJob.state,
+                  fileId: theJob.fileId,
+                  started: theJob.started,
+                  elapsed: theJob.elapsed,
+                  percentComplete: theJob.percentComplete,
+                });
+                self.logger.info(`Job event ${event} for job ${uuid} successfully updated to ${theJob.state}`);
+              } catch (ex) {
+                self.logger.info(`Job event ${event} for job ${uuid} failed to update: ${ex}`);
+              }
+            }
+            if (event === `startup`) {
+              self.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
+            } else {
+              self.app.io.emit(`jobEvent`, theJob);
+            }
           }
         },
       },
@@ -121,7 +127,7 @@ class Jobs {
     const fsm = await StateMachine.create(fsmSettings);
     const stopwatch = await new Stopwatch(false, { refreshRateMS: 1000 });
 
-    jobObject = {
+    const jobObject = {
       id,
       uuid,
       fsm,
@@ -135,12 +141,6 @@ class Jobs {
     stopwatch.onTime((time) => {
       this.app.io.emit('jobEvent', this.jobToJson(jobObject));
     });
-    // injecting the fsm callback after the fsm object is created to create a job reference within the socket event
-    // jobObject.fsm.callbacks.onenterstate = (event, from, to) => {
-    //   this.app.io.emit(`jobEvent`, jobObject);
-    //   this.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
-    // };
-    this.jobs.push(jobObject);
     return jobObject;
   }
 
@@ -165,11 +165,12 @@ class Jobs {
    * Turn a job object into a REST reply friendly object
    */
   jobToJson(job) {
+    const state = job.fsm.current ? job.fsm.current: `created`;
     const started = !!job.started ? job.started : null;
     const elapsed = !!job.started ? job.stopwatch.ms : null;
     return {
       uuid: job.uuid,
-      state: job.fsm.current,
+      state,
       fileUuid: job.fileUuid,
       started,
       elapsed,
@@ -181,25 +182,26 @@ class Jobs {
    * Turn an array of job objects into a REST reply friendly array of jobs
    */
   jobsToJson(jobs) {
-    return jobs.map((job) => {
-      return this.jobToJson(job);
-    });
+    const jobObjects = {};
+    for (let job in jobs) {
+      jobObjects[job] = this.jobToJson(this.jobs[job]);
+    }
+    return jobObjects;
   }
 
   /**
-   * A generic call to retreive a job by its uuid
+   * A generic call to retreive a json friendly job by its uuid
    */
   getJob(jobUuid) {
-    return this.jobsToJson(this.jobs).find((job) => {
-      return job.uuid === jobUuid;
-    });
+    return this.jobToJson(this.jobs[jobUuid]);
   }
 
   /**
    * A generic call to retreive a json friendly list of jobs
    */
   getJobs() {
-    return this.jobsToJson(this.jobs);
+    const jobs = this.jobsToJson(this.jobs);
+    return jobs;
   }
 
   /*

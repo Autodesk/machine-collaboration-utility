@@ -33,8 +33,8 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const jobs = await request(requestParams);
-      should(Array.isArray(jobs)).equal(true);
-      nJobs = jobs.length;
+      should(jobs.constructor).equal(Object);
+      nJobs = Object.keys(jobs).length;
       done();
     });
 
