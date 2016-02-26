@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node node_modules/gulp/bin/gulp.js",
-    "test": "node node_modules/gulp/bin/gulp.js test"
+    "test": "node node_modules/gulp/bin/gulp.js test",
+    "bot": "node node_modules/gulp/bin/gulp.js",
+    "conductor": "node node_modules/gulp/bin/gulp.js conduct"
   },
   "dependencies": {
     "babel-core": "^6.3.26",

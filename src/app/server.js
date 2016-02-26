@@ -1,14 +1,19 @@
 require(`source-map-support`).install();
 require('dotenv').config();
 require(`babel-polyfill`);
-const app = require(`./app`);
-const debug = require(`debug`);
 const http = require(`http`);
 
-const debugInstance = debug(`demo:server`);
-const server = http.createServer(app.callback());
-
 const config = require(`./config`);
+const KoaApp = require(`./koaApp`);
+
+// Pass a flag to the app to be a conductor or a bot
+const conducting = process.env.NODE_ENV === `conducting` ? true : false;
+
+// Create a new app object and set it up
+const koaApp = new KoaApp(config, conducting);
+koaApp.initialize();
+const app = koaApp.app; // Messy, but the app is actually in the koaApp object
+const server = http.createServer(app.callback());
 
 /**
  * Listen on provided port, on all network interfaces.

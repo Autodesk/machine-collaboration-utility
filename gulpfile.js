@@ -190,10 +190,34 @@ gulp.task(
   }
 );
 
+// Complete every task before starting nodemon
+gulp.task(
+  `run-conductor`,
+  [
+    `build`,
+    `watch`,
+  ],
+  () => {
+    nodemon({
+      script: 'dist/server/server.js',
+      env: { NODE_ENV: 'conducting' },
+    })
+    .on('restart', () => {
+      console.log('restarted!');
+    });
+  }
+);
+
 gulp.task(`default`, [
   `build`,
   `watch`,
   `develop`,
+]);
+
+gulp.task(`conduct`, [
+  `build`,
+  `watch`,
+  `run-conductor`,
 ]);
 
 gulp.task(`run-tests`, [`default`], () => {
