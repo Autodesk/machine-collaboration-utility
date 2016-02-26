@@ -2,7 +2,8 @@ const convert = require(`koa-convert`);
 const body = require(`koa-body`);
 const fs = require(`fs-promise`);
 const Promise = require(`bluebird`);
-
+const send = require(`koa-send`);
+const path = require(`path`);
 /**
  * Handle all file upload requests for the Conductor + '/upload' endpoint
  */
@@ -124,11 +125,36 @@ const getFile = (self) => {
   });
 };
 
+/**
+ * Handle all logic at this endpoint for reading a single task
+ */
+const downloadFile = (self) => {
+  self.router.get(self.routeEndpoint + `/:uuid/download`, async (ctx) => {
+    try {
+      const fileUuid = ctx.params.uuid;
+      const file = self.files[fileUuid];
+      if (file) {
+        ctx.res.setHeader('Content-disposition', 'attachment; filename=' + file.name);
+        ctx.body = fs.createReadStream(self.getFilePath(file));
+      } else {
+        ctx.status = 404;
+        ctx.body = {
+          error: `File ${fileUuid} not found`,
+        };
+      }
+    } catch (ex) {
+      ctx.body = { status: `To-do list "Download file ${ctx.params.uuid}" request error: ${ex}` };
+      ctx.status = 500;
+    }
+  });
+};
+
 const filesRoutes = (self) => {
   uploadFile(self);
   deleteFile(self);
   getFiles(self);
   getFile(self);
+  downloadFile(self);
 };
 
 module.exports = filesRoutes;
