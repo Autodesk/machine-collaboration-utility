@@ -68,6 +68,7 @@ var SerialConnection = function(inComName, inBaud, inOpenPrimeStr,
             // logger.warn('Failed to open com port:', inComName, error);
         } else {
             that.mPort.on('data', function (inData) {
+              console.log('Data received:', inData.toString());
                     if (_.isFunction(that.mDataFunc)) {
                         that.mDataFunc(inData);
                     }

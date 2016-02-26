@@ -53,28 +53,28 @@ class Bot {
       },
       events: [
         /* eslint-disable no-multi-spaces */
-        { name: 'detect',             from: 'unavailable',     to: 'detecting'       },
-        { name: 'detectFail',         from: 'detecting',       to: 'unavailable'     },
-        { name: 'detectDone',         from: 'detecting',       to: 'ready'           },
-        { name: 'connect',            from: 'ready',           to: 'connecting'      },
-        { name: 'connectFail',        from: 'connecting',      to: 'ready'           },
-        { name: 'connectDone',        from: 'connecting',      to: 'connected'       },
-        { name: 'start',              from: 'connected',       to: 'startingJob'     },
-        { name: 'startFail',          from: 'startingJob',     to: 'connected'       },
-        { name: 'startDone',          from: 'startingJob',     to: 'processingJob'   },
-        { name: 'stop',               from: 'processingJob',   to: 'stopping'        },
-        { name: 'stopDone',           from: 'stopping',        to: 'connected'       },
-        { name: 'stopFail',           from: 'stopping',        to: 'connected'       },
-        { name: 'jobToGcode',         from: 'processingJob',   to: 'processingGcode' },
-        { name: 'jobGcodeFail',       from: 'processingGcode', to: 'processingJob'   },
-        { name: 'jobGcodeDone',       from: 'processingGcode', to: 'processingJob'   },
-        { name: 'connectedToGcode',   from: 'connected',       to: 'processingGcode' },
-        { name: 'connectedGcodeFail', from: 'processingGcode', to: 'connected'       },
-        { name: 'connectedGcodeDone', from: 'processingGcode', to: 'connected'       },
-        { name: 'disconnect',         from: 'connected',       to: 'disconnecting'   },
-        { name: 'disconnectFail',     from: 'disconnecting',   to: 'connected'       },
-        { name: 'disconnectDone',     from: 'disconnecting',   to: 'ready'           },
-        { name: 'unplug',             from: '*',               to: 'unavailable'     },
+        { name: 'detect',             from: 'unavailable',        to: 'detecting'          },
+        { name: 'detectFail',         from: 'detecting',          to: 'unavailable'        },
+        { name: 'detectDone',         from: 'detecting',          to: 'ready'              },
+        { name: 'connect',            from: 'ready',              to: 'connecting'         },
+        { name: 'connectFail',        from: 'connecting',         to: 'ready'              },
+        { name: 'connectDone',        from: 'connecting',         to: 'connected'          },
+        { name: 'start',              from: 'connected',          to: 'startingJob'        },
+        { name: 'startFail',          from: 'startingJob',        to: 'connected'          },
+        { name: 'startDone',          from: 'startingJob',        to: 'processingJob'      },
+        { name: 'stop',               from: 'processingJob',      to: 'stopping'           },
+        { name: 'stopDone',           from: 'stopping',           to: 'connected'          },
+        { name: 'stopFail',           from: 'stopping',           to: 'connected'          },
+        { name: 'jobToGcode',         from: 'processingJob',      to: 'processingJobGcode' },
+        { name: 'jobGcodeFail',       from: 'processingJobGcode', to: 'processingJob'      },
+        { name: 'jobGcodeDone',       from: 'processingGcode',    to: 'processingJob'      },
+        { name: 'connectedToGcode',   from: 'connected',          to: 'processingGcode'    },
+        { name: 'connectedGcodeFail', from: 'processingGcode',    to: 'connected'          },
+        { name: 'connectedGcodeDone', from: 'processingGcode',    to: 'connected'          },
+        { name: 'disconnect',         from: 'connected',          to: 'disconnecting'      },
+        { name: 'disconnectFail',     from: 'disconnecting',      to: 'connected'          },
+        { name: 'disconnectDone',     from: 'disconnecting',      to: 'ready'              },
+        { name: 'unplug',             from: '*',                  to: 'unavailable'        },
         /* eslint-enable no-multi-spaces */
       ],
       callbacks: {
@@ -84,6 +84,24 @@ class Bot {
         },
       },
     });
+  }
+
+  async processGcode(gcode) {
+    const state = this.fsm.current;
+    switch (state) {
+      case `connected`:
+      case `processingJob`:
+      case `processingJobGcode`:
+      case `processingGcode`:
+        console.log('the queue length', this.queue.mQueue.length);
+        if (this.queue.mQueue.length < 32) {
+          this.queue.queueCommands(gcode);
+          return `Command ${gcode} queued`;
+        }
+        return `Command Queue is full. Please try again later`;
+      default:
+        return `Cannot process gcode while bot is in state ${state}`;
+    }
   }
 
   /**
