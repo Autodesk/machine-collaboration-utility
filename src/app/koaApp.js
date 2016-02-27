@@ -16,12 +16,14 @@ const Promise = require(`bluebird`);
 const Files = require('./middleware/files');
 const Jobs = require('./middleware/jobs');
 const Bot = require('./middleware/bot');
+const Conductor = require('./middleware/conductor');
 const UI = require('./middleware/ui');
 
 class KoaApp {
-  constructor(config) {
+  constructor(config, conducting) {
     this.app = new Koa();
     this.app.context.config = config;
+    this.conducting = conducting;
   }
 
   initialize() {
@@ -77,8 +79,13 @@ class KoaApp {
       const jobs = new Jobs(this.app, `${apiVersion}/jobs`);
       await jobs.initialize();
 
-      const bot = new Bot(this.app, `${apiVersion}/bot`);
-      await bot.initialize();
+      if (this.conducting) {
+        const conductor = new Conductor(this.app, `${apiVersion}/conductor`);
+        await conductor.initialize();
+      } else {
+        const bot = new Bot(this.app, `${apiVersion}/bot`);
+        await bot.initialize();
+      }
 
       const ui = new UI(this.app, ``);
       await ui.initialize();
