@@ -15,5 +15,6 @@ block content
           li Percent Complete: !{job.percentComplete}
 
   script(src='/js/vendor/jquery.min.js')
+  script var ip = !{JSON.stringify(ip)}
   script(src='/socket.io/socket.io.js')
   script(src='/js/ui/client.js')

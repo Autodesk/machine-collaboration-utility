@@ -1,3 +1,6 @@
+const Promise = require(`bluebird`);
+const getIp = Promise.promisifyAll(require(`ip`));
+
 /**
  * Render the to-do list's documentation
  */
@@ -18,12 +21,14 @@ const getDocs = (self) => {
  */
 const getApp = (self) => {
   self.router.get(self.routeEndpoint, async (ctx) => {
+    const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const clientState = self.app.context.bot.getBot().state;
     await ctx.render(`ui/index`, {
       title: `Hydra-Print`,
       clientState,
       jobs,
+      ip,
     });
   });
 };

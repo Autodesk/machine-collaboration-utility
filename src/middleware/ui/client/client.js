@@ -1,6 +1,6 @@
-/* global $, io */
+/* global $, io, ip */
 $(document).ready(() => {
-  const socket = io('http://localhost:9000');
+  const socket = io(`http://${ip}:9000`);
   socket.on('stateChange', (newState) => {
     $('#hardwareState').text(newState);
   });
