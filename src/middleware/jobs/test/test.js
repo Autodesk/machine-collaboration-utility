@@ -95,5 +95,19 @@ module.exports = function toDoListTests() {
         done();
       }
     });
+
+    it('should delete a job', async function (done) {
+      const requestParams = {
+        method: `DELETE`,
+        uri: `http://localhost:9000/v1/jobs/`,
+        body: {
+          jobUuid: job.uuid,
+        },
+        json: true,
+      };
+      const res = await request(requestParams);
+      should(res.indexOf('deleted') !== -1).equal(true);
+      done();
+    });
   });
 };
