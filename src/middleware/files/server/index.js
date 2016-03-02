@@ -61,6 +61,7 @@ class Files {
       const name = filename.split('_' + uuid)[0] + '.' + filename.split('.')[1];
       const fileStats = await fs.stat(`${basedir}/${filename}`);
       const dateModified = new Date().getTime(fileStats.mtime);
+      // TODO change date modified to date created
       const fileObject = {
         uuid,
         name,

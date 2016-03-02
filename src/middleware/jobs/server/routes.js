@@ -182,7 +182,9 @@ const deleteJob = (self) => {
         ctx.body = `Job uuid "${jobUuid}" is not valid.`;
       } else {
         const theJob = self.jobs[jobUuid];
+        const theJobJson = self.jobToJson(theJob);
         const dbJob = await self.Job.findById(theJob.id);
+        self.app.io.emit('deleteJob', theJobJson);
         await dbJob.destroy();
         delete self.jobs[jobUuid];
         ctx.body = `Job ${jobUuid} deleted`;

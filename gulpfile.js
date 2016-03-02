@@ -11,6 +11,7 @@ const rename = require(`gulp-rename`);
 const src = {
   serverJs: `src/app/**/*.js`,
   clientJs: `src/client/**/*.js`,
+  clientCss: `src/client/**/*.css`,
   middlewareServerJs: `src/middleware/**/server/**/*.js`,
   middlewareModelJs: `src/middleware/**/model/**/*.js`,
   middlewareClientJs: `src/middleware/**/client/**/*.js`,
@@ -26,6 +27,7 @@ const dest = {
   server: `dist/server`,
   middleware: `dist/server/middleware`,
   clientJs: `./dist/client`,
+  clientCss: `./dist/client`,
   views: `dist/server/views`,
   docs: `dist/client/docs`,
   yaml: `dist/client/docs/middleware`,
@@ -37,6 +39,7 @@ gulp.task(`build`, [
   `build-server`,
   `build-views`,
   `build-client-js`,
+  `build-client-styles`,
   `build-server-middleware`,
   `build-views-middleware`,
   `build-client-js-middleware`,
@@ -84,6 +87,11 @@ gulp.task(`build-server-middleware`, () => {
   }))
 	.pipe(sourcemaps.write(`.`))
 	.pipe(gulp.dest(dest.middleware));
+});
+
+gulp.task(`build-client-styles`, () => {
+  return gulp.src(src.clientCss)
+  .pipe(gulp.dest(dest.clientCss));
 });
 
 gulp.task(`build-client-js`, () => {

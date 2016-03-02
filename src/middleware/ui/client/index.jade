@@ -3,18 +3,14 @@ extends ../layout
 block content
   p Hardware State: 
     span#hardwareState= clientState
-  div#jobs
-    each job in jobs
-      div(id = 'job_' + job.uuid)
-        ul
-          li UUID: !{job.uuid}
-          li State: 
-            span(id = 'job_' + job.uuid + '_state') !{job.state}
-          li Started: !{job.started}
-          li Elapsed: !{job.elapsed}
-          li Percent Complete: !{job.percentComplete}
+  div.row
+    div#jobs.col-md-6
+    div#files.col-md-6
 
   script(src='/js/vendor/jquery.min.js')
+  script(src='/js/vendor/bootstrap.min.js')
   script var ip = !{JSON.stringify(ip)}
+  script var jobs = !{JSON.stringify(jobs)}
+  script var files = !{JSON.stringify(files)}
   script(src='/socket.io/socket.io.js')
   script(src='/js/ui/client.js')

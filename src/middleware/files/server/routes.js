@@ -41,6 +41,8 @@ const uploadFile = (self) => {
           // Once the file is uploaded, then add it to the array of available files
           ctx.status = 201;
           ctx.body = uploadedFiles;
+          // TODO handle passing multiple files as a socket event
+          self.app.io.emit(`fileEvent`, uploadedFiles[0]);
         } else {
           ctx.body = `Error: No file was received.`;
           ctx.status = 404;

@@ -171,7 +171,7 @@ class Jobs {
     return {
       uuid: job.uuid,
       state,
-      fileUuid: job.fileUuid,
+      fileUuid: job.fileUuid === undefined ? false : job.fileUuid,
       started,
       elapsed,
       percentComplete: job.percentComplete,
