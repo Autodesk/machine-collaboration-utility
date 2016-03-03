@@ -28,9 +28,9 @@ const createJob = (self) => {
       const jobJson = self.jobToJson(jobObject);
       const dbJob = await self.Job.create(jobJson);
       uuid = dbJob.dataValues.uuid;
-      jobJson.id = dbJob.dataValues.id;
       jobObject.id = dbJob.dataValues.id;
       self.jobs[uuid] = jobObject;
+      self.app.io.emit('jobEvent', jobJson);
       ctx.body = jobJson;
       ctx.status = 201;
     } catch (ex) {
@@ -181,16 +181,27 @@ const deleteJob = (self) => {
         ctx.status = 404;
         ctx.body = `Job uuid "${jobUuid}" is not valid.`;
       } else {
-        const theJob = self.jobs[jobUuid];
-        const theJobJson = self.jobToJson(theJob);
-        const dbJob = await self.Job.findById(theJob.id);
-        self.app.io.emit('deleteJob', theJobJson);
-        await dbJob.destroy();
-        delete self.jobs[jobUuid];
-        ctx.body = `Job ${jobUuid} deleted`;
+        ctx.body = await self.deleteJob(jobUuid);
       }
     } catch (ex) {
       ctx.body = { status: `To-do list "Delete Job" request error: ${ex}` };
+      ctx.status = 500;
+    }
+  });
+};
+
+/**
+ * Handle all logic at this endpoint for deleting all jobs
+ */
+const deleteAllJobs = (self) => {
+  self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
+    try {
+      for (const job in self.jobs) {
+        await self.deleteJob(self.jobs[job].uuid);
+      }
+      ctx.body = `All jobs deleted`;
+    } catch (ex) {
+      ctx.body = { status: `Job API "Delete all Jobs" request error: ${ex}` };
       ctx.status = 500;
     }
   });
@@ -203,7 +214,8 @@ const jobsRoutes = (self) => {
   getJob(self);
   setFile(self);
   processJobCommand(self);
- deleteJob(self);
+  deleteJob(self);
+  deleteAllJobs(self);
 };
 
 module.exports = jobsRoutes;

@@ -44,7 +44,8 @@ class Jobs {
         const uuid = job.dataValues.uuid;
         const state = job.dataValues.state;
         const id = job.dataValues.id;
-        const jobObject = await self.createJobObject(uuid, state, id);
+        const fileUuid = job.dataValues.fileUuid;
+        const jobObject = await self.createJobObject(uuid, state, id, fileUuid);
         self.jobs[uuid] = jobObject;
       }
 
@@ -57,7 +58,7 @@ class Jobs {
   /**
    * Create a job object
    */
-  async createJobObject(userUuid, initialState, id) {
+  async createJobObject(userUuid, initialState, id, fileUuid) {
     const self = this;
 
     const cancelable = ['running', 'paused'];
@@ -104,7 +105,7 @@ class Jobs {
 
                 await dbJob.updateAttributes({
                   state: theJob.state,
-                  fileId: theJob.fileId,
+                  fileUuid: theJob.fileUuid,
                   started: theJob.started,
                   elapsed: theJob.elapsed,
                   percentComplete: theJob.percentComplete,
@@ -132,7 +133,7 @@ class Jobs {
       uuid,
       fsm,
       stopwatch,
-      fileUuid: undefined,
+      fileUuid,
       started: undefined,
       elapsed: undefined,
       percentComplete: 0,
@@ -267,6 +268,16 @@ class Jobs {
       this.logger.error(errorMessage);
       await job.fsm.cancelFail();
     }
+  }
+
+  async deleteJob(jobUuid) {
+    const theJob = this.jobs[jobUuid];
+    const theJobJson = this.jobToJson(theJob);
+    const dbJob = await this.Job.findById(theJob.id);
+    this.app.io.emit('deleteJob', theJobJson);
+    await dbJob.destroy();
+    delete this.jobs[jobUuid];
+    return `Job ${jobUuid} deleted`;
   }
 }
 
