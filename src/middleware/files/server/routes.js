@@ -43,15 +43,15 @@ const uploadFile = (self) => {
             { concurrency: 4 }
           );
           // Once the file is uploaded, then add it to the array of available files
-          ctx.status = 201;
+          ctx.status = 200;
           ctx.body = new Response(ctx, requestDescription, uploadedFiles);
 
           // TODO handle passing multiple files as a socket event
           self.app.io.emit(`fileEvent`, uploadedFiles[0]);
         } else {
           const errorMessage = `No file was received.`;
-          ctx.body = new Response(ctx, requestDescription, errorMessage);
           ctx.status = 404;
+          ctx.body = new Response(ctx, requestDescription, errorMessage);
           self.logger.error(errorMessage);
           return;
         }
@@ -93,6 +93,7 @@ const deleteFile = (self) => {
           // Remove the file object from the 'files' array
           delete self.files[fileUuid];
           const response = `File ${fileUuid} deleted`;
+          ctx.status = 200;
           ctx.body = new Response(ctx, requestDescription, response);
         } else {
           const errorMessage = `File at path "${filePath}" does not exist`;
@@ -115,6 +116,7 @@ const getFiles = (self) => {
   const requestDescription = 'Get Files';
   self.router.get(self.routeEndpoint + '/', async (ctx) => {
     try {
+      ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, self.files);
     } catch (ex) {
       ctx.status = 500;
@@ -134,6 +136,7 @@ const getFile = (self) => {
       const fileUuid = ctx.params.uuid;
       const file = self.files[fileUuid];
       if (file) {
+        ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, file);
       } else {
         const errorMessage = `File ${fileUuid} not found`;
@@ -143,8 +146,8 @@ const getFile = (self) => {
       }
     } catch (ex) {
       const errorMessage = `To-do list "Read Task ${ctx.params.uuid}" request error: ${ex}`;
-      ctx.body = new Response(ctx, requestDescription, errorMessage);
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, errorMessage);
       self.logger.error(errorMessage);
     }
   });
@@ -163,8 +166,8 @@ const downloadFile = (self) => {
         ctx.res.setHeader(`Content-disposition`, `attachment; filename=${file.name}`);
         ctx.body = fs.createReadStream(self.getFilePath(file));
       } else {
-        ctx.status = 404;
         const errorMessage = `File "${fileUuid}" not found`;
+        ctx.status = 404;
         ctx.body = new Response(ctx, requestDescription, errorMessage);
         self.logger.error(errorMessage);
       }

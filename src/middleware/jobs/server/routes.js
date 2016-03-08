@@ -40,6 +40,7 @@ const getJobs = (self) => {
   self.router.get(self.routeEndpoint + '/', async (ctx) => {
     try {
       const response = self.jobsToJson(self.jobs);
+      ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, response);
     } catch (ex) {
       ctx.status = 500;
@@ -60,6 +61,7 @@ const getJob = (self) => {
       const job = self.jobs[jobUuid];
       if (job) {
         const jobJson = self.jobToJson(job);
+        ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, jobJson);
       } else {
         const errorMessage = `Job ${jobUuid} not found`;
@@ -101,6 +103,7 @@ const setFile = (self) => {
         if (fileUuid) {
           job.fileUuid = fileUuid;
           const jobJson = self.jobToJson(job);
+          ctx.status = 200;
           ctx.body = new Response(ctx, requestDescription, jobJson);
         } else {
           throw `File uuid undefined`;
@@ -119,6 +122,7 @@ const setFile = (self) => {
         job.fileUuid = file.uuid;
         const jobJson = self.jobToJson(job);
         await job.fsm.setFileDone();
+        ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, jobJson);
       } catch (ex) {
         await job.fsm.setFileFail();
@@ -183,6 +187,7 @@ const processJobCommand = (self) => {
           commandReply = `Command ${command} is not supported`;
           throw commandReply;
       }
+      ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, commandReply);
     } catch (ex) {
       ctx.status = 500;
@@ -207,6 +212,7 @@ const deleteJob = (self) => {
         return;
       } else {
         const deleteStatus = await self.deleteJob(jobUuid);
+        ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, deleteStatus);
       }
     } catch (ex) {
@@ -228,6 +234,7 @@ const deleteAllJobs = (self) => {
         await self.deleteJob(self.jobs[job].uuid);
       }
       const status = `All jobs deleted`;
+      ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, status);
     } catch (ex) {
       ctx.status = 500;

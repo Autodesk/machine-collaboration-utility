@@ -17,9 +17,13 @@ module.exports = function botTests() {
         uri: `http://localhost:9000/v1/jobs/`,
         json: true,
       };
-      job = await request(jobParams);
+      const createJobReply = await request(jobParams);
+      // assign value to job
+      job = createJobReply.data;
       should(!!job.uuid);
       should(job.state).equal(`created`);
+      should(createJobReply.status).equal(201);
+      should(createJobReply.query).equal(`Create Job`);
 
       // Upload a file
       const testFilePath = path.join(__dirname, `pause.gcode`);
@@ -29,9 +33,12 @@ module.exports = function botTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/files`,
         formData,
+        json: true,
       };
-      const uploadReply = await request(fileParams);
-      const file = JSON.parse(uploadReply)[0];
+      const uploadFileReply = await request(fileParams);
+      should(uploadFileReply.status).equal(200);
+      should(uploadFileReply.query).equal(`Upload File`);
+      const file = uploadFileReply.data[0];
 
       // Assign a file to a job
       const setFileToJobParams = {
@@ -40,26 +47,24 @@ module.exports = function botTests() {
         body: { fileUuid: file.uuid },
         json: true,
       };
-      console.log('about to make a request', setFileToJobParams);
-      job = await request(setFileToJobParams);
-      console.log('5', job);
+      const setFileToJobReply = await request(setFileToJobParams);
+      job = setFileToJobReply.data;
+      should(setFileToJobReply.status).equal(200);
+      should(setFileToJobReply.query).equal(`Set File to Job`);
       done();
     });
 
-    it('should throw an error when issued a bogus command', async function(done) {
-      should(false);
-      done();
-    });
-
-    it('should initialize a virtual printer', async function (done) {
+    it('should initialize a virtual bot', async function (done) {
       const requestParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/bot/`,
         body: { command: `createVirtualBot` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`detecting`);
+      const initializeBotReply = await request(requestParams);
+      should(initializeBotReply.status).equal(200);
+      should(initializeBotReply.query).equal(`Process Bot Command`);
+      should(initializeBotReply.data.state).equal(`detecting`);
       done();
     });
 
@@ -70,56 +75,66 @@ module.exports = function botTests() {
         json: true,
       };
       await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
-      const res = await request(requestParams);
-      should(res.state).equal(`ready`);
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`ready`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Bot`);
       done();
     });
 
-    it('initializing a virtual printer should be idempotent', async function(done) {
+    it('initializing a virtual bot should be idempotent', async function(done) {
       const requestParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/bot/`,
         body: { command: `createVirtualBot` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`ready`);
+      const initializeBotReply = await request(requestParams);
+      should(initializeBotReply.status).equal(200);
+      should(initializeBotReply.query).equal(`Process Bot Command`);
+      should(initializeBotReply.data.state).equal(`ready`);
       done();
     });
 
-    it('should destroy a virtual printer', async function (done) {
+    it('should destroy a virtual bot', async function (done) {
       const requestParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/bot/`,
         body: { command: `destroyVirtualBot` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`unavailable`);
+      const destroyBotReply = await request(requestParams);
+      should(destroyBotReply.status).equal(200);
+      should(destroyBotReply.query).equal(`Process Bot Command`);
+      should(destroyBotReply.data.state).equal(`unavailable`);
       done();
     });
 
-    it('destroying a virtual printer should be idempotent', async function (done) {
+    it('destroying a virtual bot should be idempotent', async function (done) {
       const requestParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/bot/`,
         body: { command: `destroyVirtualBot` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`unavailable`);
+      const destroyBotReply = await request(requestParams);
+      should(destroyBotReply.status).equal(200);
+      should(destroyBotReply.query).equal(`Process Bot Command`);
+      should(destroyBotReply.data.state).equal(`unavailable`);
       done();
     });
 
-    it('should initialize a virtual printer, again', async function (done) {
+    it('should create a virtual bot, again', async function (done) {
       const requestParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/bot/`,
         body: { command: `createVirtualBot` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`detecting`);
+      const initializeBotReply = await request(requestParams);
+      should(initializeBotReply.status).equal(200);
+      should(initializeBotReply.query).equal(`Process Bot Command`);
+      should(initializeBotReply.data.state).equal(`detecting`);
       done();
     });
 
@@ -130,8 +145,10 @@ module.exports = function botTests() {
         json: true,
       };
       await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
-      const res = await request(requestParams);
-      should(res.state).equal(`ready`);
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`ready`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Bot`);
       done();
     });
 
@@ -142,8 +159,10 @@ module.exports = function botTests() {
         body: { command: `connect` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`connecting`);
+      const botCommandReply = await request(requestParams);
+      should(botCommandReply.data.state).equal(`connecting`);
+      should(botCommandReply.status).equal(200);
+      should(botCommandReply.query).equal(`Process Bot Command`);
       done();
     });
 
@@ -154,8 +173,10 @@ module.exports = function botTests() {
         uri: `http://localhost:9000/v1/bot/`,
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`connected`);
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`connected`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Bot`);
       done();
     });
 
@@ -166,8 +187,10 @@ module.exports = function botTests() {
         body: { command: `start` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`starting`);
+      const startJobReply = await request(requestParams);
+      should(startJobReply.data.state).equal(`starting`);
+      should(startJobReply.status).equal(200);
+      should(startJobReply.query).equal(`Process Job Command`);
       done();
     });
 
@@ -178,8 +201,10 @@ module.exports = function botTests() {
         uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`running`);
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`running`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Job`);
       done();
     });
 
@@ -190,8 +215,10 @@ module.exports = function botTests() {
         body: { command: `pause` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`pausing`);
+      const jobPauseReply = await request(requestParams);
+      should(jobPauseReply.data.state).equal(`pausing`);
+      should(jobPauseReply.status).equal(200);
+      should(jobPauseReply.query).equal(`Process Job Command`);
       done();
     });
 
@@ -202,8 +229,10 @@ module.exports = function botTests() {
         uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`paused`);
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`paused`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Job`);
       done();
     });
 
@@ -214,8 +243,10 @@ module.exports = function botTests() {
         body: { command: `pause` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`paused`);
+      const jobPauseReply = await request(requestParams);
+      should(jobPauseReply.data.state).equal(`paused`);
+      should(jobPauseReply.status).equal(200);
+      should(jobPauseReply.query).equal(`Process Job Command`);
       done();
     });
 
@@ -226,8 +257,10 @@ module.exports = function botTests() {
         body: { command: `resume` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`resuming`);
+      const jobResumeReply = await request(requestParams);
+      should(jobResumeReply.data.state).equal(`resuming`);
+      should(jobResumeReply.status).equal(200);
+      should(jobResumeReply.query).equal(`Process Job Command`);
       done();
     });
 
@@ -238,8 +271,10 @@ module.exports = function botTests() {
         uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`running`);
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`running`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Job`);
       done();
     });
 
@@ -250,8 +285,10 @@ module.exports = function botTests() {
         body: { command: `resume` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`running`);
+      const jobResumeReply = await request(requestParams);
+      should(jobResumeReply.data.state).equal(`running`);
+      should(jobResumeReply.status).equal(200);
+      should(jobResumeReply.query).equal(`Process Job Command`);
       done();
     });
 
@@ -264,8 +301,10 @@ module.exports = function botTests() {
         body: { command: `cancel` },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`canceling`);
+      const jobCancelReply = await request(requestParams);
+      should(jobCancelReply.data.state).equal(`canceling`);
+      should(jobCancelReply.status).equal(200);
+      should(jobCancelReply.query).equal(`Process Job Command`);
       done();
     });
 
@@ -276,8 +315,10 @@ module.exports = function botTests() {
         uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.state).equal(`canceled`);
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`canceled`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Job`);
       done();
     });
   });
