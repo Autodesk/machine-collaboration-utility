@@ -94,7 +94,6 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const deleteFileReply = await request(requestParams);
-      console.log(`deleteFileReply`, deleteFileReply);
       should(deleteFileReply.data).equal(`File ${fileUuid} deleted`);
       should(deleteFileReply.status).equal(200);
       should(deleteFileReply.query).equal(`Delete File`);

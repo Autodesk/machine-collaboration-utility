@@ -14,15 +14,26 @@ module.exports = function toDoListTests() {
         uri: `http://localhost:9000/v1/jobs/`,
         json: true,
       };
-      job = await request(requestParams);
+      const jobCreateReply = await request(requestParams);
+      job = jobCreateReply.data;
       should(!!job.uuid);
       should(!!job.state);
+      should(jobCreateReply.status).equal(201);
+      should(jobCreateReply.query).equal(`Create Job`);
       done();
     });
 
     it('should have a job state of "created"', async function (done) {
-      // TODO instead of referring to the job object, query the job again from the API
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
+        json: true,
+      };
+      const getJobReply = await request(requestParams);
+      job = getJobReply.data;
       should(job.state === `created`);
+      should(getJobReply.status).equal(200);
+      should(getJobReply.query).equal(`Get Job`);
       done();
     });
 
@@ -32,8 +43,12 @@ module.exports = function toDoListTests() {
         uri: `http://localhost:9000/v1/jobs/`,
         json: true,
       };
-      const jobs = await request(requestParams);
+      const getJobsReply = await request(requestParams);
+      const jobs = getJobsReply.data;
       should(jobs.constructor).equal(Object);
+      should(getJobsReply.status).equal(200);
+      should(getJobsReply.query).equal(`Get Jobs`);
+
       nJobs = Object.keys(jobs).length;
       done();
     });
@@ -47,9 +62,10 @@ module.exports = function toDoListTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/files`,
         formData,
+        json: true,
       };
-      const uploadResponse = JSON.parse(await request(fileUploadParams));
-      const file = uploadResponse[0];
+      const getFilesReply = await request(fileUploadParams);
+      const file = getFilesReply.data[0];
 
       // Set the file to the job
       const requestParams = {
@@ -58,10 +74,13 @@ module.exports = function toDoListTests() {
         body: { fileUuid: file.uuid },
         json: true,
       };
-      job = await request(requestParams);
+      const setFileToJobReply = await request(requestParams);
+      job = setFileToJobReply.data;
       should(!!job.uuid);
       should(!!job.fileUuid);
-      should(job.state).equal(`ready`);
+      should(job.state).equal(`settingFile`); // could be a race case? might also be ready
+      should(setFileToJobReply.status).equal(200);
+      should(setFileToJobReply.query).equal(`Set File to Job`);
       done();
     });
 
@@ -74,9 +93,10 @@ module.exports = function toDoListTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/files`,
         formData,
+        json: true,
       };
-      const uploadResponse = JSON.parse(await request(fileUploadParams));
-      const file = uploadResponse[0];
+      const setFileToJobReply = await request(fileUploadParams);
+      const file = setFileToJobReply.data[0];
 
       const requestParams = {
         method: `POST`,
@@ -86,12 +106,14 @@ module.exports = function toDoListTests() {
       };
 
       try {
-        const res = await request(requestParams);
+        const setFileToJobReply = await request(requestParams);
         // request should fail
         should(0).equal(1);
         done();
       } catch (ex) {
         should(!!ex.error);
+        should(ex.error.status).equal(500);
+        should(ex.error.query).equal(`Set File to Job`);
         done();
       }
     });
@@ -105,8 +127,10 @@ module.exports = function toDoListTests() {
         },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.indexOf('deleted') !== -1).equal(true);
+      const deleteJobReply = await request(requestParams);
+      should(deleteJobReply.data.indexOf('deleted') !== -1).equal(true);
+      should(deleteJobReply.status).equal(200);
+      should(deleteJobReply.query).equal(`Delete Job`);
       done();
     });
   });
