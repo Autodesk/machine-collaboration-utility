@@ -18,13 +18,17 @@ module.exports = function toDoListTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/files`,
         formData,
+        json: true,
       };
-      const uploadResponse = JSON.parse(await request(requestParams));
+      const uploadReply = await request(requestParams);
+      const files = uploadReply.data;
       // Check that the returned object is an array with a single file object
       // The file object should have a uuid and a name
-      should(uploadResponse.length).equal(1);
-      should(!!uploadResponse.uuid);
-      should(!!uploadResponse.name);
+      should(files.length).equal(1);
+      should(!!files.uuid);
+      should(!!files.name);
+      should(uploadReply.status).equal(200);
+      should(uploadReply.query).equal(`Upload File`);
       done();
     });
 
@@ -34,10 +38,14 @@ module.exports = function toDoListTests() {
         uri: `http://localhost:9000/v1/files`,
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.constructor).equal(Object);
-      fileArrayLength = Object.keys(res).length;
-      fileUuid = res[Object.keys(res)[0]].uuid;
+      const getFilesReply = await request(requestParams);
+      const files = getFilesReply.data;
+      should(files.constructor).equal(Object);
+      should(getFilesReply.status).equal(200);
+      should(getFilesReply.query).equal(`Get Files`);
+
+      fileArrayLength = Object.keys(files).length;
+      fileUuid = files[Object.keys(files)[0]].uuid;
       done();
     });
 
@@ -47,8 +55,11 @@ module.exports = function toDoListTests() {
         uri: `http://localhost:9000/v1/files/${fileUuid}`,
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.uuid).equal(fileUuid);
+      const getFileReply = await request(requestParams);
+      const file = getFileReply.data;
+      should(file.uuid).equal(fileUuid);
+      should(getFileReply.status).equal(200);
+      should(getFileReply.query).equal(`Get File`);
       done();
     });
 
@@ -59,11 +70,14 @@ module.exports = function toDoListTests() {
           uri: `http://localhost:9000/v1/files/${fileUuid}foobar`,
           json: true,
         };
-        const res = await request(requestParams);
+        const getFileReply = await request(requestParams);
         // This should never get to here. The request should fail
-        should(res).equal(false);
+        should(getFileReply).equal(false);
         done();
       } catch (ex) {
+        should(ex.error.error).equal(`File ${fileUuid}foobar not found`);
+        should(ex.error.status).equal(404);
+        should(ex.error.query).equal(`Get File`);
         should(ex.statusCode).equal(404);
         done();
       }
@@ -79,8 +93,11 @@ module.exports = function toDoListTests() {
         },
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.status).equal(`File deleted`);
+      const deleteFileReply = await request(requestParams);
+      console.log(`deleteFileReply`, deleteFileReply);
+      should(deleteFileReply.data).equal(`File ${fileUuid} deleted`);
+      should(deleteFileReply.status).equal(200);
+      should(deleteFileReply.query).equal(`Delete File`);
       done();
     });
 
@@ -90,9 +107,10 @@ module.exports = function toDoListTests() {
         uri: `http://localhost:9000/v1/files`,
         json: true,
       };
-      const res = await request(requestParams);
-      should(res.constructor).equal(Object);
-      const newFileArrayLength = Object.keys(res).length;
+      const getFilesReply = await request(requestParams);
+      const files = getFilesReply.data;
+      should(files.constructor).equal(Object);
+      const newFileArrayLength = Object.keys(files).length;
       should(newFileArrayLength).equal(fileArrayLength - 1);
       done();
     });
