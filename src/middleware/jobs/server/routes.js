@@ -1,21 +1,11 @@
-/**
- * Handle all logic at this endpoint for reading all of the jobs
- */
-const getJobs = (self) => {
-  self.router.get(self.routeEndpoint + '/', async (ctx) => {
-    try {
-      ctx.body = self.jobsToJson(self.jobs);
-    } catch (ex) {
-      ctx.body = { status: `Jobs API "Get Jobs" request error: ${ex}` };
-      ctx.status = 500;
-    }
-  });
-};
+const Response = require(`../helpers/response`);
 
 /**
  * Handle all logic at this endpoint for creating a job
  */
 const createJob = (self) => {
+  const requestDescription = `Create Job`;
+
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       let uuid = ctx.request.body.uuid;
@@ -31,11 +21,30 @@ const createJob = (self) => {
       jobObject.id = dbJob.dataValues.id;
       self.jobs[uuid] = jobObject;
       self.app.io.emit('jobEvent', jobJson);
-      ctx.body = jobJson;
       ctx.status = 201;
+      ctx.body = new Response(ctx, requestDescription, jobJson);
     } catch (ex) {
-      ctx.body = { status: `Jobs API "Create Job" request error: ${ex}` };
+      const errorMessage = `Jobs API "Create Job" request error: ${ex}`;
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, errorMessage);
+      self.logger.error(errorMessage);
+    }
+  });
+};
+
+/**
+ * Handle all logic at this endpoint for reading all of the jobs
+ */
+const getJobs = (self) => {
+  const requestDescription = `Get Jobs`;
+  self.router.get(self.routeEndpoint + '/', async (ctx) => {
+    try {
+      const response = self.jobsToJson(self.jobs);
+      ctx.body = new Response(ctx, requestDescription, response);
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
@@ -44,21 +53,24 @@ const createJob = (self) => {
  * Handle all logic at this endpoint for reading a single job
  */
 const getJob = (self) => {
+  const requestDescription = `Get Job`;
   self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       const jobUuid = ctx.params.uuid;
       const job = self.jobs[jobUuid];
       if (job) {
-        ctx.body = self.jobToJson(job);
+        const jobJson = self.jobToJson(job);
+        ctx.body = new Response(ctx, requestDescription, jobJson);
       } else {
+        const errorMessage = `Job ${jobUuid} not found`;
         ctx.status = 404;
-        ctx.body = {
-          error: `Job ${jobUuid} not found`,
-        };
+        ctx.body = new Response(ctx, requestDescription, errorMessage);
       }
     } catch (ex) {
-      ctx.body = { status: `Get Job ${ctx.params.uuid}" request error: ${ex}` };
+      const errorMessage = `Get Job "${ctx.params.uuid}" request error: ${ex}`;
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, errorMessage);
+      self.logger.error(errorMessage);
     }
   });
 };
@@ -67,8 +79,8 @@ const getJob = (self) => {
  * Should assign a specific file to a job
  */
 const setFile = (self) => {
+  const requestDescription = `Set File to Job`;
   self.router.post(`${self.routeEndpoint}/:uuid/setFile`, async (ctx) => {
-    debugger;
     let job;
     let file;
 
@@ -78,43 +90,47 @@ const setFile = (self) => {
       job = self.jobs[jobUuid];
 
       if (!job) {
-        throw `job is undefined`;
+        throw `Job is undefined`;
       } else {
         await job.fsm.setFile();
       }
       // Find the File
-      let fileUuid
+      let fileUuid;
       try {
         fileUuid = ctx.request.body.fileUuid;
         if (fileUuid) {
           job.fileUuid = fileUuid;
-          ctx.body = self.jobToJson(job);
+          const jobJson = self.jobToJson(job);
+          ctx.body = new Response(ctx, requestDescription, jobJson);
         } else {
-          throw `file uuid undefined`;
+          throw `File uuid undefined`;
         }
         file = self.app.context.files.getFile(fileUuid);
       } catch (ex) {
-        self.logger.error(`Error setting file ${fileUuid} to job ${job.uuid}`);
-        job.fsm.setFileFail();
+        await job.fsm.setFileFail();
         ctx.status = 405;
-        ctx.body = { error: ex };
+        ctx.body = new Response(ctx, requestDescription, ex);
+        self.logger.error(ex);
+        return;
       }
 
       // Assign the file to the job
       try {
         job.fileUuid = file.uuid;
+        const jobJson = self.jobToJson(job);
         await job.fsm.setFileDone();
-        ctx.body = self.jobToJson(job);
+        ctx.body = new Response(ctx, requestDescription, jobJson);
       } catch (ex) {
-        self.logger.error(`Error setting file ${fileUuid} to job ${job.uuid}: ${ex}`);
-        job.fsm.setFileFail();
-        ctx.body = { status: `Set file to job ${ctx.params.uuid} request error: ${ex}` };
+        await job.fsm.setFileFail();
         ctx.status = 500;
+        ctx.body = new Response(ctx, requestDescription, ex);
+        self.logger.error(ex);
+        return;
       }
     } catch (ex) {
-      self.logger.error(`Set File Fail ${ex}`);
-      ctx.body = { status: `Job "${ctx.params.uuid}" error: ${ex}` };
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
@@ -124,6 +140,8 @@ const setFile = (self) => {
  * Handle all logic at this endpoint for sending commands to a job
  */
 const processJobCommand = (self) => {
+  const requestDescription = `Process Job Command`;
+
 // TODO kick off print of the file via the app.context.gcodeClient.startJob(some variable)
   self.router.post(`${self.routeEndpoint}/:uuid/`, async (ctx) => {
     try {
@@ -141,31 +159,35 @@ const processJobCommand = (self) => {
         throw `command is undefined`;
       }
 
+      // populate this variable with the job (or the error), immediately after the command is triggered
+      let commandReply;
       switch (command) {
         case `start`:
           // TODO provide feedback if printer is unavailable, before starting the job
           self.startJob(job);
-          ctx.body = self.jobToJson(job);
+          commandReply = self.jobToJson(job);
           break;
         case `pause`:
           self.pauseJob(job);
-          ctx.body = self.jobToJson(job);
+          commandReply = self.jobToJson(job);
           break;
         case `resume`:
           self.resumeJob(job);
-          ctx.body = self.jobToJson(job);
+          commandReply = self.jobToJson(job);
           break;
         case `cancel`:
           self.cancelJob(job);
-          ctx.body = self.jobToJson(job);
+          commandReply = self.jobToJson(job);
           break;
         default:
-          const errorMessage = `Command ${command} is not supported`;
-          throw errorMessage;
+          commandReply = `Command ${command} is not supported`;
+          throw commandReply;
       }
+      ctx.body = new Response(ctx, requestDescription, commandReply);
     } catch (ex) {
-      ctx.body = { status: `Job ${ctx.params.uuid} command request error: ${ex}` };
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
@@ -174,18 +196,23 @@ const processJobCommand = (self) => {
  * Handle all logic at this endpoint for deleting a job
  */
 const deleteJob = (self) => {
+  const requestDescription = `Delete Job`;
   self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
       const jobUuid = ctx.request.body.jobUuid;
       if (jobUuid === undefined) {
+        const errorMessage = `Job uuid "${jobUuid}" is not valid.`;
         ctx.status = 404;
-        ctx.body = `Job uuid "${jobUuid}" is not valid.`;
+        ctx.body = new Response(ctx, requestDescription, errorMessage);
+        return;
       } else {
-        ctx.body = await self.deleteJob(jobUuid);
+        const deleteStatus = await self.deleteJob(jobUuid);
+        ctx.body = new Response(ctx, requestDescription, deleteStatus);
       }
     } catch (ex) {
-      ctx.body = { status: `To-do list "Delete Job" request error: ${ex}` };
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
@@ -194,15 +221,18 @@ const deleteJob = (self) => {
  * Handle all logic at this endpoint for deleting all jobs
  */
 const deleteAllJobs = (self) => {
+  const requestDescription = `Delete All Jobs`;
   self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
     try {
       for (const job in self.jobs) {
         await self.deleteJob(self.jobs[job].uuid);
       }
-      ctx.body = `All jobs deleted`;
+      const status = `All jobs deleted`;
+      ctx.body = new Response(ctx, requestDescription, status);
     } catch (ex) {
-      ctx.body = { status: `Job API "Delete all Jobs" request error: ${ex}` };
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };

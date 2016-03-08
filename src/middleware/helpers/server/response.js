@@ -1,4 +1,3 @@
-
 /*
  * Helper class for generating standardized REST API replies
  */

@@ -5,6 +5,7 @@ const walk = require(`fs-walk`);
 const uuidGenerator = require(`node-uuid`);
 
 const filesRoutes = require(`./routes`);
+const Response = require(`../helpers/response`);
 
 /**
  * This is a Files class.

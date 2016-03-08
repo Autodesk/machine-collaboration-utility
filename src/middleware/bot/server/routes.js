@@ -1,13 +1,18 @@
+const Response = require(`../helpers/response`);
+
 /**
  * Handle all logic at this endpoint for reading all of the jobs
  */
 const getBot = (self) => {
+  const requestDescription = 'Get Bot';
   self.router.get(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      ctx.body = self.getBot();
+      const botJson = self.getBot();
+      ctx.body = new Response(ctx, requestDescription, botJson);
     } catch (ex) {
-      ctx.body = { status: `Bot API "Get bot" request error: ${ex}` };
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
@@ -16,17 +21,20 @@ const getBot = (self) => {
  * Handle all logic at this endpoint for sending a command to the bot
  */
 const processBotCommand = (self) => {
+  const requestDescription = 'Process Bot Command';
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       const command = ctx.request.body.command;
       if (command) {
-        ctx.body = await self.processCommand(command);
+        const commandReply = await self.processCommand(command);
+        ctx.body = new Response(ctx, requestDescription, commandReply);
       } else {
         throw `Command is undefined.`;
       }
     } catch (ex) {
-      ctx.body = { status: `Bot command request error: ${ex}` };
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
@@ -35,17 +43,20 @@ const processBotCommand = (self) => {
  * Handle all logic at this endpoint for sending a command to the bot
  */
 const processGcode = (self) => {
+  const requestDescription = 'Process Gcode';
   self.router.post(`${self.routeEndpoint}/processGcode`, async (ctx) => {
     try {
       const gcode = ctx.request.body.gcode;
       if (gcode) {
-        ctx.body = await self.processGcode(gcode);
+        const gcodeReply = await self.processGcode(gcode);
+        ctx.body = new Response(ctx, requestDescription, gcodeReply);
       } else {
         throw `Gcode is undefined.`;
       }
     } catch (ex) {
-      ctx.body = { status: `Process Gcode request error: ${ex}` };
       ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
