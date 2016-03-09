@@ -51,7 +51,11 @@ const processGcode = (self) => {
       const gcode = ctx.request.body.gcode;
       if (gcode) {
         const commandQueued = await self.processGcode(gcode);
-        if (commandQueued) {
+        if (commandQueued === undefined) {
+          const reply = `Cannot send gcode from state ${self.fsm.current}`;
+          ctx.status = 405;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        } else if (commandQueued) {
           const reply = `Command ${gcode} queued`;
           ctx.status = 200;
           ctx.body = new Response(ctx, requestDescription, reply);

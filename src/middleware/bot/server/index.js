@@ -100,11 +100,11 @@ class Bot {
       case `processingGcode`:
         if (this.queue.mQueue.length < 32) {
           this.queue.queueCommands(gcode);
-          return true; // `Command ${gcode} queued`;
+          return true;
         }
         return false; // `Command Queue is full. Please try again later`;
       default:
-        return `Cannot process gcode while bot is in state ${state}`;
+        return undefined;
     }
   }
 
