@@ -50,9 +50,16 @@ const processGcode = (self) => {
     try {
       const gcode = ctx.request.body.gcode;
       if (gcode) {
-        const gcodeReply = await self.processGcode(gcode);
-        ctx.status = 200;
-        ctx.body = new Response(ctx, requestDescription, gcodeReply);
+        const commandQueued = await self.processGcode(gcode);
+        if (commandQueued) {
+          const reply = `Command ${gcode} queued`;
+          ctx.status = 200;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        } else {
+          const reply = `Command Queue is full. Please try again later`;
+          ctx.status = 405;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        }
       } else {
         throw `Gcode is undefined.`;
       }

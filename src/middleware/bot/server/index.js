@@ -7,8 +7,10 @@ const usb = Promise.promisifyAll(require(`usb`));
 const SerialPort = require(`serialport`);
 const _ = require(`underscore`);
 
-const SerialCommandExecutor = require('./serialCommandExecutor');
+const SerialCommandExecutor = require(`./serialCommandExecutor`);
+const TCPExecutor = require(`./tcpCommandExecutor`);
 const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
+
 const config = require(`../../config`);
 const botRoutes = require(`./routes`);
 const CommandQueue = require(`./commandQueue`);
@@ -28,7 +30,7 @@ class Bot {
    * @param {Object} app - The parent Koa app.
    * @param {string} routeEndpoint - The relative endpoint.
    */
-  constructor(app, routeEndpoint) {
+  constructor(app, routeEndpoint, externalEndpoint) {
     app.context.bot = this; // External app reference variable
 
     this.app = app;
@@ -43,6 +45,9 @@ class Bot {
     this.currentJob = undefined;
     this.lr = undefined; // buffered file line reader
     this.currentLine = undefined;
+
+    // Give the option of passing an external url for the bot to send gcode to
+    this.externalEndpoint = externalEndpoint === undefined ? false : externalEndpoint;
 
     this.fsm = StateMachine.create({
       initial: 'unavailable',
@@ -95,9 +100,9 @@ class Bot {
       case `processingGcode`:
         if (this.queue.mQueue.length < 32) {
           this.queue.queueCommands(gcode);
-          return `Command ${gcode} queued`;
+          return true; // `Command ${gcode} queued`;
         }
-        return `Command Queue is full. Please try again later`;
+        return false; // `Command Queue is full. Please try again later`;
       default:
         return `Cannot process gcode while bot is in state ${state}`;
     }
@@ -109,7 +114,11 @@ class Bot {
   async initialize() {
     try {
       await this.setupRouter();
-      await this.setupUsbScanner();
+      if (!this.externalEndpoint) {
+        await this.setupUsbScanner();
+      } else {
+        this.detect();
+      }
       this.logger.info(`Bot instance initialized`);
     } catch (ex) {
       this.logger.error(`Bot initialization error`, ex);
@@ -309,10 +318,15 @@ class Bot {
           this.expandCode,
           this.validateReply
         );
-      } else {
-        // put in handler her for serial vs tcp vs........
+      } else if (this.externalEndpoint) {
         this.queue = new CommandQueue(
-          this.setupExecutor(this.port, config.bot.baudrate),
+          this.setupTCPExecutor(this.externalEndpoint),
+          this.expandCode,
+          this.validateTCPReply
+        );
+      } else {
+        this.queue = new CommandQueue(
+          this.setupSerialExecutor(this.port, config.bot.baudrate),
           this.expandCode,
           this.validateReply
         );
@@ -413,13 +427,17 @@ class Bot {
     return await portPromise;
   }
 
-  setupExecutor(port, baudrate) {
+  setupSerialExecutor(port, baudrate) {
     const openPrime = 'M501';
     return new SerialCommandExecutor(
       port,
       baudrate,
       openPrime
     );
+  }
+
+  setupTCPExecutor(externalEndpoint) {
+    return new TCPExecutor(externalEndpoint);
   }
 
   /**
@@ -446,6 +464,19 @@ class Bot {
   validateReply(command, reply) {
     const lines = reply.toString().split('\n');
     return (_.last(lines) === 'ok');
+  }
+
+  /**
+   * validateReply()
+   *
+   * Confirms if a reply contains 'ok' as its last line.  Parses out DOS newlines.
+   *
+   * Args:   reply - The reply from a bot after sending a command
+   * Return: true if the last line was 'ok'
+   */
+  validateTCPReply(command, reply) {
+    console.log('reply!', reply);
+    return true;
   }
 }
 

@@ -10,24 +10,24 @@ module.exports = {
   conductor: {
     players: [
       {
-        name: `Alf`,
-        url: `http://escher2a.local:9997`,
+        name: `alf`,
+        url: `http://escher1a.local:9000`,
       },
       {
-        name: `Bettie`,
-        url: `http://escher2a.local:9997`,
+        name: `bettie`,
+        url: `http://escher1a.local:9000`,
       },
       {
-        name: `Cletus`,
-        url: `http://escher2a.local:9997`,
+        name: `cletus`,
+        url: `http://escher1a.local:9000`,
       },
       {
-        name: `Daphnie`,
-        url: `http://escher2a.local:9997`,
+        name: `daphnie`,
+        url: `http://escher1a.local:9000`,
       },
       {
-        name: `Earl`,
-        url: `http://escher2a.local:9997`,
+        name: `earl`,
+        url: `http://escher1a.local:9000`,
       },
     ],
   },

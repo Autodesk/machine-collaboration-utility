@@ -6,6 +6,8 @@ const _ = require(`underscore`);
 const request = require(`request-promise`);
 
 const conductorRoutes = require(`./routes`);
+const Bot = require(`../bot`);
+
 /**
  * This is a Conductor class representing a system for managing multiple pieces of hardware
  *
@@ -28,6 +30,8 @@ class Conductor {
     this.routeEndpoint = routeEndpoint;
     this.router = router;
 
+    this.players = this.app.context.config.conductor.players;
+
     // File reading assets
     this.currentJob = undefined;
 
@@ -40,28 +44,28 @@ class Conductor {
       },
       events: [
         /* eslint-disable no-multi-spaces */
-        { name: 'detect',             from: 'unavailable',     to: 'detecting'       },
-        { name: 'detectFail',         from: 'detecting',       to: 'unavailable'     },
-        { name: 'detectDone',         from: 'detecting',       to: 'ready'           },
-        { name: 'connect',            from: 'ready',           to: 'connecting'      },
-        { name: 'connectFail',        from: 'connecting',      to: 'ready'           },
-        { name: 'connectDone',        from: 'connecting',      to: 'connected'       },
-        { name: 'start',              from: 'connected',       to: 'startingJob'     },
-        { name: 'startFail',          from: 'startingJob',     to: 'connected'       },
-        { name: 'startDone',          from: 'startingJob',     to: 'processingJob'   },
-        { name: 'stop',               from: 'processingJob',   to: 'stopping'        },
-        { name: 'stopDone',           from: 'stopping',        to: 'connected'       },
-        { name: 'stopFail',           from: 'stopping',        to: 'connected'       },
-        { name: 'jobToGcode',         from: 'processingJob',   to: 'processingGcode' },
-        { name: 'jobGcodeFail',       from: 'processingGcode', to: 'processingJob'   },
-        { name: 'jobGcodeDone',       from: 'processingGcode', to: 'processingJob'   },
-        { name: 'connectedToGcode',   from: 'connected',       to: 'processingGcode' },
-        { name: 'connectedGcodeFail', from: 'processingGcode', to: 'connected'       },
-        { name: 'connectedGcodeDone', from: 'processingGcode', to: 'connected'       },
-        { name: 'disconnect',         from: 'connected',       to: 'disconnecting'   },
-        { name: 'disconnectFail',     from: 'disconnecting',   to: 'connected'       },
-        { name: 'disconnectDone',     from: 'disconnecting',   to: 'ready'           },
-        { name: 'unplug',             from: '*',               to: 'unavailable'     },
+        { name: 'detect',              from: 'unavailable',      to: 'detecting'        },
+        { name: 'detectFail',          from: 'detecting',        to: 'unavailable'      },
+        { name: 'detectDone',          from: 'detecting',        to: 'ready'            },
+        { name: 'connect',             from: 'ready',            to: 'connecting'       },
+        { name: 'connectFail',         from: 'connecting',       to: 'ready'            },
+        { name: 'connectDone',         from: 'connecting',       to: 'connected'        },
+        { name: 'start',               from: 'connected',        to: 'startingJob'      },
+        { name: 'startFail',           from: 'startingJob',      to: 'connected'        },
+        { name: 'startDone',           from: 'startingJob',      to: 'processingJob'    },
+        { name: 'stop',                from: 'processingJob',    to: 'stopping'         },
+        { name: 'stopDone',            from: 'stopping',         to: 'connected'        },
+        { name: 'stopFail',            from: 'stopping',         to: 'connected'        },
+        { name: 'jobToScript',         from: 'processingJob',    to: 'processingScript' },
+        { name: 'jobScriptFail',       from: 'processingScript', to: 'processingJob'    },
+        { name: 'jobScriptDone',       from: 'processingScript', to: 'processingJob'    },
+        { name: 'connectedToScript',   from: 'connected',        to: 'processingScript' },
+        { name: 'connectedScriptFail', from: 'processingScript', to: 'connected'        },
+        { name: 'connectedScriptDone', from: 'processingScript', to: 'connected'        },
+        { name: 'disconnect',          from: 'connected',        to: 'disconnecting'    },
+        { name: 'disconnectFail',      from: 'disconnecting',    to: 'connected'        },
+        { name: 'disconnectDone',      from: 'disconnecting',    to: 'ready'            },
+        { name: 'unplug',              from: '*',                to: 'unavailable'      },
         /* eslint-enable no-multi-spaces */
       ],
       callbacks: {
@@ -79,7 +83,8 @@ class Conductor {
   async initialize() {
     try {
       await this.setupRouter();
-      await this.setupPlayersScanner();
+      await this.setupConductorArms();
+      // await this.setupPlayersScanner();
       this.logger.info(`Conductor instance initialized`);
     } catch (ex) {
       this.logger.error(`Conductor initialization error`, ex);
@@ -219,6 +224,13 @@ class Conductor {
         clearInterval(scanInterval);
       }
     }, 1000);
+  }
+
+  async setupConductorArms() {
+    for (const player of this.players) {
+      const bot = new Bot(this.app, `${this.routeEndpoint}/${player.name}`, player.url);
+      await bot.initialize();
+    }
   }
 }
 
