@@ -5,6 +5,7 @@ const fs = require(`fs`);
 const _ = require(`underscore`);
 const request = require(`request-promise`);
 const process = require(`child_process`);
+const ip = require(`ip`);
 
 const conductorRoutes = require(`./routes`);
 const Bot = require(`../bot`);
@@ -72,7 +73,7 @@ class Conductor {
       callbacks: {
         onenterstate: (event, from, to) => {
           this.app.io.emit(`stateChange`, to);
-          this.logger.info(`Bot event ${event}: Transitioning from ${from} to ${to}.`);
+          this.logger.info(`Conductor event ${event}: Transitioning from ${from} to ${to}.`);
         },
       },
     });
@@ -85,7 +86,7 @@ class Conductor {
     try {
       await this.setupRouter();
       await this.setupConductorArms();
-      // await this.setupPlayersScanner();
+      await this.setupPlayersScanner();
       this.logger.info(`Conductor instance initialized`);
     } catch (ex) {
       this.logger.error(`Conductor initialization error`, ex);
@@ -104,18 +105,18 @@ class Conductor {
   /*
    * This is the logic for parsing any commands sent to the Conductor API
    * In all cases, the API does not wait for the command to be completed before
-   * returning a reply to the requestor, instead the bot enters the appropriate
+   * returning a reply to the requestor, instead the conductor enters the appropriate
    * transitional state, followed by either "done" or "fail" events and
    * corresponding state transitions
    */
   async processCommand(command) {
     switch (command) {
-      // Connect each player
+      // Connect each bot
       case `connect`:
         this.connect();
         return this.getConductor();
 
-      // Disconnect the bot via it's queue's executor
+      // Disconnect each bot via it's queue's executor
       case `disconnect`:
         this.disconnect();
         return this.getConductor();
@@ -148,7 +149,7 @@ class Conductor {
         // do the pause stuff here
         await this.fsm.stopDone();
       } catch (ex) {
-        const errorMessage = `Bot pause error ${ex}`;
+        const errorMessage = `Conductor pause error ${ex}`;
         this.logger.error(errorMessage);
         await this.fsm.stopFail();
       }
@@ -190,13 +191,8 @@ class Conductor {
   }
 
   async connect() {
-    try {
-      this.fsm.connect();
-      // Do connect stuff here...
-      this.fsm.connectDone();
-    } catch (ex) {
-      this.fsm.connectFail();
-    }
+    this.fsm.connect();
+    this.connectAllPlayers();
   }
 
   async disconnect() {
@@ -210,28 +206,93 @@ class Conductor {
   }
 
   async setupPlayersScanner() {
-    const players = this.app.context.config.conductor.players;
+    await this.fsm.detect();
     const scanInterval = setInterval(async () => {
-      for (const player of players) {
+      let connected = true;
+      for (let i = 0; i < this.players.length; i++) {
+        const uri = 'http://' + ip.address() + ':' + (9001 + i) + '/v1/bot';
         const requestParams = {
           method: `GET`,
-          uri: `${player.url}/printers/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`,
+          uri,
           json: true,
         };
-        const res = await request(requestParams);
-        console.log('request reply', res);
+        let res;
+        try {
+          res = await request(requestParams);
+        } catch (ex) {
+          res = false;
+        }
+        if (res.data && res.data.state) {
+          // this printer is ready
+        } else {
+          connected = false;
+        }
       }
-      if (false) {
+      if (connected) {
         clearInterval(scanInterval);
+        await this.fsm.detectDone();
+      }
+    }, 1000);
+  }
+
+  async connectAllPlayers() {
+    const scanInterval = setInterval(async () => {
+      let connected = true;
+      // connect all local players
+      for (let i = 0; i < this.players.length; i++) {
+        const uri = 'http://' + ip.address() + ':' + (9001 + i) + '/v1/bot';
+        const requestParams = {
+          method: `GET`,
+          uri,
+          json: true,
+        };
+        let res;
+        try {
+          res = await request(requestParams);
+        } catch (ex) {
+          res = false;
+        }
+        if (res.data && res.data.state && res.data.state === `connected`) {
+          // this bot is connected
+        } else {
+          connected = false;
+        }
+      }
+
+      // connect all external players
+      for (let i = 0; i < this.players.length; i++) {
+        const uri = `${this.players[i].url}/v1/bot`;
+        const requestParams = {
+          method: `POST`,
+          uri,
+          body: {
+            command: `connect`,
+          },
+          json: true,
+        };
+        let res;
+        try {
+          res = await request(requestParams);
+        } catch (ex) {
+          res = false;
+        }
+        if (res.data && res.data.state && res.data.state === `connected`) {
+          // this printer is ready
+        } else {
+          connected = false;
+        }
+      }
+
+      if (connected) {
+        clearInterval(scanInterval);
+        await this.fsm.detectDone();
       }
     }, 1000);
   }
 
   async setupConductorArms() {
     for (let i = 0; i < this.players.length; i++) {
-      // const bot = new Bot(this.app, `${this.routeEndpoint}/${player.name}`, player.url);
-      // await bot.initialize();
-      const childResponse = process.exec(
+      process.exec(
         `/Users/hovanem/.nvm/versions/node/v4.3.1/bin/node dist/server/server.js`,
         {
           env: {

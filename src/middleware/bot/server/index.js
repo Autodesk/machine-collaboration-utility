@@ -403,12 +403,14 @@ class Bot {
 
   // Compare a port's vid pid with our bot's vid pid
   verifyVidPid(device) {
-    if (
-      device.deviceDescriptor.idVendor === config.bot.vid &&
-      device.deviceDescriptor.idProduct === config.bot.pid
-    ) {
-      this.device = device;
-      return true;
+    for (let i = 0; i < config.bot.length; i++) {
+      if (
+        device.deviceDescriptor.idVendor === config.bot[i].vid &&
+        device.deviceDescriptor.idProduct === config.bot[i].pid
+      ) {
+        this.device = device;
+        return true;
+      }
     }
     return false;
   }
