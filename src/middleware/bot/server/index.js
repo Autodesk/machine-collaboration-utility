@@ -46,6 +46,13 @@ class Bot {
     this.lr = undefined; // buffered file line reader
     this.currentLine = undefined;
 
+    this.stopCommands = [
+      'G90',
+      'G1 Z10',
+      'G91',
+      'M104 S0',
+    ];
+
     // Give the option of passing an external url for the bot to send gcode to
     this.externalEndpoint = externalEndpoint === undefined ? false : externalEndpoint;
 
@@ -288,6 +295,7 @@ class Bot {
       await this.lr.close();
       this.lr = undefined;
       this.queue.clear();
+      this.queue.queueCommands(this.stopCommands);
       await this.fsm.stopDone();
     }
   }
