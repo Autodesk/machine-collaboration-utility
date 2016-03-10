@@ -4,6 +4,7 @@ const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 const fs = require(`fs`);
 const _ = require(`underscore`);
 const request = require(`request-promise`);
+const process = require(`child_process`);
 
 const conductorRoutes = require(`./routes`);
 const Bot = require(`../bot`);
@@ -227,9 +228,21 @@ class Conductor {
   }
 
   async setupConductorArms() {
-    for (const player of this.players) {
-      const bot = new Bot(this.app, `${this.routeEndpoint}/${player.name}`, player.url);
-      await bot.initialize();
+    for (let i = 0; i < this.players.length; i++) {
+      // const bot = new Bot(this.app, `${this.routeEndpoint}/${player.name}`, player.url);
+      // await bot.initialize();
+      const childResponse = process.exec(
+        `/Users/hovanem/.nvm/versions/node/v4.3.1/bin/node dist/server/server.js`,
+        {
+          env: {
+            PORT: 9001 + i,
+            EXTERNAL_ENDPOINT: this.players[i].url,
+          },
+        },
+        (error, stdout, stderr) => {
+          console.log(error, stdout, stderr);
+        }
+      );
     }
   }
 }

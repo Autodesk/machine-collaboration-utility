@@ -76,7 +76,6 @@ TCPCommandExecutor.prototype.execute = function (
   inDataFunc,
   inDoneFunc
 ) {
-  debugger;
   this.mConnection.setDataFunc(inDataFunc);
   this.mConnection.send(inRawCode);
   this.mCommandsProcessed++;
