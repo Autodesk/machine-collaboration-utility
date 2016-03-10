@@ -105,6 +105,20 @@ class Bot {
       case `processingJob`:
       case `processingJobGcode`:
       case `processingGcode`:
+        this.queue.queueCommands(gcode);
+        return true;
+      default:
+        return undefined;
+    }
+  }
+
+  async streamGcode(gcode) {
+    const state = this.fsm.current;
+    switch (state) {
+      case `connected`:
+      case `processingJob`:
+      case `processingJobGcode`:
+      case `processingGcode`:
         if (this.queue.mQueue.length < 32) {
           this.queue.queueCommands(gcode);
           return true;

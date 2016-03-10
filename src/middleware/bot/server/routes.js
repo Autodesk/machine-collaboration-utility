@@ -60,6 +60,40 @@ const processGcode = (self) => {
           ctx.status = 200;
           ctx.body = new Response(ctx, requestDescription, reply);
         } else {
+          const reply = `Command Queue error`;
+          ctx.status = 500;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        }
+      } else {
+        throw `Gcode is undefined.`;
+      }
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
+/**
+ * Handle all logic at this endpoint for sending a command to the bot
+ */
+const streamGcode = (self) => {
+  const requestDescription = 'Process Gcode';
+  self.router.post(`${self.routeEndpoint}/streamGcode`, async (ctx) => {
+    try {
+      const gcode = ctx.request.body.gcode;
+      if (gcode) {
+        const commandQueued = await self.streamGcode(gcode);
+        if (commandQueued === undefined) {
+          const reply = `Cannot stream gcode from state ${self.fsm.current}`;
+          ctx.status = 405;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        } else if (commandQueued) {
+          const reply = `Command ${gcode} queued`;
+          ctx.status = 200;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        } else {
           const reply = `Command Queue is full. Please try again later`;
           ctx.status = 405;
           ctx.body = new Response(ctx, requestDescription, reply);
@@ -79,6 +113,7 @@ const botRoutes = (self) => {
   getBot(self);
   processBotCommand(self);
   processGcode(self);
+  streamGcode(self);
 };
 
 module.exports = botRoutes;

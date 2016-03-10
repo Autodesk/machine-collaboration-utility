@@ -12,6 +12,9 @@ block content
       div.row
         div#terminal.col-md-12
           h2 Terminal
+          form#gcode-terminal
+            input(id='gcode-input' type='text', name='gcode', value='')
+            input(type='submit', value='Send GCode')
       div.row
         div#jobs.col-md-6
           h2 Jobs

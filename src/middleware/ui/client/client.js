@@ -251,4 +251,23 @@ $(document).ready(() => {
       processData: false,
     });
   });
+
+  $(`#gcode-terminal`).submit((e) => {
+    e.preventDefault();
+    const gcode = $(`#gcode-input`).val();
+    $(`#gcode-input`).val(``);
+    $.ajax({
+      url: `/v1/bot/processGcode`,
+      type: `POST`,
+      data: {
+        gcode,
+      },
+      success: () => {
+        // console.log(`gcode ${gcode} successfully sent`);
+      },
+      error: (err) => {
+        console.log('error', err);
+      },
+    });
+  });
 });
