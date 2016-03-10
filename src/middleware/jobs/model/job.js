@@ -5,7 +5,7 @@ module.exports = async (app) => {
   const Job = await app.context.db.define('Job', {
     uuid: Sequelize.STRING,
     state: Sequelize.STRING,
-    fileId: Sequelize.STRING,
+    fileUuid: Sequelize.STRING,
     started: Sequelize.STRING,
     elapsed: Sequelize.STRING,
     percentComplete: Sequelize.FLOAT,

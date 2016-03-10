@@ -236,10 +236,12 @@ class Bot {
       await self.lr.close();
       self.queue.queueCommands({
         postCallback: async() => {
+          self.currentJob.percentComplete = 100;
           await self.fsm.stop();
           await self.fsm.stopDone();
-          await self.currentJob.fsm.complete();
+          await self.currentJob.fsm.runningDone();
           await self.currentJob.stopwatch.stop();
+          // self.currentJob = undefined;
         },
       });
     });

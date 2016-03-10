@@ -66,6 +66,7 @@ const appCommands = (self) => {
         ctx.status = 200;
         commandReply = `success!`;
         break;
+      // case `redoJob`:
       default:
         commandReply = `Command ${command} is not supported`;
     }

@@ -46,6 +46,9 @@ class Jobs {
         const id = job.dataValues.id;
         const fileUuid = job.dataValues.fileUuid;
         const jobObject = await self.createJobObject(uuid, state, id, fileUuid);
+        jobObject.percentComplete = job.dataValues.percentComplete;
+        jobObject.started = job.dataValues.started;
+        jobObject.elapsed = job.dataValues.elapsed;
         self.jobs[uuid] = jobObject;
       }
 
@@ -87,7 +90,7 @@ class Jobs {
         { name: 'resume',      from: 'running',     to: 'running'     },
         { name: 'resumeFail',  from: 'resuming',    to: 'paused'      },
         { name: 'resumeDone',  from: 'resuming',    to: 'running'     },
-        { name: 'complete',    from: 'running',     to: 'complete'    },
+        { name: 'runningDone', from: 'running',     to: 'complete'    },
         { name: 'cancel',      from: cancelable,    to: 'canceling'   },
         { name: 'cancelFail',  from: 'canceling',   to: 'canceled'    },
         { name: 'cancelDone',  from: 'canceling',   to: 'canceled'    },
@@ -97,20 +100,19 @@ class Jobs {
         onenterstate: async (event, from, to) => {
           self.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
           if (from !== `none`) {
-            const theJob = self.getJob(uuid);
+            const theJob = self.jobs[uuid];
             if (event.indexOf('Done') !== -1) {
               try {
                 // As soon as an event successfully transistions, update it in the database
-                const dbJob = await self.Job.findById(id);
-
+                const dbJob = await self.Job.findById(theJob.id);
                 await dbJob.updateAttributes({
-                  state: theJob.state,
+                  state: theJob.fsm.current,
                   fileUuid: theJob.fileUuid,
                   started: theJob.started,
-                  elapsed: theJob.elapsed,
+                  elapsed: theJob.stopwatch.ms,
                   percentComplete: theJob.percentComplete,
                 });
-                self.logger.info(`Job event ${event} for job ${uuid} successfully updated to ${theJob.state}`);
+                self.logger.info(`Job event ${event} for job ${uuid} successfully updated to ${theJob.fsm.current}`);
               } catch (ex) {
                 self.logger.info(`Job event ${event} for job ${uuid} failed to update: ${ex}`);
               }
@@ -178,7 +180,7 @@ class Jobs {
   jobToJson(job) {
     const state = job.fsm.current ? job.fsm.current: `created`;
     const started = !!job.started ? job.started : null;
-    const elapsed = !!job.started ? job.stopwatch.ms : null;
+    const elapsed = !!job.started ? job.stopwatch.ms || job.elapsed : null;
     return {
       uuid: job.uuid,
       state,
