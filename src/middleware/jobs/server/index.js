@@ -120,7 +120,7 @@ class Jobs {
             if (event === `startup`) {
               self.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
             } else {
-              self.app.io.emit(`jobEvent`, theJob);
+              self.app.io.emit(`jobEvent`, self.jobToJson(theJob));
             }
           }
         },

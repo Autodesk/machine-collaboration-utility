@@ -1,0 +1,41 @@
+div.dashboard.col-md-12
+  h2 Dashboard
+  div.row
+    div.col-md-4
+      p#connect Connect
+    div.col-md-4
+      p Hardware State: 
+        span#hardwareState= clientState
+    div.col-md-4
+      p Job State:
+        span#jobState= jobState
+  div.row
+    div.col-md-6
+      div.row
+        include jogControls
+      div.row
+        div.col-md-6
+          p Position Readout
+        div.col-md-6
+          p Disable Motors
+          div.row
+            div.col-md-3
+              p.button X
+            div.col-md-3
+              p.button Y
+            div.col-md-3
+              p.button Z
+            div.col-md-3
+              p.button E
+          p
+            center.button All
+    div.col-md-6
+      div.row
+        div.col-md-12
+          p Jog Speeds
+      div.row
+        div.col-md-12
+          p Accessory Control
+      div.row
+        div.col-md-12
+          p Override Settings

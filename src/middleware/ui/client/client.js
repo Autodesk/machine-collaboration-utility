@@ -1,5 +1,4 @@
 /* global $, io, ip, jobs, files */
-
 $(document).ready(() => {
   function deleteJob(job) {
     const ourJob = $(`#job_${job.uuid}`);
@@ -20,7 +19,10 @@ $(document).ready(() => {
 
       // Add an element for each job attribute
       for (const jobAttribute in job) {
-        const attributeDiv = `<p id="job_${job.uuid}_${jobAttribute}">${jobAttribute}: ${job[jobAttribute]}</p>`;
+        const attributeDiv =
+          `<p id="job_${job.uuid}_${jobAttribute}">` +
+          `${jobAttribute}: ${job[jobAttribute]}` +
+          `</p>`;
         $jobDiv.append(attributeDiv);
       }
 
@@ -73,7 +75,10 @@ $(document).ready(() => {
 
       // Add an element for each job attribute
       for (const fileAttribute in file) {
-        const attributeDiv = `<p id="file_${file.uuid}_${fileAttribute}">${fileAttribute}: ${file[fileAttribute]}</p>`;
+        const attributeDiv =
+          `<p id="file_${file.uuid}_${fileAttribute}">` +
+          `${fileAttribute}: ${file[fileAttribute]}` +
+          `</p>`;
         $fileDiv.append(attributeDiv);
       }
 
@@ -163,39 +168,86 @@ $(document).ready(() => {
     }
   }
 
+  // connect the device on click of connect button
+  $(`#connect`).click(() => {
+    // a hack for prototyping, if no device is available, make a virtual device
+    if ($(`#hardwareState`).text() === `unavailable`) {
+      $.ajax({
+        url: `/v1/bot`,
+        type: `POST`,
+        data: {
+          command: `createVirtualBot`,
+        },
+        success: () => {
+          $.ajax({
+            url: `/v1/bot`,
+            type: `POST`,
+            data: {
+              command: `connect`,
+            },
+            success: () => {
+              console.log('virtual connect success!');
+            },
+            error: (err) => {
+              console.log('error', err);
+            },
+          });
+        },
+        error: (err) => {
+          console.log('error', err);
+        },
+      });
+    } else {
+      $.ajax({
+        url: `/v1/bot`,
+        type: `POST`,
+        data: {
+          command: `connect`,
+        },
+        success: () => {
+          console.log('connect success!');
+        },
+        error: (err) => {
+          console.log('error', err);
+        },
+      });
+    }
+  });
+
   function progressHandlingFunction(e) {
     if (e.lengthComputable) {
       $('progress').attr({ value: e.loaded, max: e.total });
     }
   }
 
-  $(':button').click(function(){
-    var formData = new FormData($('form')[0]);
+  $(':button').click(() => {
+    const formData = new FormData($('form')[0]);
     $.ajax({
-      url: 'v1/files',  //Server script to process data
+      url: 'v1/files',  // Server script to process data
       type: 'POST',
-      xhr: function() {  // Custom XMLHttpRequest
-        var myXhr = $.ajaxSettings.xhr();
-        if(myXhr.upload){ // Check if upload property exists
-          myXhr.upload.addEventListener('progress',progressHandlingFunction, false); // For handling the progress of the upload
+      xhr: () => {  // Custom XMLHttpRequest
+        const myXhr = $.ajaxSettings.xhr();
+        if (myXhr.upload) { // Check if upload property exists
+          // Update the progress of the upload
+          myXhr.upload.addEventListener('progress', progressHandlingFunction, false);
         }
         return myXhr;
       },
-      //Ajax events
+      // Ajax events
       beforeSend: () => {
-        console.log('before');
+        // Call action here before the file is uploaded
       },
       success: () => {
-        console.log('success!');
+        // Call action here after the file is successfully uploaded
       },
       error: (err) => {
-        console.log('error!', err);
+        console.log('Upload error:', err);
       },
       // Form data
       data: formData,
-      //Options to tell jQuery not to process data or worry about content-type.
+      // Options to tell jQuery not to process data or worry about content-type.
       cache: false,
-      contentType: false,
+      contentType: false, // TODO Restrict the files to .gcode
       processData: false,
     });
   });

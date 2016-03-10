@@ -6,3 +6,11 @@ body {
 a {
   color: #00B7FF;
 }
+
+#connect {
+  cursor: pointer;
+}
+
+.button {
+  cursor: pointer;
+}
