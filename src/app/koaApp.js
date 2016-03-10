@@ -83,7 +83,7 @@ class KoaApp {
         const conductor = new Conductor(this.app, `${apiVersion}/conductor`);
         await conductor.initialize();
       } else {
-        const bot = new Bot(this.app, `${apiVersion}/bot`);
+        const bot = new Bot(this.app, `${apiVersion}/bot`, process.env.EXTERNAL_ENDPOINT);
         await bot.initialize();
       }
 
