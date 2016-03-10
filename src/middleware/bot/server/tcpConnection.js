@@ -86,7 +86,9 @@ class TCPConnection {
       }
       commandSent = true;
     } catch (ex) {
-      console.log('oooh no1!', ex);
+      setTimeout(() => {
+        this.send(inCommandStr);
+      }, 1000);
     }
   }
 
