@@ -287,6 +287,7 @@ class Bot {
       await this.fsm.stop();
       await this.lr.close();
       this.lr = undefined;
+      this.mQueue.clear();
       await this.fsm.stopDone();
     }
   }
