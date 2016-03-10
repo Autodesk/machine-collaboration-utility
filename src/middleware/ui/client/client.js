@@ -220,8 +220,8 @@ $(document).ready(() => {
     }
   }
 
-  $(':button').click(() => {
-    const formData = new FormData($('form')[0]);
+  $(`#file-upload-button`).click(() => {
+    const formData = new FormData($('#file-form')[0]);
     $.ajax({
       url: 'v1/files',  // Server script to process data
       type: 'POST',

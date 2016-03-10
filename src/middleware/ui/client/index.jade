@@ -13,16 +13,16 @@ block content
         div#terminal.col-md-12
           h2 Terminal
           form#gcode-terminal
-            input(id='gcode-input' type='text', name='gcode', value='')
-            input(type='submit', value='Send GCode')
+            input(id='gcode-input', type='text', name='gcode', value='')
+            input(type='submit', value='Send-GCode')
       div.row
         div#jobs.col-md-6
           h2 Jobs
         div#files.col-md-6
           h2 Files
-          form(enctype='multipart/form-data')
+          form(id='file-form', enctype='multipart/form-data')
             input(name='file', type='file')
-            input(type='button', value='Upload')
+            input(id='file-upload-button', type='button', value='Upload')
           progress 
   div.footer
     script(src='/js/vendor/jquery.min.js')
