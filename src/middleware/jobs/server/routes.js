@@ -13,14 +13,9 @@ const createJob = (self) => {
         const errorMessage = `Job ${uuid} is already defined`;
         throw errorMessage;
       }
-      // Create the job object
-      const jobObject = await self.createJobObject(uuid);
+      // Create and save the job object
+      const jobObject = await self.createPersistentJob(uuid);
       const jobJson = self.jobToJson(jobObject);
-      const dbJob = await self.Job.create(jobJson);
-      uuid = dbJob.dataValues.uuid;
-      jobObject.id = dbJob.dataValues.id;
-      self.jobs[uuid] = jobObject;
-      self.app.io.emit('jobEvent', jobJson);
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, jobJson);
     } catch (ex) {
@@ -83,54 +78,25 @@ const getJob = (self) => {
 const setFile = (self) => {
   const requestDescription = `Set File to Job`;
   self.router.post(`${self.routeEndpoint}/:uuid/setFile`, async (ctx) => {
-    let job;
-    let file;
 
     // Find the job
     try {
       const jobUuid = ctx.params.uuid;
-      job = self.jobs[jobUuid];
+      const job = self.jobs[jobUuid];
 
       if (!job) {
         throw `Job is undefined`;
-      } else {
-        await job.fsm.setFile();
-      }
-      // Find the File
-      let fileUuid;
-      try {
-        fileUuid = ctx.request.body.fileUuid;
-        if (fileUuid) {
-          job.fileUuid = fileUuid;
-          const jobJson = self.jobToJson(job);
-          ctx.status = 200;
-          ctx.body = new Response(ctx, requestDescription, jobJson);
-        } else {
-          throw `File uuid undefined`;
-        }
-        file = self.app.context.files.getFile(fileUuid);
-      } catch (ex) {
-        await job.fsm.setFileFail();
-        ctx.status = 405;
-        ctx.body = new Response(ctx, requestDescription, ex);
-        self.logger.error(ex);
-        return;
       }
 
-      // Assign the file to the job
-      try {
-        job.fileUuid = file.uuid;
-        const jobJson = self.jobToJson(job);
-        await job.fsm.setFileDone();
-        ctx.status = 200;
-        ctx.body = new Response(ctx, requestDescription, jobJson);
-      } catch (ex) {
-        await job.fsm.setFileFail();
-        ctx.status = 500;
-        ctx.body = new Response(ctx, requestDescription, ex);
-        self.logger.error(ex);
-        return;
+      const fileUuid = ctx.request.body.fileUuid;
+      const file = self.app.context.files.getFile(fileUuid);
+      if (!file) {
+        throw `File uuid is undefined`;
       }
+
+      const reply = await self.setFile(job, file);
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
@@ -167,7 +133,7 @@ const processJobCommand = (self) => {
       let commandReply;
       switch (command) {
         case `start`:
-          // TODO provide feedback if printer is unavailable, before starting the job
+          // TODO provide feedback if bot is unavailable, before starting the job
           self.startJob(job);
           commandReply = self.jobToJson(job);
           break;
@@ -204,7 +170,7 @@ const deleteJob = (self) => {
   const requestDescription = `Delete Job`;
   self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
-      const jobUuid = ctx.request.body.jobUuid;
+      const jobUuid = ctx.request.body.uuid;
       if (jobUuid === undefined) {
         const errorMessage = `Job uuid "${jobUuid}" is not valid.`;
         ctx.status = 404;

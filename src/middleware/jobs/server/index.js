@@ -145,6 +145,16 @@ class Jobs {
     return jobObject;
   }
 
+  async createPersistentJob(uuid) {
+    const jobObject = await this.createJobObject(uuid);
+    const jobJson = this.jobToJson(jobObject);
+    const dbJob = await this.Job.create(jobJson);
+    uuid = dbJob.dataValues.uuid;
+    jobObject.id = dbJob.dataValues.id;
+    this.jobs[uuid] = jobObject;
+    this.app.io.emit('jobEvent', jobJson);
+    return jobObject;
+  }
   /**
    * Set up the jobs' instance's router
    */
@@ -278,6 +288,19 @@ class Jobs {
     await dbJob.destroy();
     delete this.jobs[jobUuid];
     return `Job ${jobUuid} deleted`;
+  }
+
+  async setFile(job, file) {
+    await job.fsm.setFile();
+    try {
+      job.fileUuid = file.uuid;
+      const jobJson = this.jobToJson(job);
+      await job.fsm.setFileDone();
+      return jobJson;
+    } catch (ex) {
+      await job.fsm.setFileFail();
+      throw ex;
+    }
   }
 }
 

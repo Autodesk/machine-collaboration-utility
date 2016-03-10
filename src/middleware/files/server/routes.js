@@ -74,7 +74,7 @@ const deleteFile = (self) => {
       const fileUuid = ctx.request.body.uuid;
       const file = self.files[fileUuid];
       if (fileUuid === undefined) {
-        const errorMessage = `No "fileUuid" was provided`;
+        const errorMessage = `No "file uuid" was provided`;
         ctx.status = 404;
         ctx.body = new Response(ctx, requestDescription, errorMessage);
         self.logger.error(errorMessage);
@@ -84,19 +84,12 @@ const deleteFile = (self) => {
         ctx.body = new Response(ctx, requestDescription, errorMessage);
         self.logger.error(errorMessage);
       } else {
-        const filePath = self.getFilePath(file);
-        const fileExists = await fs.exists(filePath);
-        if (fileExists) {
-          // Delete the file
-          await fs.unlink(filePath);
-          self.logger.info('Just deleted file', filePath);
-          // Remove the file object from the 'files' array
-          delete self.files[fileUuid];
-          const response = `File ${fileUuid} deleted`;
+        const reply = await self.deleteFile(fileUuid);
+        if (reply !== false) {
           ctx.status = 200;
-          ctx.body = new Response(ctx, requestDescription, response);
+          ctx.body = new Response(ctx, requestDescription, reply);
         } else {
-          const errorMessage = `File at path "${filePath}" does not exist`;
+          const errorMessage = `File does not exist`;
           ctx.status = 404;
           ctx.body = new Response(ctx, requestDescription, errorMessage);
         }
@@ -179,12 +172,34 @@ const downloadFile = (self) => {
   });
 };
 
+/**
+ * Handle all logic at this endpoint for deleting all jobs
+ */
+const deleteAllFiles = (self) => {
+  const requestDescription = `Delete All Files`;
+  self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
+    try {
+      for (const file in self.files) {
+        await self.deleteFile(self.files[file].uuid);
+      }
+      const status = `All files deleted`;
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, status);
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
 const filesRoutes = (self) => {
   uploadFile(self);
   deleteFile(self);
   getFiles(self);
   getFile(self);
   downloadFile(self);
+  deleteAllFiles(self);
 };
 
 module.exports = filesRoutes;

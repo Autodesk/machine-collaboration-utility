@@ -1,16 +1,59 @@
 extends ../layout
 
 block content
-  p Hardware State: 
-    span#hardwareState= clientState
-  div.row
-    div#jobs.col-md-6
-    div#files.col-md-6
-
-  script(src='/js/vendor/jquery.min.js')
-  script(src='/js/vendor/bootstrap.min.js')
-  script var ip = !{JSON.stringify(ip)}
-  script var jobs = !{JSON.stringify(jobs)}
-  script var files = !{JSON.stringify(files)}
-  script(src='/socket.io/socket.io.js')
-  script(src='/js/ui/client.js')
+  div.container
+    div.header.row
+      div.col-md-8
+        h2 Hydra Print
+      div.col-md-4
+        h4 Jobs Files Dashboard
+    div.content.row
+      div.dashboard.col-md-12
+        h2 Dashboard
+        div.row
+          div.col-md-4
+            p Connect
+          div.col-md-4
+            p Hardware State: 
+              span#hardwareState= clientState
+          div.col-md-4
+            p Stop Job
+        div.row
+          div.col-md-6
+            div.row
+              div.col-md-12
+                p Jog Controls
+            div.row
+              div.col-md-6
+                p Position Readout
+              div.col-md-6
+                p Disable Motors
+          div.col-md-6
+            div.row
+              div.col-md-12
+                p Jog Speeds
+            div.row
+              div.col-md-12
+                p Accessory Control
+            div.row
+              div.col-md-12
+                p Override Settings
+      div.row
+        div#terminal.col-md-12
+          h2 Terminal
+      div.row
+        div#jobs.col-md-6
+          h2 Jobs
+        div#files.col-md-6
+          h2 Files
+          form(enctype='multipart/form-data')
+            input(name='file', type='file')
+            input(type='button', value='Upload')
+          progress  div.footer
+    script(src='/js/vendor/jquery.min.js')
+    script(src='/js/vendor/bootstrap.min.js')
+    script var ip = !{JSON.stringify(ip)}
+    script var jobs = !{JSON.stringify(jobs)}
+    script var files = !{JSON.stringify(files)}
+    script(src='/socket.io/socket.io.js')
+    script(src='/js/ui/client.js')

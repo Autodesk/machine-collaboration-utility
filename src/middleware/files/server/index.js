@@ -115,6 +115,22 @@ class Files {
   getFile(fileUuid) {
     return this.files[fileUuid];
   }
+
+  async deleteFile(fileUuid) {
+    const file = this.files[fileUuid];
+    const filePath = this.getFilePath(file);
+    const fileExists = await fs.exists(filePath);
+    if (fileExists) {
+      // Delete the file
+      await fs.unlink(filePath);
+      this.app.io.emit('deleteFile', file);
+      this.logger.info('Just deleted file', filePath);
+      // Remove the file object from the 'files' array
+      delete this.files[fileUuid];
+      return `File ${fileUuid} deleted`;
+    }
+    return false;
+  }
 }
 
 module.exports = Files;

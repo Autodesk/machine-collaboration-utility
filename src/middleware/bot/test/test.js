@@ -47,11 +47,16 @@ module.exports = function botTests() {
         body: { fileUuid: file.uuid },
         json: true,
       };
-      const setFileToJobReply = await request(setFileToJobParams);
-      job = setFileToJobReply.data;
-      should(setFileToJobReply.status).equal(200);
-      should(setFileToJobReply.query).equal(`Set File to Job`);
-      done();
+      try {
+        const setFileToJobReply = await request(setFileToJobParams);
+        console.log('reply', setFileToJobReply);
+        job = setFileToJobReply.data;
+        should(setFileToJobReply.status).equal(200);
+        should(setFileToJobReply.query).equal(`Set File to Job`);
+        done();
+      } catch (ex) {
+        console.log("flailboat", ex);
+      }
     });
 
     it('should initialize a virtual bot', async function (done) {

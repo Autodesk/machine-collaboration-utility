@@ -123,7 +123,7 @@ module.exports = function toDoListTests() {
         method: `DELETE`,
         uri: `http://localhost:9000/v1/jobs/`,
         body: {
-          jobUuid: job.uuid,
+          uuid: job.uuid,
         },
         json: true,
       };
