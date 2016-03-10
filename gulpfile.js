@@ -51,6 +51,7 @@ gulp.task(`build`, [
 gulp.task(`watch`, () => {
   gulp.watch([src.serverJs, src.middlewareServerJs, src.middlewareModelJs], [`build-server`, `build-server-middleware`]);
   gulp.watch([src.clientJs], [`build-client-js`]);
+  gulp.watch([src.clientCss], [`build-client-styles`]);
   gulp.watch(src.views, [`build-views`]);
   gulp.watch(src.viewsMiddleware, [`build-views-middleware`]);
   gulp.watch(src.middlewareClientJs, [`build-client-js-middleware`]);
