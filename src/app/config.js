@@ -13,6 +13,11 @@ module.exports = {
       pid: 1155,
       baudrate: 230400,
     },
+    {
+      vid: 9025,
+      pid: 66,
+      baudrate: 230400,
+    },
   ],
   conductor: {
     players: [
