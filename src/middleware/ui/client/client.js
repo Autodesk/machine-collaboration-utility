@@ -252,7 +252,8 @@ $(document).ready(() => {
     });
   });
 
-  $(`#gcode-terminal`).submit((e) => {
+  const $gcodeTerminal = $(`#gcode-terminal`);
+  $gcodeTerminal.submit((e) => {
     e.preventDefault();
     const gcode = $(`#gcode-input`).val();
     $(`#gcode-input`).val(``);
