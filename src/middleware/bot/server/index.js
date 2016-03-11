@@ -351,7 +351,7 @@ class Bot {
         );
       } else {
         this.queue = new CommandQueue(
-          this.setupSerialExecutor(this.port, config.bot.baudrate),
+          this.setupSerialExecutor(this.port, config.baudrate),
           this.expandCode,
           this.validateReply
         );
@@ -417,10 +417,10 @@ class Bot {
 
   // Compare a port's vid pid with our bot's vid pid
   verifyVidPid(device) {
-    for (let i = 0; i < config.bot.length; i++) {
+    for (let i = 0; i < config.vidPids.length; i++) {
       if (
-        device.deviceDescriptor.idVendor === config.bot[i].vid &&
-        device.deviceDescriptor.idProduct === config.bot[i].pid
+        device.deviceDescriptor.idVendor === config.vidPids[i].vid &&
+        device.deviceDescriptor.idProduct === config.vidPids[i].pid
       ) {
         this.device = device;
         return true;

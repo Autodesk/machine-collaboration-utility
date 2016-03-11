@@ -2,21 +2,19 @@ module.exports = {
   logFileName: `hydra-print.log`,
   testLogFileName: `hydra-print-test.log`,
   virtualDelay: 1000,
-  bot: [
+  baudrate: 230400,
+  vidPids: [
     {
       vid: 10612,
       pid: 1283,
-      baudrate: 230400,
     },
     {
       vid: 5824,
       pid: 1155,
-      baudrate: 230400,
     },
     {
       vid: 9025,
       pid: 66,
-      baudrate: 230400,
     },
   ],
   conductor: {
