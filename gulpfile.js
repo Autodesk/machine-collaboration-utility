@@ -13,6 +13,7 @@ const src = {
   serverJs: `src/app/**/*.js`,
   clientJs: `src/client/**/*.js`,
   clientCss: `src/client/css/styles.scss`,
+  clientFonts: `src/client/fonts/**/*.*`,
   middlewareServerJs: `src/middleware/**/server/**/*.js`,
   middlewareModelJs: `src/middleware/**/model/**/*.js`,
   middlewareClientJs: `src/middleware/**/client/**/*.js`,
@@ -29,6 +30,7 @@ const dest = {
   middleware: `dist/server/middleware`,
   clientJs: `./dist/client`,
   clientCss: `./dist/client/css`,
+  clientFonts: `./dist/client/fonts`,
   views: `dist/server/views`,
   docs: `dist/client/docs`,
   yaml: `dist/client/docs/middleware`,
@@ -41,6 +43,7 @@ gulp.task(`build`, [
   `build-views`,
   `build-client-js`,
   `build-client-styles`,
+  `build-client-fonts`,
   `build-server-middleware`,
   `build-views-middleware`,
   `build-client-js-middleware`,
@@ -126,9 +129,15 @@ gulp.task(`build-client-js`, () => {
     })
   )
   // TODO sequentially require and minify modules
-	.pipe(sourcemaps.write(`.`))
-	.pipe(gulp.dest(dest.clientJs));
+  .pipe(sourcemaps.write(`.`))
+  .pipe(gulp.dest(dest.clientJs));
 });
+
+gulp.task(`build-client-fonts`, () => {
+  return gulp.src(src.clientFonts)
+  .pipe(gulp.dest(dest.clientFonts));
+});
+
 
 gulp.task(`build-client-js-middleware`, () => {
   return gulp.src(src.middlewareClientJs)
