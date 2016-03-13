@@ -36,11 +36,22 @@ a {
   background-color: #fff;
   height: 65px;
   h2{
+    display: inline-block;
     margin: 0;
     padding: 0;
+    padding-left: 10px;
+    position: absolute;
+    top: 16px;
     .bold{
       font-family: 'turkey-bold';
     }
+  }
+  .logo{
+    width: 100%;
+    max-width: 50px;
+    display: inline-block;
+    position: relative;
+    top: 9px;
   }
   ul{
     text-align: right;

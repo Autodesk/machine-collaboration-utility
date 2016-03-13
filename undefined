@@ -1,0 +1,5 @@
+{"level":"info","message":"Server initialized","timestamp":"2016-03-13T05:42:51.301Z"}
+{"level":"info","message":"Files router setup complete","timestamp":"2016-03-13T05:42:51.428Z"}
+{"level":"info","message":"Files instance initialized","timestamp":"2016-03-13T05:42:51.435Z"}
+{"level":"info","message":"Jobs router setup complete","timestamp":"2016-03-13T05:42:51.442Z"}
+{"level":"info","message":"Jobs instance initialized","timestamp":"2016-03-13T05:42:51.555Z"}
