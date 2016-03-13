@@ -6,31 +6,31 @@
 body {
   font-family:  "turkey-regular";
   background-color: #d1d2d4;
-}
+  a {
+    color: #00B7FF;
+  }
 
-a {
-  color: #00B7FF;
-}
+  #connect {
+    cursor: pointer;
+  }
 
-#connect {
-  cursor: pointer;
-}
+  .button {
+    cursor: pointer;
+  }
 
-.button {
-  cursor: pointer;
-}
+  #terminal-reply {
+    overflow-y: scroll;
+    height: 100px;
+  }
 
-#terminal-reply {
-  overflow-y: scroll;
-  height: 100px;
-}
+  #terminal-reply li{
+    list-style-type: none;
+  }
 
-#terminal-reply li{
-  list-style-type: none;
-}
+  .float-right {
+    float: right;
+  }
 
-.float-right {
-  float: right;
 }
 
 .header {
@@ -77,6 +77,39 @@ a {
         display: inline !important;
       }
     }
+  }
+}
+
+.nav-tabs{
+  margin-top: 25px;
+  >li{
+    width: 50%;
+    text-align: center;
+    &.active{
+      >a{
+        color: #808284;
+      }
+    }
+    >a{
+      background-color: #808284;
+      color: #fff;
+      margin-right: 0;
+      border: none !important;
+      font-size: 20px;
+      border-radius: 0;
+      padding: 20px;
+      &:hover{
+        background-color: #808284;
+      }
+    }
+  }
+}
+
+#hydraTabContent{
+  background: #fff;
+  .tab-pane{
+    padding: 15px;
+    margin: 0;
   }
 }
 

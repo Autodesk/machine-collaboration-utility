@@ -27,15 +27,24 @@ block content
               span.hidden-sm.hidden-md.hidden-lg
                 i.fa.fa-tachometer
   div.container
-    div.content.row
-      include dashboard
-      div.row
-        div#terminal.col-md-12
+    .hydraTabs(data-example-id='togglable-tabs')
+      ul#hydraTabs.nav.nav-tabs(role='tablist')
+        li.active(role='presentation')
+          a#home-tab(href='#dashboard', role='tab', data-toggle='tab', aria-controls='home', aria-expanded='true') Dashboard
+        li(role='presentation')
+          a#profile-tab(href='#terminal', role='tab', data-toggle='tab', aria-controls='profile', aria-expanded='false') Terminal
+
+      #hydraTabContent.tab-content
+        #dashboard.tab-pane.fade.row.active.in(role='tabpanel', aria-labelledby='dashboard-tab')
+          include dashboard
+        #terminal.tab-pane.row.fade(role='tabpanel', aria-labelledby='terminal-tab')
           h2 Terminal
           ul#terminal-reply
           form#gcode-terminal
             input(id='gcode-input', type='text', name='gcode', value='')
             input(type='submit', value='Send GCode')
+
+    div.content
       div.row
         div#jobs.col-md-6
           h2 Jobs
