@@ -40,7 +40,7 @@ block content
         #terminal.tab-pane.row.fade(role='tabpanel', aria-labelledby='terminal-tab')
           ul#terminal-reply
           form#gcode-terminal
-            input(id='gcode-input', type='text', name='gcode', value='')
+            input(id='gcode-input', type='text', name='gcode', value='', autocomplete="off", placeholder="Put some sweet GCode in here")
             input(type='submit', value='Send GCode')
 
     div.content

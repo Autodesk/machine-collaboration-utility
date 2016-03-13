@@ -17,21 +17,38 @@ body {
   .button {
     cursor: pointer;
   }
-
-  #terminal-reply {
-    color: #808284;
-    font-family: "turkey-bold";
-    font-size: 14px;
-    overflow-y: scroll;
-    height: 100px;
-    background: #d1d2d4;
-    height: 450px;
+  #terminal{
+    input{
+      padding: 18px;
+      margin-top: 7px;
+      font-size: 18px;
+      border: none;
+      background: #d1d2d4;
+      -webkit-appearance: none;
+      outline: none;
+      &#gcode-input{
+        width: 100%;
+      }
+    }
+    input[type=submit]{
+      background: #f16767;
+      color: #fff;
+      margin-top: 15px;
+      outline: none;
+    }
+    #terminal-reply {
+      color: #808284;
+      font-family: "turkey-bold";
+      font-size: 15px;
+      overflow-y: scroll;
+      background: #d1d2d4;
+      height: 450px;
+      padding: 15px;
+      li{
+       list-style-type: none;
+     }
+    }
   }
-
-  #terminal-reply li{
-    list-style-type: none;
-  }
-
   .float-right {
     float: right;
   }
