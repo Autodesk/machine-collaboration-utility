@@ -224,10 +224,8 @@ $(document).ready(() => {
 
   function progressHandlingFunction(e) {
     if (e.lengthComputable) {
-      const progress = e.loaded / e.total;
-      console.log('progress:', progress);
-      $(`#upload-progress`).text(`${e.loaded / e.total}`);
-      // $('progress').attr({ value: e.loaded, max: e.total });
+      const progress = parseInt(e.loaded / e.total * 100, 10);
+      $(`#file-upload-progress`).css(`width`, `${progress}%`);
     }
   }
 

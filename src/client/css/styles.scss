@@ -43,3 +43,15 @@ a {
     }
   }
 }
+
+#file-upload-progress-bar {
+  height: 50px;
+  width: 100%;
+  background-color: #666665;
+  #file-upload-progress {
+    height: 50px;
+    background-color: orange;
+    width: 0%;
+    transition: 0.5s;
+  }
+}
