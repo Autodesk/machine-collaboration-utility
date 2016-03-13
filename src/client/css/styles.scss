@@ -1,5 +1,6 @@
 @import "bootstrap.min.scss";
 @import "fonts.scss";
+@import "font-awesome.scss";
 
 /* GENERAL */
 body {
@@ -63,6 +64,15 @@ a {
       padding: 23px;
       position: relative;
       top: 19px;
+      a{
+        color: #373435;
+        transition: .5s;
+        cursor: pointer;
+        &:hover{
+          color: #f16767;
+          text-decoration: none;
+        }
+      }
       .visible-xs{
         display: inline !important;
       }
