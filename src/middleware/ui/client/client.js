@@ -232,6 +232,9 @@ $(document).ready(() => {
         setTimeout(() => {
           $fileUploadProgressBar.removeClass(`visible`);
         }, 1000);
+        setTimeout(() => {
+          $fileUploadProgress.css(`width`, `0%`);
+        }, 2000);
       }
     }
   }
