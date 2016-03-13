@@ -1,0 +1,12 @@
+extends ../layout
+
+block content
+  div.content
+    div.row
+      div#files.col-md-6
+        h2 Files
+        form(id='file-form', enctype='multipart/form-data')
+          input(id='file-form-input' name='file', type='file' style='display:none')
+          #select-file Upload File
+        #file-upload-progress-bar
+          #file-upload-progress

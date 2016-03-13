@@ -1,0 +1,17 @@
+extends ../layout
+
+block content
+  .hydraTabs(data-example-id='togglable-tabs')
+    ul#hydraTabs.nav.nav-tabs(role='tablist')
+      li.active(role='presentation')
+        a#home-tab(href='#dashboard', role='tab', data-toggle='tab', aria-controls='home', aria-expanded='true') Dashboard
+      li(role='presentation')
+        a#profile-tab(href='#terminal', role='tab', data-toggle='tab', aria-controls='profile', aria-expanded='false') Terminal
+    #hydraTabContent.tab-content
+      #dashboard.tab-pane.fade.row.active.in(role='tabpanel', aria-labelledby='dashboard-tab')
+        include dashboard
+      #terminal.tab-pane.row.fade(role='tabpanel', aria-labelledby='terminal-tab')
+        ul#terminal-reply
+        form#gcode-terminal
+          input(id='gcode-input', type='text', name='gcode', value='', autocomplete="off", placeholder="Put some sweet GCode in here")
+          input(type='submit', value='Send GCode')

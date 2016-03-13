@@ -21,7 +21,7 @@ const getDocs = (self) => {
 /**
  * Render the app
  */
-const getApp = (self) => {
+const getBot = (self) => {
   self.router.get(self.routeEndpoint, async (ctx) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
@@ -32,7 +32,55 @@ const getApp = (self) => {
     } else {
       clientState = self.app.context.bot.getBot().state;
     }
-    await ctx.render(`ui/index`, {
+    await ctx.render(`ui/bot`, {
+      title: `Hydra-Print`,
+      clientState,
+      jobs,
+      files,
+      ip,
+    });
+  });
+};
+
+/**
+ * Render the files
+ */
+const getFiles = (self) => {
+  self.router.get(`${self.routeEndpoint}/files`, async (ctx) => {
+    const ip = await getIp.address();
+    const jobs = self.app.context.jobs.getJobs();
+    const files = self.app.context.files.files;
+    let clientState;
+    if (process.env.NODE_ENV === `conducting`) {
+      clientState = self.app.context.conductor.getConductor().state;
+    } else {
+      clientState = self.app.context.bot.getBot().state;
+    }
+    await ctx.render(`ui/files`, {
+      title: `Hydra-Print`,
+      clientState,
+      jobs,
+      files,
+      ip,
+    });
+  });
+};
+
+/**
+ * Render the jobs
+ */
+const getJobs = (self) => {
+  self.router.get(`${self.routeEndpoint}/jobs`, async (ctx) => {
+    const ip = await getIp.address();
+    const jobs = self.app.context.jobs.getJobs();
+    const files = self.app.context.files.files;
+    let clientState;
+    if (process.env.NODE_ENV === `conducting`) {
+      clientState = self.app.context.conductor.getConductor().state;
+    } else {
+      clientState = self.app.context.bot.getBot().state;
+    }
+    await ctx.render(`ui/jobs`, {
       title: `Hydra-Print`,
       clientState,
       jobs,
@@ -76,7 +124,9 @@ const appCommands = (self) => {
 
 const uiRoutes = (self) => {
   getDocs(self);
-  getApp(self);
+  getBot(self);
+  getFiles(self);
+  getJobs(self);
   appCommands(self);
 };
 

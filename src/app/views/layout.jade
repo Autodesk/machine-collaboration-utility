@@ -3,6 +3,16 @@ html
   head
     title= title
     meta(name='viewport', content='width=device-width, initial-scale=1')
-    link(rel='stylesheet', href='/css/styles.css')
+    link(rel='stylesheet', href='/css/styles.css', foo='bar')
   body
-    block content
+    include header
+    div.container
+      block content
+    div.footer
+      script(src='/js/vendor/jquery.min.js')
+      script(src='/js/vendor/bootstrap.min.js')
+      script var ip = !{JSON.stringify(ip)}
+      script var jobs = !{JSON.stringify(jobs)}
+      script var files = !{JSON.stringify(files)}
+      script(src='/socket.io/socket.io.js')
+      script(src='/js/ui/client.js')
