@@ -3,7 +3,7 @@
 
 /* GENERAL */
 body {
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family:  "turkey-regular";
 }
 
 a {
@@ -39,6 +39,7 @@ a {
   ul{
     text-align: right;
     li {
+      color: #373435;
       display: inline;
     }
   }

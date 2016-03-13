@@ -13,6 +13,7 @@ const src = {
   serverJs: `src/app/**/*.js`,
   clientJs: `src/client/**/*.js`,
   clientCss: `src/client/css/styles.scss`,
+  clientCssWatch: `src/client/css/**/*.scss`,
   clientFonts: `src/client/fonts/**/*.*`,
   middlewareServerJs: `src/middleware/**/server/**/*.js`,
   middlewareModelJs: `src/middleware/**/model/**/*.js`,
@@ -55,7 +56,7 @@ gulp.task(`build`, [
 gulp.task(`watch`, () => {
   gulp.watch([src.serverJs, src.middlewareServerJs, src.middlewareModelJs], [`build-server`, `build-server-middleware`]);
   gulp.watch([src.clientJs], [`build-client-js`]);
-  gulp.watch([src.clientCss], [`build-client-styles`]);
+  gulp.watch([src.clientCssWatch], [`build-client-styles`]);
   gulp.watch(src.views, [`build-views`]);
   gulp.watch(src.viewsMiddleware, [`build-views-middleware`]);
   gulp.watch(src.middlewareClientJs, [`build-client-js-middleware`]);
