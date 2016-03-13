@@ -137,6 +137,9 @@ $(document).ready(() => {
 
   function addReply(reply) {
     $(`#terminal-reply`).append(`<li>${reply}</li>`);
+    const divx = document.getElementById(`terminal-reply`);
+    divx.scrollTop = divx.scrollHeight;
+    // TODO disable auto scrolling if a checkbox is selected
   }
 
   const socket = io(`http://${ip}:9000`);
