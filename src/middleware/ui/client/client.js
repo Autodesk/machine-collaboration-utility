@@ -1,10 +1,36 @@
 /* global $, io, ip, jobs, files */
 $(document).ready(() => {
-  $(`#jog-panel-svg`).load(`images/jog_panel.svg`);
-  $(`polygon`).click(() => {
-    console.log('eyy');
-  });
+  $(`#jog-panel-svg`).load(`images/jog_panel.svg`, () => {
+    const jogInfo = {
+      axes: [
+        { axis: `x`, alias: `X` },
+        { axis: `y`, alias: `Y` },
+        { axis: `z`, alias: `Z` },
+        { axis: `e`, alias: `E` },
+      ],
+      distance: [
+        { name: `100`, amount: `100` },
+        { name: `10`, amount: `10` },
+        { name: `1`, amount: `1` },
+        { name: `0_1`, amount: `0.1` },
+        { name: `-0_1`, amount: `-0.1` },
+        { name: `-1`, amount: `-1` },
+        { name: `-10`, amount: `-10` },
+        { name: `-100`, amount: `-100` },
+      ],
+    };
 
+    for (let i = 0; i < jogInfo.axes.length; i++) {
+      for (let j = 0; j < jogInfo.distance.length; j++) {
+        $(`.jog_${jogInfo.axes[i].axis}_${jogInfo.distance[j].name}`).click(() => {
+          console.log(`G1 ${jogInfo.axes[i].alias}${jogInfo.distance[j].amount}`);
+        });
+      }
+    }
+    $(`polygon`).click(function () {
+      console.log(this);
+    });
+  });
   function deleteJob(job) {
     const ourJob = $(`#job_${job.uuid}`);
     if (ourJob.length > 0) {
