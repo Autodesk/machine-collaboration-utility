@@ -1,0 +1,37 @@
+@import "bootstrap.min.scss";
+
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+#connect {
+  cursor: pointer;
+}
+
+.button {
+  cursor: pointer;
+}
+
+#terminal-reply {
+  overflow-y: scroll;
+  height: 100px;
+}
+
+#terminal-reply li{
+  list-style-type: none;
+}
+
+.float-right {
+  float: right;
+}
+
+.header {
+  li {
+    display: inline;
+  }
+}

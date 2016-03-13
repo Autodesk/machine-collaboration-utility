@@ -5,13 +5,14 @@ const nodemon = require(`gulp-nodemon`);
 const autoprefixer = require(`gulp-autoprefixer`);
 const mocha = require(`gulp-mocha`);
 const rename = require(`gulp-rename`);
+const sass = require(`gulp-sass`);
 
 // TODO make sure the foreman server restarts on change
 
 const src = {
   serverJs: `src/app/**/*.js`,
   clientJs: `src/client/**/*.js`,
-  clientCss: `src/client/**/*.css`,
+  clientCss: `src/client/css/styles.scss`,
   middlewareServerJs: `src/middleware/**/server/**/*.js`,
   middlewareModelJs: `src/middleware/**/model/**/*.js`,
   middlewareClientJs: `src/middleware/**/client/**/*.js`,
@@ -27,7 +28,7 @@ const dest = {
   server: `dist/server`,
   middleware: `dist/server/middleware`,
   clientJs: `./dist/client`,
-  clientCss: `./dist/client`,
+  clientCss: `./dist/client/css`,
   views: `dist/server/views`,
   docs: `dist/client/docs`,
   yaml: `dist/client/docs/middleware`,
@@ -91,7 +92,24 @@ gulp.task(`build-server-middleware`, () => {
 });
 
 gulp.task(`build-client-styles`, () => {
-  return gulp.src(src.clientCss)
+  gulp.src(src.clientCss)
+  // Sass options - make the output compressed and add the source map
+  // Also pull the include path from the paths object
+  .pipe(sass({
+    outputStyle: 'compressed',
+    sourceComments: 'map',
+  }))
+  // If there is an error, don't stop compiling.
+  // Use the custom displayError function
+  .on('error', (err) => {
+    console.log(err);
+  })
+  // Pass the compiled sass through the prefixer with defined
+  .pipe(autoprefixer(
+    'last 2 version', 'safari 5', 'ie 8', 'ie 9',
+    'opera 12.1', 'ios 6', 'android 4'
+  ))
+  // Funally put the compiled sass into a css file
   .pipe(gulp.dest(dest.clientCss));
 });
 

@@ -72,6 +72,10 @@ FakeMarlinConnection.prototype.send = async function (inCommandStr) {
         }
         this.mDataFunc('ok');
         break;
+      case 'G1':
+        await Promise.delay(50);
+        this.mDataFunc('ok');
+        break;
       default:
         console.log(`command not supported`);
         this.mDataFunc('ok');

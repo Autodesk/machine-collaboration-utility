@@ -341,7 +341,7 @@ class Bot {
         this.queue = new CommandQueue(
           new FakeMarlinExecutor(),
           this.expandCode,
-          this.validateReply
+          _.bind(this.validateReply, this)
         );
       } else if (this.externalEndpoint) {
         this.queue = new CommandQueue(
@@ -353,7 +353,7 @@ class Bot {
         this.queue = new CommandQueue(
           this.setupSerialExecutor(this.port, config.baudrate),
           this.expandCode,
-          this.validateReply
+          _.bind(this.validateReply, this)
         );
       }
       await this.fsm.detectDone();
@@ -459,7 +459,8 @@ class Bot {
     return new SerialCommandExecutor(
       port,
       baudrate,
-      openPrime
+      openPrime,
+      this.app.io
     );
   }
 
@@ -490,7 +491,9 @@ class Bot {
    */
   validateReply(command, reply) {
     const lines = reply.toString().split('\n');
-    return (_.last(lines) === 'ok');
+    const ok = _.last(lines).indexOf(`ok`) !== -1;
+    // this.app.io.emit(`botReply`, lines);
+    return ok;
   }
 
   /**
@@ -502,7 +505,6 @@ class Bot {
    * Return: true if the last line was 'ok'
    */
   validateTCPReply(command, reply) {
-    console.log('reply!', reply);
     return true;
   }
 }

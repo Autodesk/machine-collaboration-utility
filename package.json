@@ -29,6 +29,7 @@
     "gulp-mocha": "^2.2.0",
     "gulp-nodemon": "^2.0.4",
     "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.2.0",
     "gulp-sourcemaps": "^1.6.0",
     "heartbeater": "^0.1.0",
     "ip": "^1.1.0",

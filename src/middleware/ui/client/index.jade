@@ -3,17 +3,19 @@ extends ../layout
 block content
   div.container
     div.header.row
-      div.col-md-8
-        h2 Hydra Print
       div.col-md-4
-        h4 Jobs Files Dashboard
+        h2 Hydra Print
+      div.col-md-8.float-right
+        ul
+          li Jobs
+          li Files
+          li Dashboard
     div.content.row
       include dashboard
       div.row
         div#terminal.col-md-12
           h2 Terminal
           ul#terminal-reply
-            li First Message
           form#gcode-terminal
             input(id='gcode-input', type='text', name='gcode', value='')
             input(type='submit', value='Send GCode')
@@ -25,7 +27,7 @@ block content
           form(id='file-form', enctype='multipart/form-data')
             input(name='file', type='file')
             input(id='file-upload-button', type='button', value='Upload')
-          progress 
+          #upload-progress 
   div.footer
     script(src='/js/vendor/jquery.min.js')
     script(src='/js/vendor/bootstrap.min.js')

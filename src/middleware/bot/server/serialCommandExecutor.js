@@ -15,12 +15,13 @@
 
 var SerialConnection = require('./serialConnection');
 
-var SerialCommandExecutor = function (inComName, inBaud, inOpenPrimeStr) {
+var SerialCommandExecutor = function (inComName, inBaud, inOpenPrimeStr, io) {
     this.mComName = inComName;
     this.mBaud = inBaud;
     this.mOpenPrimeStr = inOpenPrimeStr;
     this.mConnection = undefined;
     this.mCommandsProcessed = undefined;
+    this.io = io;
 };
 
 /**
@@ -50,7 +51,8 @@ SerialCommandExecutor.prototype.open = function (inDoneFunc) {
         function (inData) {
           console.log('whooooa', inData);
         },
-        function () { inDoneFunc(true); }
+        function () { inDoneFunc(true); },
+        this.io
     );
     // ****** WHAT TO DO IF OPEN FAILS???? ********//
     that.mCommandsProcessed = 0;

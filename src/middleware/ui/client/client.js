@@ -135,6 +135,10 @@ $(document).ready(() => {
     }
   }
 
+  function addReply(reply) {
+    $(`#terminal-reply`).prepend(`<li>${reply}</li>`);
+  }
+
   const socket = io(`http://${ip}:9000`);
   socket.on('stateChange', (newState) => {
     $('#hardwareState').text(newState);
@@ -154,6 +158,10 @@ $(document).ready(() => {
 
   socket.on('fileEvent', (file) => {
     updateFile(file);
+  });
+
+  socket.on('botReply', (reply) => {
+    addReply(reply);
   });
 
   for (const job in jobs) {
@@ -216,7 +224,10 @@ $(document).ready(() => {
 
   function progressHandlingFunction(e) {
     if (e.lengthComputable) {
-      $('progress').attr({ value: e.loaded, max: e.total });
+      const progress = e.loaded / e.total;
+      console.log('progress:', progress);
+      $(`#upload-progress`).text(`${e.loaded / e.total}`);
+      // $('progress').attr({ value: e.loaded, max: e.total });
     }
   }
 
@@ -256,19 +267,21 @@ $(document).ready(() => {
   $gcodeTerminal.submit((e) => {
     e.preventDefault();
     const gcode = $(`#gcode-input`).val();
-    $(`#gcode-input`).val(``);
-    $.ajax({
-      url: `/v1/bot/processGcode`,
-      type: `POST`,
-      data: {
-        gcode,
-      },
-      success: () => {
-        // console.log(`gcode ${gcode} successfully sent`);
-      },
-      error: (err) => {
-        console.log('error', err);
-      },
-    });
+    if (true) { // need to validate gcode here
+      $(`#gcode-input`).val(``);
+      $.ajax({
+        url: `/v1/bot/processGcode`,
+        type: `POST`,
+        data: {
+          gcode,
+        },
+        success: () => {
+          // console.log(`gcode ${gcode} successfully sent`);
+        },
+        error: (err) => {
+          console.log('error', err);
+        },
+      });
+    }
   });
 });

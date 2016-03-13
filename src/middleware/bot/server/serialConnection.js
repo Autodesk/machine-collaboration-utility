@@ -34,9 +34,15 @@ var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
  *                           connected
  * Return: N/A
  */
-var SerialConnection = function(inComName, inBaud, inOpenPrimeStr,
-                                inInitDataFunc, inConnectedFunc, inLogger) {
-    // logger = inLogger;
+var SerialConnection = function(
+  inComName,
+  inBaud,
+  inOpenPrimeStr,
+  inInitDataFunc,
+  inConnectedFunc,
+  io
+) {
+    this.io = io;
     var that = this;
     var portParams = { baudrate : inBaud,
                        parser: SerialPort.parsers.readline('\n') };
@@ -68,11 +74,14 @@ var SerialConnection = function(inComName, inBaud, inOpenPrimeStr,
             // logger.warn('Failed to open com port:', inComName, error);
         } else {
             that.mPort.on('data', function (inData) {
-              console.log('Data received:', inData.toString());
-                    if (_.isFunction(that.mDataFunc)) {
-                        that.mDataFunc(inData);
-                    }
-                });
+              const data = inData.toString();
+              if (data !== 'ok') {
+                that.io.emit('botReply', data);
+              }
+              if (_.isFunction(that.mDataFunc)) {
+                that.mDataFunc(data);
+              }
+            });
 
             that.mPort.on('close', function () {
                     if (_.isFunction(that.mCloseFunc)) {
@@ -133,7 +142,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
 
     if (this.mState === SerialConnection.State.CONNECTED) {
         try {
-            console.log('Serial:', inCommandStr);
+            // TODO add GCODE Validation regex
             this.mPort.write(inCommandStr);
             commandSent = true;
         } catch (inError) {
