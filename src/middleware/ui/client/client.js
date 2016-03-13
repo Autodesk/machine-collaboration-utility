@@ -240,8 +240,10 @@ $(document).ready(() => {
   }
 
   $(`#file-upload-button`).click(() => {
+    const $fileForm = $(`#file-form`);
+    const $fileFormInput = $(`#file-form-input`);
     const $fileUploadProgressBar = $(`#file-upload-progress-bar`);
-    const formData = new FormData($('#file-form')[0]);
+    const formData = new FormData($fileForm[0]);
     $.ajax({
       url: 'v1/files',  // Server script to process data
       type: 'POST',
@@ -259,7 +261,8 @@ $(document).ready(() => {
         // Call action here before the file is uploaded
       },
       success: () => {
-        // Call action here after the file is successfully uploaded
+        // Clear the selected file
+        $fileFormInput.val('');
       },
       error: (err) => {
         console.log('Upload error:', err);
