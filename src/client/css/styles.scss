@@ -4,6 +4,7 @@
 /* GENERAL */
 body {
   font-family:  "turkey-regular";
+  background-color: #d1d2d4;
 }
 
 a {
@@ -32,15 +33,28 @@ a {
 }
 
 .header {
+  background-color: #fff;
+  height: 65px;
   h2{
     margin: 0;
     padding: 0;
+    .bold{
+      font-family: 'turkey-bold';
+    }
   }
   ul{
     text-align: right;
+    margin-bottom: 0;
     li {
       color: #373435;
       display: inline;
+      font-size: 18px;
+      padding: 23px;
+      position: relative;
+      top: 19px;
+      .visible-xs{
+        display: inline !important;
+      }
     }
   }
 }

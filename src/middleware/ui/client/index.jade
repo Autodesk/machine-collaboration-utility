@@ -1,15 +1,24 @@
 extends ../layout
 
 block content
-  div.container
-    div.header.row
-      div.col-md-4
-        h2 Hydra Print
-      div.col-md-8.float-right
+  div.header
+    .container
+      div.col-xs-4
+        h2
+          span.bold Hydra
+          span Print
+      div.col-xs-8.float-right
         ul
-          li Jobs
-          li Files
-          li Dashboard
+          li
+            span.hidden-xs Jobs
+            span.hidden-sm-up J
+          li
+            span.hidden-xs Files
+            span.hidden-sm-up F
+          li
+            span.hidden-xs Dashboard
+            span.hidden-sm-up D
+  div.container
     div.content.row
       include dashboard
       div.row
