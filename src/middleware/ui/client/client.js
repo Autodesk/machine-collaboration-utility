@@ -294,9 +294,10 @@ $(document).ready(() => {
           gcode,
         },
         success: () => {
-          // console.log(`gcode ${gcode} successfully sent`);
+          console.log(`gcode ${gcode} successfully sent`);
         },
         error: (err) => {
+          addReply(gcode); // Hack to add data. remove this
           console.log('error', err);
         },
       });
