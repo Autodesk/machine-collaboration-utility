@@ -1,5 +1,10 @@
 /* global $, io, ip, jobs, files */
 $(document).ready(() => {
+  $(`#jog-panel-svg`).load(`images/jog_panel.svg`);
+  $(`polygon`).click(() => {
+    console.log('eyy');
+  });
+
   function deleteJob(job) {
     const ourJob = $(`#job_${job.uuid}`);
     if (ourJob.length > 0) {
@@ -7,7 +12,6 @@ $(document).ready(() => {
       ourJob.remove();
     }
   }
-
   function updateJob(job) {
     let $jobDiv = $(`#job_${job.uuid}`);
     if ($jobDiv.length === 0) {
@@ -111,7 +115,7 @@ $(document).ready(() => {
         const warningMessage = `Are you sure you want to process file "${file.name}"?`;
         if (confirm(warningMessage)) {
           $.ajax({
-            url: ``,
+            url: `http://${ip}:9000/`, // TODO fix this hacky port derived address
             type: `POST`,
             data: {
               command: `processFile`,
@@ -140,9 +144,8 @@ $(document).ready(() => {
     const divx = document.getElementById(`terminal-reply`);
     console.log('divx scrollTop', divx.scrollTop);
     divx.scrollTop = divx.scrollHeight;
-    // TODO disable auto scrolling if a checkbox is selected
+    // TODO disable auto scrolling if a `disable auto-scroll` checkbox is selected
   }
-  addReply();
 
   const socket = io(`http://${ip}:9000`);
   socket.on('stateChange', (newState) => {
