@@ -239,10 +239,10 @@ $(document).ready(() => {
     }
   }
 
-  $(`#file-upload-button`).click(() => {
-    const $fileForm = $(`#file-form`);
-    const $fileFormInput = $(`#file-form-input`);
-    const $fileUploadProgressBar = $(`#file-upload-progress-bar`);
+  const $fileForm = $(`#file-form`);
+  const $fileFormInput = $(`#file-form-input`);
+  const $fileUploadProgressBar = $(`#file-upload-progress-bar`);
+  $fileForm.change(() => {
     const formData = new FormData($fileForm[0]);
     $.ajax({
       url: 'v1/files',  // Server script to process data
@@ -274,6 +274,11 @@ $(document).ready(() => {
       contentType: false, // TODO Restrict the files to .gcode
       processData: false,
     });
+  });
+
+  // TODO disable clicking when a file is being uploaded
+  $(`#select-file`).click(() => {
+    $fileFormInput.click();
   });
 
   const $gcodeTerminal = $(`#gcode-terminal`);
