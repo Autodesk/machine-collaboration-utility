@@ -1,7 +1,76 @@
 @import "bootstrap.min.scss";
 
+
+/* FONTS */
+@font-face {
+    font-family: 'europabold';
+    src: url('fonts/europa-bold-webfont.eot');
+    src: url('fonts/europa-bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/europa-bold-webfont.woff2') format('woff2'),
+         url('fonts/europa-bold-webfont.woff') format('woff'),
+         url('fonts/europa-bold-webfont.ttf') format('truetype'),
+         url('fonts/europa-bold-webfont.svg#europabold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'europabolditalic';
+    src: url('fonts/europa-bolditalic-webfont.eot');
+    src: url('fonts/europa-bolditalic-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/europa-bolditalic-webfont.woff2') format('woff2'),
+         url('fonts/europa-bolditalic-webfont.woff') format('woff'),
+         url('fonts/europa-bolditalic-webfont.ttf') format('truetype'),
+         url('fonts/europa-bolditalic-webfont.svg#europabolditalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'europalight';
+    src: url('fonts/europa-light-webfont.eot');
+    src: url('fonts/europa-light-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/europa-light-webfont.woff2') format('woff2'),
+         url('fonts/europa-light-webfont.woff') format('woff'),
+         url('fonts/europa-light-webfont.ttf') format('truetype'),
+         url('fonts/europa-light-webfont.svg#europalight') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'europalightitalic';
+    src: url('fonts/europa-lightitalic-webfont.eot');
+    src: url('fonts/europa-lightitalic-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/europa-lightitalic-webfont.woff2') format('woff2'),
+         url('fonts/europa-lightitalic-webfont.woff') format('woff'),
+         url('fonts/europa-lightitalic-webfont.ttf') format('truetype'),
+         url('fonts/europa-lightitalic-webfont.svg#europalightitalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'europaregular';
+    src: url('fonts/europa-regular-webfont.eot');
+    src: url('fonts/europa-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/europa-regular-webfont.woff2') format('woff2'),
+         url('fonts/europa-regular-webfont.woff') format('woff'),
+         url('fonts/europa-regular-webfont.ttf') format('truetype'),
+         url('fonts/europa-regular-webfont.svg#europaregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'europaitalic';
+    src: url('fonts/europa-regularitalic-webfont.eot');
+    src: url('fonts/europa-regularitalic-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/europa-regularitalic-webfont.woff2') format('woff2'),
+         url('fonts/europa-regularitalic-webfont.woff') format('woff'),
+         url('fonts/europa-regularitalic-webfont.ttf') format('truetype'),
+         url('fonts/europa-regularitalic-webfont.svg#europaitalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* GENERAL */
 body {
-  padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
@@ -31,7 +100,14 @@ a {
 }
 
 .header {
-  li {
-    display: inline;
+  h2{
+    margin: 0;
+    padding: 0;
+  }
+  ul{
+    text-align: right;
+    li {
+      display: inline;
+    }
   }
 }
