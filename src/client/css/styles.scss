@@ -45,9 +45,14 @@ a {
 }
 
 #file-upload-progress-bar {
+  opacity: 0;
   height: 50px;
   width: 100%;
   background-color: #666665;
+  transition: 0.5s;
+  &.visible {
+    opacity: 1;
+  }
   #file-upload-progress {
     height: 50px;
     background-color: orange;

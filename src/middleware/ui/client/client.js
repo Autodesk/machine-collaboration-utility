@@ -223,13 +223,21 @@ $(document).ready(() => {
   });
 
   function progressHandlingFunction(e) {
+    const $fileUploadProgress = $(`#file-upload-progress`);
+    const $fileUploadProgressBar = $(`#file-upload-progress-bar`);
     if (e.lengthComputable) {
       const progress = parseInt(e.loaded / e.total * 100, 10);
-      $(`#file-upload-progress`).css(`width`, `${progress}%`);
+      $fileUploadProgress.css(`width`, `${progress}%`);
+      if (progress >= 100) {
+        setTimeout(() => {
+          $fileUploadProgressBar.removeClass(`visible`);
+        }, 1000);
+      }
     }
   }
 
   $(`#file-upload-button`).click(() => {
+    const $fileUploadProgressBar = $(`#file-upload-progress-bar`);
     const formData = new FormData($('#file-form')[0]);
     $.ajax({
       url: 'v1/files',  // Server script to process data
@@ -244,6 +252,7 @@ $(document).ready(() => {
       },
       // Ajax events
       beforeSend: () => {
+        $fileUploadProgressBar.addClass(`visible`);
         // Call action here before the file is uploaded
       },
       success: () => {
