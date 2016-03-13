@@ -136,7 +136,7 @@ $(document).ready(() => {
   }
 
   function addReply(reply) {
-    $(`#terminal-reply`).prepend(`<li>${reply}</li>`);
+    $(`#terminal-reply`).append(`<li>${reply}</li>`);
   }
 
   const socket = io(`http://${ip}:9000`);
