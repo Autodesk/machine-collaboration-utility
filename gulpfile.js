@@ -15,6 +15,7 @@ const src = {
   clientCss: `src/client/css/styles.scss`,
   clientCssWatch: `src/client/css/**/*.scss`,
   clientFonts: `src/client/fonts/**/*.*`,
+  clientImages: `src/client/images/**/*.*`,
   middlewareServerJs: `src/middleware/**/server/**/*.js`,
   middlewareModelJs: `src/middleware/**/model/**/*.js`,
   middlewareClientJs: `src/middleware/**/client/**/*.js`,
@@ -32,6 +33,7 @@ const dest = {
   clientJs: `./dist/client`,
   clientCss: `./dist/client/css`,
   clientFonts: `./dist/client/fonts`,
+  clientImages: `./dist/client/images`,
   views: `dist/server/views`,
   docs: `dist/client/docs`,
   yaml: `dist/client/docs/middleware`,
@@ -45,6 +47,7 @@ gulp.task(`build`, [
   `build-client-js`,
   `build-client-styles`,
   `build-client-fonts`,
+  `build-client-images`,
   `build-server-middleware`,
   `build-views-middleware`,
   `build-client-js-middleware`,
@@ -137,6 +140,11 @@ gulp.task(`build-client-js`, () => {
 gulp.task(`build-client-fonts`, () => {
   return gulp.src(src.clientFonts)
   .pipe(gulp.dest(dest.clientFonts));
+});
+
+gulp.task(`build-client-images`, () => {
+  return gulp.src(src.clientImages)
+  .pipe(gulp.dest(dest.clientImages));
 });
 
 
