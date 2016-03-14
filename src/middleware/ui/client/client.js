@@ -90,7 +90,7 @@ $(document).ready(() => {
     const ourFile = $(`#file_${file.uuid}`);
     if (ourFile.length > 0) {
       delete files[file.uuid];
-      ourFile.remove();
+      ourFile.parent().parent().parent().remove();
     }
   }
 
@@ -129,7 +129,7 @@ $(document).ready(() => {
       `);
       // Add an element for each job attribute
       for (const fileAttribute in file) {
-        if (fileAttribute === `name` || fileAttribute === `dateModified`) {
+        if (fileAttribute === `name` || fileAttribute === `dateChanged`) {
           const attributeDiv =
             `<span class="file_${fileAttribute}" id="file_${file.uuid}_${fileAttribute}">` +
             `${file[fileAttribute]}` +

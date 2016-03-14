@@ -61,12 +61,12 @@ class Files {
       const uuid = filename.split('_')[filename.split('_').length - 1].split('.')[0];
       const name = filename.split('_' + uuid)[0] + '.' + filename.split('.')[1];
       const fileStats = await fs.stat(`${basedir}/${filename}`);
-      const dateModified = new Date().getTime(fileStats.mtime);
+      const dateChanged = new Date().getTime(fileStats.mtime);
       // TODO change date modified to date created
       const fileObject = {
         uuid,
         name,
-        dateModified,
+        dateChanged,
       };
       self.files[uuid] = fileObject;
     });
@@ -98,8 +98,8 @@ class Files {
     const uuid = userUuid ? userUuid : await uuidGenerator.v1();
     const name = file.name;
     const fileStats = await fs.stat(file.path);
-    const dateModified = new Date().getTime(fileStats.mtime);
-    const fileObject = { uuid, name, dateModified };
+    const dateChanged = new Date().getTime(fileStats.ctime);
+    const fileObject = { uuid, name, dateChanged };
 
     // Rename the file from it's random name to the file's name plus the uuid
     const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
