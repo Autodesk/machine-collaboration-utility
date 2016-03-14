@@ -175,6 +175,9 @@ body {
       right: 15px;
       font-size: 25px;
       color: #a7a9ab;
+      @media screen and (max-width: 767px) {
+        font-size: 10vw;
+      }
     }
     .fa-times{
       position: absolute;
@@ -182,6 +185,9 @@ body {
       left: 15px;
       font-size: 25px;
       color: #a7a9ab;
+      @media screen and (max-width: 767px) {
+        font-size: 10vw;
+      }
     }
     .play-area{
       width: 100%;
@@ -214,6 +220,9 @@ body {
     display: block;
     text-align: center;
     font-size: 30px;
+    @media screen and (max-width: 767px) {
+      font-size: 10vw;
+    }
   }
 
   .file_dateModified {
@@ -221,7 +230,6 @@ body {
     text-align: center;
   }
 }
-
 
 .subnav{
   background: #5d5d5d;

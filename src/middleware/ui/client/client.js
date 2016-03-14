@@ -104,7 +104,7 @@ $(document).ready(() => {
 
       // and add it to the DOM
       const fileDiv = `
-        <div class="col-xs-12 col-sm-6 col-md-3">
+        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
           <div class="square">
             <div class="content">
               <div id="file_${file.uuid}">
