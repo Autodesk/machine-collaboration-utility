@@ -61,8 +61,7 @@ class Files {
       const uuid = filename.split('_')[filename.split('_').length - 1].split('.')[0];
       const name = filename.split('_' + uuid)[0] + '.' + filename.split('.')[1];
       const fileStats = await fs.stat(`${basedir}/${filename}`);
-      const dateChanged = new Date().getTime(fileStats.mtime);
-      // TODO change date modified to date created
+      const dateChanged = self.createFormattedDate(fileStats.ctime);
       const fileObject = {
         uuid,
         name,
@@ -98,7 +97,7 @@ class Files {
     const uuid = userUuid ? userUuid : await uuidGenerator.v1();
     const name = file.name;
     const fileStats = await fs.stat(file.path);
-    const dateChanged = new Date().getTime(fileStats.ctime);
+    const dateChanged = this.createFormattedDate(fileStats.ctime);
     const fileObject = { uuid, name, dateChanged };
 
     // Rename the file from it's random name to the file's name plus the uuid
@@ -130,6 +129,16 @@ class Files {
       return `File ${fileUuid} deleted`;
     }
     return false;
+  }
+
+  createFormattedDate(utcStamp) {
+    const year = `20${utcStamp.getYear() - 100}`;
+    const month = `${utcStamp.getMonth()}`;
+    const date = `${utcStamp.getDate()}`;
+    const hour = `${utcStamp.getHours()}`;
+    const minute = `${utcStamp.getMinutes()}`;
+    const dateChanged = `${year}/${month}/${date}   ${hour}:${minute}`;
+    return dateChanged;
   }
 }
 

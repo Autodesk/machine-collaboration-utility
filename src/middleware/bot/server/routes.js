@@ -76,6 +76,40 @@ const processGcode = (self) => {
 };
 
 /**
+ * Handle all logic at this endpoint for jogging the bot
+ */
+const jog = (self) => {
+  const requestDescription = 'Jog Gcode';
+  self.router.post(`${self.routeEndpoint}/jog`, async (ctx) => {
+    try {
+      const gcode = ctx.request.body.gcode;
+      if (gcode) {
+        const commandQueued = await self.jog(gcode);
+        if (commandQueued === undefined) {
+          const reply = `Cannot send gcode from state ${self.fsm.current}`;
+          ctx.status = 405;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        } else if (commandQueued) {
+          const reply = `Bot jogged: ${gcode}`;
+          ctx.status = 200;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        } else {
+          const reply = `Command Queue error`;
+          ctx.status = 500;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        }
+      } else {
+        throw `Gcode is undefined.`;
+      }
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
+/**
  * Handle all logic at this endpoint for sending a command to the bot
  */
 const streamGcode = (self) => {
@@ -113,6 +147,7 @@ const botRoutes = (self) => {
   getBot(self);
   processBotCommand(self);
   processGcode(self);
+  jog(self);
   streamGcode(self);
 };
 

@@ -2,6 +2,7 @@ const Promise = require(`bluebird`);
 const getIp = Promise.promisifyAll(require(`ip`));
 
 const Response = require(`../helpers/response`);
+const faye = require(`faye`);
 
 /**
  * Render the to-do list's documentation
@@ -29,16 +30,23 @@ const getBot = (self) => {
     let clientState;
     if (process.env.NODE_ENV === `conducting`) {
       clientState = self.app.context.conductor.getConductor().state;
+      await ctx.render(`ui/conductor`, {
+        title: `Hydra-Print`,
+        clientState,
+        jobs,
+        files,
+        ip,
+      });
     } else {
       clientState = self.app.context.bot.getBot().state;
+      await ctx.render(`ui/bot`, {
+        title: `Hydra-Print`,
+        clientState,
+        jobs,
+        files,
+        ip,
+      });
     }
-    await ctx.render(`ui/bot`, {
-      title: `Hydra-Print`,
-      clientState,
-      jobs,
-      files,
-      ip,
-    });
   });
 };
 
@@ -56,7 +64,7 @@ const getFiles = (self) => {
     } else {
       clientState = self.app.context.bot.getBot().state;
     }
-    await ctx.render(`ui/files`, {
+    await ctx.render(`files/files`, {
       title: `Hydra-Print`,
       clientState,
       jobs,
@@ -80,7 +88,7 @@ const getJobs = (self) => {
     } else {
       clientState = self.app.context.bot.getBot().state;
     }
-    await ctx.render(`ui/jobs`, {
+    await ctx.render(`jobs/jobs`, {
       title: `Hydra-Print`,
       clientState,
       jobs,

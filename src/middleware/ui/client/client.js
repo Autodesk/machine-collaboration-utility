@@ -23,7 +23,21 @@ $(document).ready(() => {
     for (let i = 0; i < jogInfo.axes.length; i++) {
       for (let j = 0; j < jogInfo.distance.length; j++) {
         $(`.jog_${jogInfo.axes[i].axis}_${jogInfo.distance[j].name}`).click(() => {
-          console.log(`G1 ${jogInfo.axes[i].alias}${jogInfo.distance[j].amount}`);
+          const gcode = `G1 ${jogInfo.axes[i].alias}${jogInfo.distance[j].amount}`;
+          $.ajax({
+            url: `/v1/bot/jog`,
+            type: `POST`,
+            data: {
+              gcode,
+            },
+            success: () => {
+              console.log(`gcode ${gcode} successfully sent`);
+            },
+            error: (err) => {
+              addReply(gcode); // Hack to add data. remove this
+              console.log('error', err);
+            },
+          });
         });
       }
     }

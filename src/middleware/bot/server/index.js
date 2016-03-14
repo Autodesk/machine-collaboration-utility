@@ -6,6 +6,7 @@ const fs = require(`fs`);
 const usb = Promise.promisifyAll(require(`usb`));
 const SerialPort = require(`serialport`);
 const _ = require(`underscore`);
+const faye = require(`faye`);
 
 const SerialCommandExecutor = require(`./serialCommandExecutor`);
 const TCPExecutor = require(`./tcpCommandExecutor`);
@@ -137,6 +138,14 @@ class Bot {
       await this.setupRouter();
       if (!this.externalEndpoint) {
         await this.setupUsbScanner();
+        const client = new faye.Client('http://localhost:9000/faye');
+        client.connect();
+        client.subscribe('/messages', function(message) {
+          console.log('Got a message: ', message);
+        });
+        client.publish('/messages', {
+          text: 'Hello world'
+        });
       } else {
         this.detect();
       }
@@ -506,6 +515,28 @@ class Bot {
    */
   validateTCPReply(command, reply) {
     return true;
+  }
+
+  async jog(gcode) {
+    const state = this.fsm.current;
+    switch (state) {
+      case `connected`:
+      case `processingJob`:
+      case `processingJobGcode`:
+      case `processingGcode`:
+        this.queue.queueCommands({
+          code: `G91`,
+          postCallback: () => {
+            this.queue.prependCommands([
+              gcode,
+              `G90`,
+            ]);
+          },
+        });
+        return true;
+      default:
+        return undefined;
+    }
   }
 }
 

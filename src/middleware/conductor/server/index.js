@@ -285,6 +285,11 @@ class Conductor {
 
       if (connected) {
         clearInterval(scanInterval);
+        var client = new faye.Client('http://localhost:9001/faye');
+        client.connect();
+        client.subscribe('/messages', function(message) {
+          console.log('Got a message: ', message);
+        });
         await this.fsm.detectDone();
       }
     }, 1000);

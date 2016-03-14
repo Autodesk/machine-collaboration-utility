@@ -1,6 +1,6 @@
 @import "bootstrap.min.scss";
 @import "fonts.scss";
-@import "font-awesome.scss";
+@import "font-awesome/font-awesome.scss";
 
 /* GENERAL */
 body {
@@ -60,6 +60,9 @@ body {
   background-color: #fff;
   height: 65px;
   margin-bottom: 25px;
+  a {
+    color: #373435;
+  }
   h2{
     display: inline-block;
     margin: 0;
@@ -149,7 +152,7 @@ body {
   }
   #file-upload-progress {
     height: 50px;
-    background-color: orange;
+    background-color: #2E847B;
     width: 0%;
     transition: 0.5s;
   }
@@ -238,4 +241,8 @@ body {
   padding: 15px;
   letter-spacing: 15px;
   padding-bottom: 11px;
+}
+
+.delete, .fa-play {
+  cursor: pointer;
 }
