@@ -108,12 +108,15 @@ $(document).ready(() => {
           <div class="square">
             <div class="content">
               <div id="file_${file.uuid}">
+                <div id="file_${file.uuid}_details" class="file-details">
+                </div>
               </div>
             </div>
           </div>
         </div>`;
       $('#files').append(fileDiv);
       const $fileDiv = $(`#file_${file.uuid}`);
+      const $fileDetailsDiv = $(`#file_${file.uuid}_details`);
 
       /// add more divs here if you want
       // $fileDiv.append(`<div class="example">fooooobar</div>`);
@@ -126,11 +129,19 @@ $(document).ready(() => {
       `);
       // Add an element for each job attribute
       for (const fileAttribute in file) {
-        const attributeDiv =
-          `<span class="file_${fileAttribute}" id="file_${file.uuid}_${fileAttribute}">` +
-          `${file[fileAttribute]}` +
-          `</span>`;
-        $fileDiv.append(attributeDiv);
+        if (fileAttribute === `name` || fileAttribute === `dateModified`) {
+          const attributeDiv =
+            `<span class="file_${fileAttribute}" id="file_${file.uuid}_${fileAttribute}">` +
+            `${file[fileAttribute]}` +
+            `</span>`;
+          $fileDetailsDiv.append(attributeDiv);
+        } else {
+          const attributeDiv =
+            `<span class="file_${fileAttribute}" id="file_${file.uuid}_${fileAttribute}">` +
+            `${file[fileAttribute]}` +
+            `</span>`;
+          $fileDiv.append(attributeDiv);
+        }
       }
 
       // Add a delete button to the file div
@@ -156,7 +167,7 @@ $(document).ready(() => {
       });
 
       // Add a process file button to the file div
-      const processFileButton = `<div id="file_${file.uuid}_process"><i class="fa fa-play"></i></div>`;
+      const processFileButton = `<div id="file_${file.uuid}_process" class="play-area"><i class="fa fa-play"></i></div>`;
       $fileDiv.append(processFileButton);
       $(`#file_${file.uuid}_process`).click(() => {
         const warningMessage = `Are you sure you want to process file "${file.name}"?`;

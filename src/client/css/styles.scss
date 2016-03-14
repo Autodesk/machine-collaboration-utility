@@ -80,6 +80,7 @@ body {
   }
   ul{
     text-align: right;
+    -webkit-padding-start: 0;
     margin-bottom: 0;
     li {
       color: #373435;
@@ -166,7 +167,7 @@ body {
       &:after {
       content: "";
       display: block;
-      padding-bottom:60%;
+      padding-bottom:100%;
     }
     .fa-download{
       position: absolute;
@@ -182,12 +183,26 @@ body {
       font-size: 25px;
       color: #a7a9ab;
     }
-    .fa-play{
-      display: block;
-      margin: 0 auto;
-      color: #a7a9ab;
-      font-size: 24px;
-      width: 19px;
+    .play-area{
+      width: 100%;
+      background: #a7a9ab;
+      position: absolute;
+      bottom: 0;
+      height: 55px;
+      .fa-play{
+        position: absolute;
+        right: 0;
+        font-size: 25px;
+        color: #fff;
+        background: #55905a;
+        padding: 15px 18px;
+      }
+    }
+    .file-details{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
   }
   .file_uuid {
@@ -198,6 +213,7 @@ body {
   .file_name {
     display: block;
     text-align: center;
+    font-size: 30px;
   }
 
   .file_dateModified {
