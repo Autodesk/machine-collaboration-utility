@@ -35,6 +35,7 @@ body {
       color: #fff;
       margin-top: 15px;
       outline: none;
+      float: left;
     }
     #terminal-reply {
       color: #808284;
@@ -58,6 +59,7 @@ body {
 .header {
   background-color: #fff;
   height: 65px;
+  margin-bottom: 25px;
   h2{
     display: inline-block;
     margin: 0;
@@ -150,4 +152,66 @@ body {
     width: 0%;
     transition: 0.5s;
   }
+}
+
+
+#files{
+  .square {
+    background: white;
+      position: relative;
+      width: 100%;
+      color: #000;
+      margin-bottom: 30px;
+      transition: .5s;
+      &:after {
+      content: "";
+      display: block;
+      padding-bottom:60%;
+    }
+    .fa-download{
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 25px;
+      color: #a7a9ab;
+    }
+    .fa-times{
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      font-size: 25px;
+      color: #a7a9ab;
+    }
+    .fa-play{
+      display: block;
+      margin: 0 auto;
+      color: #a7a9ab;
+      font-size: 24px;
+      width: 19px;
+    }
+  }
+  .file_uuid {
+    background-color: red;
+    display: none;
+  }
+
+  .file_name {
+    display: block;
+    text-align: center;
+  }
+
+  .file_dateModified {
+    display: block;
+    text-align: center;
+  }
+}
+
+
+.subnav{
+  background: #5d5d5d;
+  color: #808284;
+  font-size: 30px;
+  padding: 15px;
+  letter-spacing: 15px;
+  padding-bottom: 11px;
 }

@@ -43,16 +43,16 @@ $(document).ready(() => {
     if ($jobDiv.length === 0) {
       // If the job doesn't exist, add it
       jobs[job.uuid] = job;
-      const jobDiv = `<div id="job_${job.uuid}"><br></div>`;
+      const jobDiv = `<div id="job_${job.uuid}"></div>`;
       $('#jobs').append(jobDiv);
       $jobDiv = $(`#job_${job.uuid}`);
 
       // Add an element for each job attribute
       for (const jobAttribute in job) {
         const attributeDiv =
-          `<p id="job_${job.uuid}_${jobAttribute}">` +
+          `<div class="square"><p id="job_${job.uuid}_${jobAttribute}">` +
           `${jobAttribute}: ${job[jobAttribute]}` +
-          `</p>`;
+          `</p></div>`;
         $jobDiv.append(attributeDiv);
       }
 
@@ -98,22 +98,43 @@ $(document).ready(() => {
     let $fileDiv = $(`#file_${file.uuid}`);
     if ($fileDiv.length === 0) {
       // If the file doesn't exist, add it
-      files[file.uuid] = file;
-      const fileDiv = `<div id="file_${file.uuid}"><br></div>`;
-      $('#files').append(fileDiv);
-      $fileDiv = $(`#file_${file.uuid}`);
 
+      // add it to the local "files" object
+      files[file.uuid] = file;
+
+      // and add it to the DOM
+      const fileDiv = `
+        <div class="col-xs-12 col-sm-6 col-md-3">
+          <div class="square">
+            <div class="content">
+              <div id="file_${file.uuid}">
+              </div>
+            </div>
+          </div>
+        </div>`;
+      $('#files').append(fileDiv);
+      const $fileDiv = $(`#file_${file.uuid}`);
+
+      /// add more divs here if you want
+      // $fileDiv.append(`<div class="example">fooooobar</div>`);
+      $fileDiv.append(`
+        <div class="file-download">
+          <a href="http://${ip}:9000/v1/files/${file.uuid}/download">
+            <i class="fa fa-download"></i>
+          </a>
+        </div>
+      `);
       // Add an element for each job attribute
       for (const fileAttribute in file) {
         const attributeDiv =
-          `<p id="file_${file.uuid}_${fileAttribute}">` +
-          `${fileAttribute}: ${file[fileAttribute]}` +
-          `</p>`;
+          `<span class="file_${fileAttribute}" id="file_${file.uuid}_${fileAttribute}">` +
+          `${file[fileAttribute]}` +
+          `</span>`;
         $fileDiv.append(attributeDiv);
       }
 
       // Add a delete button to the file div
-      const deleteButton = `<div id="file_${file.uuid}_delete">X</div>`;
+      const deleteButton = `<div id="file_${file.uuid}_delete" class="delete"><i class="fa fa-times"></i></div>`;
       $fileDiv.append(deleteButton);
       $(`#file_${file.uuid}_delete`).click(() => {
         const warningMessage = `Are you sure you want to delete file "${file.name}"?`;
@@ -135,7 +156,7 @@ $(document).ready(() => {
       });
 
       // Add a process file button to the file div
-      const processFileButton = `<div id="file_${file.uuid}_process">Process File</div>`;
+      const processFileButton = `<div id="file_${file.uuid}_process"><i class="fa fa-play"></i></div>`;
       $fileDiv.append(processFileButton);
       $(`#file_${file.uuid}_process`).click(() => {
         const warningMessage = `Are you sure you want to process file "${file.name}"?`;
@@ -156,6 +177,8 @@ $(document).ready(() => {
           });
         }
       });
+      /// add more divs here if you want
+      // $fileDiv.append(`<div class="example">fooooobar</div>`);
     } else {
       // Update each file attribute
       for (const fileAttribute in file) {

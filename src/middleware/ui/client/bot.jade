@@ -6,7 +6,7 @@ block content
       li.active(role='presentation')
         a#home-tab(href='#dashboard', role='tab', data-toggle='tab', aria-controls='home', aria-expanded='true') Dashboard
       li(role='presentation')
-        a#profile-tab(href='#terminal', role='tab', data-toggle='tab', aria-controls='profile', aria-expanded='false') Terminal
+        a#profile-tab(href='#terminal', role='tab', data-toggle='tab', aria-controls='profile', aria-expanded='false') Terminalz
     #hydraTabContent.tab-content
       #dashboard.tab-pane.fade.row.active.in(role='tabpanel', aria-labelledby='dashboard-tab')
         include dashboard
@@ -14,4 +14,4 @@ block content
         ul#terminal-reply
         form#gcode-terminal
           input(class='float-left' id='gcode-input', type='text', name='gcode', value='', autocomplete="off", placeholder="gcode")
-          input(class='float-right' type='submit', value='Send')
+          input(class='float-right' type='submit', value='Send GCode')

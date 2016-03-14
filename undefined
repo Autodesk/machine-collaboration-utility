@@ -3,3 +3,8 @@
 {"level":"info","message":"Files instance initialized","timestamp":"2016-03-13T05:42:51.435Z"}
 {"level":"info","message":"Jobs router setup complete","timestamp":"2016-03-13T05:42:51.442Z"}
 {"level":"info","message":"Jobs instance initialized","timestamp":"2016-03-13T05:42:51.555Z"}
+{"level":"info","message":"Server initialized","timestamp":"2016-03-14T00:58:45.459Z"}
+{"level":"info","message":"Files router setup complete","timestamp":"2016-03-14T00:58:45.493Z"}
+{"level":"info","message":"Files instance initialized","timestamp":"2016-03-14T00:58:45.495Z"}
+{"level":"info","message":"Jobs router setup complete","timestamp":"2016-03-14T00:58:45.497Z"}
+{"level":"info","message":"Jobs instance initialized","timestamp":"2016-03-14T00:58:45.525Z"}
