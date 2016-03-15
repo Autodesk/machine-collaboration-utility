@@ -43,7 +43,7 @@ body {
       font-size: 15px;
       overflow-y: scroll;
       background: #d1d2d4;
-      height: 450px;
+      height: 400px;
       padding: 15px;
       li{
        list-style-type: none;
@@ -178,8 +178,13 @@ body {
       right: 15px;
       font-size: 25px;
       color: #a7a9ab;
+      transition: .5s;
+      cursor: pointer;
       @media screen and (max-width: 767px) {
         font-size: 10vw;
+      }
+      &:hover{
+        opacity: .5;
       }
     }
     .fa-times{
@@ -188,8 +193,13 @@ body {
       left: 15px;
       font-size: 25px;
       color: #a7a9ab;
+      transition: .5s;
+      cursor: pointer;
       @media screen and (max-width: 767px) {
         font-size: 10vw;
+      }
+      &:hover{
+        opacity: .5;
       }
     }
     .play-area{
@@ -200,11 +210,16 @@ body {
       height: 55px;
       .fa-play{
         position: absolute;
+        cursor: pointer;
         right: 0;
         font-size: 25px;
         color: #fff;
         background: #55905a;
         padding: 15px 18px;
+        transition: .5s;
+        &:hover{
+          color: #72ba75;
+        }
       }
     }
     .file-details{
