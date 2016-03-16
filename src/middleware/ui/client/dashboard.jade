@@ -18,22 +18,52 @@ div.dashboard.col-md-12
           p Disable Motors
           div.row
             div.col-md-3
-              p.button X
+              p.button.disable#disable-x X
             div.col-md-3
-              p.button Y
+              p.button.disable#disable-y Y
             div.col-md-3
-              p.button Z
+              p.button.disable#disable-z Z
             div.col-md-3
-              p.button E
+              p.button.disable#disable-e E
           p
-            center.button All
+            center.button.disable#disable-all All
     div.col-md-6
       div.row
         div.col-md-12
           p Jog Speeds
+          form#jog-speeds
+            ul
+              li
+                p X Axis
+                input(type='text', id='jogXSpeed' value='')
+              li
+                p Y Axis
+                input(type='text', id='jogYSpeed' value='')
+              li
+                p Z Axis
+                input(type='text', id='jogZSpeed' value='')
+              li
+                p E Axis
+                input(type='text', id='jogESpeed' value='')
+            input(type='submit', value='Update')
       div.row
         div.col-md-12
           p Accessory Control
+          ul
+            li
+              form#extruder-temp-form
+                p Extruder
+                input(type='text', id='tempE')
+                #extruder-temp
+                input(type='submit', value='Set Extruder Temp')
+                h3.button#extruder-off Off
+            li
+              form#bed-temp-form
+                p Bed
+                input(type='text', id='tempB')
+                #bed-temp
+                input(type='submit', value='Set Bed Temp')
+                h3.button#bed-off Off
       div.row
         div.col-md-12
           p Override Settings

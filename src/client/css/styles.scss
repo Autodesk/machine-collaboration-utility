@@ -261,7 +261,7 @@ body {
   padding-bottom: 11px;
 }
 
-.delete, .fa-play, .fa-upload{
+.delete, .fa-play, .fa-upload, .jog{
   cursor: pointer;
 }
 
@@ -270,4 +270,9 @@ body {
   font-size: 20px;
   letter-spacing: 1px;
   cursor: pointer;
+}
+
+.disable {
+  background-color: #dd7777;
+  text-align: center;
 }

@@ -99,6 +99,73 @@ class Bot {
     });
   }
 
+  /**
+   * initialize the bot endpoint
+   */
+  async initialize() {
+    try {
+      await this.setupRouter();
+      this.Bot = await botModel(this.app);
+      let botDbObject = await this.Bot.findAll();
+      // Initialize settings if there is no bot object yet
+      if (botDbObject.length === 0) {
+        const initialBotObject = {
+          jogXSpeed: `2000`,
+          jogYSpeed: `2000`,
+          jogZSpeed: `1000`,
+          jogESpeed: `120`,
+          tempE: `200`,
+          tempB: `60`,
+          speedRatio: `1.0`,
+          eRatio: `1.0`,
+          offsetX: `0`,
+          offsetY: `0`,
+          offsetZ: `0`,
+        };
+        botDbObject = await this.Bot.create(initialBotObject);
+        // sanitize the bot db object and save it to bot settings
+        const botObject = {
+          jogXSpeed: botDbObject.dataValues.jogXSpeed,
+          jogYSpeed: botDbObject.dataValues.jogYSpeed,
+          jogZSpeed: botDbObject.dataValues.jogZSpeed,
+          jogESpeed: botDbObject.dataValues.jogESpeed,
+          tempE: botDbObject.dataValues.tempE,
+          tempB: botDbObject.dataValues.tempB,
+          speedRatio: botDbObject.dataValues.speedRatio,
+          eRatio: botDbObject.dataValues.eRatio,
+          offsetX: botDbObject.dataValues.offsetX,
+          offsetY: botDbObject.dataValues.offsetY,
+          offsetZ: botDbObject.dataValues.offsetZ,
+        };
+        this.botSettings = botObject;
+      } else {
+        botDbObject = botDbObject[0];
+        const botObject = {
+          jogXSpeed: botDbObject.dataValues.jogXSpeed,
+          jogYSpeed: botDbObject.dataValues.jogYSpeed,
+          jogZSpeed: botDbObject.dataValues.jogZSpeed,
+          jogESpeed: botDbObject.dataValues.jogESpeed,
+          tempE: botDbObject.dataValues.tempE,
+          tempB: botDbObject.dataValues.tempB,
+          speedRatio: botDbObject.dataValues.speedRatio,
+          eRatio: botDbObject.dataValues.eRatio,
+          offsetX: botDbObject.dataValues.offsetX,
+          offsetY: botDbObject.dataValues.offsetY,
+          offsetZ: botDbObject.dataValues.offsetZ,
+        };
+        this.botSettings = botObject;
+      }
+      if (!this.externalEndpoint) {
+        await this.setupUsbScanner();
+      } else {
+        this.detect();
+      }
+      this.logger.info(`Bot instance initialized`);
+    } catch (ex) {
+      this.logger.error(`Bot initialization error`, ex);
+    }
+  }
+
   async processGcode(gcode) {
     const state = this.fsm.current;
     switch (state) {
@@ -127,26 +194,6 @@ class Bot {
         return false; // `Command Queue is full. Please try again later`;
       default:
         return undefined;
-    }
-  }
-
-  /**
-   * initialize the jobs endpoint
-   */
-  async initialize() {
-    try {
-      await this.setupRouter();
-      this.Bot = await botModel(this.app);
-      this.botSettings = await this.Bot.findAll();
-      console.log(this.botSettings);
-      if (!this.externalEndpoint) {
-        await this.setupUsbScanner();
-      } else {
-        this.detect();
-      }
-      this.logger.info(`Bot instance initialized`);
-    } catch (ex) {
-      this.logger.error(`Bot initialization error`, ex);
     }
   }
 
