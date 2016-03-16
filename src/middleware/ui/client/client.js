@@ -308,8 +308,9 @@ $(document).ready(() => {
   function addReply(reply) {
     $(`#terminal-reply`).append(`<li>${reply}</li>`);
     const divx = document.getElementById(`terminal-reply`);
-    console.log('divx scrollTop', divx.scrollTop);
-    divx.scrollTop = divx.scrollHeight;
+    if (!!divx) {
+      divx.scrollTop = divx.scrollHeight;
+    }
     // TODO disable auto scrolling if a `disable auto-scroll` checkbox is selected
   }
 
