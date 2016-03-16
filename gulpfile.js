@@ -7,8 +7,6 @@ const mocha = require(`gulp-mocha`);
 const rename = require(`gulp-rename`);
 const sass = require(`gulp-sass`);
 
-// TODO make sure the foreman server restarts on change
-
 const src = {
   serverJs: `src/app/**/*.js`,
   clientJs: `src/client/**/*.js`,
@@ -57,7 +55,10 @@ gulp.task(`build`, [
 ]);
 
 gulp.task(`watch`, () => {
-  gulp.watch([src.serverJs, src.middlewareServerJs, src.middlewareModelJs], [`build-server`, `build-server-middleware`]);
+  gulp.watch(
+    [src.serverJs, src.middlewareServerJs, src.middlewareModelJs],
+    [`build-server`, `build-server-middleware`]
+  );
   gulp.watch([src.clientJs], [`build-client-js`]);
   gulp.watch([src.clientCssWatch], [`build-client-styles`]);
   gulp.watch(src.views, [`build-views`]);
