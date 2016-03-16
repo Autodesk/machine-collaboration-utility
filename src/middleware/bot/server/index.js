@@ -389,7 +389,7 @@ class Bot {
     try {
       if (this.virtual) {
         this.queue = new CommandQueue(
-          new FakeMarlinExecutor(),
+          new FakeMarlinExecutor(this.app.io),
           this.expandCode,
           _.bind(this.validateReply, this)
         );

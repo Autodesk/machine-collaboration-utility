@@ -8,9 +8,10 @@
 const FakeMarlinConnection = require('./fakeMarlinConnection');
 
 class FakeMarlinExecutor {
-  constructor() {
+  constructor(io) {
     this.connection = undefined;
     this.commandsProcessed = undefined;
+    this.io = io;
   }
 
   /**
@@ -34,7 +35,8 @@ class FakeMarlinExecutor {
    */
   open(doneFunc) {
     this.connection = new FakeMarlinConnection(
-      function () { doneFunc(true); }
+      function () { doneFunc(true); },
+      this.io
     );
     this.commandsProcessed = 0;
   }
