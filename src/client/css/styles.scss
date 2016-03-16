@@ -92,6 +92,9 @@ body {
       padding: 23px;
       position: relative;
       top: 19px;
+      @media screen and (max-width: 448px) {
+        padding: 20px;
+      }
       a{
         color: #373435;
         transition: .5s;
@@ -258,6 +261,13 @@ body {
   padding-bottom: 11px;
 }
 
-.delete, .fa-play {
+.delete, .fa-play, .fa-upload{
+  cursor: pointer;
+}
+
+.upload-text {
+  display: inline;
+  font-size: 20px;
+  letter-spacing: 1px;
   cursor: pointer;
 }
