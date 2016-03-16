@@ -6,7 +6,6 @@ const fs = require(`fs`);
 const usb = Promise.promisifyAll(require(`usb`));
 const SerialPort = require(`serialport`);
 const _ = require(`underscore`);
-const faye = require(`faye`);
 
 const SerialCommandExecutor = require(`./serialCommandExecutor`);
 const TCPExecutor = require(`./tcpCommandExecutor`);
@@ -14,6 +13,7 @@ const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
 
 const config = require(`../../config`);
 const botRoutes = require(`./routes`);
+const botModel = require(`./model/bot`);
 const CommandQueue = require(`./commandQueue`);
 
 /**
@@ -136,16 +136,11 @@ class Bot {
   async initialize() {
     try {
       await this.setupRouter();
+      this.Bot = await botModel(this.app);
+      this.botSettings = await this.Bot.findAll();
+      console.log(this.botSettings);
       if (!this.externalEndpoint) {
         await this.setupUsbScanner();
-        const client = new faye.Client('http://localhost:9000/faye');
-        client.connect();
-        client.subscribe('/messages', function(message) {
-          console.log('Got a message: ', message);
-        });
-        client.publish('/messages', {
-          text: 'Hello world'
-        });
       } else {
         this.detect();
       }
@@ -264,7 +259,6 @@ class Bot {
           await self.fsm.stopDone();
           await self.currentJob.fsm.runningDone();
           await self.currentJob.stopwatch.stop();
-          // self.currentJob = undefined;
         },
       });
     });
