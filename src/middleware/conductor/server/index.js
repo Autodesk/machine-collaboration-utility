@@ -298,7 +298,7 @@ class Conductor {
   async setupConductorArms() {
     for (let i = 0; i < this.players.length; i++) {
       process.exec(
-        `/Users/hovanem/.nvm/versions/node/v4.3.1/bin/node dist/server/server.js`,
+        `/Users/hovanem/.nvm/versions/node/v5.9.0/bin/node dist/server/server.js`,
         {
           env: {
             PORT: 9001 + i,

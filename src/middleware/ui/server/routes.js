@@ -27,7 +27,6 @@ const getBot = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
-    const bot = self.app.context.bot.botSettings;
     let clientState;
     if (process.env.NODE_ENV === `conducting`) {
       clientState = self.app.context.conductor.getConductor().state;
@@ -36,10 +35,10 @@ const getBot = (self) => {
         clientState,
         jobs,
         files,
-        bot,
         ip,
       });
     } else {
+      const bot = self.app.context.bot.botSettings;
       clientState = self.app.context.bot.getBot().state;
       await ctx.render(`ui/bot`, {
         title: `Hydra-Print`,
