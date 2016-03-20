@@ -4,11 +4,9 @@ const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 const fs = require(`fs`);
 const _ = require(`underscore`);
 const request = require(`request-promise`);
-const process = require(`child_process`);
 const ip = require(`ip`);
 
 const conductorRoutes = require(`./routes`);
-const Bot = require(`../bot`);
 
 /**
  * This is a Conductor class representing a system for managing multiple pieces of hardware
@@ -192,7 +190,7 @@ class Conductor {
 
   async connect() {
     this.fsm.connect();
-    this.connectAllPlayers();
+    // this.connectAllPlayers();
   }
 
   async disconnect() {
@@ -285,30 +283,18 @@ class Conductor {
 
       if (connected) {
         clearInterval(scanInterval);
-        var client = new faye.Client('http://localhost:9001/faye');
-        client.connect();
-        client.subscribe('/messages', function(message) {
-          console.log('Got a message: ', message);
-        });
         await this.fsm.detectDone();
       }
     }, 1000);
   }
 
   async setupConductorArms() {
-    for (let i = 0; i < this.players.length; i++) {
-      process.exec(
-        `/Users/hovanem/.nvm/versions/node/v5.9.0/bin/node dist/server/server.js`,
-        {
-          env: {
-            PORT: 9001 + i,
-            EXTERNAL_ENDPOINT: this.players[i].url,
-          },
-        },
-        (error, stdout, stderr) => {
-          console.log(error, stdout, stderr);
-        }
-      );
+    for (const player of this.players) {
+      // const endpoint = `/${this.app.context.config.apiVersion}/${player.name}`;
+      // console.log('endpoint!', endpoint);
+      // const bot = new Bot(this.app, endpoint);
+      // await bot.initialize();
+      // console.log('player!', player);
     }
   }
 }

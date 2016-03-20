@@ -3,6 +3,8 @@ const Sequelize = require('sequelize');
 module.exports = async (app) => {
   // Define the model for a job
   const Bot = await app.context.db.define('Bot', {
+    port: Sequelize.STRING,
+    name: Sequelize.STRING,
     jogXSpeed: Sequelize.STRING,
     jogYSpeed: Sequelize.STRING,
     jogZSpeed: Sequelize.STRING,

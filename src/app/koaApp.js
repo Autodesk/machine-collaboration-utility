@@ -15,7 +15,7 @@ const Promise = require(`bluebird`);
 // Import custom middleware libraries
 const Files = require('./middleware/files');
 const Jobs = require('./middleware/jobs');
-const Bot = require('./middleware/bot');
+const Bots = require('./middleware/bots');
 const Conductor = require('./middleware/conductor');
 const UI = require('./middleware/ui');
 
@@ -24,6 +24,7 @@ class KoaApp {
     this.app = new Koa();
     this.app.context.config = config;
     this.conducting = conducting;
+    this.apiVersion = config.apiVersion;
   }
 
   initialize() {
@@ -72,21 +73,25 @@ class KoaApp {
     })
     // add custom middleware here
     .then(async () => {
-      const apiVersion = `/v1`;
-      const files = new Files(this.app, `${apiVersion}/files`);
+      const files = new Files(this.app, `/${this.apiVersion}/files`);
       await files.initialize();
 
-      const jobs = new Jobs(this.app, `${apiVersion}/jobs`);
+      const jobs = new Jobs(this.app, `/${this.apiVersion}/jobs`);
+      console.log(`/${this.apiVersion}/jobs`);
       await jobs.initialize();
 
-      if (this.conducting) {
-        const conductor = new Conductor(this.app, `${apiVersion}/conductor`);
-        await conductor.initialize();
-      } else {
-        const bot = new Bot(this.app, `${apiVersion}/bot`, process.env.EXTERNAL_ENDPOINT);
-        await bot.initialize();
-      }
+      const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
+      bots.initialize();
 
+      // if (this.conducting) {
+      //   const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);
+      //   await conductor.initialize();
+      // } else {
+      // 
+      //   // const bot = new Bot(this.app, `/${this.apiVersion}/bot`, process.env.EXTERNAL_ENDPOINT);
+      //   // await bot.initialize();
+      // }
+      // 
       const ui = new UI(this.app, ``);
       await ui.initialize();
 

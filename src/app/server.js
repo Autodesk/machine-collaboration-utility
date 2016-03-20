@@ -2,7 +2,6 @@ require(`source-map-support`).install();
 require('dotenv').config();
 require(`babel-polyfill`);
 const http = require(`http`);
-const faye = require(`faye`);
 
 const config = require(`./config`);
 const KoaApp = require(`./koaApp`);
@@ -16,9 +15,6 @@ koaApp.initialize();
 
 const app = koaApp.app; // Messy, but the app is actually in the koaApp object
 const server = http.createServer(app.callback());
-
-const bayeux = new faye.NodeAdapter({ mount: '/faye', timeout: 45 });
-bayeux.attach(server);
 
 /**
  * Listen on provided port, on all network interfaces.

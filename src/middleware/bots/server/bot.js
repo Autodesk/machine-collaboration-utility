@@ -7,9 +7,9 @@ const usb = Promise.promisifyAll(require(`usb`));
 const SerialPort = require(`serialport`);
 const _ = require(`underscore`);
 
-const SerialCommandExecutor = require(`./serialCommandExecutor`);
-const TCPExecutor = require(`./tcpCommandExecutor`);
-const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
+// const SerialCommandExecutor = require(`./serialCommandExecutor`);
+// const TCPExecutor = require(`./tcpCommandExecutor`);
+// const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
 
 const config = require(`../../config`);
 const botRoutes = require(`./routes`);
@@ -110,6 +110,8 @@ class Bot {
       // Initialize settings if there is no bot object yet
       if (botDbObject.length === 0) {
         const initialBotObject = {
+          port: null,
+          name: `Schteeve`,
           jogXSpeed: `2000`,
           jogYSpeed: `2000`,
           jogZSpeed: `1000`,
@@ -125,6 +127,8 @@ class Bot {
         botDbObject = await this.Bot.create(initialBotObject);
         // sanitize the bot db object and save it to bot settings
         const botObject = {
+          port: botDbObject.dataValues.port,
+          name: botDbObject.dataValues.name,
           jogXSpeed: botDbObject.dataValues.jogXSpeed,
           jogYSpeed: botDbObject.dataValues.jogYSpeed,
           jogZSpeed: botDbObject.dataValues.jogZSpeed,
@@ -141,6 +145,8 @@ class Bot {
       } else {
         botDbObject = botDbObject[0];
         const botObject = {
+          port: botDbObject.dataValues.port,
+          name: botDbObject.dataValues.name,
           jogXSpeed: botDbObject.dataValues.jogXSpeed,
           jogYSpeed: botDbObject.dataValues.jogYSpeed,
           jogZSpeed: botDbObject.dataValues.jogZSpeed,
@@ -155,10 +161,9 @@ class Bot {
         };
         this.botSettings = botObject;
       }
-      if (!this.externalEndpoint) {
-        await this.setupUsbScanner();
-      } else {
-        this.detect();
+      if (this.port) {
+        console.log('start pinging!');
+        // this.detect();
       }
       this.logger.info(`Bot instance initialized`);
     } catch (ex) {
@@ -506,16 +511,16 @@ class Bot {
 
   setupSerialExecutor(port, baudrate) {
     const openPrime = 'M501';
-    return new SerialCommandExecutor(
-      port,
-      baudrate,
-      openPrime,
-      this.app.io
-    );
+    // return new SerialCommandExecutor(
+    //   port,
+    //   baudrate,
+    //   openPrime,
+    //   this.app.io
+    // );
   }
 
   setupTCPExecutor(externalEndpoint) {
-    return new TCPExecutor(externalEndpoint);
+    // return new TCPExecutor(externalEndpoint);
   }
 
   /**
