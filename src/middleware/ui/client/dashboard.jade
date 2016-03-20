@@ -1,16 +1,23 @@
 div.dashboard.col-md-12
-  h2 Dashboard
   div.row
-    div.col-md-4
-      p#connect Connect
-    div.col-md-8
-      p Hardware State: 
+    div.col-xs-12
+      div.connect-area
+        p#connect Connect
+        p#stop Stop Job
+    div.col-xs-12
+      p Hardware State:
         span#hardwareState= clientState
+    div.col-xs-12
+      p Job State:
+        span#jobState= jobState
   div.row
     div.col-md-6
       div.row
         div.col-md-12
-          #jog-panel-svg
+          div.col-sm-6
+            #jog-panel-svg
+          div.col-sm-6
+            test
       div.row
         div.col-md-6
           p Position Readout
