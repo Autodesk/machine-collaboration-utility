@@ -143,12 +143,46 @@ const streamGcode = (self) => {
   });
 };
 
+/**
+ * Handle all logic at this endpoint for updating the bot's settings
+ */
+const updateBot = (self) => {
+  const requestDescription = 'Update Bot Settings';
+  self.router.put(`${self.routeEndpoint}/`, async (ctx) => {
+    try {
+      const botSettings = ctx.request.body.bot;
+      const bots = await self.Bot.findAll();
+      bots[0].updateAttributes({
+        jogXSpeed: botSettings.jogXSpeed,
+        jogYSpeed: botSettings.jogYSpeed,
+        jogZSpeed: botSettings.jogZSpeed,
+        jogESpeed: botSettings.jogESpeed,
+        tempE: botSettings.tempE,
+        tempB: botSettings.tempB,
+        speedRatio: botSettings.speedRatio,
+        eRatio: botSettings.eRatio,
+        offsetX: botSettings.offsetX,
+        offsetY: botSettings.offsetY,
+        offsetZ: botSettings.offsetZ,
+      });
+      self.botSettings = botSettings;
+      const reply = `Bot settings successfully updated`;
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, reply);
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+    }
+  });
+};
+
 const botRoutes = (self) => {
   getBot(self);
   processBotCommand(self);
   processGcode(self);
   jog(self);
   streamGcode(self);
+  updateBot(self);
 };
 
 module.exports = botRoutes;

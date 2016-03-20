@@ -2,39 +2,32 @@
 
 An es7 friendly Gcode Client
 
-The framework is built on top of
+The framework is built on the following the following libraries/technologies:
 - Koa 2
 - Koa Bark
 - Sequelize
 - Socket.io
 
-Install all dependencies
+Built and tested using Node V5
+
+Install all dependencies:
 ```
 npm install
 ```
 
-The app requires a postgres database (current hard coded to localhost port 5432).
+The app requires a postgres database (currently hard coded to localhost port 5432).  
+## Setting up Postgres
+#### Mac:  
+Download and setup the [postgres app](http://postgresapp.com/).
 Create a '.env' file in the project's root folder with the following information:  
 ```
-username=yourpostgresusername
-password=yourpostgrespassword
-dbname=yourdbname
-PORT=whatverportyouwant
+username=your-user-name
+password=postgres
+dbname=postgres
+PORT=9000
 ```
 
-Run server  
-```
-npm start
-```
-
-
-Run tests  
-```
-npm test
-```
-
-### Setting up postgres on a raspberry pi
-These instructions assume setting both the username and database to "postgres"  
+#### Raspberry Pi:  
 ```
 sudo mkdir /var/local/repository  
 cd /var/local/repository  
@@ -44,9 +37,35 @@ echo "deb [ trusted=yes ] file:///var/local/repository ./" | sudo tee /etc/apt/s
 sudo apt-get update  
 sudo apt-get install postgresql-9.4  
 sudo service postgresql start  
+
+```
+Create a '.env' file in the project's root folder with the following information:  
+```
+username=postgres
+password=postgres
+dbname=postgres
+PORT=9000
 ```
 
-### Then set the psql password
+## Setting/changing the psql password
 ```
 sudo -iu postgres psql -c "\password postgres"
 ```
+
+
+## Running the app
+#### Run tests  
+```
+npm test
+```
+#### Run the Individual GCode Client (aka Bot or Player) instance  
+```
+npm run bot
+```
+
+#### Run the Conductor
+```
+npm run conductor
+```
+
+All API documentation can be found at localhost:9000/docs

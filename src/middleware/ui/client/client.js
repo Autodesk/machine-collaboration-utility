@@ -1,5 +1,43 @@
-/* global $, io, ip, jobs, files */
+/* global $, io, ip, jobs, files, bot */
 $(document).ready(() => {
+  function processGcode(gcode) {
+    $.ajax({
+      url: `/v1/bot/processGcode`,
+      type: `POST`,
+      data: {
+        gcode,
+      },
+      success: () => {
+        console.log(`gcode ${gcode} successfully sent`);
+      },
+      error: (err) => {
+        console.log('error', err);
+      },
+    });
+  }
+
+  function saveBotSettings() {
+    bot.jogXSpeed = $(`#jogXSpeed`).val();
+    bot.jogYSpeed = $(`#jogYSpeed`).val();
+    bot.jogZSpeed = $(`#jogZSpeed`).val();
+    bot.jogESpeed = $(`#jogESpeed`).val();
+    bot.tempE = $(`#tempE`).val();
+    bot.tempB = $(`#tempB`).val();
+    $.ajax({
+      url: `/v1/bot/`,
+      type: `PUT`,
+      data: {
+        bot,
+      },
+      success: () => {
+        // cool, what now?
+      },
+      error: (err) => {
+        console.log('error', err);
+      },
+    });
+  }
+
   $(`#jog-panel-svg`).load(`images/jog_panel.svg`, () => {
     const jogInfo = {
       axes: [
@@ -20,10 +58,13 @@ $(document).ready(() => {
       ],
     };
 
+    // Initialize each svg in the jog object to send gcode when clicked
     for (let i = 0; i < jogInfo.axes.length; i++) {
       for (let j = 0; j < jogInfo.distance.length; j++) {
         $(`.jog_${jogInfo.axes[i].axis}_${jogInfo.distance[j].name}`).click(() => {
-          const gcode = `G1 ${jogInfo.axes[i].alias}${jogInfo.distance[j].amount}`;
+          const axis = jogInfo.axes[i].alias;
+          const speed = bot[`jog${axis}Speed`];
+          const gcode = `G1 ${axis}${jogInfo.distance[j].amount} F${speed}`;
           $.ajax({
             url: `/v1/bot/jog`,
             type: `POST`,
@@ -34,17 +75,64 @@ $(document).ready(() => {
               console.log(`gcode ${gcode} successfully sent`);
             },
             error: (err) => {
-              addReply(gcode); // Hack to add data. remove this
               console.log('error', err);
             },
           });
         });
       }
     }
-    $(`polygon`).click(function () {
-      console.log(this);
-    });
   });
+
+  // Initialize all "disable motor" click events
+  $(`#disable-x`).click(() => { processGcode(`M84 X`); });
+  $(`#disable-y`).click(() => { processGcode(`M84 Y`); });
+  $(`#disable-z`).click(() => { processGcode(`M84 Z`); });
+  $(`#disable-e`).click(() => { processGcode(`M84 E`); });
+  $(`#disable-all`).click(() => { processGcode(`M84`); });
+
+  function updateExtruder() {
+    const temp = $(`#extruder-setpoint`).val();
+    // validate temp?
+    processGcode(`M104 S${temp}`);
+  }
+  $(`#extruder-temp-form`).submit((e) => {
+    e.preventDefault();
+    updateExtruder();
+    saveBotSettings();
+  });
+  $(`#extruder-off`).click(() => { processGcode(`M104 S0`); });
+
+  function updateBed() {
+    const temp = $(`#bed-setpoint`).val();
+    // validate temp?
+    processGcode(`M140 S${temp}`);
+  }
+  $(`#bed-temp-form`).submit((e) => {
+    e.preventDefault();
+    updateBed();
+    saveBotSettings();
+  });
+  $(`#bed-off`).click(() => { processGcode(`M140 S0`); });
+
+  function updateBotSettings() {
+    const settings = [
+      `jogXSpeed`,
+      `jogYSpeed`,
+      `jogZSpeed`,
+      `jogESpeed`,
+      `tempE`,
+      `tempB`,
+    ];
+    settings.forEach((setting) => {
+      $(`#${setting}`).val(bot[setting]);
+    });
+  }
+
+  $("#jog-speeds").submit((e) => {
+    e.preventDefault();
+    saveBotSettings();
+  });
+
   function deleteJob(job) {
     const ourJob = $(`#job_${job.uuid}`);
     if (ourJob.length > 0) {
@@ -52,6 +140,7 @@ $(document).ready(() => {
       ourJob.remove();
     }
   }
+
   function updateJob(job) {
     let $jobDiv = $(`#job_${job.uuid}`);
     if ($jobDiv.length === 0) {
@@ -194,7 +283,10 @@ $(document).ready(() => {
               fileUuid: file.uuid,
             },
             success: () => {
-              console.log('success!');
+              setTimeout(() => {
+                window.location.replace(`/jobs`);
+                // need to wait one second for the 'elapsed' attribute to be updated
+              }, 1000);
             },
             error: (err) => {
               console.log('error', err);
@@ -216,8 +308,9 @@ $(document).ready(() => {
   function addReply(reply) {
     $(`#terminal-reply`).append(`<li>${reply}</li>`);
     const divx = document.getElementById(`terminal-reply`);
-    console.log('divx scrollTop', divx.scrollTop);
-    divx.scrollTop = divx.scrollHeight;
+    if (!!divx) {
+      divx.scrollTop = divx.scrollHeight;
+    }
     // TODO disable auto scrolling if a `disable auto-scroll` checkbox is selected
   }
 
@@ -246,17 +339,19 @@ $(document).ready(() => {
     addReply(reply);
   });
 
+  // Initialize the jobs, files, and bot
   for (const job in jobs) {
     if (jobs.hasOwnProperty(job)) {
       updateJob(jobs[job]);
     }
   }
-
   for (const file in files) {
     if (files.hasOwnProperty(file)) {
       updateFile(files[file]);
     }
   }
+  updateBotSettings();
+
 
   // connect the device on click of connect button
   $(`#connect`).click(() => {
@@ -369,20 +464,7 @@ $(document).ready(() => {
     const gcode = $(`#gcode-input`).val();
     if (true) { // need to validate gcode here
       $(`#gcode-input`).val(``);
-      $.ajax({
-        url: `/v1/bot/processGcode`,
-        type: `POST`,
-        data: {
-          gcode,
-        },
-        success: () => {
-          console.log(`gcode ${gcode} successfully sent`);
-        },
-        error: (err) => {
-          addReply(gcode); // Hack to add data. remove this
-          console.log('error', err);
-        },
-      });
+      processGcode(gcode);
     }
   });
 });

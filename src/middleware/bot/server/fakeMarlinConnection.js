@@ -25,11 +25,11 @@ let logger;
  *                           connected
  * Return: N/A
  */
-var FakeMarlinConnection = function(connectedFunc, logger) {
+var FakeMarlinConnection = function(connectedFunc, io) {
   this.mCloseFunc = undefined;
   this.mErrorFunc = undefined;
   this.mDataFunc = connectedFunc;
-
+  this.io = io;
   connectedFunc(this);
 };
 
@@ -65,21 +65,23 @@ FakeMarlinConnection.prototype.setErrorFunc = function (inErrorFunc) {
 FakeMarlinConnection.prototype.send = async function (inCommandStr) {
   if (_.isFunction(this.mDataFunc)) {
     const commandPrefix = inCommandStr.split(` `).shift();
+    let reply = `ok`;
     switch (commandPrefix) {
       case 'G4':
         if (inCommandStr.indexOf(`G4 P`) !== -1) {
           await Promise.delay(parseInt(inCommandStr.split(`G4 P`).pop().split(`\n`).shift(), 10));
         }
-        this.mDataFunc('ok');
+        reply = `ok`;
         break;
       case 'G1':
-        await Promise.delay(50);
-        this.mDataFunc('ok');
+        await Promise.delay(20);
+        reply = `ok`;
         break;
       default:
         console.log(`command not supported`);
-        this.mDataFunc('ok');
     }
+    this.mDataFunc(reply);
+    this.io.emit('botReply', reply);
   }
 };
 

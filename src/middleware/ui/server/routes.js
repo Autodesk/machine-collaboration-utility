@@ -27,6 +27,7 @@ const getBot = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
+    const bot = self.app.context.bot.botSettings;
     let clientState;
     if (process.env.NODE_ENV === `conducting`) {
       clientState = self.app.context.conductor.getConductor().state;
@@ -35,6 +36,7 @@ const getBot = (self) => {
         clientState,
         jobs,
         files,
+        bot,
         ip,
       });
     } else {
@@ -44,6 +46,7 @@ const getBot = (self) => {
         clientState,
         jobs,
         files,
+        bot,
         ip,
       });
     }
@@ -58,6 +61,7 @@ const getFiles = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
+    const bot = self.app.context.bot.botSettings;
     let clientState;
     if (process.env.NODE_ENV === `conducting`) {
       clientState = self.app.context.conductor.getConductor().state;
@@ -69,6 +73,7 @@ const getFiles = (self) => {
       clientState,
       jobs,
       files,
+      bot,
       ip,
     });
   });
@@ -82,6 +87,7 @@ const getJobs = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
+    const bot = self.app.context.bot.botSettings;
     let clientState;
     if (process.env.NODE_ENV === `conducting`) {
       clientState = self.app.context.conductor.getConductor().state;
@@ -93,6 +99,7 @@ const getJobs = (self) => {
       clientState,
       jobs,
       files,
+      bot,
       ip,
     });
   });
