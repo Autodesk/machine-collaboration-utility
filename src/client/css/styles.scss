@@ -53,7 +53,9 @@ body {
   .float-right {
     float: right;
   }
-
+  .padding-0{
+    padding: 0;
+  }
 }
 
 .header {
@@ -135,6 +137,34 @@ body {
 
 #hydraTabContent{
   background: #fff;
+  #connect {
+    cursor: pointer;
+    background: #373435;
+    width: 120px;
+    text-align: center;
+    padding: 17.5px;
+    color: #fff;
+    font-size: 18px;
+ }
+  #stop{
+    text-align: center;
+    width: 120px;
+    float: right;
+    background-color: #df3f3f;
+    color: white;
+    padding: 17.5px;
+    font-size: 18px;
+    position: absolute;
+    top: 0;
+    right: 15px;
+  }
+  .connect-area{
+    background-color: #a7a9ab;
+    width: 100%;
+  }
+  .dashboard{
+    padding: 0;
+  }
   .tab-pane{
     padding: 15px;
     margin: 0;
@@ -207,7 +237,7 @@ body {
       background: #a7a9ab;
       position: absolute;
       bottom: 0;
-      height: 55px;
+      height: 40px;
       .fa-play{
         position: absolute;
         cursor: pointer;
@@ -215,7 +245,7 @@ body {
         font-size: 25px;
         color: #fff;
         background: #55905a;
-        padding: 15px 18px;
+        padding: 7px 11px;
         transition: .5s;
         &:hover{
           color: #72ba75;
