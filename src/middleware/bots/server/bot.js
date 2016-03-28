@@ -11,7 +11,6 @@ const _ = require(`underscore`);
 // const TCPExecutor = require(`./tcpCommandExecutor`);
 // const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
 
-const config = require(`../../config`);
 const botRoutes = require(`./routes`);
 const botModel = require(`./model/bot`);
 const CommandQueue = require(`./commandQueue`);
@@ -35,6 +34,7 @@ class Bot {
     app.context.bot = this; // External app reference variable
 
     this.app = app;
+    this.config = app.context.config;
     this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
     this.router = router;
@@ -406,7 +406,7 @@ class Bot {
         );
       } else {
         this.queue = new CommandQueue(
-          this.setupSerialExecutor(this.port, config.baudrate),
+          this.setupSerialExecutor(this.port, this.config.baudrate),
           this.expandCode,
           _.bind(this.validateReply, this)
         );
@@ -472,10 +472,10 @@ class Bot {
 
   // Compare a port's vid pid with our bot's vid pid
   verifyVidPid(device) {
-    for (let i = 0; i < config.vidPids.length; i++) {
+    for (let i = 0; i < this.config.vidPids.length; i++) {
       if (
-        device.deviceDescriptor.idVendor === config.vidPids[i].vid &&
-        device.deviceDescriptor.idProduct === config.vidPids[i].pid
+        device.deviceDescriptor.idVendor === this.config.vidPids[i].vid &&
+        device.deviceDescriptor.idProduct === this.config.vidPids[i].pid
       ) {
         this.device = device;
         return true;
@@ -560,6 +560,7 @@ class Bot {
    * Return: true if the last line was 'ok'
    */
   validateTCPReply(command, reply) {
+    this.logger.info('oooh what a hack', command, reply);
     return true;
   }
 
