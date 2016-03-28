@@ -1,12 +1,9 @@
 const router = require(`koa-router`)();
-const Promise = require(`bluebird`);
 const fs = require(`fs-promise`);
 const path = require(`path`);
 
-const config = require(`../../config`);
 const botsRoutes = require(`./routes`);
 const botModel = require(`./model/bot`);
-const UsbDiscovery = require(`./discovery/usb`);
 
 /**
  * This is a Bots class representing all of the available hardware
@@ -22,11 +19,17 @@ class Bots {
    * @param {string} routeEndpoint - The relative endpoint.
    */
   constructor(app, routeEndpoint) {
-    app.context.bots = this; // External app reference variable
+    // Setup internal and external app references
+    app.context.bots = this;
     this.app = app;
+
+    // Setup logger and router
     this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
     this.router = router;
+
+    // Initialize list of bots to be an empty object
+    this.bots = {};
   }
 
   /**
@@ -36,8 +39,24 @@ class Bots {
     try {
       await this.setupRouter();
       this.Bot = await botModel(this.app);
-      let botsDbObject = await this.Bot.findAll();
-      // this.bots = sanitized json object
+      const botsDbArray = await this.Bot.findAll();
+      for (const dbBot of botsDbArray) {
+        const bot = {};
+        bot.port = dbBot.dataValues.port;
+        bot.name = dbBot.dataValues.name;
+        bot.jogXSpeed = dbBot.dataValues.jogXSpeed;
+        bot.jogYSpeed = dbBot.dataValues.jogYSpeed;
+        bot.jogZSpeed = dbBot.dataValues.jogZSpeed;
+        bot.jogESpeed = dbBot.dataValues.jogESpeed;
+        bot.tempE = dbBot.dataValues.tempE;
+        bot.tempB = dbBot.dataValues.tempB;
+        bot.speedRatio = dbBot.dataValues.speedRatio;
+        bot.eRatio = dbBot.dataValues.eRatio;
+        bot.offsetX = dbBot.dataValues.offsetX;
+        bot.offsetY = dbBot.dataValues.offsetY;
+        bot.offsetZ = dbBot.dataValues.offsetZ;
+        this.bots[bot.port] = bot;
+      }
       await this.setupDiscovery();
       this.logger.info(`Bots instance initialized`);
     } catch (ex) {
