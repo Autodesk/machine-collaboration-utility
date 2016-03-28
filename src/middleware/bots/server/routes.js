@@ -27,8 +27,8 @@ const createTcpBot = (self) => {
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       const botObject = {
-        port: null,
-        name: `Schteeve`,
+        port: `127.0.0.1:9001`,
+        name: `Cool Bot`,
         jogXSpeed: `2000`,
         jogYSpeed: `2000`,
         jogZSpeed: `1000`,
@@ -47,12 +47,10 @@ const createTcpBot = (self) => {
           botObject[setting] = requestSetting;
         }
       }
-      console.log(botObject);
-      // don't add the bot if it doesn't have an ip address
-      // don't add the bot if it is a duplicate ports in a database
+      // TODO don't add the bot if it doesn't have an ip address
+      // TODO don't add the bot if it is a duplicate ports in a database
 
       const bot = await self.Bot.create(botObject);
-      console.log('bot!', bot);
       // const botSettings = ctx.request.body.botSettings;
       // const bot = await new Bot('bot params etc... etc...')
       const reply = `TCP Bot created`;
