@@ -2,7 +2,7 @@
 'use strict';
 
 /*******************************************************************************
- * The is framework for allowing each piece of middleware to run its own tests
+ * This framework allows for each piece of middleware to run its own tests
  * The individual pieces of middleware will place their tests in the following location:
  * src/middleware/<your middleware>/test/test.js
  ******************************************************************************/
