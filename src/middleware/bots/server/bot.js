@@ -1,18 +1,12 @@
-const router = require(`koa-router`)();
 const Promise = require(`bluebird`);
 const LineByLineReader = Promise.promisifyAll(require(`line-by-line`));
 const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 const fs = require(`fs`);
-const usb = Promise.promisifyAll(require(`usb`));
-const SerialPort = require(`serialport`);
 const _ = require(`underscore`);
 
 // const SerialCommandExecutor = require(`./serialCommandExecutor`);
 // const TCPExecutor = require(`./tcpCommandExecutor`);
 // const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
-
-const botRoutes = require(`./routes`);
-const botModel = require(`./model/bot`);
 const CommandQueue = require(`./commandQueue`);
 
 /**
@@ -28,16 +22,14 @@ class Bot {
   /**
    * A bot server class
    * @param {Object} app - The parent Koa app.
-   * @param {string} routeEndpoint - The relative endpoint.
+   * @param {string} settings - The settings, as retreived from the database.
    */
-  constructor(app, routeEndpoint, externalEndpoint) {
+  constructor(app, settings) {
     app.context.bot = this; // External app reference variable
 
     this.app = app;
     this.config = app.context.config;
     this.logger = app.context.logger;
-    this.routeEndpoint = routeEndpoint;
-    this.router = router;
 
     this.virtual = false;
     this.queue = undefined;
@@ -53,9 +45,6 @@ class Bot {
       'G91',
       'M104 S0',
     ];
-
-    // Give the option of passing an external url for the bot to send gcode to
-    this.externalEndpoint = externalEndpoint === undefined ? false : externalEndpoint;
 
     this.fsm = StateMachine.create({
       initial: 'unavailable',
@@ -97,78 +86,8 @@ class Bot {
         },
       },
     });
-  }
 
-  /**
-   * initialize the bot endpoint
-   */
-  async initialize() {
-    try {
-      await this.setupRouter();
-      this.Bot = await botModel(this.app);
-      let botDbObject = await this.Bot.findAll();
-      // Initialize settings if there is no bot object yet
-      if (botDbObject.length === 0) {
-        const initialBotObject = {
-          port: null,
-          name: `Schteeve`,
-          jogXSpeed: `2000`,
-          jogYSpeed: `2000`,
-          jogZSpeed: `1000`,
-          jogESpeed: `120`,
-          tempE: `200`,
-          tempB: `60`,
-          speedRatio: `1.0`,
-          eRatio: `1.0`,
-          offsetX: `0`,
-          offsetY: `0`,
-          offsetZ: `0`,
-        };
-        botDbObject = await this.Bot.create(initialBotObject);
-        // sanitize the bot db object and save it to bot settings
-        const botObject = {
-          port: botDbObject.dataValues.port,
-          name: botDbObject.dataValues.name,
-          jogXSpeed: botDbObject.dataValues.jogXSpeed,
-          jogYSpeed: botDbObject.dataValues.jogYSpeed,
-          jogZSpeed: botDbObject.dataValues.jogZSpeed,
-          jogESpeed: botDbObject.dataValues.jogESpeed,
-          tempE: botDbObject.dataValues.tempE,
-          tempB: botDbObject.dataValues.tempB,
-          speedRatio: botDbObject.dataValues.speedRatio,
-          eRatio: botDbObject.dataValues.eRatio,
-          offsetX: botDbObject.dataValues.offsetX,
-          offsetY: botDbObject.dataValues.offsetY,
-          offsetZ: botDbObject.dataValues.offsetZ,
-        };
-        this.botSettings = botObject;
-      } else {
-        botDbObject = botDbObject[0];
-        const botObject = {
-          port: botDbObject.dataValues.port,
-          name: botDbObject.dataValues.name,
-          jogXSpeed: botDbObject.dataValues.jogXSpeed,
-          jogYSpeed: botDbObject.dataValues.jogYSpeed,
-          jogZSpeed: botDbObject.dataValues.jogZSpeed,
-          jogESpeed: botDbObject.dataValues.jogESpeed,
-          tempE: botDbObject.dataValues.tempE,
-          tempB: botDbObject.dataValues.tempB,
-          speedRatio: botDbObject.dataValues.speedRatio,
-          eRatio: botDbObject.dataValues.eRatio,
-          offsetX: botDbObject.dataValues.offsetX,
-          offsetY: botDbObject.dataValues.offsetY,
-          offsetZ: botDbObject.dataValues.offsetZ,
-        };
-        this.botSettings = botObject;
-      }
-      if (this.port) {
-        console.log('start pinging!');
-        // this.detect();
-      }
-      this.logger.info(`Bot instance initialized`);
-    } catch (ex) {
-      this.logger.error(`Bot initialization error`, ex);
-    }
+    this.settings = settings;
   }
 
   async processGcode(gcode) {
@@ -209,6 +128,13 @@ class Bot {
     return {
       state: this.fsm.current,
     };
+  }
+
+  /*
+   * Set the port of the bot. This is only necessary for usb printers
+   */
+  setPort(port) {
+    this.settings.port = port;
   }
 
   /*
@@ -371,24 +297,7 @@ class Bot {
     }
   }
 
-
-  /**
-   * Set up the bot's instance's router
-   */
-  async setupRouter() {
-    try {
-      // Populate this.router with all routes
-      // Then register all routes with the app
-      await botRoutes(this);
-
-      // Register all router routes with the app
-      this.app.use(this.router.routes()).use(this.router.allowedMethods());
-      this.logger.info(`Bot router setup complete`);
-    } catch (ex) {
-      this.logger.error(`Bot router setup error`, ex);
-    }
-  }
-
+// TODO create a generic 'EXECUTOR' object associated with a Bot object
   async detect(device) {
     await this.fsm.detect();
     try {
@@ -398,12 +307,12 @@ class Bot {
           this.expandCode,
           _.bind(this.validateReply, this)
         );
-      } else if (this.externalEndpoint) {
-        this.queue = new CommandQueue(
-          this.setupTCPExecutor(this.externalEndpoint),
-          this.expandCode,
-          this.validateTCPReply
-        );
+      // } else if (this.externalEndpoint) {
+      //   this.queue = new CommandQueue(
+      //     this.setupTCPExecutor(this.externalEndpoint),
+      //     this.expandCode,
+      //     this.validateTCPReply
+      //   );
       } else {
         this.queue = new CommandQueue(
           this.setupSerialExecutor(this.port, this.config.baudrate),
@@ -448,65 +357,6 @@ class Bot {
     } catch (ex) {
       this.fsm.disconnectFail();
     }
-  }
-
-  async setupUsbScanner() {
-    const self = this;
-    usb.on('attach', async (device) => {
-      if (self.verifyVidPid(device) && await self.getPort()) {
-        self.detect(device);
-      }
-    });
-    usb.on('detach', (device) => {
-      if (self.verifyVidPid(device)) {
-        self.unplug(device);
-      }
-    });
-    const devices = await usb.getDeviceList();
-    devices.forEach(async (device) => {
-      if (self.verifyVidPid(device) && await self.getPort()) {
-        self.detect(device);
-      }
-    });
-  }
-
-  // Compare a port's vid pid with our bot's vid pid
-  verifyVidPid(device) {
-    for (let i = 0; i < this.config.vidPids.length; i++) {
-      if (
-        device.deviceDescriptor.idVendor === this.config.vidPids[i].vid &&
-        device.deviceDescriptor.idProduct === this.config.vidPids[i].pid
-      ) {
-        this.device = device;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  async getPort() {
-    const self = this;
-    const portPromise = new Promise((resolve, reject) => {
-      // Don't scan the ports if we haven't set a device
-      if (self.device === undefined) {
-        return reject(false);
-      }
-
-      SerialPort.list((err, ports) => {
-        for (let i = 0; i < ports.length; i++) {
-          const port = ports[i];
-          if (
-            self.device.deviceDescriptor.idVendor === parseInt(port.vendorId.split('x').pop(), 16) &&
-            self.device.deviceDescriptor.idProduct === parseInt(port.productId.split('x').pop(), 16)
-          ) {
-            self.port = port.comName;
-            return resolve(true);
-          }
-        }
-        return reject(false);
-      });
-    });
-    return await portPromise;
   }
 
   setupSerialExecutor(port, baudrate) {

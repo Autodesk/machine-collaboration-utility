@@ -1,9 +1,12 @@
 const router = require(`koa-router`)();
 const fs = require(`fs-promise`);
 const path = require(`path`);
+const _ = require(`underscore`);
+const Promise = require(`bluebird`);
 
 const botsRoutes = require(`./routes`);
 const botModel = require(`./model/bot`);
+const Bot = require(`./bot`);
 
 /**
  * This is a Bots class representing all of the available hardware
@@ -14,7 +17,7 @@ const botModel = require(`./model/bot`);
  */
 class Bots {
   /**
-   * A bot server class
+   * A bots server class
    * @param {Object} app - The parent Koa app.
    * @param {string} routeEndpoint - The relative endpoint.
    */
@@ -33,30 +36,64 @@ class Bots {
   }
 
   /**
-   * initialize the bot endpoint
+   * initialize the bots endpoint
    */
   async initialize() {
     try {
+      // Set up the router
       await this.setupRouter();
+
+      // Set up the bot database model
       this.Bot = await botModel(this.app);
-      const botsDbArray = await this.Bot.findAll();
-      for (const dbBot of botsDbArray) {
-        const bot = {};
-        bot.port = dbBot.dataValues.port;
-        bot.name = dbBot.dataValues.name;
-        bot.jogXSpeed = dbBot.dataValues.jogXSpeed;
-        bot.jogYSpeed = dbBot.dataValues.jogYSpeed;
-        bot.jogZSpeed = dbBot.dataValues.jogZSpeed;
-        bot.jogESpeed = dbBot.dataValues.jogESpeed;
-        bot.tempE = dbBot.dataValues.tempE;
-        bot.tempB = dbBot.dataValues.tempB;
-        bot.speedRatio = dbBot.dataValues.speedRatio;
-        bot.eRatio = dbBot.dataValues.eRatio;
-        bot.offsetX = dbBot.dataValues.offsetX;
-        bot.offsetY = dbBot.dataValues.offsetY;
-        bot.offsetZ = dbBot.dataValues.offsetZ;
-        this.bots[bot.port] = bot;
+      let botsDbArray = await this.Bot.findAll();
+      // If there are not bots saved yet, create one
+      // This first bot object is where we will save settings for
+      // generic usb bots that cannot be made persistent
+      if (botsDbArray.length === 0) {
+        const initialBotObject = {
+          port: `null`,
+          name: `Default`,
+          jogXSpeed: `2000`,
+          jogYSpeed: `2000`,
+          jogZSpeed: `1000`,
+          jogESpeed: `120`,
+          tempE: `200`,
+          tempB: `60`,
+          speedRatio: `1.0`,
+          eRatio: `1.0`,
+          offsetX: `0`,
+          offsetY: `0`,
+          offsetZ: `0`,
+        };
+        await this.Bot.create(initialBotObject);
+        // reload the botDbArray now that we have one
+        botsDbArray = await this.Bot.findAll();
       }
+
+      // Load all bots from the database and add them to the 'bots' object
+      for (const dbBot of botsDbArray) {
+        const botSettings = {};
+        botSettings.port = dbBot.dataValues.port;
+        botSettings.name = dbBot.dataValues.name;
+        botSettings.jogXSpeed = dbBot.dataValues.jogXSpeed;
+        botSettings.jogYSpeed = dbBot.dataValues.jogYSpeed;
+        botSettings.jogZSpeed = dbBot.dataValues.jogZSpeed;
+        botSettings.jogESpeed = dbBot.dataValues.jogESpeed;
+        botSettings.tempE = dbBot.dataValues.tempE;
+        botSettings.tempB = dbBot.dataValues.tempB;
+        botSettings.speedRatio = dbBot.dataValues.speedRatio;
+        botSettings.eRatio = dbBot.dataValues.eRatio;
+        botSettings.offsetX = dbBot.dataValues.offsetX;
+        botSettings.offsetY = dbBot.dataValues.offsetY;
+        botSettings.offsetZ = dbBot.dataValues.offsetZ;
+
+        // Create a bot object
+        // The first bot object created will always be the serial port bot
+        const botObject = new Bot(this.app, botSettings);
+        this.bots[botSettings.port] = botObject;
+      }
+
+      // Start scanning for all bots
       await this.setupDiscovery();
       this.logger.info(`Bots instance initialized`);
     } catch (ex) {
@@ -68,7 +105,13 @@ class Bots {
    * get a json friendly description of the Bots
    */
   getBots() {
-    return this.bots;
+    const filteredBots = {};
+    for (const bot in this.bots) {
+      if (this.bots.hasOwnProperty(bot)) {
+        filteredBots[bot] = this.bots[bot].getBot();
+      }
+    }
+    return filteredBots;
   }
 
   /**
@@ -82,9 +125,9 @@ class Bots {
 
       // Register all router routes with the app
       this.app.use(this.router.routes()).use(this.router.allowedMethods());
-      this.logger.info(`Bot router setup complete`);
+      this.logger.info(`Bots router setup complete`);
     } catch (ex) {
-      this.logger.error(`Bot router setup error`, ex);
+      this.logger.error(`Bots router setup error`, ex);
     }
   }
 
@@ -92,6 +135,9 @@ class Bots {
     const discoveryDirectory = path.join(__dirname, `./discovery`);
     const discoveryTypes = await fs.readdir(discoveryDirectory);
     discoveryTypes.forEach((discoveryType) => {
+      // Scan through all of the discovery types.
+      // Make sure to ignore the source map files
+      // TODO refactor in case helper files are necessary in the 'discovery' folder
       if (discoveryType.indexOf(`.map`) === -1) {
         const discoveryPath = path.join(__dirname, `./discovery/${discoveryType}`);
         const DiscoveryClass = require(discoveryPath);

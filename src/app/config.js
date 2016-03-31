@@ -17,6 +17,10 @@ module.exports = {
       vid: 9025,
       pid: 66,
     },
+    {
+      vid: 7504,
+      pid: 24597,
+    },
   ],
   conductor: {
     players: [

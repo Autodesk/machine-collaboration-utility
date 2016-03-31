@@ -26,8 +26,9 @@ const createTcpBot = (self) => {
   const requestDescription = 'Create TCP Bot';
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const botObject = {
+      const botSettings = {
         port: `127.0.0.1:9001`,
+        connectionType: `tcp`,
         name: `Cool Bot`,
         jogXSpeed: `2000`,
         jogYSpeed: `2000`,
@@ -41,24 +42,27 @@ const createTcpBot = (self) => {
         offsetY: `0`,
         offsetZ: `0`,
       };
-      for (let setting in botObject) {
+      for (let setting in botSettings) {
         const requestSetting = ctx.request.body[setting];
         if (requestSetting !== undefined) {
-          botObject[setting] = requestSetting;
+          botSettings[setting] = requestSetting;
         }
       }
-      // TODO don't add the bot if it doesn't have an ip address
-      // TODO don't add the bot if it is a duplicate ports in a database
 
-      const bot = await self.Bot.create(botObject);
-      // const botSettings = ctx.request.body.botSettings;
-      // const bot = await new Bot('bot params etc... etc...')
+      // Don't add the bot if it has a duplicate port in the database
+      if (self.bots[botSettings.port] !== undefined) {
+        const errorMessage = `Cannot create bot at port ${botSettings.port}. Bot already exists`;
+        throw errorMessage;
+      }
+      await self.Bot.create(botSettings);
+      self.bots[botSettings.port] = await new Bot(self.app, botSettings);
       const reply = `TCP Bot created`;
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
@@ -114,26 +118,26 @@ const botRoutes = (self) => {
   deleteTcpBot(self);
 };
 
-// const Response = require(`../helpers/response`);
-// 
-// /**
-//  * Handle all logic at this endpoint for reading all of the jobs
-//  */
-// const getBot = (self) => {
-//   const requestDescription = `Get Bot`;
-//   self.router.get(`${self.routeEndpoint}/`, async (ctx) => {
-//     try {
-//       const botJson = self.getBot();
-//       ctx.status = 200;
-//       ctx.body = new Response(ctx, requestDescription, botJson);
-//     } catch (ex) {
-//       ctx.status = 500;
-//       ctx.body = new Response(ctx, requestDescription, ex);
-//       self.logger.error(ex);
-//     }
-//   });
-// };
-// 
+/**
+ * Handle all logic at this endpoint for retreiving a specific bot
+ */
+const getBot = (self) => {
+  const requestDescription = `Get Bot`;
+  self.router.get(`${self.routeEndpoint}/:port`, async (ctx) => {
+    const port = ctx.params.port;
+    
+    try {
+      const botJson = self.getBot();
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, botJson);
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
 // /**
 //  * Handle all logic at this endpoint for sending a command to the bot
 //  */

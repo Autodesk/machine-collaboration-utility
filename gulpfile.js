@@ -152,7 +152,7 @@ gulp.task(`build-client-images`, () => {
 gulp.task(`build-client-js-middleware`, () => {
   return gulp.src(src.middlewareClientJs)
   .pipe(sourcemaps.init())
-	.pipe(
+  .pipe(
     babel({
       presets: [`es2015`],
       plugins: [
@@ -166,8 +166,8 @@ gulp.task(`build-client-js-middleware`, () => {
   .pipe(rename((clientJsPath) => {
     clientJsPath.dirname = clientJsPath.dirname.replace(`/client`, ``);
   }))
-	.pipe(sourcemaps.write(`.`))
-	.pipe(gulp.dest(dest.clientJs + '/js'));
+  .pipe(sourcemaps.write(`.`))
+  .pipe(gulp.dest(dest.clientJs + '/js'));
 });
 
 gulp.task(`build-views`, () => {
@@ -195,7 +195,7 @@ gulp.task(`build-test-assets`, () => {
 gulp.task(`build-tests`, [`build-test-assets`], () => {
   return gulp.src(src.tests)
   .pipe(sourcemaps.init())
-	.pipe(
+  .pipe(
     babel({
       presets: [`es2015-node5`],
       plugins: [`transform-async-to-generator`],
@@ -236,34 +236,10 @@ gulp.task(
   }
 );
 
-// Complete every task before starting nodemon
-gulp.task(
-  `run-conductor`,
-  [
-    `build`,
-    `watch`,
-  ],
-  () => {
-    nodemon({
-      script: 'dist/server/server.js',
-      env: { NODE_ENV: 'conducting' },
-    })
-    .on('restart', () => {
-      console.log('restarted!');
-    });
-  }
-);
-
 gulp.task(`default`, [
   `build`,
   `watch`,
   `develop`,
-]);
-
-gulp.task(`conduct`, [
-  `build`,
-  `watch`,
-  `run-conductor`,
 ]);
 
 gulp.task(`run-tests`, [`default`], () => {

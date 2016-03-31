@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "test": "node node_modules/gulp/bin/gulp.js test",
-    "bot": "node node_modules/gulp/bin/gulp.js",
-    "conductor": "node node_modules/gulp/bin/gulp.js conduct"
+    "start": "node node_modules/gulp/bin/gulp.js"
   },
   "dependencies": {
     "babel-core": "^6.3.26",
