@@ -3,8 +3,6 @@ const usb = Promise.promisifyAll(require(`usb`));
 const SerialPort = require(`serialport`);
 const _ = require(`underscore`);
 
-const Bot = require(`../bot`);
-
 class UsbDiscovery {
   constructor(app) {
     this.app = app;
@@ -38,11 +36,12 @@ class UsbDiscovery {
               return port.comName === listedPort;
             });
             if (foundPort === undefined) {
-              const removedBot = self.app.context.bots.bots[listedPort];
+              const botName = self.sanitizePortName(listedPort);
+              const removedBot = self.app.context.bots.bots[botName];
               delete self.ports[listedPort];
               this.app.context.bots.bots[`null`] = removedBot;
               removedBot.setPort(`null`);
-              delete this.app.context.bots.bots[listedPort];
+              delete this.app.context.bots.bots[botName];
               removedBot.unplug();
             }
           }
@@ -66,13 +65,18 @@ class UsbDiscovery {
       if (vid === vidPid.vid && pid === vidPid.pid) {
         const nullBot = this.app.context.bots.bots[`null`];
         if (nullBot !== undefined) {
-          this.app.context.bots.bots[port.comName] = nullBot;
+          const botName = this.sanitizePortName(port.comName);
+          this.app.context.bots.bots[botName] = nullBot;
           nullBot.setPort(port.comName);
           delete this.app.context.bots.bots[`null`];
           nullBot.detect(port);
         }
       }
     }
+  }
+
+  sanitizePortName(comName) {
+    return comName.split('/')[comName.split('/').length - 1];
   }
 }
 module.exports = UsbDiscovery;
