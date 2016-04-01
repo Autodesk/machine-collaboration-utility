@@ -50,22 +50,8 @@ class Bots {
       // This first bot object is where we will save settings for
       // generic usb bots that cannot be made persistent
       if (botsDbArray.length === 0) {
-        const initialBotObject = {
-          port: `null`,
-          name: `Default`,
-          jogXSpeed: `2000`,
-          jogYSpeed: `2000`,
-          jogZSpeed: `1000`,
-          jogESpeed: `120`,
-          tempE: `200`,
-          tempB: `60`,
-          speedRatio: `1.0`,
-          eRatio: `1.0`,
-          offsetX: `0`,
-          offsetY: `0`,
-          offsetZ: `0`,
-        };
-        await this.Bot.create(initialBotObject);
+        const botSettings = this.createBot({connectionType:`placeholder`});
+        await this.Bot.create(botSettings);
         // reload the botDbArray now that we have one
         botsDbArray = await this.Bot.findAll();
       }
@@ -102,6 +88,43 @@ class Bots {
   }
 
   /*
+   * Pass in unique settings to overwrite a default bot's settings
+   * Throw an error if the connectionType is not defined
+   */
+  createBot(userSettings) {
+    // TODO consider using the default initially saved settings instead of
+    // these settings as the placeholder settings
+    const settings = {
+      port: `null`,
+      connectionType: undefined,
+      name: `Cool Bot`,
+      jogXSpeed: `2000`,
+      jogYSpeed: `2000`,
+      jogZSpeed: `1000`,
+      jogESpeed: `120`,
+      tempE: `200`,
+      tempB: `60`,
+      speedRatio: `1.0`,
+      eRatio: `1.0`,
+      offsetX: `0`,
+      offsetY: `0`,
+      offsetZ: `0`,
+    };
+
+    for (const setting in userSettings) {
+      if (userSettings.hasOwnProperty(setting)) {
+        settings[setting] = userSettings[setting];
+      }
+    }
+    if (settings.connectionType === undefined) {
+      const errorMessage = `Bot connection type must be defined`;
+      this.logger.error(errorMessage);
+      throw errorMessage;
+    }
+    return settings;
+  }
+
+  /*
    * get a json friendly description of the Bots
    */
   getBots() {
@@ -134,16 +157,17 @@ class Bots {
   async setupDiscovery() {
     const discoveryDirectory = path.join(__dirname, `./discovery`);
     const discoveryTypes = await fs.readdir(discoveryDirectory);
-    discoveryTypes.forEach((discoveryType) => {
+    discoveryTypes.forEach((discoveryFile) => {
       // Scan through all of the discovery types.
       // Make sure to ignore the source map files
       // TODO refactor in case helper files are necessary in the 'discovery' folder
-      if (discoveryType.indexOf(`.map`) === -1) {
-        const discoveryPath = path.join(__dirname, `./discovery/${discoveryType}`);
+      if (discoveryFile.indexOf(`.map`) === -1) {
+        const discoveryType = discoveryFile.split(`.`)[0];
+        const discoveryPath = path.join(__dirname, `./discovery/${discoveryFile}`);
         const DiscoveryClass = require(discoveryPath);
         const discoveryObject = new DiscoveryClass(this.app);
         discoveryObject.initialize();
-        this.logger.info(`${discoveryType.split(`.`)[0]} discovery initialized`);
+        this.logger.info(`${discoveryType} discovery initialized`);
       }
     });
   }

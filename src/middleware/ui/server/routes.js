@@ -22,33 +22,19 @@ const getDocs = (self) => {
 /**
  * Render the app
  */
-const getBot = (self) => {
+const getBots = (self) => {
   self.router.get(self.routeEndpoint, async (ctx) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
-    let clientState;
-    if (process.env.NODE_ENV === `conducting`) {
-      clientState = self.app.context.conductor.getConductor().state;
-      await ctx.render(`ui/conductor`, {
-        title: `Hydra-Print`,
-        clientState,
-        jobs,
-        files,
-        ip,
-      });
-    } else {
-      const bot = self.app.context.bot.botSettings;
-      clientState = self.app.context.bot.getBot().state;
-      await ctx.render(`ui/bot`, {
-        title: `Hydra-Print`,
-        clientState,
-        jobs,
-        files,
-        bot,
-        ip,
-      });
-    }
+    const bots = self.app.context.bots.bots;
+    await ctx.render(`ui/bots`, {
+      title: `Hydra-Print`,
+      jobs,
+      files,
+      bots,
+      ip,
+    });
   });
 };
 
@@ -60,19 +46,12 @@ const getFiles = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
-    const bot = self.app.context.bot.botSettings;
-    let clientState;
-    if (process.env.NODE_ENV === `conducting`) {
-      clientState = self.app.context.conductor.getConductor().state;
-    } else {
-      clientState = self.app.context.bot.getBot().state;
-    }
+    const bots = self.app.context.bots.bots;
     await ctx.render(`files/files`, {
       title: `Hydra-Print`,
-      clientState,
       jobs,
       files,
-      bot,
+      bots,
       ip,
     });
   });
@@ -86,19 +65,12 @@ const getJobs = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
-    const bot = self.app.context.bot.botSettings;
-    let clientState;
-    if (process.env.NODE_ENV === `conducting`) {
-      clientState = self.app.context.conductor.getConductor().state;
-    } else {
-      clientState = self.app.context.bot.getBot().state;
-    }
+    const bots = self.app.context.bots.bots;
     await ctx.render(`jobs/jobs`, {
       title: `Hydra-Print`,
-      clientState,
       jobs,
       files,
-      bot,
+      bots,
       ip,
     });
   });
@@ -138,7 +110,7 @@ const appCommands = (self) => {
 
 const uiRoutes = (self) => {
   getDocs(self);
-  getBot(self);
+  getBots(self);
   getFiles(self);
   getJobs(self);
   appCommands(self);

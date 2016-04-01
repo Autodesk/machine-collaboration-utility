@@ -22,38 +22,28 @@ const getBots = (self) => {
 /**
  * Handle all logic at this endpoint for updating the bot's 
  */
-const createTcpBot = (self) => {
-  const requestDescription = 'Create TCP Bot';
+const createBot = (self) => {
+  const requestDescription = 'Create Bot';
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const botSettings = {
-        port: `127.0.0.1:9001`,
-        connectionType: `tcp`,
-        name: `Cool Bot`,
-        jogXSpeed: `2000`,
-        jogYSpeed: `2000`,
-        jogZSpeed: `1000`,
-        jogESpeed: `120`,
-        tempE: `200`,
-        tempB: `60`,
-        speedRatio: `1.0`,
-        eRatio: `1.0`,
-        offsetX: `0`,
-        offsetY: `0`,
-        offsetZ: `0`,
-      };
-      for (let setting in botSettings) {
+
+      const paramSettings = {}
+      // Overwrite the default settings with any settings passed by the request
+      for (let setting in ctx.request.params) {
         const requestSetting = ctx.request.body[setting];
-        if (requestSetting !== undefined) {
-          botSettings[setting] = requestSetting;
+        if (ctx.request.params.hasOwnProperty(setting)) {
+          paramSettings[setting] = ctx.request.params[setting];
         }
       }
+
+      const botSettings = self.createBot(paramSettings);
 
       // Don't add the bot if it has a duplicate port in the database
       if (self.bots[botSettings.port] !== undefined) {
         const errorMessage = `Cannot create bot at port ${botSettings.port}. Bot already exists`;
         throw errorMessage;
       }
+
       await self.Bot.create(botSettings);
       self.bots[botSettings.port] = await new Bot(self.app, botSettings);
       const reply = `TCP Bot created`;
@@ -68,9 +58,9 @@ const createTcpBot = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for updating the bot's 
+ * Handle all logic at this endpoint for updating a bot
  */
-const updateTcpBot = (self) => {
+const updateBot = (self) => {
   const requestDescription = 'Update TCP Bot Settings';
   self.router.put(`${self.routeEndpoint}/`, async (ctx) => {
     try {
@@ -91,9 +81,9 @@ const updateTcpBot = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for updating the bot's 
+ * Handle all logic at this endpoint for deleting a bot
  */
-const deleteTcpBot = (self) => {
+const deleteBot = (self) => {
   const requestDescription = 'Update TCP Bot Settings';
   self.router.delete(`${self.routeEndpoint}/`, async (ctx) => {
     try {
@@ -113,9 +103,9 @@ const deleteTcpBot = (self) => {
 
 const botRoutes = (self) => {
   getBots(self);
-  createTcpBot(self);
-  updateTcpBot(self);
-  deleteTcpBot(self);
+  createBot(self);
+  updateBot(self);
+  deleteBot(self);
 };
 
 /**

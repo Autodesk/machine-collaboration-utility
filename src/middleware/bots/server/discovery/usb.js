@@ -34,19 +34,8 @@ class UsbDiscovery {
             this.app.context.bots.bots[port] = nullBot;
             nullBot.setPort(port);
             delete this.app.context.bots.bots[`null`];
+            nullBot.detect(device);
           }
-          
-          // if (this.app.context.bots[`null`]) {
-          //   $.each(jsonData, function(k, v) { 
-          //           delete jsonData[k];
-          //           k = "key"+counter;
-          //           jsonData[k] = v;
-          //           counter++;
-          //   });
-          // 
-          //   console.log(this.app.context.bots[`null`]);
-          //}
-          // create bot
         }
       }
     });
