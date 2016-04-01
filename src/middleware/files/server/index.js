@@ -137,7 +137,7 @@ class Files {
     const date = `${utcStamp.getDate()}`;
     const hour = `${utcStamp.getHours()}`;
     const minute = `${utcStamp.getMinutes()}`;
-    const dateChanged = `${year}/${month}/${date}   ${hour}:${minute}`;
+    const dateChanged = `${year}/${month}/${date} ${hour}:${minute}`;
     return dateChanged;
   }
 }

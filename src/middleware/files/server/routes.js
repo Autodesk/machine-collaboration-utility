@@ -2,8 +2,6 @@ const convert = require(`koa-convert`);
 const body = require(`koa-body`);
 const fs = require(`fs-promise`);
 const Promise = require(`bluebird`);
-const send = require(`koa-send`);
-const path = require(`path`);
 
 const Response = require(`../helpers/response`);
 
@@ -15,14 +13,14 @@ const uploadFile = (self) => {
   // Populate this array with file objects for every file that is successfully uploaded
   self.router.post(
     `${self.routeEndpoint}/`,
-    convert(body({ multipart: true })),
+    convert(body({ multipart: true, formidable: { uploadDir: self.uploadDir } })),
     async (ctx) => {
-      let uploadedFiles = [];
+      const uploadedFiles = [];
       try {
         const files = ctx.request.body.files;
 
         if (files) {
-          // Rename each file to be its filename plus a timestamp
+          // Rename each file to be its filename plus a uuid
           // Iterate through every single file in the 'files' object
           await Promise.map(
             Object.keys(files),
@@ -107,7 +105,7 @@ const deleteFile = (self) => {
  */
 const getFiles = (self) => {
   const requestDescription = 'Get Files';
-  self.router.get(self.routeEndpoint + '/', async (ctx) => {
+  self.router.get(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, self.files);
@@ -124,7 +122,7 @@ const getFiles = (self) => {
  */
 const getFile = (self) => {
   const requestDescription = 'Get File';
-  self.router.get(self.routeEndpoint + `/:uuid`, async (ctx) => {
+  self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       const fileUuid = ctx.params.uuid;
       const file = self.files[fileUuid];
@@ -150,7 +148,7 @@ const getFile = (self) => {
  * Handle all logic at this endpoint for reading a single task
  */
 const downloadFile = (self) => {
-  self.router.get(self.routeEndpoint + `/:uuid/download`, async (ctx) => {
+  self.router.get(`${self.routeEndpoint}/:uuid/download`, async (ctx) => {
     const requestDescription = 'Download File';
     try {
       const fileUuid = ctx.params.uuid;
@@ -180,7 +178,9 @@ const deleteAllFiles = (self) => {
   self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
     try {
       for (const file in self.files) {
-        await self.deleteFile(self.files[file].uuid);
+        if (self.files.hasOwnProperty(file)) {
+          await self.deleteFile(self.files[file].uuid);
+        }
       }
       const status = `All files deleted`;
       ctx.status = 200;
