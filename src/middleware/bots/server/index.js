@@ -131,10 +131,26 @@ class Bots {
     const filteredBots = {};
     for (const bot in this.bots) {
       if (this.bots.hasOwnProperty(bot)) {
-        filteredBots[bot] = this.bots[bot].getBot();
+        if (bot !== `null`) {
+          filteredBots[bot] = this.bots[bot].getBot();
+        }
       }
     }
     return filteredBots;
+  }
+
+  /*
+   * get a json friendly description of a specific bot
+   */
+  getBot(port) {
+    const bot = this.bots[port];
+    if (bot === undefined) {
+      const errorMessage = `Bot ${port} does not exist`;
+      this.logger.error(errorMessage);
+      throw errorMessage;
+    }
+    const botJson = bot.getBot();
+    return botJson;
   }
 
   /**

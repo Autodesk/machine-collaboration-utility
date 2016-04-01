@@ -20,13 +20,12 @@ const getBots = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for updating the bot's 
+ * Handle all logic at this endpoint for updating the bot's
  */
 const createBot = (self) => {
   const requestDescription = 'Create Bot';
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-
       const paramSettings = {}
       // Overwrite the default settings with any settings passed by the request
       for (let setting in ctx.request.params) {
@@ -101,23 +100,15 @@ const deleteBot = (self) => {
   });
 };
 
-const botRoutes = (self) => {
-  getBots(self);
-  createBot(self);
-  updateBot(self);
-  deleteBot(self);
-};
-
 /**
  * Handle all logic at this endpoint for retreiving a specific bot
  */
 const getBot = (self) => {
   const requestDescription = `Get Bot`;
   self.router.get(`${self.routeEndpoint}/:port`, async (ctx) => {
-    const port = ctx.params.port;
-    
     try {
-      const botJson = self.getBot();
+      const port = ctx.params.port;
+      const botJson = self.getBot(port);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, botJson);
     } catch (ex) {
@@ -128,63 +119,83 @@ const getBot = (self) => {
   });
 };
 
-// /**
-//  * Handle all logic at this endpoint for sending a command to the bot
-//  */
-// const processBotCommand = (self) => {
-//   const requestDescription = `Process Bot Command`;
-//   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
-//     try {
-//       const command = ctx.request.body.command;
-//       if (command) {
-//         const commandReply = await self.processCommand(command);
-//         ctx.status = 200;
-//         ctx.body = new Response(ctx, requestDescription, commandReply);
-//       } else {
-//         throw `Command is undefined.`;
-//       }
-//     } catch (ex) {
-//       ctx.status = 500;
-//       ctx.body = new Response(ctx, requestDescription, ex);
-//       self.logger.error(ex);
-//     }
-//   });
-// };
-// 
-// /**
-//  * Handle all logic at this endpoint for sending a command to the bot
-//  */
-// const processGcode = (self) => {
-//   const requestDescription = 'Process Gcode';
-//   self.router.post(`${self.routeEndpoint}/processGcode`, async (ctx) => {
-//     try {
-//       const gcode = ctx.request.body.gcode;
-//       if (gcode) {
-//         const commandQueued = await self.processGcode(gcode);
-//         if (commandQueued === undefined) {
-//           const reply = `Cannot send gcode from state ${self.fsm.current}`;
-//           ctx.status = 405;
-//           ctx.body = new Response(ctx, requestDescription, reply);
-//         } else if (commandQueued) {
-//           const reply = `Command ${gcode} queued`;
-//           ctx.status = 200;
-//           ctx.body = new Response(ctx, requestDescription, reply);
-//         } else {
-//           const reply = `Command Queue error`;
-//           ctx.status = 500;
-//           ctx.body = new Response(ctx, requestDescription, reply);
-//         }
-//       } else {
-//         throw `Gcode is undefined.`;
-//       }
-//     } catch (ex) {
-//       ctx.status = 500;
-//       ctx.body = new Response(ctx, requestDescription, ex);
-//       self.logger.error(ex);
-//     }
-//   });
-// };
-// 
+/**
+ * Handle all logic at this endpoint for sending a command to the bot
+ */
+const processBotCommand = (self) => {
+  const requestDescription = `Process Bot Command`;
+  self.router.post(`${self.routeEndpoint}/:port`, async (ctx) => {
+    try {
+      const port = ctx.params.port;
+      const bot = self.bots[port];
+      if (port) {
+        if (bot) {
+          const command = ctx.request.body.command;
+          if (command) {
+            const commandReply = await bot.processCommand(command);
+            ctx.status = 200;
+            ctx.body = new Response(ctx, requestDescription, commandReply);
+          } else {
+            throw `Command is undefined.`;
+          }
+        } else {
+          throw `Bot "${port}" not found.`;
+        }
+      } else {
+        throw `Port is undefined`;
+      }
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
+/**
+ * Handle all logic at this endpoint for sending a command to the bot
+ */
+const processGcode = (self) => {
+  const requestDescription = 'Process Gcode';
+  self.router.post(`${self.routeEndpoint}/:port/processGcode`, async (ctx) => {
+    try {
+      const port = ctx.params.port;
+      if (port) {
+        const bot = self.bots[port];
+        if (bot) {
+          const gcode = ctx.request.body.gcode;
+          if (gcode) {
+            const commandQueued = await bot.processGcode(gcode);
+            if (commandQueued === undefined) {
+              const reply = `Cannot send gcode from state ${bot.fsm.current}`;
+              ctx.status = 405;
+              ctx.body = new Response(ctx, requestDescription, reply);
+            } else if (commandQueued) {
+              const reply = `Command ${gcode} queued`;
+              ctx.status = 200;
+              ctx.body = new Response(ctx, requestDescription, reply);
+            } else {
+              const reply = `Command Queue error`;
+              ctx.status = 500;
+              ctx.body = new Response(ctx, requestDescription, reply);
+            }
+          } else {
+            throw `Gcode is undefined.`;
+          }
+        } else {
+          throw `Bot "${port}" not found`;
+        }
+      } else {
+        throw `Port is undefined`;
+      }
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
 // /**
 //  * Handle all logic at this endpoint for jogging the bot
 //  */
@@ -218,7 +229,7 @@ const getBot = (self) => {
 //     }
 //   });
 // };
-// 
+//
 // /**
 //  * Handle all logic at this endpoint for sending a command to the bot
 //  */
@@ -252,7 +263,7 @@ const getBot = (self) => {
 //     }
 //   });
 // };
-// 
+//
 // /**
 //  * Handle all logic at this endpoint for updating the bot's settings
 //  */
@@ -285,7 +296,7 @@ const getBot = (self) => {
 //     }
 //   });
 // };
-// 
+//
 // const botRoutes = (self) => {
 //   getBot(self);
 //   processBotCommand(self);
@@ -294,6 +305,17 @@ const getBot = (self) => {
 //   streamGcode(self);
 //   updateBot(self);
 // };
+
+const botRoutes = (self) => {
+  getBots(self);
+  createBot(self);
+  updateBot(self);
+  deleteBot(self);
+
+  getBot(self);
+  processBotCommand(self);
+  processGcode(self);
+};
 
 module.exports = botRoutes;
 
