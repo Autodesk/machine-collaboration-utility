@@ -1,6 +1,7 @@
 const Promise = require(`bluebird`);
 const usb = Promise.promisifyAll(require(`usb`));
 const SerialPort = require(`serialport`);
+const _ = require(`underscore`);
 
 const Bot = require(`../bot`);
 
@@ -8,76 +9,70 @@ class UsbDiscovery {
   constructor(app) {
     this.app = app;
     this.config = app.context.config;
+    this.ports = {};
   }
 
   async initialize() {
     const self = this;
-    usb.on('attach', async (device) => {
-      if (self.verifyVidPid(device) && await self.getPort()) {
-        // create bot
-      }
-    });
-    usb.on('detach', (device) => {
-      if (self.verifyVidPid(device)) {
-        // kill all of the bots' currently processing Jobs
-        // then remove bot from array
-      }
-    });
-    const devices = await usb.getDeviceList();
-    devices.forEach(async (device) => {
-      const validVidPid = self.verifyVidPid(device);
-      if (validVidPid) {
-        const port = await self.getPort();
-        if (port) {
-          const nullBot = this.app.context.bots.bots[`null`];
-          if (nullBot !== undefined) {
-            this.app.context.bots.bots[port] = nullBot;
-            nullBot.setPort(port);
-            delete this.app.context.bots.bots[`null`];
-            nullBot.detect(device);
-          }
-        }
-      }
-    });
-  }
-
-  // Compare a port's vid pid with our bot's vid pid
-  verifyVidPid(device) {
-    for (let i = 0; i < this.config.vidPids.length; i++) {
-      if (
-        device.deviceDescriptor.idVendor === this.config.vidPids[i].vid &&
-        device.deviceDescriptor.idProduct === this.config.vidPids[i].pid
-      ) {
-        this.device = device;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  async getPort() {
-    const self = this;
-    const portPromise = new Promise((resolve, reject) => {
-      // Don't scan the ports if we haven't set a device
-      if (self.device === undefined) {
-        return reject(false);
-      }
-
+    usb.on('attach', async () => {
+      // Need to wait arbitrary amount of time for Serialport list to update
+      await Promise.delay(100);
       SerialPort.list((err, ports) => {
         for (let i = 0; i < ports.length; i++) {
           const port = ports[i];
-          if (
-            self.device.deviceDescriptor.idVendor === parseInt(port.vendorId.split('x').pop(), 16) &&
-            self.device.deviceDescriptor.idProduct === parseInt(port.productId.split('x').pop(), 16)
-          ) {
-            return resolve(port.comName);
+          if (self.ports[port.comName] === undefined) {
+            self.ports[port.comName] = port;
+            self.detectPort(port);
           }
         }
-        return reject(false);
       });
     });
-    return await portPromise;
+
+    usb.on('detach', async (device) => {
+      // Need to wait arbitrary amount of time for Serialport list to update
+      await Promise.delay(100);
+      SerialPort.list((err, ports) => {
+        for (const listedPort in self.ports) {
+          if (self.ports.hasOwnProperty(listedPort)) {
+            const foundPort = _.find(ports, (port) => {
+              return port.comName === listedPort;
+            });
+            if (foundPort === undefined) {
+              const removedBot = self.app.context.bots.bots[listedPort];
+              delete self.ports[listedPort];
+              this.app.context.bots.bots[`null`] = removedBot;
+              removedBot.setPort(`null`);
+              delete this.app.context.bots.bots[listedPort];
+              removedBot.unplug();
+            }
+          }
+        }
+      });
+    });
+
+    SerialPort.list((err, ports) => {
+      for (let i = 0; i < ports.length; i++) {
+        const port = ports[i];
+        self.ports[port.comName] = port;
+        self.detectPort(port);
+      }
+    });
+  }
+
+  detectPort(port) {
+    const vid = parseInt(port.vendorId, 16);
+    const pid = parseInt(port.productId, 16);
+    for (const vidPid of this.config.vidPids) {
+      if (vid === vidPid.vid && pid === vidPid.pid) {
+        const nullBot = this.app.context.bots.bots[`null`];
+        if (nullBot !== undefined) {
+          this.app.context.bots.bots[port.comName] = nullBot;
+          nullBot.setPort(port.comName);
+          delete this.app.context.bots.bots[`null`];
+          nullBot.detect(port);
+        }
+      }
+    }
   }
 }
-
 module.exports = UsbDiscovery;
