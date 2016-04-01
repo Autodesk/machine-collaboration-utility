@@ -26,7 +26,7 @@ class UsbDiscovery {
       });
     });
 
-    usb.on('detach', async (device) => {
+    usb.on('detach', async () => {
       // Need to wait arbitrary amount of time for Serialport list to update
       await Promise.delay(100);
       SerialPort.list((err, ports) => {
@@ -76,7 +76,7 @@ class UsbDiscovery {
   }
 
   sanitizePortName(comName) {
-    return comName.split('/')[comName.split('/').length - 1];
+    return comName.replace(/\//g, '_');
   }
 }
 module.exports = UsbDiscovery;
