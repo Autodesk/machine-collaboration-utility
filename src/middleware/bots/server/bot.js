@@ -4,7 +4,7 @@ const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 const fs = require(`fs`);
 const _ = require(`underscore`);
 
-// const SerialCommandExecutor = require(`./serialCommandExecutor`);
+const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
 // const TCPExecutor = require(`./tcpCommandExecutor`);
 // const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
 const CommandQueue = require(`./commandQueue`);
@@ -298,7 +298,7 @@ class Bot {
   }
 
 // TODO create a generic 'EXECUTOR' object associated with a Bot object
-  async detect(device) {
+  async detect() {
     await this.fsm.detect();
     try {
       if (this.virtual) {
@@ -314,11 +314,15 @@ class Bot {
       //     this.validateTCPReply
       //   );
       } else {
-        this.queue = new CommandQueue(
-          this.setupSerialExecutor(this.port, this.config.baudrate),
-          this.expandCode,
-          _.bind(this.validateReply, this)
-        );
+        try {
+          this.queue = new CommandQueue(
+            this.setupSerialExecutor(this.settings.port, this.config.baudrate),
+            this.expandCode,
+            _.bind(this.validateReply, this)
+          );
+        } catch (ex) {
+          this.logger.error('wtf?', ex);
+        }
       }
       await this.fsm.detectDone();
     } catch (ex) {
@@ -361,12 +365,12 @@ class Bot {
 
   setupSerialExecutor(port, baudrate) {
     const openPrime = 'M501';
-    // return new SerialCommandExecutor(
-    //   port,
-    //   baudrate,
-    //   openPrime,
-    //   this.app.io
-    // );
+    return new SerialCommandExecutor(
+      port,
+      baudrate,
+      openPrime,
+      this.app.io
+    );
   }
 
   setupTCPExecutor(externalEndpoint) {
