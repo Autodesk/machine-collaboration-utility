@@ -13,7 +13,7 @@
  *         inOpenPrimeStr - function a string of commands to send to prime the conn
  */
 
-var SerialConnection = require('./serialConnection');
+var SerialConnection = require('./connection');
 
 var SerialCommandExecutor = function (inComName, inBaud, inOpenPrimeStr, io) {
     this.mComName = inComName;
