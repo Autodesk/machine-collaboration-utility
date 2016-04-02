@@ -90,7 +90,7 @@ class UsbDiscovery {
   }
 
   sanitizePortName(comName) {
-    return comName.replace(/\//g, '_');
+    return comName.replace(/\//g, '~');
   }
 }
 module.exports = UsbDiscovery;

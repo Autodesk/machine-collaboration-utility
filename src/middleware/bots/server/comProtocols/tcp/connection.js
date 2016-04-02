@@ -36,7 +36,18 @@ class TCPConnection {
 
     // A hack. Normally we would validate the connection and then call this function
     // once we are validated
-    doneFunction(this);
+    const requestParams = {
+      method: `POST`,
+      uri: this.externalEndpoint,
+      body: {
+        command: `connect`,
+      },
+      json: true,
+    };
+    request(requestParams)
+    .then(() => {
+      doneFunction(this);
+    });
   }
 
   /*******************************************************************************
@@ -75,12 +86,13 @@ class TCPConnection {
     try {
       const requestParams = {
         method: `POST`,
-        uri: `${this.externalEndpoint}/v1/bot/processGcode`,
+        uri: `${this.externalEndpoint}/streamGcode`,
         body: { gcode: inCommandStr },
         json: true,
       };
-
+      console.log('about to send this', requestParams);
       const reply = await request(requestParams);
+      console.log('the reply', reply);
       if (_.isFunction(this.mDataFunc)) {
         this.mDataFunc(reply);
       }

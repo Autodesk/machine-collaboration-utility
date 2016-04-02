@@ -4,6 +4,7 @@ module.exports = async (app) => {
   // Define the model for a job
   const Bot = await app.context.db.define('Bot', {
     port: Sequelize.STRING,
+    connectionType: Sequelize.STRING,
     name: Sequelize.STRING,
     jogXSpeed: Sequelize.STRING,
     jogYSpeed: Sequelize.STRING,
@@ -20,5 +21,6 @@ module.exports = async (app) => {
 
   // Update the database tables to contain 'Bot'
   await app.context.db.sync();
+  // await app.context.db.sync({force:true});
   return Bot;
 };

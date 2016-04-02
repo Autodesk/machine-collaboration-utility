@@ -50,7 +50,7 @@ class Bots {
       // This first bot object is where we will save settings for
       // generic usb bots that cannot be made persistent
       if (botsDbArray.length === 0) {
-        const botSettings = this.createBot({connectionType:`placeholder`});
+        const botSettings = this.createBot({connectionType:`null`});
         await this.Bot.create(botSettings);
         // reload the botDbArray now that we have one
         botsDbArray = await this.Bot.findAll();
@@ -60,6 +60,7 @@ class Bots {
       for (const dbBot of botsDbArray) {
         const botSettings = {};
         botSettings.port = dbBot.dataValues.port;
+        botSettings.connectionType = dbBot.dataValues.connectionType;
         botSettings.name = dbBot.dataValues.name;
         botSettings.jogXSpeed = dbBot.dataValues.jogXSpeed;
         botSettings.jogYSpeed = dbBot.dataValues.jogYSpeed;
@@ -75,8 +76,9 @@ class Bots {
 
         // Create a bot object
         // The first bot object created will always be the serial port bot
+        const botKey = this.sanitizePortName(botSettings.port);
         const botObject = new Bot(this.app, botSettings);
-        this.bots[botSettings.port] = botObject;
+        this.bots[botKey] = botObject;
       }
 
       // Start scanning for all bots
@@ -121,6 +123,7 @@ class Bots {
       this.logger.error(errorMessage);
       throw errorMessage;
     }
+
     return settings;
   }
 
@@ -186,6 +189,10 @@ class Bots {
         this.logger.info(`${discoveryType} discovery initialized`);
       }
     });
+  }
+
+  sanitizePortName(portName) {
+    return portName.replace(/\//g, '_');
   }
 }
 

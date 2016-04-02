@@ -11,7 +11,7 @@
  * Args:   externalEndpoint - url at which to communicate
  */
 
-var TCPConnection = require('./tcpConnection');
+var TCPConnection = require('./connection');
 
 var TCPCommandExecutor = function (externalEndpoint) {
   this.externalEndpoint = externalEndpoint;

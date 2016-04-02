@@ -5,7 +5,7 @@ const fs = require(`fs`);
 const _ = require(`underscore`);
 
 const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
-// const TCPExecutor = require(`./tcpCommandExecutor`);
+const TCPExecutor = require(`./comProtocols/tcp/executor`);
 // const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
 const CommandQueue = require(`./commandQueue`);
 
@@ -86,8 +86,10 @@ class Bot {
         },
       },
     });
-
     this.settings = settings;
+    if (this.settings.connectionType === `tcp` || this.settings.connectionType === `telnet`) {
+      this.detect();
+    }
   }
 
   async processGcode(gcode) {
@@ -127,6 +129,7 @@ class Bot {
   getBot() {
     return {
       state: this.fsm.current,
+      settings: this.settings,
     };
   }
 
@@ -301,31 +304,41 @@ class Bot {
   async detect() {
     await this.fsm.detect();
     try {
-      if (this.virtual) {
-        this.queue = new CommandQueue(
-          new FakeMarlinExecutor(this.app.io),
-          this.expandCode,
-          _.bind(this.validateReply, this)
-        );
+      switch (this.settings.connectionType) {
+        case `serial`:
+          this.queue = new CommandQueue(
+            this.setupSerialExecutor(this.settings.port, this.config.baudrate),
+            this.expandCode,
+            _.bind(this.validateSerialReply, this)
+          );
+          break;
+        case `tcp`:
+          this.queue = new CommandQueue(
+            this.setupTCPExecutor(this.settings.port),
+            this.expandCode,
+            _.bind(this.validateTCPReply, this)
+          );
+          break;
+        default:
+          throw `connectionType "${this.settings.connectionType}" is not supported.`;
+      }
+      // if (this.virtual) {
+      //   this.queue = new CommandQueue(
+      //     new FakeMarlinExecutor(this.app.io),
+      //     this.expandCode,
+      //     _.bind(this.validateReply, this)
+      //   );
       // } else if (this.externalEndpoint) {
       //   this.queue = new CommandQueue(
       //     this.setupTCPExecutor(this.externalEndpoint),
       //     this.expandCode,
       //     this.validateTCPReply
       //   );
-      } else {
-        try {
-          this.queue = new CommandQueue(
-            this.setupSerialExecutor(this.settings.port, this.config.baudrate),
-            this.expandCode,
-            _.bind(this.validateReply, this)
-          );
-        } catch (ex) {
-          this.logger.error('wtf?', ex);
-        }
-      }
+      // } else {
+        // try {
       await this.fsm.detectDone();
     } catch (ex) {
+      this.logger.error(ex);
       await this.fsm.detectFail();
     }
   }
@@ -373,8 +386,8 @@ class Bot {
     );
   }
 
-  setupTCPExecutor(externalEndpoint) {
-    // return new TCPExecutor(externalEndpoint);
+  setupTCPExecutor(port) {
+    return new TCPExecutor(port);
   }
 
   /**
@@ -391,14 +404,14 @@ class Bot {
   }
 
   /**
-   * validateReply()
+   * validateSerialReply()
    *
    * Confirms if a reply contains 'ok' as its last line.  Parses out DOS newlines.
    *
    * Args:   reply - The reply from a bot after sending a command
    * Return: true if the last line was 'ok'
    */
-  validateReply(command, reply) {
+  validateSerialReply(command, reply) {
     const lines = reply.toString().split('\n');
     const ok = _.last(lines).indexOf(`ok`) !== -1;
     // this.app.io.emit(`botReply`, lines);
@@ -406,7 +419,7 @@ class Bot {
   }
 
   /**
-   * validateReply()
+   * validateTCPReply()
    *
    * Confirms if a reply contains 'ok' as its last line.  Parses out DOS newlines.
    *
@@ -414,8 +427,7 @@ class Bot {
    * Return: true if the last line was 'ok'
    */
   validateTCPReply(command, reply) {
-    this.logger.info('oooh what a hack', command, reply);
-    return true;
+    return reply.status === 200;
   }
 
   async jog(gcode) {
