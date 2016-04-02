@@ -117,7 +117,7 @@ class Bots {
       }
     }
     if (settings.connectionType === undefined) {
-      const errorMessage = `Bot connection type must be defined`;
+      const errorMessage = `Bot connectionType must be defined`;
       this.logger.error(errorMessage);
       throw errorMessage;
     }
