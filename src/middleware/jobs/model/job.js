@@ -3,6 +3,7 @@ const Sequelize = require('sequelize');
 module.exports = async (app) => {
   // Define the model for a job
   const Job = await app.context.db.define('Job', {
+    botId: Sequelize.STRING,
     uuid: Sequelize.STRING,
     state: Sequelize.STRING,
     fileUuid: Sequelize.STRING,

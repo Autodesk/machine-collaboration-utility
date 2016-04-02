@@ -3,7 +3,6 @@ const uuidGenerator = require(`node-uuid`);
 const Promise = require(`bluebird`);
 const StateMachine = Promise.promisifyAll(require(`./stateMachine`));
 const Stopwatch = Promise.promisifyAll(require('timer-stopwatch'));
-const _ = Promise.promisifyAll(require(`underscore`));
 
 const jobsRouter = require(`./routes`);
 const jobModel = require(`./model/job`);
@@ -41,11 +40,12 @@ class Jobs {
       const jobs = await this.Job.findAll();
       for (let i = 0; i < jobs.length; i++) {
         const job = jobs[i];
+        const botId = job.dataValues.botId;
         const uuid = job.dataValues.uuid;
         const state = job.dataValues.state;
         const id = job.dataValues.id;
         const fileUuid = job.dataValues.fileUuid;
-        const jobObject = await self.createJobObject(uuid, state, id, fileUuid);
+        const jobObject = await self.createJobObject(botId, uuid, state, id, fileUuid);
         jobObject.percentComplete = job.dataValues.percentComplete;
         jobObject.started = job.dataValues.started;
         jobObject.elapsed = job.dataValues.elapsed;
@@ -61,8 +61,12 @@ class Jobs {
   /**
    * Create a job object
    */
-  async createJobObject(userUuid, initialState, id, fileUuid) {
+  async createJobObject(botId, userUuid, initialState, id, fileUuid) {
     const self = this;
+
+    if (botId === undefined) {
+      throw `Printer ID is not defined`;
+    }
 
     const cancelable = ['running', 'paused'];
     const uuid = userUuid ? userUuid : await uuidGenerator.v1();
@@ -105,6 +109,7 @@ class Jobs {
               try {
                 // As soon as an event successfully transistions, update it in the database
                 const dbJob = await self.Job.findById(theJob.id);
+                await Promise.delay(0); // For some reason this can't happen in the same tick
                 await dbJob.updateAttributes({
                   state: theJob.fsm.current,
                   fileUuid: theJob.fileUuid,
@@ -136,6 +141,7 @@ class Jobs {
       fsm,
       stopwatch,
       fileUuid,
+      botId,
       started: undefined,
       elapsed: undefined,
       percentComplete: 0,
@@ -147,8 +153,8 @@ class Jobs {
     return jobObject;
   }
 
-  async createPersistentJob(uuid) {
-    const jobObject = await this.createJobObject(uuid);
+  async createPersistentJob(botId, uuid) {
+    const jobObject = await this.createJobObject(botId, uuid);
     const jobJson = this.jobToJson(jobObject);
     const dbJob = await this.Job.create(jobJson);
     uuid = dbJob.dataValues.uuid;
@@ -178,10 +184,11 @@ class Jobs {
    * Turn a job object into a REST reply friendly object
    */
   jobToJson(job) {
-    const state = job.fsm.current ? job.fsm.current: `created`;
+    const state = job.fsm.current ? job.fsm.current : `created`;
     const started = !!job.started ? job.started : null;
     const elapsed = !!job.started ? job.stopwatch.ms || job.elapsed : null;
     return {
+      botId: job.botId,
       uuid: job.uuid,
       state,
       fileUuid: job.fileUuid === undefined ? false : job.fileUuid,
@@ -223,7 +230,7 @@ class Jobs {
   async startJob(job) {
     try {
       await job.fsm.start();
-      await this.app.context.bot.startJob(job);
+      await this.app.context.bots.bots[job.botId].startJob(job);
       job.started = new Date().getTime();
       await job.stopwatch.start();
       await job.fsm.startDone();
@@ -240,7 +247,7 @@ class Jobs {
   async pauseJob(job) {
     try {
       await job.fsm.pause();
-      await this.app.context.bot.pauseJob();
+      await this.app.context.bots.bots[job.botId].pauseJob();
       await job.stopwatch.stop();
       await job.fsm.pauseDone();
     } catch (ex) {
@@ -256,7 +263,7 @@ class Jobs {
   async resumeJob(job) {
     try {
       job.fsm.resume();
-      await this.app.context.bot.resumeJob();
+      await this.app.context.bots.bots[job.botId].resumeJob();
       await job.stopwatch.start();
       job.fsm.resumeDone();
     } catch (ex) {
@@ -272,7 +279,7 @@ class Jobs {
   async cancelJob(job) {
     try {
       await job.fsm.cancel();
-      await this.app.context.bot.stopJob(job);
+      await this.app.context.bots.bots[job.botId].stopJob(job);
       await job.stopwatch.stop();
       await job.fsm.cancelDone();
     } catch (ex) {

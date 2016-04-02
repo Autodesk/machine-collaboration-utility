@@ -8,13 +8,20 @@ const createJob = (self) => {
 
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      let uuid = ctx.request.body.uuid;
+      const botId = ctx.request.body.botId;
+      if (botId === undefined) {
+        const errorMessage = `botId is not defined`;
+        throw errorMessage;
+      }
+
+      const uuid = ctx.request.body.uuid;
       if (self.jobs[uuid] !== undefined) {
         const errorMessage = `Job ${uuid} is already defined`;
         throw errorMessage;
       }
+
       // Create and save the job object
-      const jobObject = await self.createPersistentJob(uuid);
+      const jobObject = await self.createPersistentJob(botId, uuid);
       const jobJson = self.jobToJson(jobObject);
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, jobJson);
