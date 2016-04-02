@@ -26,12 +26,11 @@ const createBot = (self) => {
   const requestDescription = 'Create Bot';
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const paramSettings = {}
+      const paramSettings = {};
       // Overwrite the default settings with any settings passed by the request
-      for (let setting in ctx.request.params) {
-        const requestSetting = ctx.request.body[setting];
-        if (ctx.request.params.hasOwnProperty(setting)) {
-          paramSettings[setting] = ctx.request.params[setting];
+      for (const setting in ctx.request.body) {
+        if (ctx.request.body.hasOwnProperty(setting)) {
+          paramSettings[setting] = ctx.request.body[setting];
         }
       }
 
@@ -45,7 +44,7 @@ const createBot = (self) => {
 
       await self.Bot.create(botSettings);
       self.bots[botSettings.port] = await new Bot(self.app, botSettings);
-      const reply = `TCP Bot created`;
+      const reply = `Bot created`;
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
