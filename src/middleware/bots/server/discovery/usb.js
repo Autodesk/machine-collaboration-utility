@@ -46,6 +46,7 @@ class UsbDiscovery {
               const removedBot = self.app.context.bots.bots[botName];
               delete self.ports[listedPort];
               this.app.context.bots.bots[`null`] = removedBot;
+              this.app.context.bots.bots[`null`].settings.connectionType = undefined;
               removedBot.setPort(`null`);
               delete this.app.context.bots.bots[botName];
               removedBot.unplug();
@@ -73,9 +74,11 @@ class UsbDiscovery {
     const vid = parseInt(port.vendorId, 16);
     const pid = parseInt(port.productId, 16);
     for (const vidPid of this.config.vidPids) {
+      // If the vid pid match what we are looking for then we know we have a bot of interest
       if (vid === vidPid.vid && pid === vidPid.pid) {
         const nullBot = this.app.context.bots.bots[`null`];
         if (nullBot !== undefined) {
+          nullBot.settings.connectionType = `serial`;
           const botName = this.sanitizePortName(port.comName);
           this.app.context.bots.bots[botName] = nullBot;
           nullBot.setPort(port.comName);
