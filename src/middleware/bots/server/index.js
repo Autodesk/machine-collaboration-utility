@@ -46,11 +46,12 @@ class Bots {
       // Set up the bot database model
       this.Bot = await botModel(this.app);
       let botsDbArray = await this.Bot.findAll();
+
       // If there are not bots saved yet, create one
       // This first bot object is where we will save settings for
       // generic usb bots that cannot be made persistent
       if (botsDbArray.length === 0) {
-        const botSettings = this.createBot({connectionType:`null`});
+        const botSettings = this.createBot({ connectionType: `null` });
         await this.Bot.create(botSettings);
         // reload the botDbArray now that we have one
         botsDbArray = await this.Bot.findAll();
@@ -58,27 +59,7 @@ class Bots {
 
       // Load all bots from the database and add them to the 'bots' object
       for (const dbBot of botsDbArray) {
-        const botSettings = {};
-        botSettings.port = dbBot.dataValues.port;
-        botSettings.connectionType = dbBot.dataValues.connectionType;
-        botSettings.name = dbBot.dataValues.name;
-        botSettings.jogXSpeed = dbBot.dataValues.jogXSpeed;
-        botSettings.jogYSpeed = dbBot.dataValues.jogYSpeed;
-        botSettings.jogZSpeed = dbBot.dataValues.jogZSpeed;
-        botSettings.jogESpeed = dbBot.dataValues.jogESpeed;
-        botSettings.tempE = dbBot.dataValues.tempE;
-        botSettings.tempB = dbBot.dataValues.tempB;
-        botSettings.speedRatio = dbBot.dataValues.speedRatio;
-        botSettings.eRatio = dbBot.dataValues.eRatio;
-        botSettings.offsetX = dbBot.dataValues.offsetX;
-        botSettings.offsetY = dbBot.dataValues.offsetY;
-        botSettings.offsetZ = dbBot.dataValues.offsetZ;
-
-        // Create a bot object
-        // The first bot object created will always be the serial port bot
-        const botKey = this.sanitizePortName(botSettings.port);
-        const botObject = new Bot(this.app, botSettings);
-        this.bots[botKey] = botObject;
+        this.addDbBot(dbBot);
       }
 
       // Start scanning for all bots
@@ -87,6 +68,34 @@ class Bots {
     } catch (ex) {
       this.logger.error(`Bot initialization error`, ex);
     }
+  }
+
+  /*
+   * Read a database bot object. Create a bot object from the database object
+   * Then add the bot object to the 'bots' dictionary
+   */
+  addDbBot(dbBot) {
+    const botSettings = {};
+    botSettings.port = dbBot.dataValues.port;
+    botSettings.connectionType = dbBot.dataValues.connectionType;
+    botSettings.name = dbBot.dataValues.name;
+    botSettings.jogXSpeed = dbBot.dataValues.jogXSpeed;
+    botSettings.jogYSpeed = dbBot.dataValues.jogYSpeed;
+    botSettings.jogZSpeed = dbBot.dataValues.jogZSpeed;
+    botSettings.jogESpeed = dbBot.dataValues.jogESpeed;
+    botSettings.tempE = dbBot.dataValues.tempE;
+    botSettings.tempB = dbBot.dataValues.tempB;
+    botSettings.speedRatio = dbBot.dataValues.speedRatio;
+    botSettings.eRatio = dbBot.dataValues.eRatio;
+    botSettings.offsetX = dbBot.dataValues.offsetX;
+    botSettings.offsetY = dbBot.dataValues.offsetY;
+    botSettings.offsetZ = dbBot.dataValues.offsetZ;
+
+    // Create a bot object
+    // The first bot object created will always be the serial port bot
+    const botKey = this.sanitizePortName(botSettings.port);
+    const botObject = new Bot(this.app, botSettings);
+    this.bots[botKey] = botObject;
   }
 
   /*
@@ -173,6 +182,9 @@ class Bots {
     }
   }
 
+  /*
+   * Scan through and initialize every discovery type
+   */
   async setupDiscovery() {
     const discoveryDirectory = path.join(__dirname, `./discovery`);
     const discoveryTypes = await fs.readdir(discoveryDirectory);

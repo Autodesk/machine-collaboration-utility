@@ -148,24 +148,6 @@ class Bot {
    */
   async processCommand(command) {
     switch (command) {
-      // Create a virtual bot
-      // If the virtual bot is already created, just return the bot object
-      case `createVirtualBot`:
-        if (!this.virtual) {
-          this.virtual = true;
-          this.detect();
-        }
-        return this.getBot();
-
-      // Destroy a virtual bot
-      // If the virtual bot doesn't exist, just return the bot object
-      case `destroyVirtualBot`:
-        if (this.virtual) {
-          await this.unplug();
-          this.virtual = false;
-        }
-        return this.getBot();
-
       // Connect the bot via it's queue's executor
       case `connect`:
         this.connect();
@@ -300,42 +282,38 @@ class Bot {
     }
   }
 
-// TODO create a generic 'EXECUTOR' object associated with a Bot object
+  // Set up the appropriate command executor and validator for a given connection type
   async detect() {
     await this.fsm.detect();
     try {
+      let executor;
+      let validator;
+      // Set up the validator and executor
       switch (this.settings.connectionType) {
         case `serial`:
-          this.queue = new CommandQueue(
-            this.setupSerialExecutor(this.settings.port, this.config.baudrate),
-            this.expandCode,
-            _.bind(this.validateSerialReply, this)
-          );
+          executor = this.setupSerialExecutor(this.settings.port, this.config.baudrate),
+          validator = this.validateSerialReply;
           break;
         case `tcp`:
-          this.queue = new CommandQueue(
-            this.setupTCPExecutor(this.settings.port),
-            this.expandCode,
-            _.bind(this.validateTCPReply, this)
-          );
+          executor = this.setupSerialExecutor(this.settings.port);
+          validator = this.validateTCPReply;
+          break;
+        case `virtual`:
+          executor = new FakeMarlinExecutor(this.app.io);
+          validator = this.validateSerialReply;
           break;
         default:
-          throw `connectionType "${this.settings.connectionType}" is not supported.`;
+          const errorMessage = `connectionType "${this.settings.connectionType}" is not supported.`;
+          throw errorMessage;
       }
-      // if (this.virtual) {
-      //   this.queue = new CommandQueue(
-      //     new FakeMarlinExecutor(this.app.io),
-      //     this.expandCode,
-      //     _.bind(this.validateReply, this)
-      //   );
-      // } else if (this.externalEndpoint) {
-      //   this.queue = new CommandQueue(
-      //     this.setupTCPExecutor(this.externalEndpoint),
-      //     this.expandCode,
-      //     this.validateTCPReply
-      //   );
-      // } else {
-        // try {
+
+      // Set up the bot's command queue
+      this.queue = new CommandQueue(
+        executor,
+        this.expandCode,
+        _.bind(validator, this)
+      );
+
       await this.fsm.detectDone();
     } catch (ex) {
       this.logger.error(ex);
@@ -399,7 +377,6 @@ class Bot {
    * Return: a gcode string suitable for the hardware
    */
   expandCode(code) {
-    // TODO consider adding checksumming
     return `${code}\n`;
   }
 
@@ -414,7 +391,6 @@ class Bot {
   validateSerialReply(command, reply) {
     const lines = reply.toString().split('\n');
     const ok = _.last(lines).indexOf(`ok`) !== -1;
-    // this.app.io.emit(`botReply`, lines);
     return ok;
   }
 
