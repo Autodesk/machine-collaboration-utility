@@ -192,7 +192,7 @@ class Bots {
   }
 
   sanitizePortName(portName) {
-    return portName.replace(/\//g, '_');
+    return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
   }
 }
 
