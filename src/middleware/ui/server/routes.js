@@ -27,7 +27,7 @@ const getBots = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
-    const bots = self.app.context.bots.bots;
+    const bots = self.app.context.bots.getBots();
     await ctx.render(`ui/bots`, {
       title: `Hydra-Print`,
       jobs,
@@ -46,7 +46,7 @@ const getFiles = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
-    const bots = self.app.context.bots.bots;
+    const bots = self.app.context.bots.getBots();
     await ctx.render(`files/files`, {
       title: `Hydra-Print`,
       jobs,
@@ -65,7 +65,7 @@ const getJobs = (self) => {
     const ip = await getIp.address();
     const jobs = self.app.context.jobs.getJobs();
     const files = self.app.context.files.files;
-    const bots = self.app.context.bots.bots;
+    const bots = self.app.context.bots.getBots();
     await ctx.render(`jobs/jobs`, {
       title: `Hydra-Print`,
       jobs,
