@@ -1,137 +1,137 @@
-/* global $, io, ip, jobs, files, bot */
+/* global $, io, ip, jobs, files, bots */
 $(document).ready(() => {
-  function processGcode(gcode) {
-    $.ajax({
-      url: `/v1/bot/processGcode`,
-      type: `POST`,
-      data: {
-        gcode,
-      },
-      success: () => {
-        console.log(`gcode ${gcode} successfully sent`);
-      },
-      error: (err) => {
-        console.log('error', err);
-      },
-    });
-  }
-
-  function saveBotSettings() {
-    bot.jogXSpeed = $(`#jogXSpeed`).val();
-    bot.jogYSpeed = $(`#jogYSpeed`).val();
-    bot.jogZSpeed = $(`#jogZSpeed`).val();
-    bot.jogESpeed = $(`#jogESpeed`).val();
-    bot.tempE = $(`#tempE`).val();
-    bot.tempB = $(`#tempB`).val();
-    $.ajax({
-      url: `/v1/bot/`,
-      type: `PUT`,
-      data: {
-        bot,
-      },
-      success: () => {
-        // cool, what now?
-      },
-      error: (err) => {
-        console.log('error', err);
-      },
-    });
-  }
-
-  $(`#jog-panel-svg`).load(`images/jog_panel.svg`, () => {
-    const jogInfo = {
-      axes: [
-        { axis: `x`, alias: `X` },
-        { axis: `y`, alias: `Y` },
-        { axis: `z`, alias: `Z` },
-        { axis: `e`, alias: `E` },
-      ],
-      distance: [
-        { name: `100`, amount: `100` },
-        { name: `10`, amount: `10` },
-        { name: `1`, amount: `1` },
-        { name: `0_1`, amount: `0.1` },
-        { name: `-0_1`, amount: `-0.1` },
-        { name: `-1`, amount: `-1` },
-        { name: `-10`, amount: `-10` },
-        { name: `-100`, amount: `-100` },
-      ],
-    };
-
-    // Initialize each svg in the jog object to send gcode when clicked
-    for (let i = 0; i < jogInfo.axes.length; i++) {
-      for (let j = 0; j < jogInfo.distance.length; j++) {
-        $(`.jog_${jogInfo.axes[i].axis}_${jogInfo.distance[j].name}`).click(() => {
-          const axis = jogInfo.axes[i].alias;
-          const speed = bot[`jog${axis}Speed`];
-          const gcode = `G1 ${axis}${jogInfo.distance[j].amount} F${speed}`;
-          $.ajax({
-            url: `/v1/bot/jog`,
-            type: `POST`,
-            data: {
-              gcode,
-            },
-            success: () => {
-              console.log(`gcode ${gcode} successfully sent`);
-            },
-            error: (err) => {
-              console.log('error', err);
-            },
-          });
-        });
-      }
-    }
-  });
-
-  // Initialize all "disable motor" click events
-  $(`#disable-x`).click(() => { processGcode(`M84 X`); });
-  $(`#disable-y`).click(() => { processGcode(`M84 Y`); });
-  $(`#disable-z`).click(() => { processGcode(`M84 Z`); });
-  $(`#disable-e`).click(() => { processGcode(`M84 E`); });
-  $(`#disable-all`).click(() => { processGcode(`M84`); });
-
-  function updateExtruder() {
-    const temp = $(`#extruder-setpoint`).val();
-    // validate temp?
-    processGcode(`M104 S${temp}`);
-  }
-  $(`#extruder-temp-form`).submit((e) => {
-    e.preventDefault();
-    updateExtruder();
-    saveBotSettings();
-  });
-  $(`#extruder-off`).click(() => { processGcode(`M104 S0`); });
-
-  function updateBed() {
-    const temp = $(`#bed-setpoint`).val();
-    // validate temp?
-    processGcode(`M140 S${temp}`);
-  }
-  $(`#bed-temp-form`).submit((e) => {
-    e.preventDefault();
-    updateBed();
-    saveBotSettings();
-  });
-  $(`#bed-off`).click(() => { processGcode(`M140 S0`); });
-
-  function updateBotSettings() {
-    const settings = [
-      `jogXSpeed`,
-      `jogYSpeed`,
-      `jogZSpeed`,
-      `jogESpeed`,
-      `tempE`,
-      `tempB`,
-    ];
-    settings.forEach((setting) => {
-      $(`#${setting}`).val(bot[setting]);
-    });
-  }
-
-  $("#jog-speeds").submit((e) => {
-    e.preventDefault();
-    saveBotSettings();
-  });
+  // function processGcode(gcode) {
+  //   $.ajax({
+  //     url: `/v1/bot/processGcode`,
+  //     type: `POST`,
+  //     data: {
+  //       gcode,
+  //     },
+  //     success: () => {
+  //       console.log(`gcode ${gcode} successfully sent`);
+  //     },
+  //     error: (err) => {
+  //       console.log('error', err);
+  //     },
+  //   });
+  // }
+  //
+  // function saveBotSettings() {
+  //   bot.jogXSpeed = $(`#jogXSpeed`).val();
+  //   bot.jogYSpeed = $(`#jogYSpeed`).val();
+  //   bot.jogZSpeed = $(`#jogZSpeed`).val();
+  //   bot.jogESpeed = $(`#jogESpeed`).val();
+  //   bot.tempE = $(`#tempE`).val();
+  //   bot.tempB = $(`#tempB`).val();
+  //   $.ajax({
+  //     url: `/v1/bot/`,
+  //     type: `PUT`,
+  //     data: {
+  //       bot,
+  //     },
+  //     success: () => {
+  //       // cool, what now?
+  //     },
+  //     error: (err) => {
+  //       console.log('error', err);
+  //     },
+  //   });
+  // }
+  //
+  // $(`#jog-panel-svg`).load(`images/jog_panel.svg`, () => {
+  //   const jogInfo = {
+  //     axes: [
+  //       { axis: `x`, alias: `X` },
+  //       { axis: `y`, alias: `Y` },
+  //       { axis: `z`, alias: `Z` },
+  //       { axis: `e`, alias: `E` },
+  //     ],
+  //     distance: [
+  //       { name: `100`, amount: `100` },
+  //       { name: `10`, amount: `10` },
+  //       { name: `1`, amount: `1` },
+  //       { name: `0_1`, amount: `0.1` },
+  //       { name: `-0_1`, amount: `-0.1` },
+  //       { name: `-1`, amount: `-1` },
+  //       { name: `-10`, amount: `-10` },
+  //       { name: `-100`, amount: `-100` },
+  //     ],
+  //   };
+  //
+  //   // Initialize each svg in the jog object to send gcode when clicked
+  //   for (let i = 0; i < jogInfo.axes.length; i++) {
+  //     for (let j = 0; j < jogInfo.distance.length; j++) {
+  //       $(`.jog_${jogInfo.axes[i].axis}_${jogInfo.distance[j].name}`).click(() => {
+  //         const axis = jogInfo.axes[i].alias;
+  //         const speed = bot[`jog${axis}Speed`];
+  //         const gcode = `G1 ${axis}${jogInfo.distance[j].amount} F${speed}`;
+  //         $.ajax({
+  //           url: `/v1/bot/jog`,
+  //           type: `POST`,
+  //           data: {
+  //             gcode,
+  //           },
+  //           success: () => {
+  //             console.log(`gcode ${gcode} successfully sent`);
+  //           },
+  //           error: (err) => {
+  //             console.log('error', err);
+  //           },
+  //         });
+  //       });
+  //     }
+  //   }
+  // });
+  //
+  // // Initialize all "disable motor" click events
+  // $(`#disable-x`).click(() => { processGcode(`M84 X`); });
+  // $(`#disable-y`).click(() => { processGcode(`M84 Y`); });
+  // $(`#disable-z`).click(() => { processGcode(`M84 Z`); });
+  // $(`#disable-e`).click(() => { processGcode(`M84 E`); });
+  // $(`#disable-all`).click(() => { processGcode(`M84`); });
+  //
+  // function updateExtruder() {
+  //   const temp = $(`#extruder-setpoint`).val();
+  //   // validate temp?
+  //   processGcode(`M104 S${temp}`);
+  // }
+  // $(`#extruder-temp-form`).submit((e) => {
+  //   e.preventDefault();
+  //   updateExtruder();
+  //   saveBotSettings();
+  // });
+  // $(`#extruder-off`).click(() => { processGcode(`M104 S0`); });
+  //
+  // function updateBed() {
+  //   const temp = $(`#bed-setpoint`).val();
+  //   // validate temp?
+  //   processGcode(`M140 S${temp}`);
+  // }
+  // $(`#bed-temp-form`).submit((e) => {
+  //   e.preventDefault();
+  //   updateBed();
+  //   saveBotSettings();
+  // });
+  // $(`#bed-off`).click(() => { processGcode(`M140 S0`); });
+  //
+  // function updateBotSettings() {
+  //   const settings = [
+  //     `jogXSpeed`,
+  //     `jogYSpeed`,
+  //     `jogZSpeed`,
+  //     `jogESpeed`,
+  //     `tempE`,
+  //     `tempB`,
+  //   ];
+  //   settings.forEach((setting) => {
+  //     $(`#${setting}`).val(bot[setting]);
+  //   });
+  // }
+  //
+  // $("#jog-speeds").submit((e) => {
+  //   e.preventDefault();
+  //   saveBotSettings();
+  // });
 
   function deleteJob(job) {
     const ourJob = $(`#job_${job.uuid}`);
@@ -336,7 +336,7 @@ $(document).ready(() => {
   });
 
   socket.on('botReply', (reply) => {
-    addReply(reply);
+    // addReply(reply);
   });
 
   // Initialize the jobs, files, and bot
@@ -350,54 +350,7 @@ $(document).ready(() => {
       updateFile(files[file]);
     }
   }
-  updateBotSettings();
-
-
-  // connect the device on click of connect button
-  $(`#connect`).click(() => {
-    // a hack for prototyping, if no device is available, make a virtual device
-    if ($(`#hardwareState`).text() === `unavailable`) {
-      $.ajax({
-        url: `/v1/bot`,
-        type: `POST`,
-        data: {
-          command: `createVirtualBot`,
-        },
-        success: () => {
-          $.ajax({
-            url: `/v1/bot`,
-            type: `POST`,
-            data: {
-              command: `connect`,
-            },
-            success: () => {
-              console.log('virtual connect success!');
-            },
-            error: (err) => {
-              console.log('error', err);
-            },
-          });
-        },
-        error: (err) => {
-          console.log('error', err);
-        },
-      });
-    } else {
-      $.ajax({
-        url: `/v1/bot`,
-        type: `POST`,
-        data: {
-          command: `connect`,
-        },
-        success: () => {
-          console.log('connect success!');
-        },
-        error: (err) => {
-          console.log('error', err);
-        },
-      });
-    }
-  });
+  // updateBotSettings();
 
   function progressHandlingFunction(e) {
     const $fileUploadProgress = $(`#file-upload-progress`);
@@ -458,13 +411,102 @@ $(document).ready(() => {
     $fileFormInput.click();
   });
 
-  const $gcodeTerminal = $(`#gcode-terminal`);
-  $gcodeTerminal.submit((e) => {
-    e.preventDefault();
-    const gcode = $(`#gcode-input`).val();
-    if (true) { // need to validate gcode here
-      $(`#gcode-input`).val(``);
-      processGcode(gcode);
+  function updateBot(botKey, bot) {
+    let $botDiv = $(`#bot_${botKey}`);
+    if ($botDiv.length === 0) {
+      // If the bot doesn't exist, add it
+
+      // add it to the local "bot" object
+      bots[botKey] = bot;
+
+      // and add it to the DOM
+      const botDiv = `
+        <div id="${botKey}">
+         ${botKey}
+        </div>`;
+      $('#bot-tabs').append(botDiv);
+      const $botDiv = $(`#bot_${botKey}`);
+
+      /// add more divs here if you want
+      // $fileDiv.append(`<div class="example">fooooobar</div>`);
+
+      // // Add an element for each job attribute
+      // for (const fileAttribute in file) {
+      //   if (fileAttribute === `name` || fileAttribute === `dateChanged`) {
+      //     const attributeDiv =
+      //       `<span class="file_${fileAttribute}" id="file_${file.uuid}_${fileAttribute}">` +
+      //       `${file[fileAttribute]}` +
+      //       `</span>`;
+      //     $fileDetailsDiv.append(attributeDiv);
+      //   } else {
+      //     const attributeDiv =
+      //       `<span class="file_${fileAttribute}" id="file_${file.uuid}_${fileAttribute}">` +
+      //       `${file[fileAttribute]}` +
+      //       `</span>`;
+      //     $fileDiv.append(attributeDiv);
+      //   }
+      // }
     }
-  });
+  }
+
+  for (const bot in bots) {
+    if (bots.hasOwnProperty(bot)) {
+      updateBot(bot, bots[bot]);
+    }
+  }
+  // connect the device on click of connect button
+  // $(`#connect`).click(() => {
+  //   // a hack for prototyping, if no device is available, make a virtual device
+  //   if ($(`#hardwareState`).text() === `unavailable`) {
+  //     $.ajax({
+  //       url: `/v1/bot`,
+  //       type: `POST`,
+  //       data: {
+  //         command: `createVirtualBot`,
+  //       },
+  //       success: () => {
+  //         $.ajax({
+  //           url: `/v1/bot`,
+  //           type: `POST`,
+  //           data: {
+  //             command: `connect`,
+  //           },
+  //           success: () => {
+  //             console.log('virtual connect success!');
+  //           },
+  //           error: (err) => {
+  //             console.log('error', err);
+  //           },
+  //         });
+  //       },
+  //       error: (err) => {
+  //         console.log('error', err);
+  //       },
+  //     });
+  //   } else {
+  //     $.ajax({
+  //       url: `/v1/bot`,
+  //       type: `POST`,
+  //       data: {
+  //         command: `connect`,
+  //       },
+  //       success: () => {
+  //         console.log('connect success!');
+  //       },
+  //       error: (err) => {
+  //         console.log('error', err);
+  //       },
+  //     });
+  //   }
+  // });
+
+  // const $gcodeTerminal = $(`#gcode-terminal`);
+  // $gcodeTerminal.submit((e) => {
+  //   e.preventDefault();
+  //   const gcode = $(`#gcode-input`).val();
+  //   if (true) { // need to validate gcode here
+  //     $(`#gcode-input`).val(``);
+  //     processGcode(gcode);
+  //   }
+  // });
 });
