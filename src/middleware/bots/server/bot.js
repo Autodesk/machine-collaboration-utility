@@ -5,7 +5,7 @@ const fs = require(`fs`);
 const _ = require(`underscore`);
 
 const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
-const TCPExecutor = require(`./comProtocols/tcp/executor`);
+const HttpExecutor = require(`./comProtocols/http/executor`);
 // const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
 const CommandQueue = require(`./commandQueue`);
 
@@ -87,7 +87,7 @@ class Bot {
       },
     });
     this.settings = settings;
-    if (this.settings.connectionType === `tcp` || this.settings.connectionType === `telnet`) {
+    if (this.settings.connectionType === `http` || this.settings.connectionType === `telnet`) {
       this.detect();
     }
   }
@@ -291,12 +291,13 @@ class Bot {
       // Set up the validator and executor
       switch (this.settings.connectionType) {
         case `serial`:
+          console.log('eyyyyy', this);
           executor = this.setupSerialExecutor(this.settings.port, this.config.baudrate),
           validator = this.validateSerialReply;
           break;
-        case `tcp`:
-          executor = this.setupSerialExecutor(this.settings.port);
-          validator = this.validateTCPReply;
+        case `http`:
+          executor = this.setupHttpExecutor(this.settings.port);
+          validator = this.validateHttpReply;
           break;
         case `virtual`:
           executor = new FakeMarlinExecutor(this.app.io);
@@ -364,8 +365,8 @@ class Bot {
     );
   }
 
-  setupTCPExecutor(port) {
-    return new TCPExecutor(port);
+  setupHttpExecutor(port) {
+    return new HttpExecutor(port);
   }
 
   /**
@@ -395,14 +396,14 @@ class Bot {
   }
 
   /**
-   * validateTCPReply()
+   * validateHttpReply()
    *
    * Confirms if a reply contains 'ok' as its last line.  Parses out DOS newlines.
    *
    * Args:   reply - The reply from a bot after sending a command
    * Return: true if the last line was 'ok'
    */
-  validateTCPReply(command, reply) {
+  validateHttpReply(command, reply) {
     return reply.status === 200;
   }
 

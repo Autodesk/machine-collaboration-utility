@@ -1,7 +1,7 @@
 /*******************************************************************************
- * TCPCommandExecutor()
+ * HttpCommandExecutor()
  *
- * Constructor for the TCPCommandExecutor.  The command queue requests to
+ * Constructor for the HttpCommandExecutor.  The command queue requests to
  * open and close the connection, and while open sends command strings to be
  * executed.
  *
@@ -11,9 +11,9 @@
  * Args:   externalEndpoint - url at which to communicate
  */
 
-var TCPConnection = require('./connection');
+var HttpConnection = require('./connection');
 
-var TCPCommandExecutor = function (externalEndpoint) {
+var HttpCommandExecutor = function (externalEndpoint) {
   this.externalEndpoint = externalEndpoint;
   this.mConnection = undefined;
   this.mCommandsProcessed = undefined;
@@ -24,7 +24,7 @@ var TCPCommandExecutor = function (externalEndpoint) {
  *
  * Accessor
  */
-TCPCommandExecutor.prototype.getCommandsProcessed = function () {
+HttpCommandExecutor.prototype.getCommandsProcessed = function () {
   return this.mCommandsProcessed;
 };
 
@@ -37,8 +37,8 @@ TCPCommandExecutor.prototype.getCommandsProcessed = function () {
  * Args:   inDoneFunc - called when we complete our connection
  * Return: N/A
  */
-TCPCommandExecutor.prototype.open = function (inDoneFunc) {
-  this.mConnection = new TCPConnection(
+HttpCommandExecutor.prototype.open = function (inDoneFunc) {
+  this.mConnection = new HttpConnection(
     this.externalEndpoint,
     () => { inDoneFunc(true); }
   );
@@ -53,7 +53,7 @@ TCPCommandExecutor.prototype.open = function (inDoneFunc) {
  * Args:   inDoneFunc - called when we close our connection
  * Return: N/A
  */
-TCPCommandExecutor.prototype.close = function (inDoneFunc) {
+HttpCommandExecutor.prototype.close = function (inDoneFunc) {
   var that = this;
   // that.mConnection.close();
   inDoneFunc(true);
@@ -71,7 +71,7 @@ TCPCommandExecutor.prototype.close = function (inDoneFunc) {
  *         inDataFunc - function to call with response data
  *         inDoneFunc - function to call if the command will have no response
  */
-TCPCommandExecutor.prototype.execute = function (
+HttpCommandExecutor.prototype.execute = function (
   inRawCode,
   inDataFunc,
   inDoneFunc
@@ -81,4 +81,4 @@ TCPCommandExecutor.prototype.execute = function (
   this.mCommandsProcessed++;
 };
 
-module.exports = TCPCommandExecutor;
+module.exports = HttpCommandExecutor;

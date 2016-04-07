@@ -1,8 +1,7 @@
 /*******************************************************************************
- * tcpConnection.js
+ * connection.js
  *
- * A class to manage opening, maintaining, and closing a tcp connection.
- * // TODO replace http requests with socket communication
+ * A class to manage opening, maintaining, and closing an http connection.
  ******************************************************************************/
 var _ = require('underscore'),
     Heartbeat = require('heartbeater');
@@ -10,9 +9,9 @@ let logger;
 
 var request = require(`request-promise`);
 /**
- * TCPConnection()
+ * HttpConnection()
  *
- * Manages a tcp connection.
+ * Manages an http connection.
  *
  *
  * User defined callbacks can be set for processing data, close and error
@@ -23,7 +22,7 @@ var request = require(`request-promise`);
  *                           connected
  * Return: N/A
  */
-class TCPConnection {
+class HttpConnection {
   constructor(externalEndpoint, doneFunction) {
     this.externalEndpoint = externalEndpoint;
     this.doneFunction = doneFunction;
@@ -117,4 +116,4 @@ class TCPConnection {
   }
 }
 
-module.exports = TCPConnection;
+module.exports = HttpConnection;

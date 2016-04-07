@@ -96,7 +96,7 @@ const deleteBot = (self) => {
       if (bot === undefined) {
         throw `Bot ${port} does not exist`;
       }
-      if (bot.settings.connectionType !== `tcp` && bot.settings.connectionType !== `telnet`) {
+      if (bot.settings.connectionType !== `http` && bot.settings.connectionType !== `telnet`) {
         throw `Cannot delete bot of type ${bot.connectionType}`;
       }
       const bots = await self.Bot.findAll();

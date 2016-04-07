@@ -43,12 +43,12 @@ class UsbDiscovery {
             // now do all the steps to remove it
             if (foundPort === undefined) {
               const botName = self.sanitizePortName(listedPort);
-              const removedBot = self.app.context.bots.bots[botName];
+              const removedBot = self.app.context.bots.bots['usb'];
               delete self.ports[listedPort];
               this.app.context.bots.bots[`null`] = removedBot;
               this.app.context.bots.bots[`null`].settings.connectionType = undefined;
               removedBot.setPort(`null`);
-              delete this.app.context.bots.bots[botName];
+              delete this.app.context.bots.bots['usb'];
               removedBot.unplug();
             }
           }
@@ -80,7 +80,7 @@ class UsbDiscovery {
         if (nullBot !== undefined) {
           nullBot.settings.connectionType = `serial`;
           const botName = this.sanitizePortName(port.comName);
-          this.app.context.bots.bots[botName] = nullBot;
+          this.app.context.bots.bots['usb'] = nullBot;
           nullBot.setPort(port.comName);
           delete this.app.context.bots.bots[`null`];
           nullBot.detect(port);

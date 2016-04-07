@@ -11,7 +11,7 @@
     -
       name: "Jobs"
     -
-      name: "Bot"
+      name: "Bots"
   schemes:
     - "http"
   paths:
@@ -258,24 +258,24 @@
             description: "File set to job"
           405:
             description: "Invalid input"
-    /bot:
+    /bots:
       get:
         tags:
-          - "Bot"
-        summary: "Get the bot object"
-        description: ""
+          - "Bots"
+        summary: "Get bots object"
+        description: "Get an object containing info for every availble bot"
         consumes:
           - application/json
         produces:
           - application/json
         responses:
           200:
-            description: "Bot retreived"
+            description: "Bots retreived"
           405:
             description: "Invalid input"
       post:
         tags:
-          - "Bot"
+          - "Bots"
         summary: "Issue a command to a bot"
         description: "The following are valid bot commands:  \n
           - connect  \n
@@ -303,13 +303,13 @@
             type: array
         responses:
           200:
-            description: "Bot command executed"
+            description: "Bots command executed"
           405:
             description: "Invalid input"
     /bot/status:
       get:
         tags:
-          - "Bot"
+          - "Bots"
         summary: "Get the current status of the bot"
         description: ""
         consumes:
@@ -318,6 +318,6 @@
           - application/json
         responses:
           200:
-            description: "Bot status retreived"
+            description: "Bots status retreived"
           405:
             description: "Invalid input"

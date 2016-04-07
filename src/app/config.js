@@ -22,16 +22,4 @@ module.exports = {
       pid: 24597,
     },
   ],
-  conductor: {
-    players: [
-      {
-        name: `alf`,
-        url: `http://escher1a.local:9000`,
-      },
-      {
-        name: `bettie`,
-        url: `http://escher1b.local:9000`,
-      },
-    ],
-  },
 };
