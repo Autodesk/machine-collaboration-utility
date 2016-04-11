@@ -16,8 +16,8 @@ const createJob = (self) => {
 
       const uuid = ctx.request.body.uuid;
       if (self.jobs[uuid] !== undefined) {
-        const errorMessage = `Job ${uuid} is already defined`;
-        throw errorMessage;
+        // Delete the job from the database and the jobs object
+        await self.deleteJob(uuid);
       }
 
       // Create and save the job object
