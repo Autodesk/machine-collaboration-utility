@@ -9,6 +9,77 @@ const HttpExecutor = require(`./comProtocols/http/executor`);
 const VirtualExecutor = require(`./comProtocols/virtual/executor`);
 const CommandQueue = require(`./commandQueue`);
 
+const parkCommands = function parkCommands(that) {
+  return {
+    code:'M114',
+    processData: (inCommand, inReply) => {
+      const commandArray = [];
+
+      let preParkLocation = {
+        'X': Number(inReply.split('X:')[1].split('Y:')[0]),
+        'Z': Number(inReply.split('Z:')[1].split('E:')[0]),
+      };
+
+      logger.info('preParkLocation ', preParkLocation );
+
+      if (preParkLocation.Z < 18) {
+        commandArray.push('G1 Y25 Z18 F3600');
+      }
+      commandArray.push('G1 Y2 F3600');
+      commandArray.push('G92 E0');
+      commandArray.push('G1 E-10 F1000');
+      commandArray.push({
+        postCallback: () => {
+          that.fsm.parkDone();
+        },
+      });
+
+      that.mQueue.queueCommands(commandArray);
+
+      return true;
+    },
+  };
+};
+
+const unparkCommands = function unparkCommands(that, xEntry, dryJob) {
+  const commandArray = [
+    {
+      code: 'M114',
+      processData: (inCommand, inReply) => {
+        const purgeArray = [];
+        logger.info('Unparking: ', xEntry, '\t', dryJob);
+        logger.info('xEntry Type: ', typeof(xEntry));
+        logger.info('dry Type: ', typeof(dryJob));
+
+        if (xEntry !== undefined) {
+          logger.info('Unparking: Moving to entry X');
+          purgeArray.push('G1 X' + xEntry + ' F3600');
+        }
+        if (dryJob.toLowerCase() === 'false'){
+          logger.info('Unparking: Purging');
+
+          purgeArray.push('G92 E-10');
+          purgeArray.push('G1 E-2 F1000');
+          purgeArray.push('G1 E0 F500');
+          purgeArray.push('G1 E5 F200');
+          purgeArray.push('G1 E4 F1800');
+          purgeArray.push('G1 Y27 F3600');
+        }
+        commandArray.push({
+          postCallback: () => {
+            that.fsm.unparkDone();
+          },
+        });
+        that.mQueue.queueCommands(purgeArray);
+        return true;
+      },
+    },
+  ];
+  return commandArray;
+};
+
+
+
 /**
  * This is a Bot class representing hardware that can process jobs.
  * All commands to the bot are passed to it's queue and processed sequentially
@@ -419,12 +490,13 @@ class Bot {
   async park() {
     try {
       this.fsm.park();
-      this.queue.queueCommands({
-        code: `G1 Z10`,
-        postCallback: () => {
-          this.fsm.parkDone();
-        },
-      });
+      this.queue.queueCommands(parkCommands(this));
+      // this.queue.queueCommands({
+      //   code: `G1 Z10`,
+      //   postCallback: () => {
+      //     this.fsm.parkDone();
+      //   },
+      // });
     } catch (ex) {
       this.fsm.parkFail();
     }
@@ -433,12 +505,13 @@ class Bot {
   async unpark() {
     try {
       this.fsm.unpark();
-      this.queue.queueCommands({
-        code: `G1 Z10`,
-        postCallback: () => {
-          this.fsm.unparkDone();
-        },
-      });
+      this.queue.queueCommands(unparkCommands(this));
+      // this.queue.queueCommands({
+      //   code: `G1 Z10`,
+      //   postCallback: () => {
+      //     this.fsm.unparkDone();
+      //   },
+      // });
     } catch (ex) {
       this.fsm.unparkFail();
     }
