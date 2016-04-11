@@ -184,9 +184,9 @@ class Bot {
       case `processingJob`:
       case `processingJobGcode`:
       case `processingGcode`:
-        command = self.addOffset(command);
-        command = self.addSpeedMultiplier(command);
-        command = self.addFeedMultiplier(command);
+        command = this.addOffset(command);
+        command = this.addSpeedMultiplier(command);
+        command = this.addFeedMultiplier(command);
         this.queue.queueCommands(command);
         return true;
       default:
@@ -203,9 +203,9 @@ class Bot {
       case `processingJobGcode`:
       case `processingGcode`:
         if (this.queue.mQueue.length < 32) {
-          command = self.addOffset(command);
-          command = self.addSpeedMultiplier(command);
-          command = self.addFeedMultiplier(command);
+          command = this.addOffset(command);
+          command = this.addSpeedMultiplier(command);
+          command = this.addFeedMultiplier(command);
           this.queue.queueCommands(command);
           return true;
         }
