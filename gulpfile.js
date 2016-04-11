@@ -5,7 +5,7 @@ const nodemon = require(`gulp-nodemon`);
 const autoprefixer = require(`gulp-autoprefixer`);
 const mocha = require(`gulp-mocha`);
 const rename = require(`gulp-rename`);
-const sass = require(`gulp-sass`);
+//const sass = require(`gulp-sass`);
 
 const src = {
   serverJs: `src/app/**/*.js`,
@@ -43,9 +43,9 @@ gulp.task(`build`, [
   `build-server`,
   `build-views`,
   `build-client-js`,
-  `build-client-styles`,
-  `build-client-fonts`,
-  `build-client-images`,
+  //`build-client-styles`,
+  //`build-client-fonts`,
+  //`build-client-images`,
   `build-server-middleware`,
   `build-views-middleware`,
   `build-client-js-middleware`,
