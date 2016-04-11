@@ -592,13 +592,28 @@ class Bot {
   }
 
   addOffset(command) {
-    // const splitX = command.split('X');
-    // if (splitX.length > 1) {
-    //   let num = parseInt(splitX[1].split(' ')[0], 10);
-    //   num += this.settings.offsetX;
-    //   command = splitX[0] + num + ' ' + splitX[1].split(' ')[1];
-    // }
-    return command;
+    let gcodeOut = command;
+    console.log('before', gcodeOut);
+    const splitX = command.split('X');
+    if (splitX.length > 1) {
+      let num = parseInt(splitX[1].split(' ')[0], 10);
+      num += this.settings.offsetX;
+      gcodeOut = splitX[0] + num + ' ' + splitX[1].split(' ')[1];
+    }
+    const splitY = command.split('Y');
+    if (splitY.length > 1) {
+      let num = parseInt(splitY[1].split(' ')[0], 10);
+      num += this.settings.offsetY;
+      gcodeOut = splitY[0] + num + ' ' + splitY[1].split(' ')[1];
+    }
+    const splitZ = command.split('Z');
+    if (splitZ.length > 1) {
+      let num = parseInt(splitZ[1].split(' ')[0], 10);
+      num += this.settings.offsetZ;
+      gcodeOut = splitZ[0] + num + ' ' + splitZ[1].split(' ')[1];
+    }
+    console.log('after', gcodeOut);
+    return gcodeOut;
   }
 
   addSpeedMultiplier(command) {
