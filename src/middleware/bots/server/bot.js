@@ -34,7 +34,7 @@ const parkCommands = function parkCommands(that) {
         },
       });
 
-      that.mQueue.queueCommands(commandArray);
+      that.queue.queueCommands(commandArray);
 
       return true;
     },
@@ -70,7 +70,7 @@ const unparkCommands = function unparkCommands(that, xEntry, dryJob) {
             that.fsm.unparkDone();
           },
         });
-        that.mQueue.queueCommands(purgeArray);
+        that.queue.queueCommands(purgeArray);
         return true;
       },
     },
