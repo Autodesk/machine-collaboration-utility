@@ -20,7 +20,7 @@ const parkCommands = function parkCommands(that) {
         'Z': Number(inReply.split('Z:')[1].split('E:')[0]),
       };
 
-      logger.info('preParkLocation ', preParkLocation );
+      that.logger.info('preParkLocation ', preParkLocation );
 
       if (preParkLocation.Z < 18) {
         commandArray.push('G1 Y25 Z18 F3600');
@@ -47,16 +47,16 @@ const unparkCommands = function unparkCommands(that, xEntry, dryJob) {
       code: 'M114',
       processData: (inCommand, inReply) => {
         const purgeArray = [];
-        logger.info('Unparking: ', xEntry, '\t', dryJob);
-        logger.info('xEntry Type: ', typeof(xEntry));
-        logger.info('dry Type: ', typeof(dryJob));
+        that.logger.info('Unparking: ', xEntry, '\t', dryJob);
+        that.logger.info('xEntry Type: ', typeof(xEntry));
+        that.logger.info('dry Type: ', typeof(dryJob));
 
         if (xEntry !== undefined) {
-          logger.info('Unparking: Moving to entry X');
+          that.logger.info('Unparking: Moving to entry X');
           purgeArray.push('G1 X' + xEntry + ' F3600');
         }
         if (dryJob.toLowerCase() === 'false'){
-          logger.info('Unparking: Purging');
+          that.logger.info('Unparking: Purging');
 
           purgeArray.push('G92 E-10');
           purgeArray.push('G1 E-2 F1000');
