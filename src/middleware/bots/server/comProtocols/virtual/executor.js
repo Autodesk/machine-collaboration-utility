@@ -5,9 +5,9 @@
  * API calls as defined by CommandQueue
  *
  */
-const FakeMarlinConnection = require('./fakeMarlinConnection');
+const VirtualConnection = require('./connection');
 
-class FakeMarlinExecutor {
+class VirtualExecutor {
   constructor(io) {
     this.connection = undefined;
     this.commandsProcessed = undefined;
@@ -34,7 +34,7 @@ class FakeMarlinExecutor {
    * Return: N/A
    */
   open(doneFunc) {
-    this.connection = new FakeMarlinConnection(
+    this.connection = new VirtualConnection(
       function () { doneFunc(true); },
       this.io
     );
@@ -72,4 +72,4 @@ class FakeMarlinExecutor {
   }
 }
 
-module.exports = FakeMarlinExecutor;
+module.exports = VirtualExecutor;

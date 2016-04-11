@@ -157,7 +157,7 @@ class Bots {
   getBot(port) {
     const bot = this.bots[port];
     if (bot === undefined) {
-      const errorMessage = `Bot ${port} does not exist`;
+      const errorMessage = `Bot with port '${port}' does not exist`;
       this.logger.error(errorMessage);
       throw errorMessage;
     }

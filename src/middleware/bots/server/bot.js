@@ -6,7 +6,7 @@ const _ = require(`underscore`);
 
 const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
 const HttpExecutor = require(`./comProtocols/http/executor`);
-// const FakeMarlinExecutor = require(`./fakeMarlinExecutor`);
+const VirtualExecutor = require(`./comProtocols/virtual/executor`);
 const CommandQueue = require(`./commandQueue`);
 
 /**
@@ -25,8 +25,6 @@ class Bot {
    * @param {string} settings - The settings, as retreived from the database.
    */
   constructor(app, settings) {
-    app.context.bot = this; // External app reference variable
-
     this.app = app;
     this.config = app.context.config;
     this.logger = app.context.logger;
@@ -87,9 +85,18 @@ class Bot {
       },
     });
     this.settings = settings;
-    if (this.settings.connectionType === `http` || this.settings.connectionType === `telnet`) {
-      this.detect();
+    switch (this.settings.connectionType) {
+      case `http`:
+      case `telnet`:
+      case `virtual`:
+        this.detect();
+        break;
+      default:
+        // Do nothing
     }
+    // if (this.settings.connectionType === `http` || this.settings.connectionType === `telnet`) {
+    //   this.detect();
+    // }
   }
 
   async processGcode(gcode) {
@@ -131,6 +138,36 @@ class Bot {
       state: this.fsm.current,
       settings: this.settings,
     };
+  }
+
+  async updateBot(newSettings) {
+    const settingsToUpdate = {};
+    for (const botSetting in this.settings) {
+      if (this.settings.hasOwnProperty(botSetting)) {
+        for (const newSetting in newSettings) {
+          if (newSettings.hasOwnProperty(newSetting)) {
+            if (botSetting === newSetting) {
+              settingsToUpdate[newSetting] = newSettings[newSetting];
+            }
+          }
+        }
+      }
+    }
+    const dbBots = await this.app.context.bots.Bot.findAll();
+
+    // The usb port is not a persistent value, while tcp and telnet ports are
+    // Because of this, updating a usb port's settings should instead update the `null` port
+    const thePort = this.settings.connectionType === `serial` ? `null` : this.settings.port;
+    const dbBot = _.find(dbBots, (bot) => {
+      return bot.dataValues.port === thePort;
+    });
+    await dbBot.update(settingsToUpdate);
+    for (const newSetting in settingsToUpdate) {
+      if (settingsToUpdate.hasOwnProperty(newSetting) && this.settings.hasOwnProperty(newSetting)) {
+        this.settings[newSetting] = settingsToUpdate[newSetting];
+      }
+    }
+    return settingsToUpdate;
   }
 
   /*
@@ -192,14 +229,17 @@ class Bot {
       await self.lr.pause();
 
       // We only care about the info prior to the first semicolon
-      const strippedLine = line.split(';')[0];
-
-      if (strippedLine.length <= 0) {
+      let command = line.split(';')[0];
+      if (command.length <= 0) {
         // If the line is blank, move on to the next line
         await self.lr.resume();
       } else {
+        command = self.addOffset(command);
+        command = self.addSpeedMultiplier(command);
+        command = self.addFeedMultiplier(command);
+
         self.queue.queueCommands({
-          code: strippedLine,
+          code: command,
           postCallback: () => {
             self.currentLine += 1;
             self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
@@ -291,16 +331,21 @@ class Bot {
       // Set up the validator and executor
       switch (this.settings.connectionType) {
         case `serial`:
-          console.log('eyyyyy', this);
-          executor = this.setupSerialExecutor(this.settings.port, this.config.baudrate),
+          const openPrime = 'M501';
+          executor = new SerialCommandExecutor(
+            this.settings.port,
+            this.config.baudrate,
+            openPrime,
+            this.app.io
+          );
           validator = this.validateSerialReply;
           break;
         case `http`:
-          executor = this.setupHttpExecutor(this.settings.port);
+          executor = new HttpExecutor(this.settings.port);
           validator = this.validateHttpReply;
           break;
         case `virtual`:
-          executor = new FakeMarlinExecutor(this.app.io);
+          executor = new VirtualExecutor(this.app.io);
           validator = this.validateSerialReply;
           break;
         default:
@@ -355,20 +400,6 @@ class Bot {
     }
   }
 
-  setupSerialExecutor(port, baudrate) {
-    const openPrime = 'M501';
-    return new SerialCommandExecutor(
-      port,
-      baudrate,
-      openPrime,
-      this.app.io
-    );
-  }
-
-  setupHttpExecutor(port) {
-    return new HttpExecutor(port);
-  }
-
   /**
    * expandCode()
    *
@@ -407,6 +438,20 @@ class Bot {
     return reply.status === 200;
   }
 
+  /**
+   * validateVirtualReply()
+   *
+   * Confirms if a reply contains 'ok' as its last line.  Parses out DOS newlines.
+   *
+   * Args:   reply - The reply from a bot after sending a command
+   * Return: true if the last line was 'ok'
+   */
+  validateVirtualReply(command, reply) {
+    const lines = reply.toString().split('\n');
+    const ok = _.last(lines).indexOf(`ok`) !== -1;
+    return ok;
+  }
+
   async jog(gcode) {
     const state = this.fsm.current;
     switch (state) {
@@ -427,6 +472,24 @@ class Bot {
       default:
         return undefined;
     }
+  }
+
+  addOffset(command) {
+    // const splitX = command.split('X');
+    // if (splitX.length > 1) {
+    //   let num = parseInt(splitX[1].split(' ')[0], 10);
+    //   num += this.settings.offsetX;
+    //   command = splitX[0] + num + ' ' + splitX[1].split(' ')[1];
+    // }
+    return command;
+  }
+
+  addSpeedMultiplier(command) {
+    return command;
+  }
+
+  addFeedMultiplier(command) {
+    return command;
   }
 }
 

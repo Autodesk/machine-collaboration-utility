@@ -58,26 +58,56 @@ const createBot = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for updating a bot
+ * Handle all logic at this endpoint for updating the bot's settings
  */
 const updateBot = (self) => {
   const requestDescription = 'Update Bot Settings';
-  self.router.put(`${self.routeEndpoint}/`, async (ctx) => {
+  self.router.put(`${self.routeEndpoint}/:port`, async (ctx) => {
     try {
-      const botSettings = ctx.request.body.bot;
-      // const bots = await self.Bot.findAll();
-      // bots[0].updateAttributes({
-      // add the stuffffff here
-      // });
-      // self.botSettings = botSettings;
-      const reply = `Bot settings successfully updated`;
-      ctx.status = 200;
-      ctx.body = new Response(ctx, requestDescription, reply);
+      const port = ctx.params.port;
+      if (port) {
+        const bot = self.bots[port];
+        if (bot) {
+          const botSettings = ctx.request.body;
+          const reply = await bot.updateBot(botSettings);
+          ctx.status = 200;
+          ctx.body = new Response(ctx, requestDescription, reply);
+        } else {
+          throw `Bot "${port}" not found`;
+        }
+      } else {
+        throw `Port is undefined`;
+      }
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
+    // try {
+    //   const bots = await self.Bot.findAll();
+    //   bots[0].updateAttributes({
+    //     jogXSpeed: botSettings.jogXSpeed,
+    //     jogYSpeed: botSettings.jogYSpeed,
+    //     jogZSpeed: botSettings.jogZSpeed,
+    //     jogESpeed: botSettings.jogESpeed,
+    //     tempE: botSettings.tempE,
+    //     tempB: botSettings.tempB,
+    //     speedRatio: botSettings.speedRatio,
+    //     eRatio: botSettings.eRatio,
+    //     offsetX: botSettings.offsetX,
+    //     offsetY: botSettings.offsetY,
+    //     offsetZ: botSettings.offsetZ,
+    //   });
+    //   self.botSettings = botSettings;
+    //   const reply = `Bot settings successfully updated`;
+    //   ctx.status = 200;
+    //   ctx.body = new Response(ctx, requestDescription, reply);
+    // } catch (ex) {
+    //   ctx.status = 500;
+    //   ctx.body = new Response(ctx, requestDescription, ex);
+    // }
+  // });
 };
 
 /**
@@ -93,11 +123,19 @@ const deleteBot = (self) => {
       }
       const botKey = self.sanitizePortName(port);
       const bot = self.bots[botKey];
+      console.log('the bot', bot.getBot());
       if (bot === undefined) {
         throw `Bot ${port} does not exist`;
       }
-      if (bot.settings.connectionType !== `http` && bot.settings.connectionType !== `telnet`) {
-        throw `Cannot delete bot of type ${bot.connectionType}`;
+      switch (bot.settings.connectionType) {
+        case `http`:
+        case `telnet`:
+        case `virtual`:
+          // do nothing
+          break;
+        default:
+          const errorMessage = `Cannot delete bot of type ${bot.settings.connectionType}`;
+          throw errorMessage;
       }
       const bots = await self.Bot.findAll();
       let destroyed = false;
@@ -298,55 +336,15 @@ const streamGcode = (self) => {
 // };
 //
 //
-// /**
-//  * Handle all logic at this endpoint for updating the bot's settings
-//  */
-// const updateBot = (self) => {
-//   const requestDescription = 'Update Bot Settings';
-//   self.router.put(`${self.routeEndpoint}/`, async (ctx) => {
-//     try {
-//       const botSettings = ctx.request.body.bot;
-//       const bots = await self.Bot.findAll();
-//       bots[0].updateAttributes({
-//         jogXSpeed: botSettings.jogXSpeed,
-//         jogYSpeed: botSettings.jogYSpeed,
-//         jogZSpeed: botSettings.jogZSpeed,
-//         jogESpeed: botSettings.jogESpeed,
-//         tempE: botSettings.tempE,
-//         tempB: botSettings.tempB,
-//         speedRatio: botSettings.speedRatio,
-//         eRatio: botSettings.eRatio,
-//         offsetX: botSettings.offsetX,
-//         offsetY: botSettings.offsetY,
-//         offsetZ: botSettings.offsetZ,
-//       });
-//       self.botSettings = botSettings;
-//       const reply = `Bot settings successfully updated`;
-//       ctx.status = 200;
-//       ctx.body = new Response(ctx, requestDescription, reply);
-//     } catch (ex) {
-//       ctx.status = 500;
-//       ctx.body = new Response(ctx, requestDescription, ex);
-//     }
-//   });
-// };
-//
-// const botRoutes = (self) => {
-//   getBot(self);
-//   processBotCommand(self);
-//   processGcode(self);
-//   jog(self);
-//   streamGcode(self);
-//   updateBot(self);
-// };
 
 const botRoutes = (self) => {
   getBots(self);
+
+  getBot(self);
   createBot(self);
   updateBot(self);
   deleteBot(self);
 
-  getBot(self);
   processBotCommand(self);
   processGcode(self);
   streamGcode(self);

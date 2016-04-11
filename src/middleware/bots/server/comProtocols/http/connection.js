@@ -89,9 +89,7 @@ class HttpConnection {
         body: { gcode: inCommandStr },
         json: true,
       };
-      console.log('about to send this', requestParams);
       const reply = await request(requestParams);
-      console.log('the reply', reply);
       if (_.isFunction(this.mDataFunc)) {
         this.mDataFunc(reply);
       }
