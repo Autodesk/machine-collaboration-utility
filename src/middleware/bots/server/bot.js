@@ -74,6 +74,12 @@ class Bot {
         { name: 'disconnect',         from: 'connected',          to: 'disconnecting'      },
         { name: 'disconnectFail',     from: 'disconnecting',      to: 'connected'          },
         { name: 'disconnectDone',     from: 'disconnecting',      to: 'ready'              },
+        { name: 'park',               from: 'connected',          to: 'parking'            },
+        { name: 'parkFail',           from: 'parking',            to: 'connected'          },
+        { name: 'parkDone',           from: 'parking',            to: 'parked'             },
+        { name: 'unpark',             from: 'parked',             to: 'unparking'          },
+        { name: 'unparkFail',         from: 'unparking',          to: 'connected'          },
+        { name: 'unparkDone',         from: 'unparking',          to: 'connected'          },
         { name: 'unplug',             from: '*',                  to: 'unavailable'        },
         /* eslint-enable no-multi-spaces */
       ],
@@ -193,6 +199,16 @@ class Bot {
       // Disconnect the bot via it's queue's executor
       case `disconnect`:
         this.disconnect();
+        return this.getBot();
+
+      // Disconnect the bot via it's queue's executor
+      case `park`:
+        this.park();
+        return this.getBot();
+
+      // Disconnect the bot via it's queue's executor
+      case `unpark`:
+        this.unpark();
         return this.getBot();
 
       // Throw out any bogus command requests
@@ -397,6 +413,34 @@ class Bot {
       });
     } catch (ex) {
       this.fsm.disconnectFail();
+    }
+  }
+
+  async park() {
+    try {
+      this.fsm.park();
+      this.queue.queueCommands({
+        code: `G1 Z10`,
+        postCallback: () => {
+          this.fsm.parkDone();
+        },
+      });
+    } catch (ex) {
+      this.fsm.parkFail();
+    }
+  }
+
+  async unpark() {
+    try {
+      this.fsm.unpark();
+      this.queue.queueCommands({
+        code: `G1 Z10`,
+        postCallback: () => {
+          this.fsm.unparkDone();
+        },
+      });
+    } catch (ex) {
+      this.fsm.unparkFail();
     }
   }
 
