@@ -177,13 +177,17 @@ class Bot {
   }
 
   async processGcode(gcode) {
+    let command = gcode;
     const state = this.fsm.current;
     switch (state) {
       case `connected`:
       case `processingJob`:
       case `processingJobGcode`:
       case `processingGcode`:
-        this.queue.queueCommands(gcode);
+        command = self.addOffset(command);
+        command = self.addSpeedMultiplier(command);
+        command = self.addFeedMultiplier(command);
+        this.queue.queueCommands(command);
         return true;
       default:
         return undefined;
@@ -191,6 +195,7 @@ class Bot {
   }
 
   async streamGcode(gcode) {
+    let command = gcode;
     const state = this.fsm.current;
     switch (state) {
       case `connected`:
@@ -198,7 +203,10 @@ class Bot {
       case `processingJobGcode`:
       case `processingGcode`:
         if (this.queue.mQueue.length < 32) {
-          this.queue.queueCommands(gcode);
+          command = self.addOffset(command);
+          command = self.addSpeedMultiplier(command);
+          command = self.addFeedMultiplier(command);
+          this.queue.queueCommands(command);
           return true;
         }
         return false; // `Command Queue is full. Please try again later`;
@@ -593,26 +601,28 @@ class Bot {
 
   addOffset(command) {
     let gcodeOut = command;
-    console.log('before', gcodeOut);
-    const splitX = command.split('X');
-    if (splitX.length > 1) {
-      let num = parseInt(splitX[1].split(' ')[0], 10);
-      num += this.settings.offsetX;
-      gcodeOut = splitX[0] + num + ' ' + splitX[1].split(' ')[1];
+    if (gcodeOut.indexOf('G1') !== -1) {
+      console.log('before', gcodeOut);
+      const splitX = command.split('X');
+      if (splitX.length > 1) {
+        let num = parseInt(splitX[1].split(' ')[0], 10);
+        num += this.settings.offsetX;
+        gcodeOut = splitX[0] + num + ' ' + splitX[1].split(' ')[1];
+      }
+      const splitY = command.split('Y');
+      if (splitY.length > 1) {
+        let num = parseInt(splitY[1].split(' ')[0], 10);
+        num += this.settings.offsetY;
+        gcodeOut = splitY[0] + num + ' ' + splitY[1].split(' ')[1];
+      }
+      const splitZ = command.split('Z');
+      if (splitZ.length > 1) {
+        let num = parseInt(splitZ[1].split(' ')[0], 10);
+        num += this.settings.offsetZ;
+        gcodeOut = splitZ[0] + num + ' ' + splitZ[1].split(' ')[1];
+      }
+      console.log('after', gcodeOut);
     }
-    const splitY = command.split('Y');
-    if (splitY.length > 1) {
-      let num = parseInt(splitY[1].split(' ')[0], 10);
-      num += this.settings.offsetY;
-      gcodeOut = splitY[0] + num + ' ' + splitY[1].split(' ')[1];
-    }
-    const splitZ = command.split('Z');
-    if (splitZ.length > 1) {
-      let num = parseInt(splitZ[1].split(' ')[0], 10);
-      num += this.settings.offsetZ;
-      gcodeOut = splitZ[0] + num + ' ' + splitZ[1].split(' ')[1];
-    }
-    console.log('after', gcodeOut);
     return gcodeOut;
   }
 
