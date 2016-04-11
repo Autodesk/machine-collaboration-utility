@@ -41,7 +41,7 @@ const parkCommands = function parkCommands(that) {
   };
 };
 
-const unparkCommands = function unparkCommands(that, xEntry, dryJob) {
+const unparkCommands = function unparkCommands(that, xEntry, dryJob='false') {
   const commandArray = [
     {
       code: 'M114',
