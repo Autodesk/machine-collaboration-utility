@@ -599,31 +599,50 @@ class Bot {
     }
   }
 
+  /**
+   * addOffset()
+   *
+   * Takes a gcode command and offsets per the bots settings, if a G1 command is issued
+   *
+   * Args:   command - The command to be offset
+   * Return: offsetCommand - The offset command
+   */
   addOffset(command) {
-    let gcodeOut = command;
-    if (gcodeOut.indexOf('G1') !== -1) {
-      console.log('before', gcodeOut);
-      const splitX = command.split('X');
-      if (splitX.length > 1) {
-        let num = parseInt(splitX[1].split(' ')[0], 10);
-        num += this.settings.offsetX;
-        gcodeOut = splitX[0] + num + ' ' + splitX[1].split(' ')[1];
-      }
-      const splitY = command.split('Y');
-      if (splitY.length > 1) {
-        let num = parseInt(splitY[1].split(' ')[0], 10);
-        num += this.settings.offsetY;
-        gcodeOut = splitY[0] + num + ' ' + splitY[1].split(' ')[1];
-      }
-      const splitZ = command.split('Z');
-      if (splitZ.length > 1) {
-        let num = parseInt(splitZ[1].split(' ')[0], 10);
-        num += this.settings.offsetZ;
-        gcodeOut = splitZ[0] + num + ' ' + splitZ[1].split(' ')[1];
-      }
-      console.log('after', gcodeOut);
+    let offsetCommand = command;
+    if (offsetCommand.indexOf('G1') !== -1) {
+      offsetCommand = this.offsetAxis(offsetCommand, 'X');
+      offsetCommand = this.offsetAxis(offsetCommand, 'Y');
+      offsetCommand = this.offsetAxis(offsetCommand, 'Z');
     }
-    return gcodeOut;
+    return offsetCommand;
+  }
+
+
+  /**
+   * offsetAxis()
+   *
+   * Takes a gcode command and offsets an individual axis per the bot's settings
+   *
+   * Args:   command       - The command to be offset
+   *         axis          - The axis to be offset
+   * Return: offsetCommand - The offset command
+   */
+  offsetAxis(command, axis) {
+    let offsetCommand = command;
+    if (offsetCommand.indexOf(axis) !== -1) {
+      const axisArray = offsetCommand.split(axis);
+      const before = axisArray[0];
+      const splitArray = axisArray[1].split(' ');
+      const middle = axis + Number(Number(splitArray[0]) + Number(this.settings['offset' + axis])).toFixed(5);
+      let end = '';
+      if (splitArray.length > 1) {
+        for (let i = 1; i < splitArray.length; i++) {
+          end += ' ' + splitArray[i];
+        }
+      }
+      offsetCommand = before + middle + end;
+    }
+    return offsetCommand;
   }
 
   addSpeedMultiplier(command) {
