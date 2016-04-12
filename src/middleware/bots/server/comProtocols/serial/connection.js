@@ -268,7 +268,6 @@ SerialConnection.prototype.heartbeat = function () {
  */
 SerialConnection.prototype.receiveOpenResponse = function (inData) {
     var dataStr = inData.toString('utf8');
-
     // Allow our creator to parse this data
     if (_.isFunction(this.mInitDataFunc)) {
         this.mInitDataFunc(dataStr);
@@ -287,7 +286,7 @@ SerialConnection.prototype.receiveOpenResponse = function (inData) {
         break;
 
     case SerialConnection.State.M115_SENT:
-        if (dataStr === 'ok') {
+        if (dataStr.indexOf('ok') !== -1) {
             this.mState = SerialConnection.State.M115_RECEIVED;
         }
         break;
