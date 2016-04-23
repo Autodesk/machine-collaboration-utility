@@ -11,16 +11,16 @@ const CommandQueue = require(`./commandQueue`);
 
 const parkCommands = function parkCommands(that) {
   return {
-    code:'M114',
+    code: 'M114',
     processData: (inCommand, inReply) => {
       const commandArray = [];
 
-      let preParkLocation = {
-        'X': Number(inReply.split('X:')[1].split('Y:')[0]),
-        'Z': Number(inReply.split('Z:')[1].split('E:')[0]),
+      const preParkLocation = {
+        X: Number(inReply.split('X:')[1].split('Y:')[0]),
+        Z: Number(inReply.split('Z:')[1].split('E:')[0]),
       };
 
-      that.logger.info('preParkLocation ', preParkLocation );
+      that.logger.info('preParkLocation ', preParkLocation);
 
       if (preParkLocation.Z < 18) {
         commandArray.push('G1 Y25 Z18 F3600');
@@ -41,7 +41,7 @@ const parkCommands = function parkCommands(that) {
   };
 };
 
-const unparkCommands = function unparkCommands(that, xEntry, dryJob='false') {
+const unparkCommands = function unparkCommands(that, xEntry, dryJob = 'false') {
   const commandArray = [
     {
       code: 'M114',
@@ -55,7 +55,7 @@ const unparkCommands = function unparkCommands(that, xEntry, dryJob='false') {
           that.logger.info('Unparking: Moving to entry X');
           purgeArray.push('G1 X' + xEntry + ' F3600');
         }
-        if (dryJob.toLowerCase() === 'false'){
+        if (dryJob.toLowerCase() === 'false') {
           that.logger.info('Unparking: Purging');
 
           purgeArray.push('G92 E-10');
@@ -77,7 +77,6 @@ const unparkCommands = function unparkCommands(that, xEntry, dryJob='false') {
   ];
   return commandArray;
 };
-
 
 
 /**
@@ -499,12 +498,6 @@ class Bot {
     try {
       this.fsm.park();
       this.queue.queueCommands(parkCommands(this));
-      // this.queue.queueCommands({
-      //   code: `G1 Z10`,
-      //   postCallback: () => {
-      //     this.fsm.parkDone();
-      //   },
-      // });
     } catch (ex) {
       this.fsm.parkFail();
     }
@@ -514,12 +507,6 @@ class Bot {
     try {
       this.fsm.unpark();
       this.queue.queueCommands(unparkCommands(this));
-      // this.queue.queueCommands({
-      //   code: `G1 Z10`,
-      //   postCallback: () => {
-      //     this.fsm.unparkDone();
-      //   },
-      // });
     } catch (ex) {
       this.fsm.unparkFail();
     }
