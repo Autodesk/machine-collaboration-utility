@@ -6,6 +6,7 @@ const _ = require(`underscore`);
 
 const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
 const HttpExecutor = require(`./comProtocols/http/executor`);
+const TelnetExecutor = require(`./comProtocols/telnet/executor`);
 const VirtualExecutor = require(`./comProtocols/virtual/executor`);
 const CommandQueue = require(`./commandQueue`);
 
@@ -440,6 +441,10 @@ class Bot {
           break;
         case `virtual`:
           executor = new VirtualExecutor(this.app.io);
+          validator = this.validateSerialReply;
+          break;
+        case `telnet`:
+          executor = new TelnetExecutor(this.settings.port);
           validator = this.validateSerialReply;
           break;
         default:

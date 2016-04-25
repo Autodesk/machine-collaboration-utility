@@ -93,7 +93,7 @@ class Bots {
 
     // Create a bot object
     // The first bot object created will always be the serial port bot
-    const botKey = this.sanitizePortName(botSettings.port);
+    const botKey = dbBot.dataValues.id;
     const botObject = new Bot(this.app, botSettings);
     this.bots[botKey] = botObject;
   }

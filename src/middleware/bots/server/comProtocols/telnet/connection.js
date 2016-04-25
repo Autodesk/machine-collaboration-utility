@@ -3,8 +3,8 @@
  *
  * A class to manage opening, maintaining, and closing a telnet connection.
  ******************************************************************************/
-const Telnet = require(`telnet-client`);
 const _ = require(`underscore`);
+const net = require(`net`);
 
 /**
  * TelnetConnection()
@@ -30,24 +30,20 @@ class TelnetConnection {
     this.mDataFunc = undefined;
     this.mCloseFunc = undefined;
     this.mErrorFunc = undefined;
-    this.mPort = new Telnet();
 
-    this.mPort.on(`writedone`, () => {
-      // done writing a command
-    });
-
-    this.mPort.on(`ready`, () => {
+    this.mPort = net.createConnection({
+      port: 23,
+      host: this.externalEndpoint,
+    }, () => {
       doneFunction(this);
     });
 
-    const connectionParams = {
-      host: this.externalEndpoint,
-      port: 23,
-      shellPrompt: ``,
-      timeout: 1500,
-    };
-
-    this.mPort.connect(connectionParams);
+    this.mPort.on('data', (data) => {
+      console.log('data:', data.toString());
+      if (_.isFunction(this.mDataFunc)) {
+        this.mDataFunc(data);
+      }
+    });
   }
 
   /*******************************************************************************
@@ -81,11 +77,9 @@ class TelnetConnection {
    */
   async send(inCommandStr) {
     try {
-      this.mPort.exec((inCommandStr), (error, reply) => {
-        if (_.isFunction(this.mDataFunc)) {
-          this.mDataFunc(reply);
-        }
-      });
+      console.log('about to send', inCommandStr);
+      this.mPort.write(inCommandStr);
+      this.mDataFunc('ok');
       // commandSent = true;
     } catch (ex) {
       // ERROR
@@ -101,7 +95,7 @@ class TelnetConnection {
    * Return: N/A
    */
   close() {
-    this.mPort.end();
+    this.mPort.destroy();
     console.log(`Closing telnet connection!`);
   }
 }

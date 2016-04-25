@@ -42,8 +42,8 @@ const createBot = (self) => {
         throw errorMessage;
       }
 
-      await self.Bot.create(botSettings);
-      const botKey = self.sanitizePortName(botSettings.port);
+      const dbBot = await self.Bot.create(botSettings);
+      const botKey = dbBot.dataValues.id;
 
       self.bots[botKey] = await new Bot(self.app, botSettings);
       const reply = `Bot created`;
