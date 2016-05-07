@@ -6,10 +6,16 @@ const autoprefixer = require(`gulp-autoprefixer`);
 const mocha = require(`gulp-mocha`);
 const rename = require(`gulp-rename`);
 const sass = require(`gulp-sass`);
+const webpack = require('gulp-webpack');
 
 const src = {
   server: `src/server/**/*.js`,
-  serverFiles: [`src/**/*.*`, `!src/server/**/*.js`],
+  serverFiles: [
+    `src/**/*.*`,
+    `!src/server/**/*.js`,
+    `!src/client/js/**/*.*`,
+    `!src/client/scss/**/*.*`,
+  ],
   scss: `src/client/scss/styles.scss`,
 };
 
@@ -111,3 +117,33 @@ gulp.task(`test`, [
   `default`,
   `run-tests`,
 ]);
+
+gulp.task('build-react', function() {
+  return gulp.src('src/client/js/index.js')
+    .pipe(webpack({
+      entry: './src/client/js/index.js',
+
+      output: {
+        path: '/dist/client',
+        filename: 'bundle.js',
+        publicPath: '/',
+      },
+
+      plugins: process.env.NODE_ENV === 'production' ? [
+        new webpack.optimize.DedupePlugin(),
+        new webpack.optimize.OccurrenceOrderPlugin(),
+        new webpack.optimize.UglifyJsPlugin(),
+      ] : [],
+
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            loader: 'babel-loader?presets[]=es2015&presets[]=react',
+          },
+        ],
+      },
+    }))
+    .pipe(gulp.dest('dist/client'));
+});

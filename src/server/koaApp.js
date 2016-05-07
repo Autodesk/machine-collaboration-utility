@@ -4,10 +4,13 @@ const cors = require(`koa-cors`);
 const convert = require(`koa-convert`);
 const bodyparser = require(`koa-bodyparser`);
 const json = require(`koa-json`);
+const serve = require('koa-static');
+const views = require('koa-views');
 const winston = require(`winston`);
 const IO = require(`koa-socket`);
 const path = require(`path`);
 const Sequelize = require(`sequelize`);
+const router = require(`koa-router`)();
 
 const Files = require(`./middleware/files`);
 const Jobs = require(`./middleware/jobs`);
@@ -35,7 +38,12 @@ class KoaApp {
     this.app.use(convert(cors()));
     this.app.use(convert(bodyparser()));
     this.app.use(convert(json()));
-    // this.app.use(convert(serve(path.join(__dirname, `../client`))));
+    this.app.use(convert(serve(path.join(__dirname, `../client`))));
+
+    this.app.use(views(path.join(__dirname, `../client`), {
+      root: path.join(__dirname, '../client'),
+      default: 'ejs',
+    }));
 
     // set ctx function for rendering jade
     this.app.use(async (ctx, next) => {
@@ -70,6 +78,16 @@ class KoaApp {
 
       const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
       await bots.initialize();
+
+      router.get(`/`, async (ctx) => {
+        try {
+          console.log('rendering!');
+          await ctx.render('index', {});
+        } catch (ex) {
+          console.log('error', ex);
+        }
+      });
+      this.app.use(router.routes(), router.allowedMethods());
 
       this.app.context.logger.info(`Hydra-Print has been initialized successfully.`);
     });
