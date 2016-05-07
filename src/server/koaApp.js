@@ -12,9 +12,29 @@ const path = require(`path`);
 const Sequelize = require(`sequelize`);
 const router = require(`koa-router`)();
 
+const React = require(`react`);
+const renderToString = require(`react-dom/server`).renderToString;
+const match = require(`react-router`).match;
+const RouterContext = require(`react-router`).RouterContext;
+
+// NOTE THIS FILE IS COPIED IN BY GULP FROM CLIENT/JS
+const routes = require(`./react/modules/routes`);
+
 const Files = require(`./middleware/files`);
 const Jobs = require(`./middleware/jobs`);
 const Bots = require(`./middleware/bots`);
+
+function renderPage(appHtml) {
+  return `
+    <!doctype html public="storage">
+    <html>
+    <meta charset=utf-8/>
+    <title>Hydra-Print</title>
+    <link rel=stylesheet href=/styles.css>
+    <div id=app>${appHtml}</div>
+    <script src="/bundle.js"></script>
+   `;
+}
 
 class KoaApp {
   constructor(config) {
@@ -39,17 +59,6 @@ class KoaApp {
     this.app.use(convert(bodyparser()));
     this.app.use(convert(json()));
     this.app.use(convert(serve(path.join(__dirname, `../client`))));
-
-    this.app.use(views(path.join(__dirname, `../client`), {
-      root: path.join(__dirname, '../client'),
-      default: 'ejs',
-    }));
-
-    // set ctx function for rendering jade
-    this.app.use(async (ctx, next) => {
-      ctx.render = co.wrap(ctx.render);
-      await next();
-    });
 
     // attach socket middleware
     const io = new IO();
@@ -79,14 +88,21 @@ class KoaApp {
       const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
       await bots.initialize();
 
-      router.get(`/`, async (ctx) => {
-        try {
-          console.log('rendering!');
-          await ctx.render('index', {});
-        } catch (ex) {
-          console.log('error', ex);
-        }
+      router.get('*', (ctx) => {
+        match({ routes, location: ctx.req.url }, (err, redirect, props) => {
+          if (err) {
+            ctx.status = 500;
+            ctx.body = err.message;
+          } else if (props) {
+            const appHtml = renderToString(<RouterContext {...props}/>);
+            ctx.body = renderPage(appHtml);
+          } else {
+            ctx.status = 404;
+            ctx.body = 'Not Found';
+          }
+        });
       });
+
       this.app.use(router.routes(), router.allowedMethods());
 
       this.app.context.logger.info(`Hydra-Print has been initialized successfully.`);

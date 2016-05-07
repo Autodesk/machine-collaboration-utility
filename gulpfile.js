@@ -15,7 +15,8 @@ const src = {
     `!src/client/js/**/*.*`,
     `!src/client/scss/**/*.*`,
   ],
-  react: `src/client/**/*.js`,
+  reactClient: `src/client/js/index.js`,
+  reactServer: `src/client/js/**/*.js`,
   scss: `src/client/scss/styles.scss`,
   scssWatch: `src/client/scss/**/*.scss`,
 };
@@ -23,6 +24,8 @@ const src = {
 const dest = {
   server: `dist/server`,
   serverFiles: `dist`,
+  reactClient: `dist/client/`,
+  reactServer: `dist/server/react`,
   css: `dist/client`,
 };
 
@@ -30,7 +33,8 @@ gulp.task(`build`, [
   `build-server`,
   `build-server-files`,
   `build-scss`,
-  `build-react`,
+  `build-react-client`,
+  `build-react-server`,
 ]);
 
 gulp.task(`build-scss`, () => {
@@ -55,10 +59,10 @@ gulp.task(`build-server-files`, () => {
   .pipe(gulp.dest(dest.serverFiles));
 });
 
-gulp.task(`watch`, () => {
+gulp.task(`watch`, [`build`], () => {
   gulp.watch([src.server], [`build-server`]);
   gulp.watch([src.scssWatch], [`build-scss`]);
-  gulp.watch([src.react], [`build-react`]);
+  gulp.watch([src.reactServer], [`build-react-client`, `build-react-server`]);
 });
 
 gulp.task(`build-server`, () => {
@@ -66,7 +70,7 @@ gulp.task(`build-server`, () => {
   .pipe(sourcemaps.init())
   .pipe(
     babel({
-      presets: [`es2015-node5`, `stage-3`],
+      presets: [`es2015-node5`, `stage-3`, `react`],
       plugins: [`transform-async-to-generator`],
     })
   )
@@ -89,38 +93,8 @@ gulp.task(
   }
 );
 
-gulp.task(`default`, [
-  `build`,
-  `watch`,
-  `develop`,
-]);
-
-gulp.task(`run-tests`, [`default`], () => {
-  // Timeout is ugly hack to allow time for the server instance to initialize
-  // TODO Get rid of timeout for running tests
-
-  setTimeout(() => {
-    return gulp.src(`./test.js`, { read: false })
-    .pipe(mocha())
-    .once(`error`, (err) => {
-      // Error could be caused by not giving enough time
-      // for the server to spin up before starting tests
-      console.log(`Testing error:\n`, err);
-      process.exit(1);
-    })
-    .once(`end`, () => {
-      process.exit();
-    });
-  }, 3000);
-});
-
-gulp.task(`test`, [
-  `default`,
-  `run-tests`,
-]);
-
-gulp.task('build-react', function() {
-  return gulp.src('src/client/js/index.js')
+gulp.task('build-react-client', function() {
+  return gulp.src('./src/client/js/index.js')
     .pipe(webpack({
       entry: './src/client/js/index.js',
 
@@ -148,3 +122,46 @@ gulp.task('build-react', function() {
     }))
     .pipe(gulp.dest('dist/client'));
 });
+
+gulp.task(`build-react-server`, function() {
+  return gulp.src(src.reactServer)
+  .pipe(sourcemaps.init())
+  .pipe(
+    babel({
+      presets: [`es2015-node5`, `stage-3`, `react`],
+      plugins: [`transform-async-to-generator`],
+    })
+  )
+  .pipe(sourcemaps.write(`.`))
+  .pipe(gulp.dest(dest.reactServer));
+});
+
+gulp.task(`run-tests`, [`default`], () => {
+  // Timeout is ugly hack to allow time for the server instance to initialize
+  // TODO Get rid of timeout for running tests
+
+  setTimeout(() => {
+    return gulp.src(`./test.js`, { read: false })
+    .pipe(mocha())
+    .once(`error`, (err) => {
+      // Error could be caused by not giving enough time
+      // for the server to spin up before starting tests
+      console.log(`Testing error:\n`, err);
+      process.exit(1);
+    })
+    .once(`end`, () => {
+      process.exit();
+    });
+  }, 3000);
+});
+
+gulp.task(`test`, [
+  `default`,
+  `run-tests`,
+]);
+
+gulp.task(`default`, [
+  `build`,
+  `watch`,
+  `develop`,
+]);
