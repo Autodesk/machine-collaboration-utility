@@ -4,7 +4,6 @@ const babel = require(`gulp-babel`);
 const nodemon = require(`gulp-nodemon`);
 const autoprefixer = require(`gulp-autoprefixer`);
 const mocha = require(`gulp-mocha`);
-const rename = require(`gulp-rename`);
 const sass = require(`gulp-sass`);
 const webpack = require('gulp-webpack');
 
@@ -16,7 +15,9 @@ const src = {
     `!src/client/js/**/*.*`,
     `!src/client/scss/**/*.*`,
   ],
+  react: `src/client/**/*.js`,
   scss: `src/client/scss/styles.scss`,
+  scssWatch: `src/client/scss/**/*.scss`,
 };
 
 const dest = {
@@ -29,6 +30,7 @@ gulp.task(`build`, [
   `build-server`,
   `build-server-files`,
   `build-scss`,
+  `build-react`,
 ]);
 
 gulp.task(`build-scss`, () => {
@@ -54,10 +56,9 @@ gulp.task(`build-server-files`, () => {
 });
 
 gulp.task(`watch`, () => {
-  gulp.watch(
-    [src.server],
-    [`build-server`]
-  );
+  gulp.watch([src.server], [`build-server`]);
+  gulp.watch([src.scssWatch], [`build-scss`]);
+  gulp.watch([src.react], [`build-react`]);
 });
 
 gulp.task(`build-server`, () => {
