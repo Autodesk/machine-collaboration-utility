@@ -26,7 +26,7 @@ const logger = new (winston.Logger)({
 logger.info(`Test initialized.`);
 
 // Collect the test file from each middleware module
-walk.walkSync('./dist/tests', (basedir, filename) => {
+walk.walkSync('./dist/server', (basedir, filename) => {
   if (filename === 'test.js') {
     const filepath = path.join(__dirname, basedir + '/' + filename);
     tests.push(require(filepath));
