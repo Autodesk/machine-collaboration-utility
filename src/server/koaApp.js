@@ -29,6 +29,7 @@ function renderPage(appHtml) {
     <!doctype html public="storage">
     <html>
     <meta charset=utf-8/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hydra-Print</title>
     <link rel=stylesheet href=/styles.css>
     <div id=app>${appHtml}</div>
@@ -93,6 +94,8 @@ class KoaApp {
           if (err) {
             ctx.status = 500;
             ctx.body = err.message;
+          } else if (redirect) {
+            ctx.redirect(redirect.pathname + redirect.search);
           } else if (props) {
             const appHtml = renderToString(<RouterContext {...props}/>);
             ctx.body = renderPage(appHtml);

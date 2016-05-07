@@ -30,9 +30,13 @@ const dest = {
 };
 
 gulp.task(`build`, [
+  `build-scss`,
+  `build-js`,
+]);
+
+gulp.task(`build-js`, [
   `build-server`,
   `build-server-files`,
-  `build-scss`,
   `build-react-client`,
   `build-react-server`,
 ]);
@@ -86,7 +90,11 @@ gulp.task(
     `watch`,
   ],
   () => {
-    nodemon({ script: 'dist/server/index.js' })
+    nodemon(
+      {
+        script: 'dist/server/index.js',
+      }
+    )
     .on('restart', () => {
       console.log('restarted!');
     });
