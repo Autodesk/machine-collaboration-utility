@@ -22,4 +22,14 @@ module.exports = {
       pid: 24597,
     },
   ],
+  conductor: {
+    comType: 'http',
+    players: [
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+    ],
+  },
 };
