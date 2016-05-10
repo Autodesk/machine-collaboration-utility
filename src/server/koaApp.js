@@ -23,6 +23,7 @@ const routes = require(`./react/modules/routes`);
 const Files = require(`./middleware/files`);
 const Jobs = require(`./middleware/jobs`);
 const Bots = require(`./middleware/bots`);
+const Conductor = require(`./middleware/conductor`);
 
 function renderPage(appHtml) {
   return `
@@ -89,6 +90,10 @@ class KoaApp {
       const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
       await bots.initialize();
 
+      const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);
+      await conductor.initialize();
+
+      // Set up Koa to match any routes to the React App. If a route exists, render it.
       router.get('*', (ctx) => {
         match({ routes, location: ctx.req.url }, (err, redirect, props) => {
           if (err) {
