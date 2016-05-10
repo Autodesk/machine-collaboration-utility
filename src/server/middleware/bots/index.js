@@ -154,10 +154,10 @@ class Bots {
   /*
    * get a json friendly description of a specific bot
    */
-  getBot(port) {
-    const bot = this.bots[port];
+  getBot(id) {
+    const bot = this.bots[id];
     if (bot === undefined) {
-      const errorMessage = `Bot with port '${port}' does not exist`;
+      const errorMessage = `Bot with id '${id}' does not exist`;
       this.logger.error(errorMessage);
       throw errorMessage;
     }
