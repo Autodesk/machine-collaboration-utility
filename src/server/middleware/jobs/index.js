@@ -230,7 +230,13 @@ class Jobs {
   async startJob(job) {
     try {
       await job.fsm.start();
-      await this.app.context.bots.bots[job.botId].startJob(job);
+
+      // Register conductor as a botId of -1
+      if (Number(job.botId) === -1) {
+        await this.app.context.conductor.startJob(job);
+      } else {
+        await this.app.context.bots.bots[job.botId].startJob(job);
+      }
       job.started = new Date().getTime();
       await job.stopwatch.start();
       await job.fsm.startDone();
@@ -247,7 +253,12 @@ class Jobs {
   async pauseJob(job) {
     try {
       await job.fsm.pause();
-      await this.app.context.bots.bots[job.botId].pauseJob();
+      // Register conductor as a botId of -1
+      if (Number(job.botId) === -1) {
+        await this.app.context.conductor.pauseJob();
+      } else {
+        await this.app.context.bots.bots[job.botId].pauseJob();
+      }
       await job.stopwatch.stop();
       await job.fsm.pauseDone();
     } catch (ex) {
@@ -263,7 +274,12 @@ class Jobs {
   async resumeJob(job) {
     try {
       job.fsm.resume();
-      await this.app.context.bots.bots[job.botId].resumeJob();
+      // Register conductor as a botId of -1
+      if (Number(job.botId) === -1) {
+        await this.app.context.conductor.resumeJob();
+      } else {
+        await this.app.context.bots.bots[job.botId].resumeJob();
+      }
       await job.stopwatch.start();
       job.fsm.resumeDone();
     } catch (ex) {
@@ -279,7 +295,12 @@ class Jobs {
   async cancelJob(job) {
     try {
       await job.fsm.cancel();
-      await this.app.context.bots.bots[job.botId].stopJob(job);
+      // Register conductor as a botId of -1
+      if (Number(job.botId) === -1) {
+        await this.app.context.conductor.stopJob(job);
+      } else {
+        await this.app.context.bots.bots[job.botId].stopJob(job);
+      }
       await job.stopwatch.stop();
       await job.fsm.cancelDone();
     } catch (ex) {
