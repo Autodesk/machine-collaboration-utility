@@ -46,7 +46,8 @@ const createBot = (self) => {
       const botKey = dbBot.dataValues.id;
 
       self.bots[botKey] = await new Bot(self.app, botSettings);
-      const reply = `Bot created`;
+      const reply = {};
+      reply[botKey] = botSettings;
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
@@ -84,46 +85,20 @@ const updateBot = (self) => {
       self.logger.error(ex);
     }
   });
-    // try {
-    //   const bots = await self.Bot.findAll();
-    //   bots[0].updateAttributes({
-    //     jogXSpeed: botSettings.jogXSpeed,
-    //     jogYSpeed: botSettings.jogYSpeed,
-    //     jogZSpeed: botSettings.jogZSpeed,
-    //     jogESpeed: botSettings.jogESpeed,
-    //     tempE: botSettings.tempE,
-    //     tempB: botSettings.tempB,
-    //     speedRatio: botSettings.speedRatio,
-    //     eRatio: botSettings.eRatio,
-    //     offsetX: botSettings.offsetX,
-    //     offsetY: botSettings.offsetY,
-    //     offsetZ: botSettings.offsetZ,
-    //   });
-    //   self.botSettings = botSettings;
-    //   const reply = `Bot settings successfully updated`;
-    //   ctx.status = 200;
-    //   ctx.body = new Response(ctx, requestDescription, reply);
-    // } catch (ex) {
-    //   ctx.status = 500;
-    //   ctx.body = new Response(ctx, requestDescription, ex);
-    // }
-  // });
 };
 
 /**
  * Handle all logic at this endpoint for deleting a bot
  */
 const deleteBot = (self) => {
-  const requestDescription = 'Update Bot Settings';
+  const requestDescription = 'Delete Bot';
   self.router.delete(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const port = ctx.request.body.port;
-      if (port === undefined) {
-        throw `Port is undefined.`
+      const botId = Number(ctx.request.body.botId);
+      if (botId === undefined) {
+        throw `botId is undefined.`
       }
-      const botKey = self.sanitizePortName(port);
-      const bot = self.bots[botKey];
-      console.log('the bot', bot.getBot());
+      const bot = self.bots[botId];
       if (bot === undefined) {
         throw `Bot ${port} does not exist`;
       }
@@ -140,15 +115,15 @@ const deleteBot = (self) => {
       const bots = await self.Bot.findAll();
       let destroyed = false;
       for (const dbBot of bots) {
-        const dbBotPort = self.sanitizePortName(dbBot.dataValues.port);
-        if (dbBotPort === botKey) {
+        const dbBotId = dbBot.dataValues.id;
+        if (botId === dbBotId) {
           dbBot.destroy();
-          delete self.bots[botKey];
+          delete self.bots[botId];
           destroyed = true;
         }
       }
       if (!destroyed) {
-        throw `Bot ${port} not found in database`;
+        throw `Bot ${botId} not found in database`;
       }
       const reply = `Bot successfully deleted`;
       ctx.status = 200;
@@ -300,42 +275,6 @@ const streamGcode = (self) => {
     }
   });
 };
-
-// /**
-//  * Handle all logic at this endpoint for jogging the bot
-//  */
-// const jog = (self) => {
-//   const requestDescription = 'Jog Gcode';
-//   self.router.post(`${self.routeEndpoint}/jog`, async (ctx) => {
-//     try {
-//       const gcode = ctx.request.body.gcode;
-//       if (gcode) {
-//         const commandQueued = await self.jog(gcode);
-//         if (commandQueued === undefined) {
-//           const reply = `Cannot send gcode from state ${self.fsm.current}`;
-//           ctx.status = 405;
-//           ctx.body = new Response(ctx, requestDescription, reply);
-//         } else if (commandQueued) {
-//           const reply = `Bot jogged: ${gcode}`;
-//           ctx.status = 200;
-//           ctx.body = new Response(ctx, requestDescription, reply);
-//         } else {
-//           const reply = `Command Queue error`;
-//           ctx.status = 500;
-//           ctx.body = new Response(ctx, requestDescription, reply);
-//         }
-//       } else {
-//         throw `Gcode is undefined.`;
-//       }
-//     } catch (ex) {
-//       ctx.status = 500;
-//       ctx.body = new Response(ctx, requestDescription, ex);
-//       self.logger.error(ex);
-//     }
-//   });
-// };
-//
-//
 
 const botRoutes = (self) => {
   getBots(self);

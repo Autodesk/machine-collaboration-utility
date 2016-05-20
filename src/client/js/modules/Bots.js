@@ -1,10 +1,10 @@
 import React from 'react';
 
-export default class Files extends React.Component {
+export default class Bots extends React.Component {
   constructor(props) {
     super(props);
   }
   render() {
-    return <div>Files</div>;
+    return <div>Bots</div>;
   }
 }

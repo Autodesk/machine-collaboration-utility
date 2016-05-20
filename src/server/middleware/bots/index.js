@@ -202,10 +202,6 @@ class Bots {
       }
     });
   }
-
-  sanitizePortName(portName) {
-    return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
-  }
 }
 
 module.exports = Bots;

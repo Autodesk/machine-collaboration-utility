@@ -8,13 +8,118 @@ const config = require(`../../../config`);
 
 module.exports = function botTests() {
   describe('Bot unit test', function() {
-    let job;
+    let job, botId;
+
+    it('should create a virtual bot', async function (done) {
+      const requestParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/bots/`,
+        body: {
+          connectionType: `virtual`,
+        },
+        json: true,
+      };
+      const initializeBotReply = await request(requestParams);
+      botId = Object.keys(initializeBotReply.data)[0];
+      should(initializeBotReply.status).equal(201);
+      should(initializeBotReply.query).equal(`Create Bot`);
+      done();
+    });
+
+    it('the bot should have an initial state to ready', async function (done) {
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/bots/${botId}`,
+        json: true,
+      };
+      await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`ready`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Bot`);
+      done();
+    });
+
+    it('should destroy the virtual bot', async function (done) {
+      const requestParams = {
+        method: `DELETE`,
+        uri: `http://localhost:9000/v1/bots`,
+        body: { botId },
+        json: true,
+      };
+      const destroyBotReply = await request(requestParams);
+      console.log('destroyBotReply', destroyBotReply);
+
+      should(destroyBotReply.status).equal(200);
+      should(destroyBotReply.query).equal(`Delete Bot`);
+      should(destroyBotReply.data).equal(`Bot successfully deleted`);
+      done();
+    });
+
+    it('should create a virtual bot, again', async function (done) {
+      const requestParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/bots/`,
+        body: {
+          connectionType: `virtual`,
+        },
+        json: true,
+      };
+      const initializeBotReply = await request(requestParams);
+      botId = Object.keys(initializeBotReply.data)[0];
+      should(initializeBotReply.status).equal(201);
+      should(initializeBotReply.query).equal(`Create Bot`);
+      done();
+    });
+
+    it('should transition from detecting to ready, again', async function (done) {
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/bots/${botId}`,
+        json: true,
+      };
+      await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`ready`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Bot`);
+      done();
+    });
+
+    it('should connect', async function (done) {
+      const requestParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/bots/${botId}`,
+        body: { command: `connect` },
+        json: true,
+      };
+      const botCommandReply = await request(requestParams);
+      should(botCommandReply.data.state).equal(`connecting`);
+      should(botCommandReply.status).equal(200);
+      should(botCommandReply.query).equal(`Process Bot Command`);
+      done();
+    });
+
+    it('should finish connecting', async function (done) {
+      await Promise.delay(config.virtualDelay);
+      const requestParams = {
+        method: `GET`,
+        uri: `http://localhost:9000/v1/bots/${botId}`,
+        json: true,
+      };
+      const getStatusReply = await request(requestParams);
+      should(getStatusReply.data.state).equal(`connected`);
+      should(getStatusReply.status).equal(200);
+      should(getStatusReply.query).equal(`Get Bot`);
+      done();
+    });
 
     it('should setup a job and a file', async function(done) {
       // Create a job
       const jobParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/jobs/`,
+        body: { botId },
         json: true,
       };
       const createJobReply = await request(jobParams);
@@ -55,134 +160,8 @@ module.exports = function botTests() {
         should(setFileToJobReply.query).equal(`Set File to Job`);
         done();
       } catch (ex) {
-        console.log("flailboat", ex);
+        console.log('flailboat', ex);
       }
-    });
-
-    it('should initialize a virtual bot', async function (done) {
-      const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/bot/`,
-        body: { command: `createVirtualBot` },
-        json: true,
-      };
-      const initializeBotReply = await request(requestParams);
-      should(initializeBotReply.status).equal(200);
-      should(initializeBotReply.query).equal(`Process Bot Command`);
-      should(initializeBotReply.data.state).equal(`detecting`);
-      done();
-    });
-
-    it('should transition from detecting to ready', async function (done) {
-      const requestParams = {
-        method: `GET`,
-        uri: `http://localhost:9000/v1/bot/`,
-        json: true,
-      };
-      await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
-      const getStatusReply = await request(requestParams);
-      should(getStatusReply.data.state).equal(`ready`);
-      should(getStatusReply.status).equal(200);
-      should(getStatusReply.query).equal(`Get Bot`);
-      done();
-    });
-
-    it('initializing a virtual bot should be idempotent', async function(done) {
-      const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/bot/`,
-        body: { command: `createVirtualBot` },
-        json: true,
-      };
-      const initializeBotReply = await request(requestParams);
-      should(initializeBotReply.status).equal(200);
-      should(initializeBotReply.query).equal(`Process Bot Command`);
-      should(initializeBotReply.data.state).equal(`ready`);
-      done();
-    });
-
-    it('should destroy a virtual bot', async function (done) {
-      const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/bot/`,
-        body: { command: `destroyVirtualBot` },
-        json: true,
-      };
-      const destroyBotReply = await request(requestParams);
-      should(destroyBotReply.status).equal(200);
-      should(destroyBotReply.query).equal(`Process Bot Command`);
-      should(destroyBotReply.data.state).equal(`unavailable`);
-      done();
-    });
-
-    it('destroying a virtual bot should be idempotent', async function (done) {
-      const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/bot/`,
-        body: { command: `destroyVirtualBot` },
-        json: true,
-      };
-      const destroyBotReply = await request(requestParams);
-      should(destroyBotReply.status).equal(200);
-      should(destroyBotReply.query).equal(`Process Bot Command`);
-      should(destroyBotReply.data.state).equal(`unavailable`);
-      done();
-    });
-
-    it('should create a virtual bot, again', async function (done) {
-      const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/bot/`,
-        body: { command: `createVirtualBot` },
-        json: true,
-      };
-      const initializeBotReply = await request(requestParams);
-      should(initializeBotReply.status).equal(200);
-      should(initializeBotReply.query).equal(`Process Bot Command`);
-      should(initializeBotReply.data.state).equal(`detecting`);
-      done();
-    });
-
-    it('should transition from detecting to ready, again', async function (done) {
-      const requestParams = {
-        method: `GET`,
-        uri: `http://localhost:9000/v1/bot/`,
-        json: true,
-      };
-      await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
-      const getStatusReply = await request(requestParams);
-      should(getStatusReply.data.state).equal(`ready`);
-      should(getStatusReply.status).equal(200);
-      should(getStatusReply.query).equal(`Get Bot`);
-      done();
-    });
-
-    it('should connect', async function (done) {
-      const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/bot/`,
-        body: { command: `connect` },
-        json: true,
-      };
-      const botCommandReply = await request(requestParams);
-      should(botCommandReply.data.state).equal(`connecting`);
-      should(botCommandReply.status).equal(200);
-      should(botCommandReply.query).equal(`Process Bot Command`);
-      done();
-    });
-
-    it('should finish connecting', async function (done) {
-      await Promise.delay(config.virtualDelay);
-      const requestParams = {
-        method: `GET`,
-        uri: `http://localhost:9000/v1/bot/`,
-        json: true,
-      };
-      const getStatusReply = await request(requestParams);
-      should(getStatusReply.data.state).equal(`connected`);
-      should(getStatusReply.status).equal(200);
-      should(getStatusReply.query).equal(`Get Bot`);
-      done();
     });
 
     it('should start a job', async function (done) {
@@ -324,6 +303,22 @@ module.exports = function botTests() {
       should(getStatusReply.data.state).equal(`canceled`);
       should(getStatusReply.status).equal(200);
       should(getStatusReply.query).equal(`Get Job`);
+      done();
+    });
+
+    it('should clean up by deleting the virtual bot', async function (done) {
+      const requestParams = {
+        method: `DELETE`,
+        uri: `http://localhost:9000/v1/bots`,
+        body: { botId },
+        json: true,
+      };
+      const destroyBotReply = await request(requestParams);
+      console.log('destroyBotReply', destroyBotReply);
+
+      should(destroyBotReply.status).equal(200);
+      should(destroyBotReply.query).equal(`Delete Bot`);
+      should(destroyBotReply.data).equal(`Bot successfully deleted`);
       done();
     });
   });

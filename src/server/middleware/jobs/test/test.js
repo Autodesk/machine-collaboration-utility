@@ -5,11 +5,13 @@ const fs = require(`fs-promise`);
 const path = require(`path`);
 
 module.exports = function toDoListTests() {
-  let nJobs;
   let job;
+  let nJobs;
+
   describe('Jobs unit test', function () {
     it('should create a job', async function (done) {
       const requestParams = {
+        body: { botId: 1 },
         method: `POST`,
         uri: `http://localhost:9000/v1/jobs/`,
         json: true,

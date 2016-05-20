@@ -18,7 +18,8 @@ const match = require(`react-router`).match;
 const RouterContext = require(`react-router`).RouterContext;
 
 // NOTE THIS FILE IS COPIED IN BY GULP FROM CLIENT/JS
-const routes = require(`./react/modules/routes`);
+console.log('dafaq', __dirname);
+const routes = require(`./react/routes`);
 
 const Files = require(`./middleware/files`);
 const Jobs = require(`./middleware/jobs`);
@@ -26,6 +27,7 @@ const Bots = require(`./middleware/bots`);
 const Conductor = require(`./middleware/conductor`);
 
 function renderPage(appHtml) {
+  console.log('apphtml', appHtml);
   return `
     <!doctype html public="storage">
     <html>
@@ -34,9 +36,11 @@ function renderPage(appHtml) {
     <title>Hydra-Print</title>
     <link rel=stylesheet href=/styles.css>
     <div id=app>${appHtml}</div>
+    <script src="/vendorJs/socket.io.js"></script>
     <script src="/bundle.js"></script>
    `;
 }
+
 
 class KoaApp {
   constructor(config) {
@@ -102,11 +106,14 @@ class KoaApp {
           } else if (redirect) {
             ctx.redirect(redirect.pathname + redirect.search);
           } else if (props) {
+            props.foo = 'bar';
+            console.log('props', props);
             const appHtml = renderToString(<RouterContext {...props}/>);
             ctx.body = renderPage(appHtml);
           } else {
-            ctx.status = 404;
-            ctx.body = 'Not Found';
+            ctx.redirect('/bots');
+            // ctx.status = 404;
+            // ctx.body = 'Not Found';
           }
         });
       });

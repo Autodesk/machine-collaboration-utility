@@ -42,7 +42,7 @@ gulp.task(`build-js`, [
 ]);
 
 gulp.task(`build-scss`, () => {
-  gulp.src(src.scss)
+  return gulp.src(src.scss)
   .pipe(sass({
     outputStyle: 'compressed',
     sourceComments: 'map',
@@ -90,7 +90,7 @@ gulp.task(
     `watch`,
   ],
   () => {
-    nodemon(
+    return nodemon(
       {
         script: 'dist/server/index.js',
       }
@@ -101,7 +101,7 @@ gulp.task(
   }
 );
 
-gulp.task('build-react-client', function() {
+gulp.task('build-react-client', () => {
   return gulp.src('./src/client/js/index.js')
     .pipe(webpack({
       entry: './src/client/js/index.js',
@@ -131,7 +131,7 @@ gulp.task('build-react-client', function() {
     .pipe(gulp.dest('dist/client'));
 });
 
-gulp.task(`build-react-server`, function() {
+gulp.task(`build-react-server`, () => {
   return gulp.src(src.reactServer)
   .pipe(sourcemaps.init())
   .pipe(
