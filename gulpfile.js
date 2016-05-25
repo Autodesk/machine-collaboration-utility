@@ -93,6 +93,9 @@ gulp.task(
     return nodemon(
       {
         script: 'dist/server/index.js',
+        ignore: [
+          'dist/server/middleware/files/',
+        ],
       }
     )
     .on('restart', () => {

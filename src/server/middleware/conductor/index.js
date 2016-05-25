@@ -3,7 +3,10 @@ const Promise = require(`bluebird`);
 const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 
 const request = require(`request-promise`);
-const ip = require(`ip`);
+const unzip = require(`unzip2`);
+const fs = require(`fs`);
+const path = require(`path`);
+const _ = require(`underscore`);
 
 const conductorRoutes = require(`./routes`);
 const Bot = require(`../bots/bot`);
@@ -132,8 +135,58 @@ class Conductor {
     const filesApp = self.app.context.files;
     const theFile = filesApp.getFile(job.fileUuid);
     const filePath = filesApp.getFilePath(theFile);
-    
-    // read the json metajob .... etc...
+    try {
+      fs.createReadStream(filePath)
+      .pipe(unzip.Extract({ path: filePath.split(`.`)[0] }))
+      .on(`close`, async () => {
+        this.metajob = require(filePath.split(`.`)[0] + `/metajob.json`);
+        const playerArray = _.toArray(this.metajob);
+        Promise.map(playerArray, (player) => {
+          Promise.map(player.jobs, async(playerJob) => {
+            let fileUuid;
+            let jobUuid;
+            // upload the file
+            const jobFilePath = filePath.split(`.`)[0] + '/' + playerJob.filename;
+            const fileStream = await fs.createReadStream(jobFilePath);
+            const formData = { file: fileStream };
+            const fileUploadParams = {
+              method: `POST`,
+              uri: `http://${player.location}/v1/files`,
+              formData,
+              json: true,
+            };
+            const uploadFileReply = await request(fileUploadParams);
+            fileUuid = uploadFileReply.data[0].uuid;
+
+            // create the job
+            const jobParams = {
+              method: `POST`,
+              uri: `http://${player.location}/v1/jobs`,
+              body: {
+                botId: `usb`,
+              },
+              json: true,
+            };
+            const createJobReply = await request(jobParams);
+            jobUuid = createJobReply.data.uuid;
+
+            // link the file to the job
+            const linkFileToJobParams = {
+              method: `POST`,
+              uri: `http://${player.location}/v1/jobs/${jobUuid}/setFile`,
+              body: {
+                fileUuid,
+              },
+              json: true,
+            };
+            const linkFileToJobReply = await request(linkFileToJobParams);
+            console.log(linkFileToJobReply);
+          }, { concurrency: 5 });
+        }, { concurrency: 5 });
+      });
+    } catch (ex) {
+      this.logger.error(new Error(ex));
+    }
     await self.fsm.startDone();
   }
 

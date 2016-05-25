@@ -18,7 +18,6 @@ const match = require(`react-router`).match;
 const RouterContext = require(`react-router`).RouterContext;
 
 // NOTE THIS FILE IS COPIED IN BY GULP FROM CLIENT/JS
-console.log('dafaq', __dirname);
 const routes = require(`./react/routes`);
 
 const Files = require(`./middleware/files`);

@@ -5,6 +5,8 @@
  * The is framework for allowing each piece of middleware to run its own tests
  * The individual pieces of middleware will place their tests in the following location:
  * src/middleware/<your middleware>/test/test.js
+ * To run tests use 'npm test'
+ * If you want to run an individual test, use npm test --yourtest
  ******************************************************************************/
 
 const path = require(`path`);
@@ -13,6 +15,7 @@ const winston = require('winston');
 
 const tests = [];
 const config = require(`./dist/server/config`);
+const npmArgs = JSON.parse(process.env.npm_config_argv);
 
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);
@@ -27,9 +30,21 @@ logger.info(`Test initialized.`);
 
 // Collect the test file from each middleware module
 walk.walkSync('./dist/server', (basedir, filename) => {
+
+  const testArg = npmArgs.cooked[1].split('--')[1].toLowerCase();
+  const basedirArray = basedir.split('/');
   if (filename === 'test.js') {
-    const filepath = path.join(__dirname, basedir + '/' + filename);
-    tests.push(require(filepath));
+    if (
+      // If no test variable is passed
+      npmArgs.cooked.length <= 1
+      ||
+      // or the test variable matches the current directory
+      testArg === basedirArray[basedirArray.length - 2].toLowerCase()
+    ) {
+      // add the test to our test array
+      const filepath = path.join(__dirname, `${basedir}/${filename}`);
+      tests.push(require(filepath));
+    }
   }
 });
 

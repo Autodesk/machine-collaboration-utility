@@ -8,7 +8,6 @@ const createJob = (self) => {
 
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      console.log('the params', ctx.request.body);
       const botId = ctx.request.body.botId;
       if (botId === undefined) {
         const errorMessage = `botId is not defined`;
