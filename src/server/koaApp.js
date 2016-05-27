@@ -107,14 +107,10 @@ class KoaApp {
           } else if (redirect) {
             ctx.redirect(redirect.pathname + redirect.search);
           } else if (props) {
-            props.foo = 'bar';
-            console.log('props', props);
             const appHtml = renderToString(<RouterContext {...props}/>);
             ctx.body = renderPage(appHtml);
           } else {
             ctx.redirect('/bots');
-            // ctx.status = 404;
-            // ctx.body = 'Not Found';
           }
         });
       });
