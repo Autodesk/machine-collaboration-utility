@@ -75,7 +75,7 @@ class Bots {
    * Then add the bot object to the 'bots' dictionary
    */
   addDbBot(dbBot) {
-    const botSettings = this.parseDbBot(dbBot);
+    const botSettings = this.parseDbBotSettings(dbBot);
 
     // Create a bot object
     // The first bot object created will always be the serial port bot
@@ -88,7 +88,7 @@ class Bots {
    * Read a database bot object. Create a bot object from the database object
    * Then add the bot object to the 'bots' dictionary
    */
-  parseDbBot(dbBot) {
+  parseDbBotSettings(dbBot) {
     const botSettings = {};
     botSettings.port = dbBot.dataValues.port;
     botSettings.connectionType = dbBot.dataValues.connectionType;
@@ -116,6 +116,7 @@ class Bots {
     // these settings as the placeholder settings
     const settings = {
       port: `null`,
+      uniqueEndpoint: undefined,
       connectionType: undefined,
       name: `Cool Bot`,
       jogXSpeed: `2000`,

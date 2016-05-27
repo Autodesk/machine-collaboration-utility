@@ -9,13 +9,14 @@ class UsbDiscovery {
   constructor(app) {
     this.app = app;
     this.config = app.context.config;
+    this.logger = app.context.logger;
+
     this.ports = {};
   }
 
   async initialize() {
     const self = this;
     usb.on('attach', async () => {
-      console.log('attach!')
       // Need to wait arbitrary amount of time for Serialport list to update
       await Promise.delay(100);
       SerialPort.list((err, ports) => {
@@ -97,8 +98,7 @@ class UsbDiscovery {
   async detectPort(port) {
     const vid = parseInt(port.vendorId, 16);
     const pid = parseInt(port.productId, 16);
-    // look for the bot from the db bots, with respect to pnpId
-    // if the pnpId exists, use it, otherwise pull from a generic bot
+
     for (const vidPid of this.config.vidPids) {
       // If the vid pid match what we are looking for then we know we have a bot of interest
       if (vid === vidPid.vid && pid === vidPid.pid) {
@@ -111,14 +111,17 @@ class UsbDiscovery {
     }
   }
 
+  // compare the bot's pnpId with all of the bots in our database
+  // if a pnpId exists, lost the bot with those settings, otherwise pull from a generic bot
   async checkForPersistentSettings(port) {
     let detectedBotSettings;
     const availableBots = await this.app.context.bots.Bot.findAll();
     const savedDbProfile = availableBots.find((bot) => {
-      return bot.dataValues.port === port.pnpId;
+      return bot.dataValues.uniqueEndpoint === port.pnpId;
     });
+
     if (savedDbProfile !== undefined) {
-      const savedProfile = this.app.context.bots.parseDbBot(savedDbProfile);
+      const savedProfile = this.app.context.bots.parseDbBotSettings(savedDbProfile);
       detectedBotSettings = this.app.context.bots.createBot(savedProfile);
     } else {
       // If pnpid, need to add it to the database
