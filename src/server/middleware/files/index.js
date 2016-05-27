@@ -24,7 +24,7 @@ class Files {
     this.routeEndpoint = routeEndpoint;
     this.router = router;
     this.uploadDir = path.join(__dirname, `./uploads`);
-    this.files = {};
+    this.fileList = {};
   }
 
   /**
@@ -67,7 +67,7 @@ class Files {
         name,
         dateChanged,
       };
-      self.files[uuid] = fileObject;
+      self.fileList[uuid] = fileObject;
     });
   }
 
@@ -103,7 +103,7 @@ class Files {
     // Rename the file from it's random name to the file's name plus the uuid
     const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
     await fs.rename(file.path, filenameWithUuid);
-    this.files[uuid] = fileObject;
+    this.fileList[uuid] = fileObject;
     return fileObject;
   }
 
@@ -112,11 +112,11 @@ class Files {
   }
 
   getFile(fileUuid) {
-    return this.files[fileUuid];
+    return this.fileList[fileUuid];
   }
 
   async deleteFile(fileUuid) {
-    const file = this.files[fileUuid];
+    const file = this.fileList[fileUuid];
     const filePath = this.getFilePath(file);
     const fileExists = await fs.exists(filePath);
     if (fileExists) {
@@ -125,7 +125,7 @@ class Files {
       this.app.io.emit('deleteFile', file);
       this.logger.info('Just deleted file', filePath);
       // Remove the file object from the 'files' array
-      delete this.files[fileUuid];
+      delete this.fileList[fileUuid];
       return `File ${fileUuid} deleted`;
     }
     return false;

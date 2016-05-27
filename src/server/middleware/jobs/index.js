@@ -23,7 +23,7 @@ class Jobs {
     this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
     this.router = router;
-    this.jobs = {};
+    this.jobList = {};
   }
 
   /**
@@ -49,7 +49,7 @@ class Jobs {
         jobObject.percentComplete = job.dataValues.percentComplete;
         jobObject.started = job.dataValues.started;
         jobObject.elapsed = job.dataValues.elapsed;
-        self.jobs[uuid] = jobObject;
+        self.jobList[uuid] = jobObject;
       }
 
       this.logger.info(`Jobs instance initialized`);
@@ -104,7 +104,7 @@ class Jobs {
         onenterstate: async (event, from, to) => {
           self.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
           if (from !== `none`) {
-            const theJob = self.jobs[uuid];
+            const theJob = self.jobList[uuid];
             if (event.indexOf('Done') !== -1) {
               try {
                 // As soon as an event successfully transistions, update it in the database
@@ -159,7 +159,7 @@ class Jobs {
     const dbJob = await this.Job.create(jobJson);
     uuid = dbJob.dataValues.uuid;
     jobObject.id = dbJob.dataValues.id;
-    this.jobs[uuid] = jobObject;
+    this.jobList[uuid] = jobObject;
     this.app.io.emit('jobEvent', jobJson);
     return jobObject;
   }
@@ -204,7 +204,7 @@ class Jobs {
   jobsToJson(jobs) {
     const jobObjects = {};
     for (let job in jobs) {
-      jobObjects[job] = this.jobToJson(this.jobs[job]);
+      jobObjects[job] = this.jobToJson(this.jobList[job]);
     }
     return jobObjects;
   }
@@ -213,14 +213,14 @@ class Jobs {
    * A generic call to retreive a json friendly job by its uuid
    */
   getJob(jobUuid) {
-    return this.jobToJson(this.jobs[jobUuid]);
+    return this.jobToJson(this.jobList[jobUuid]);
   }
 
   /**
    * A generic call to retreive a json friendly list of jobs
    */
   getJobs() {
-    const jobs = this.jobsToJson(this.jobs);
+    const jobs = this.jobsToJson(this.jobList);
     return jobs;
   }
 
@@ -235,7 +235,7 @@ class Jobs {
       if (Number(job.botId) === -1) {
         await this.app.context.conductor.startJob(job);
       } else {
-        await this.app.context.bots.bots[job.botId].startJob(job);
+        await this.app.context.bots.botList[job.botId].startJob(job);
       }
       job.started = new Date().getTime();
       await job.stopwatch.start();
@@ -257,7 +257,7 @@ class Jobs {
       if (Number(job.botId) === -1) {
         await this.app.context.conductor.pauseJob();
       } else {
-        await this.app.context.bots.bots[job.botId].pauseJob();
+        await this.app.context.bots.botList[job.botId].pauseJob();
       }
       await job.stopwatch.stop();
       await job.fsm.pauseDone();
@@ -278,7 +278,7 @@ class Jobs {
       if (Number(job.botId) === -1) {
         await this.app.context.conductor.resumeJob();
       } else {
-        await this.app.context.bots.bots[job.botId].resumeJob();
+        await this.app.context.bots.botList[job.botId].resumeJob();
       }
       await job.stopwatch.start();
       job.fsm.resumeDone();
@@ -299,7 +299,7 @@ class Jobs {
       if (Number(job.botId) === -1) {
         await this.app.context.conductor.stopJob(job);
       } else {
-        await this.app.context.bots.bots[job.botId].stopJob(job);
+        await this.app.context.bots.botList[job.botId].stopJob(job);
       }
       await job.stopwatch.stop();
       await job.fsm.cancelDone();
@@ -311,12 +311,12 @@ class Jobs {
   }
 
   async deleteJob(jobUuid) {
-    const theJob = this.jobs[jobUuid];
+    const theJob = this.jobList[jobUuid];
     const theJobJson = this.jobToJson(theJob);
     const dbJob = await this.Job.findById(theJob.id);
     this.app.io.emit('deleteJob', theJobJson);
     await dbJob.destroy();
-    delete this.jobs[jobUuid];
+    delete this.jobList[jobUuid];
     return `Job ${jobUuid} deleted`;
   }
 

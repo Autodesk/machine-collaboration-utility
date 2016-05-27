@@ -32,7 +32,7 @@ class Bots {
     this.router = router;
 
     // Initialize list of bots to be an empty object
-    this.bots = {};
+    this.botList = {};
   }
 
   /**
@@ -75,6 +75,20 @@ class Bots {
    * Then add the bot object to the 'bots' dictionary
    */
   addDbBot(dbBot) {
+    const botSettings = this.parseDbBot(dbBot);
+
+    // Create a bot object
+    // The first bot object created will always be the serial port bot
+    const botKey = dbBot.dataValues.port;
+    const botObject = new Bot(this.app, botSettings);
+    this.botList[botKey] = botObject;
+  }
+
+  /*
+   * Read a database bot object. Create a bot object from the database object
+   * Then add the bot object to the 'bots' dictionary
+   */
+  parseDbBot(dbBot) {
     const botSettings = {};
     botSettings.port = dbBot.dataValues.port;
     botSettings.connectionType = dbBot.dataValues.connectionType;
@@ -90,12 +104,7 @@ class Bots {
     botSettings.offsetX = dbBot.dataValues.offsetX;
     botSettings.offsetY = dbBot.dataValues.offsetY;
     botSettings.offsetZ = dbBot.dataValues.offsetZ;
-
-    // Create a bot object
-    // The first bot object created will always be the serial port bot
-    const botKey = dbBot.dataValues.id;
-    const botObject = new Bot(this.app, botSettings);
-    this.bots[botKey] = botObject;
+    return botSettings;
   }
 
   /*
@@ -141,10 +150,10 @@ class Bots {
    */
   getBots() {
     const filteredBots = {};
-    for (const bot in this.bots) {
-      if (this.bots.hasOwnProperty(bot)) {
+    for (const bot in this.botList) {
+      if (this.botList.hasOwnProperty(bot)) {
         if (bot !== `null`) {
-          filteredBots[bot] = this.bots[bot].getBot();
+          filteredBots[bot] = this.botList[bot].getBot();
         }
       }
     }
@@ -155,7 +164,7 @@ class Bots {
    * get a json friendly description of a specific bot
    */
   getBot(id) {
-    const bot = this.bots[id];
+    const bot = this.botList[id];
     if (bot === undefined) {
       const errorMessage = `Bot with id '${id}' does not exist`;
       this.logger.error(errorMessage);
