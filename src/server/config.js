@@ -23,6 +23,7 @@ module.exports = {
     },
   ],
   conductor: {
+    enabled: false,
     comType: 'http',
     players: [
       'a',
