@@ -3,6 +3,7 @@ const Sequelize = require('sequelize');
 module.exports = async (app) => {
   // Define the model for a job
   const Bot = await app.context.db.define('Bot', {
+    // The port is either an ip address endpoint or a pnpid
     port: Sequelize.STRING,
     connectionType: Sequelize.STRING,
     name: Sequelize.STRING,
@@ -20,7 +21,6 @@ module.exports = async (app) => {
   });
 
   // Update the database tables to contain 'Bot'
-  await app.context.db.sync();
-  // await app.context.db.sync({force:true});
+  await app.context.db.sync({ force: true });
   return Bot;
 };

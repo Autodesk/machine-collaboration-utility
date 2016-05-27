@@ -332,7 +332,7 @@ class Conductor {
         });
         const dbBot = await this.app.context.bots.Bot.create(botSettings);
         const botKey = dbBot.dataValues.id;
-        this.app.context.bots.bots[botKey] = await new Bot(this.app, botSettings);
+        this.app.context.bots.botList[botKey] = await new Bot(this.app, botSettings);
         this.players[player] = bots[botKey];
       }
     }
