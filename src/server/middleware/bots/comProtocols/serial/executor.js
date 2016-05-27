@@ -49,7 +49,7 @@ SerialCommandExecutor.prototype.open = function (inDoneFunc) {
         that.mBaud,
         that.mOpenPrimeStr,
         function (inData) {
-          console.log('whooooa', inData);
+          // console.log('Serial Port Initial Data', inData);
         },
         function () { inDoneFunc(true); },
         this.io
