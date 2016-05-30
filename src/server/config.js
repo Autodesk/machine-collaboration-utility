@@ -21,6 +21,10 @@ module.exports = {
       vid: 7504,
       pid: 24597,
     },
+    {
+      vid: 9153,
+      pid: 45079,
+    },
   ],
   conductor: {
     enabled: false,

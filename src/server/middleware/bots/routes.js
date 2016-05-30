@@ -42,7 +42,7 @@ const createBot = (self) => {
         throw errorMessage;
       }
 
-      const dbBot = await self.Bot.create(botSettings);
+      const dbBot = await self.BotModel.create(botSettings);
       const botKey = dbBot.dataValues.id;
 
       self.bots[botKey] = await new Bot(self.app, botSettings);
@@ -63,21 +63,21 @@ const createBot = (self) => {
  */
 const updateBot = (self) => {
   const requestDescription = 'Update Bot Settings';
-  self.router.put(`${self.routeEndpoint}/:port`, async (ctx) => {
+  self.router.put(`${self.routeEndpoint}/:uniqueIdentifier`, async (ctx) => {
     try {
-      const port = ctx.params.port;
-      if (port) {
-        const bot = self.bots[port];
+      const uniqueIdentifier = ctx.params.uniqueIdentifier;
+      if (uniqueIdentifier) {
+        const bot = self.botList[uniqueIdentifier];
         if (bot) {
           const botSettings = ctx.request.body;
           const reply = await bot.updateBot(botSettings);
           ctx.status = 200;
           ctx.body = new Response(ctx, requestDescription, reply);
         } else {
-          throw `Bot "${port}" not found`;
+          throw `Bot "${uniqueIdentifier}" not found`;
         }
       } else {
-        throw `Port is undefined`;
+        throw `uniqueIdentifier is undefined`;
       }
     } catch (ex) {
       ctx.status = 500;
@@ -112,7 +112,7 @@ const deleteBot = (self) => {
           const errorMessage = `Cannot delete bot of type ${bot.settings.connectionType}`;
           throw errorMessage;
       }
-      const bots = await self.Bot.findAll();
+      const bots = await self.BotModel.findAll();
       let destroyed = false;
       for (const dbBot of bots) {
         const dbBotId = dbBot.dataValues.id;

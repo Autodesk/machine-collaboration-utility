@@ -38,43 +38,41 @@ class UsbDiscovery {
     usb.on('detach', async () => {
       // Need to wait arbitrary amount of time for Serialport list to update
       await Promise.delay(100);
-      let portToRemove = undefined;
+      const portsToRemove = [];
       SerialPort.list(async (err, ports) => {
-        console.log('unplugged ports', ports, self.ports);
         // Go through every known port
-        for (const listedPort in self.ports) {
-          if (self.ports.hasOwnProperty(listedPort)) {
+        for (const portKey in self.ports) {
+          if (self.ports.hasOwnProperty(portKey)) {
+            const listedPort = self.ports[portKey];
             const foundPort = ports.find((port) => {
               return (
-                port.comName === listedPort &&
+                port.comName === listedPort.comName &&
                 port.vendorId !== undefined &&
                 port.productId !== undefined
               );
             });
-            // If one of the ports from our list isn't in the list of available ports
+            // If the listedPort isn't in the serial port's available ports
             // we know that that port was removed
             // Now do all the steps to remove it
             if (foundPort === undefined) {
               const removedBot = _.find(self.app.context.bots.botList, (bot) => {
-                console.log('bot', bot);
-                console.log('listedPort', listedPort);
-                console.log('self.ports[listedPort]', self.ports[listedPort]);
-                return bot.settings.port === listedPort;
+                return bot.port === listedPort.comName;
               });
               if (removedBot !== undefined) {
-                portToRemove = listedPort;
+                portsToRemove.push(portKey);
                 await removedBot.unplug();
                 // If we have a generic usb connection and not a persistent pnpid connection, then delete it
-                if (self.app.context.bots.botList[removedBot.settings.comName] !== undefined) {
-                  delete self.app.context.bots.botList[removedBot.settings.comName];
+                const portUniqueIdentifier = self.app.context.bots.sanitizeStringForRouting(removedBot.port);
+                if (self.app.context.bots.botList[portUniqueIdentifier] !== undefined) {
+                  delete self.app.context.bots.botList[portUniqueIdentifier];
                 }
               }
             }
           }
         }
         // Need to remove the port after cycling through the for loop
-        if (portToRemove !== undefined) {
-          delete self.ports[portToRemove];
+        for (const port of portsToRemove) {
+          delete self.ports[port];
         }
       });
     });
@@ -104,8 +102,14 @@ class UsbDiscovery {
       if (vid === vidPid.vid && pid === vidPid.pid) {
         const detectedBotSettings = await this.checkForPersistentSettings(port);
         const botObject = new Bot(this.app, detectedBotSettings);
-        this.app.context.bots.botList[detectedBotSettings.port] = botObject;
         botObject.setPort(port.comName);
+        let cleanUniqueIdentifier;
+        if (botObject.settings.uniqueIdentifier === `default`) {
+          cleanUniqueIdentifier = this.app.context.bots.sanitizeStringForRouting(botObject.port);
+        } else {
+          cleanUniqueIdentifier = this.app.context.bots.sanitizeStringForRouting(botObject.settings.uniqueIdentifier);
+        }
+        this.app.context.bots.botList[cleanUniqueIdentifier] = botObject;
         botObject.detect();
       }
     }
@@ -114,30 +118,27 @@ class UsbDiscovery {
   // compare the bot's pnpId with all of the bots in our database
   // if a pnpId exists, lost the bot with those settings, otherwise pull from a generic bot
   async checkForPersistentSettings(port) {
-    let detectedBotSettings;
-    const availableBots = await this.app.context.bots.Bot.findAll();
+    let detectedBotSettings = {};
+    const availableBots = await this.app.context.bots.BotModel.findAll();
     const savedDbProfile = availableBots.find((bot) => {
-      return bot.dataValues.uniqueEndpoint === port.pnpId;
+      return port.pnpId && bot.dataValues.uniqueIdentifier === port.pnpId;
     });
 
     if (savedDbProfile !== undefined) {
       const savedProfile = this.app.context.bots.parseDbBotSettings(savedDbProfile);
-      detectedBotSettings = this.app.context.bots.createBot(savedProfile);
+      detectedBotSettings = await this.app.context.bots.createBot(savedProfile);
     } else {
-      // If pnpid, need to add it to the database
+      // If pnpid or serial number, need to add it to the database
       // else set port to port
-      let botIdentifier;
       if (port.pnpId !== undefined) {
-        botIdentifier = port.pnpId;
-        detectedBotSettings = this.app.context.bots.createBot({
-          port: port.pnpId,
+        const uniqueIdentifier = port.pnpId;
+        detectedBotSettings = await this.app.context.bots.createBot({
+          uniqueIdentifier,
           connectionType: `serial`,
         });
-        await this.app.context.bots.Bot.create(detectedBotSettings);
+        await this.app.context.bots.BotModel.create(detectedBotSettings);
       } else {
-        botIdentifier = port.comName;
-        detectedBotSettings = this.app.context.bots.createBot({
-          port: botIdentifier,
+        detectedBotSettings = await this.app.context.bots.createBot({
           connectionType: `serial`,
         });
       }

@@ -161,8 +161,12 @@ class Bot {
         },
       },
     });
+
     this.settings = settings;
+
     switch (this.settings.connectionType) {
+      // In case there is no detection method required, detect the device and
+      // move directly to a "ready" state
       case `http`:
       case `telnet`:
       case `virtual`:
@@ -171,9 +175,6 @@ class Bot {
       default:
         // Do nothing
     }
-    // if (this.settings.connectionType === `http` || this.settings.connectionType === `telnet`) {
-    //   this.detect();
-    // }
   }
 
   async processGcode(gcode) {
@@ -222,11 +223,19 @@ class Bot {
     return {
       state: this.fsm.current,
       settings: this.settings,
+      port: this.port,
     };
   }
 
   async updateBot(newSettings) {
     const settingsToUpdate = {};
+
+    // parse the existing settings
+    // if any of the settings passed in match the existing settings
+    // add them to "settingsToUpdate" object.
+
+    // NOTE if we are passing object details that do not match existing settings
+    // we don't throw an error
     for (const botSetting in this.settings) {
       if (this.settings.hasOwnProperty(botSetting)) {
         for (const newSetting in newSettings) {
@@ -238,28 +247,28 @@ class Bot {
         }
       }
     }
-    const dbBots = await this.app.context.bots.Bot.findAll();
 
-    // The usb port is not a persistent value, while tcp and telnet ports are
-    // Because of this, updating a usb port's settings should instead update the `null` port
-    const thePort = this.settings.connectionType === `serial` ? `null` : this.settings.port;
+    const dbBots = await this.app.context.bots.BotModel.findAll();
     const dbBot = _.find(dbBots, (bot) => {
-      return bot.dataValues.port === thePort;
+      return bot.dataValues.uniqueIdentifier === this.settings.uniqueIdentifier;
     });
+
     await dbBot.update(settingsToUpdate);
     for (const newSetting in settingsToUpdate) {
       if (settingsToUpdate.hasOwnProperty(newSetting) && this.settings.hasOwnProperty(newSetting)) {
         this.settings[newSetting] = settingsToUpdate[newSetting];
       }
     }
-    return settingsToUpdate;
+
+    return this.settings;
   }
 
   /*
    * Set the port of the bot. This is only necessary for usb printers
    */
   setPort(port) {
-    this.settings.port = port;
+    // Validate?
+    this.port = port;
   }
 
   /*
@@ -307,11 +316,12 @@ class Bot {
     const filesApp = self.app.context.files;
     const theFile = filesApp.getFile(job.fileUuid);
     const filePath = filesApp.getFilePath(theFile);
+
+    // open the file
+    // start reading line by line...
     self.lr = new LineByLineReader(filePath);
     self.currentLine = 0;
     await self.lr.pause(); // redundant
-    // open the file
-    // start reading line by line...
 
     self.lr.on('error', (err) => {
       self.logger.error('line reader error:', err);
@@ -324,6 +334,8 @@ class Bot {
       await self.lr.pause();
 
       // We only care about the info prior to the first semicolon
+      // NOTE This code is assuming we are processing GCODE
+      // In case of adding support for multiple contrl formats, this is a good place to start
       let command = line.split(';')[0];
       if (command.length <= 0) {
         // If the line is blank, move on to the next line
@@ -567,28 +579,6 @@ class Bot {
     const lines = reply.toString().split('\n');
     const ok = _.last(lines).indexOf(`ok`) !== -1;
     return ok;
-  }
-
-  async jog(gcode) {
-    const state = this.fsm.current;
-    switch (state) {
-      case `connected`:
-      case `processingJob`:
-      case `processingJobGcode`:
-      case `processingGcode`:
-        this.queue.queueCommands({
-          code: `G91`,
-          postCallback: () => {
-            this.queue.prependCommands([
-              gcode,
-              `G90`,
-            ]);
-          },
-        });
-        return true;
-      default:
-        return undefined;
-    }
   }
 
   /**

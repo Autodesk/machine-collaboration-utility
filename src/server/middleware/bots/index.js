@@ -1,8 +1,6 @@
 const router = require(`koa-router`)();
 const fs = require(`fs-promise`);
 const path = require(`path`);
-const _ = require(`underscore`);
-const Promise = require(`bluebird`);
 
 const botsRoutes = require(`./routes`);
 const botModel = require(`./model`);
@@ -44,17 +42,31 @@ class Bots {
       await this.setupRouter();
 
       // Set up the bot database model
-      this.Bot = await botModel(this.app);
-      let botsDbArray = await this.Bot.findAll();
+      this.BotModel = await botModel(this.app);
+      let botsDbArray = await this.BotModel.findAll();
 
       // If there are not bots saved yet, create one
       // This first bot object is where we will save settings for
       // generic usb bots that cannot be made persistent
       if (botsDbArray.length === 0) {
-        const botSettings = this.createBot({ connectionType: `null` });
-        await this.Bot.create(botSettings);
+        await this.BotModel.create({
+          uniqueIdentifier: `default`,
+          connectionType: undefined,
+          name: `Cool Bot`,
+          jogXSpeed: `2000`,
+          jogYSpeed: `2000`,
+          jogZSpeed: `1000`,
+          jogESpeed: `120`,
+          tempE: `200`,
+          tempB: `60`,
+          speedRatio: `1.0`,
+          eRatio: `1.0`,
+          offsetX: `0`,
+          offsetY: `0`,
+          offsetZ: `0`,
+        });
         // reload the botDbArray now that we have one
-        botsDbArray = await this.Bot.findAll();
+        botsDbArray = await this.BotModel.findAll();
       }
 
       // Load all bots from the database and add them to the 'bots' object
@@ -79,8 +91,15 @@ class Bots {
 
     // Create a bot object
     // The first bot object created will always be the serial port bot
-    const botKey = dbBot.dataValues.port;
+    const botKey = dbBot.dataValues.uniqueIdentifier;
     const botObject = new Bot(this.app, botSettings);
+    switch (botObject.settings.connectionType) {
+      case `http`:
+      case `telnet`:
+        botObject.setPort(botObject.settings.uniqueIdentifier);
+      default:
+        // do nothing
+    }
     this.botList[botKey] = botObject;
   }
 
@@ -90,7 +109,7 @@ class Bots {
    */
   parseDbBotSettings(dbBot) {
     const botSettings = {};
-    botSettings.port = dbBot.dataValues.port;
+    botSettings.uniqueIdentifier = dbBot.dataValues.uniqueIdentifier;
     botSettings.connectionType = dbBot.dataValues.connectionType;
     botSettings.name = dbBot.dataValues.name;
     botSettings.jogXSpeed = dbBot.dataValues.jogXSpeed;
@@ -111,32 +130,18 @@ class Bots {
    * Pass in unique settings to overwrite a default bot's settings
    * Throw an error if the connectionType is not defined
    */
-  createBot(userSettings) {
+  async createBot(userSettings) {
     // TODO consider using the default initially saved settings instead of
     // these settings as the placeholder settings
-    const settings = {
-      port: `null`,
-      uniqueEndpoint: undefined,
-      connectionType: undefined,
-      name: `Cool Bot`,
-      jogXSpeed: `2000`,
-      jogYSpeed: `2000`,
-      jogZSpeed: `1000`,
-      jogESpeed: `120`,
-      tempE: `200`,
-      tempB: `60`,
-      speedRatio: `1.0`,
-      eRatio: `1.0`,
-      offsetX: `0`,
-      offsetY: `0`,
-      offsetZ: `0`,
-    };
+    const dbBots = await this.BotModel.findAll();
+    const settings = this.parseDbBotSettings(dbBots[0]);
 
     for (const setting in userSettings) {
       if (userSettings.hasOwnProperty(setting)) {
         settings[setting] = userSettings[setting];
       }
     }
+
     if (settings.connectionType === undefined) {
       const errorMessage = `Bot connectionType must be defined`;
       this.logger.error(errorMessage);
@@ -149,11 +154,15 @@ class Bots {
   /*
    * get a json friendly description of the Bots
    */
-  getBots() {
+  getBots(filter) {
     const filteredBots = {};
     for (const bot in this.botList) {
       if (this.botList.hasOwnProperty(bot)) {
-        if (bot !== `null`) {
+        if (typeof filter === `function`) {
+          if (filter(this.botList[bot])) {
+            filteredBots[bot] = this.botList[bot].getBot();
+          }
+        } else {
           filteredBots[bot] = this.botList[bot].getBot();
         }
       }
@@ -211,6 +220,10 @@ class Bots {
         this.logger.info(`${discoveryType} discovery initialized`);
       }
     });
+  }
+
+  sanitizeStringForRouting(portName) {
+    return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
   }
 }
 

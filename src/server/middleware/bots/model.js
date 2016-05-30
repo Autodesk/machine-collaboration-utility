@@ -4,7 +4,7 @@ module.exports = async (app) => {
   // Define the model for a job
   const Bot = await app.context.db.define('Bot', {
     // The identifier is either an ip address endpoint or a pnpid
-    uniqueEndpoint: Sequelize.STRING,
+    uniqueIdentifier: Sequelize.STRING,
     connectionType: Sequelize.STRING,
     name: Sequelize.STRING,
     jogXSpeed: Sequelize.STRING,
