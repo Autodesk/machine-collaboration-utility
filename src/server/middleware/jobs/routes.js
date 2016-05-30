@@ -15,7 +15,7 @@ const createJob = (self) => {
       }
 
       const uuid = ctx.request.body.uuid;
-      if (self.jobs[uuid] !== undefined) {
+      if (self.jobList[uuid] !== undefined) {
         // Delete the job from the database and the jobs object
         await self.deleteJob(uuid);
       }
@@ -41,7 +41,7 @@ const getJobs = (self) => {
   const requestDescription = `Get Jobs`;
   self.router.get(self.routeEndpoint + '/', async (ctx) => {
     try {
-      const response = self.jobsToJson(self.jobs);
+      const response = self.jobsToJson(self.jobList);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, response);
     } catch (ex) {
@@ -60,7 +60,7 @@ const getJob = (self) => {
   self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       const jobUuid = ctx.params.uuid;
-      const job = self.jobs[jobUuid];
+      const job = self.jobList[jobUuid];
       if (job) {
         const jobJson = self.jobToJson(job);
         ctx.status = 200;
@@ -89,7 +89,7 @@ const setFile = (self) => {
     // Find the job
     try {
       const jobUuid = ctx.params.uuid;
-      const job = self.jobs[jobUuid];
+      const job = self.jobList[jobUuid];
 
       if (!job) {
         throw `Job is undefined`;
@@ -124,7 +124,7 @@ const processJobCommand = (self) => {
     try {
       // Find the job
       const jobUuid = ctx.params.uuid;
-      const job = self.jobs[jobUuid];
+      const job = self.jobList[jobUuid];
 
       if (!job) {
         throw `job is undefined`;
@@ -203,8 +203,8 @@ const deleteAllJobs = (self) => {
   const requestDescription = `Delete All Jobs`;
   self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
     try {
-      for (const job in self.jobs) {
-        await self.deleteJob(self.jobs[job].uuid);
+      for (const job in self.jobList) {
+        await self.deleteJob(self.jobList[job].uuid);
       }
       const status = `All jobs deleted`;
       ctx.status = 200;

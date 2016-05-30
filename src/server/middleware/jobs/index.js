@@ -65,7 +65,7 @@ class Jobs {
     const self = this;
 
     if (botId === undefined) {
-      throw `Printer ID is not defined`;
+      throw `botId is not defined`;
     }
 
     const cancelable = ['running', 'paused'];
