@@ -36,16 +36,16 @@ const createBot = (self) => {
 
       const botSettings = self.createBot(paramSettings);
 
-      // Don't add the bot if it has a duplicate port in the database
-      if (self.bots[botSettings.port] !== undefined) {
-        const errorMessage = `Cannot create bot at port ${botSettings.port}. Bot already exists`;
+      // Don't add the bot if it has a duplicate unique identifier in the database
+      if (self.botList[botSettings.uniqueIdentifier] !== undefined) {
+        const errorMessage = `Cannot create bot with unique identifier ${botSettings.uniqueIdentifier}. Bot already exists`;
         throw errorMessage;
       }
 
       const dbBot = await self.BotModel.create(botSettings);
       const botKey = dbBot.dataValues.id;
 
-      self.bots[botKey] = await new Bot(self.app, botSettings);
+      self.botList[botKey] = await new Bot(self.app, botSettings);
       const reply = {};
       reply[botKey] = botSettings;
       ctx.status = 201;
@@ -98,9 +98,9 @@ const deleteBot = (self) => {
       if (botId === undefined) {
         throw `botId is undefined.`
       }
-      const bot = self.bots[botId];
+      const bot = self.botList[botId];
       if (bot === undefined) {
-        throw `Bot ${port} does not exist`;
+        throw `Bot ${botId} does not exist`;
       }
       switch (bot.settings.connectionType) {
         case `http`:
@@ -118,7 +118,7 @@ const deleteBot = (self) => {
         const dbBotId = dbBot.dataValues.id;
         if (botId === dbBotId) {
           dbBot.destroy();
-          delete self.bots[botId];
+          delete self.botList[botId];
           destroyed = true;
         }
       }
@@ -141,10 +141,10 @@ const deleteBot = (self) => {
  */
 const getBot = (self) => {
   const requestDescription = `Get Bot`;
-  self.router.get(`${self.routeEndpoint}/:port`, async (ctx) => {
+  self.router.get(`${self.routeEndpoint}/:botId`, async (ctx) => {
     try {
-      const port = ctx.params.port;
-      const botJson = self.getBot(port);
+      const botId = ctx.params.botId;
+      const botJson = self.getBot(botId);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, botJson);
     } catch (ex) {
@@ -160,11 +160,11 @@ const getBot = (self) => {
  */
 const processBotCommand = (self) => {
   const requestDescription = `Process Bot Command`;
-  self.router.post(`${self.routeEndpoint}/:port`, async (ctx) => {
+  self.router.post(`${self.routeEndpoint}/:botId`, async (ctx) => {
     try {
-      const port = ctx.params.port;
-      const bot = self.bots[port];
-      if (port) {
+      const botId = ctx.params.botId;
+      const bot = self.botList[botId];
+      if (botId) {
         if (bot) {
           const command = ctx.request.body.command;
           if (command) {
@@ -175,10 +175,10 @@ const processBotCommand = (self) => {
             throw `Command is undefined.`;
           }
         } else {
-          throw `Bot "${port}" not found.`;
+          throw `Bot "${botId}" not found.`;
         }
       } else {
-        throw `Port is undefined`;
+        throw `botId is undefined`;
       }
     } catch (ex) {
       ctx.status = 500;
@@ -193,11 +193,11 @@ const processBotCommand = (self) => {
  */
 const processGcode = (self) => {
   const requestDescription = 'Process Gcode';
-  self.router.post(`${self.routeEndpoint}/:port/processGcode`, async (ctx) => {
+  self.router.post(`${self.routeEndpoint}/:botId/processGcode`, async (ctx) => {
     try {
-      const port = ctx.params.port;
-      if (port) {
-        const bot = self.bots[port];
+      const botId = ctx.params.botId;
+      if (botId) {
+        const bot = self.botList[botId];
         if (bot) {
           const gcode = ctx.request.body.gcode;
           if (gcode) {
@@ -219,10 +219,10 @@ const processGcode = (self) => {
             throw `Gcode is undefined.`;
           }
         } else {
-          throw `Bot "${port}" not found`;
+          throw `Bot "${botId}" not found`;
         }
       } else {
-        throw `Port is undefined`;
+        throw `BotId is undefined`;
       }
     } catch (ex) {
       ctx.status = 500;
@@ -237,11 +237,11 @@ const processGcode = (self) => {
  */
 const streamGcode = (self) => {
   const requestDescription = 'Stream Gcode';
-  self.router.post(`${self.routeEndpoint}/:port/streamGcode`, async (ctx) => {
+  self.router.post(`${self.routeEndpoint}/:botId/streamGcode`, async (ctx) => {
     try {
-      const port = ctx.params.port;
-      if (port) {
-        const bot = self.bots[port];
+      const botId = ctx.params.botId;
+      if (botId) {
+        const bot = self.botList[botId];
         if (bot) {
           const gcode = ctx.request.body.gcode;
           if (gcode) {
@@ -263,10 +263,10 @@ const streamGcode = (self) => {
             throw `Gcode is undefined.`;
           }
         } else {
-          throw `Bot "${port}" not found`;
+          throw `Bot "${botId}" not found`;
         }
       } else {
-        throw `Port is undefined`;
+        throw `botId is undefined`;
       }
     } catch (ex) {
       ctx.status = 500;
