@@ -440,7 +440,7 @@ class Bot {
         case `serial`:
           const openPrime = 'M501';
           executor = new SerialCommandExecutor(
-            this.settings.port,
+            this.port,
             this.config.baudrate,
             openPrime,
             this.app.io
@@ -448,7 +448,7 @@ class Bot {
           validator = this.validateSerialReply;
           break;
         case `http`:
-          executor = new HttpExecutor(this.settings.port);
+          executor = new HttpExecutor(this.port);
           validator = this.validateHttpReply;
           break;
         case `virtual`:
@@ -456,7 +456,7 @@ class Bot {
           validator = this.validateSerialReply;
           break;
         case `telnet`:
-          executor = new TelnetExecutor(this.settings.port);
+          executor = new TelnetExecutor(this.port);
           validator = this.validateSerialReply;
           break;
         default:

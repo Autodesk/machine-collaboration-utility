@@ -262,7 +262,7 @@ class Conductor {
       // connect all local players
       for (const player in this.players) {
         if (this.players.hasOwnProperty(player)) {
-          const uri = this.players[player].settings.port;
+          const uri = this.players[player].port;
           const requestParams = {
             method: `GET`,
             uri,
@@ -316,7 +316,7 @@ class Conductor {
       let uniqueIdentifier = true;
       for (const bot in bots) {
         if (bots.hasOwnProperty(bot)) {
-          if (bots[bot].settings.port === endpoint) {
+          if (bots[bot].port === endpoint) {
             this.players[player] = bots[bot];
             uniqueIdentifier = false;
             break;
