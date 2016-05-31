@@ -94,7 +94,8 @@ const deleteBot = (self) => {
   const requestDescription = 'Delete Bot';
   self.router.delete(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const botId = Number(ctx.request.body.botId);
+      const botId = ctx.request.body.botId;
+
       if (botId === undefined) {
         throw `botId is undefined.`
       }
@@ -143,7 +144,13 @@ const getBot = (self) => {
   const requestDescription = `Get Bot`;
   self.router.get(`${self.routeEndpoint}/:botId`, async (ctx) => {
     try {
-      const botId = ctx.params.botId;
+      let botId = ctx.params.botId;
+      // For ease of communication with single bots using the api
+      // allow the first connected bot to be address as `solo`
+      if (botId === `solo`) {
+        botId = self.soloBot();
+      }
+
       const botJson = self.getBot(botId);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, botJson);
@@ -162,7 +169,14 @@ const processBotCommand = (self) => {
   const requestDescription = `Process Bot Command`;
   self.router.post(`${self.routeEndpoint}/:botId`, async (ctx) => {
     try {
-      const botId = ctx.params.botId;
+      let botId = ctx.params.botId;
+
+      // For ease of communication with single bots using the api
+      // allow the first connected bot to be address as `solo`
+      if (botId === `solo`) {
+        botId = self.soloBot();
+      }
+
       const bot = self.botList[botId];
       if (botId) {
         if (bot) {
@@ -195,7 +209,13 @@ const processGcode = (self) => {
   const requestDescription = 'Process Gcode';
   self.router.post(`${self.routeEndpoint}/:botId/processGcode`, async (ctx) => {
     try {
-      const botId = ctx.params.botId;
+      let botId = ctx.params.botId;
+      // For ease of communication with single bots using the api
+      // allow the first connected bot to be address as `solo`
+      if (botId === `solo`) {
+        botId = self.soloBot();
+      }
+
       if (botId) {
         const bot = self.botList[botId];
         if (bot) {
@@ -239,7 +259,13 @@ const streamGcode = (self) => {
   const requestDescription = 'Stream Gcode';
   self.router.post(`${self.routeEndpoint}/:botId/streamGcode`, async (ctx) => {
     try {
-      const botId = ctx.params.botId;
+      let botId = ctx.params.botId;
+      // For ease of communication with single bots using the api
+      // allow the first connected bot to be address as `solo`
+      if (botId === `solo`) {
+        botId = self.soloBot();
+      }
+
       if (botId) {
         const bot = self.botList[botId];
         if (bot) {

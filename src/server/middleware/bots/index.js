@@ -225,6 +225,25 @@ class Bots {
   sanitizeStringForRouting(portName) {
     return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
   }
+
+  // For ease of communication with single bots using the api
+  // allow the first connected bot to be address as `solo`
+  // return the first connected bot
+  soloBot() {
+    let soloBotId = undefined;
+    for (const bot in this.botList) {
+      if (this.botList.hasOwnProperty(bot)) {
+        if (this.botList[bot].fsm.current !== `unavailable`) {
+          soloBotId = bot;
+          break;
+        }
+      }
+    }
+    if (soloBotId === undefined) {
+      throw `No bot is currently available`;
+    }
+    return soloBotId;
+  }
 }
 
 module.exports = Bots;
