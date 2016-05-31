@@ -26,7 +26,6 @@ const Bots = require(`./middleware/bots`);
 const Conductor = require(`./middleware/conductor`);
 
 function renderPage(appHtml) {
-  console.log('apphtml', appHtml);
   return `
     <!doctype html public="storage">
     <html>
