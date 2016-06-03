@@ -69,3 +69,4 @@ npm run conductor
 ```
 
 All API documentation can be found at localhost:9000/docs
+### Note, this Gcode bot manager is currently built to only support one usb connection.
