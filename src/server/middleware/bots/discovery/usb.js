@@ -11,6 +11,7 @@ class UsbDiscovery {
     this.config = app.context.config;
     this.logger = app.context.logger;
 
+    this.botPresetList = app.context.bots.botPresetList;
     this.ports = {};
   }
 
@@ -61,7 +62,8 @@ class UsbDiscovery {
               if (removedBot !== undefined) {
                 portsToRemove.push(portKey);
                 await removedBot.unplug();
-                // If we have a generic usb connection and not a persistent pnpid connection, then delete it
+                // If we have a generic usb connection and not
+                // a persistent pnpid connection, then delete it
                 const portUniqueIdentifier = self.app.context.bots.sanitizeStringForRouting(removedBot.port);
                 if (self.app.context.bots.botList[portUniqueIdentifier] !== undefined) {
                   delete self.app.context.bots.botList[portUniqueIdentifier];
@@ -97,10 +99,11 @@ class UsbDiscovery {
     const vid = parseInt(port.vendorId, 16);
     const pid = parseInt(port.productId, 16);
 
-    for (const vidPid of this.config.vidPids) {
-      // If the vid pid match what we are looking for then we know we have a bot of interest
-      if (vid === vidPid.vid && pid === vidPid.pid) {
-        const detectedBotSettings = await this.checkForPersistentSettings(port);
+    for (const botPresetKey in this.botPresetList) {
+      const botPresets = this.botPresetList[botPresetKey];
+      if (vid === botPresets.vid && pid === botPresets.pid) {
+        // Pass the detected preset to populate new settings
+        const detectedBotSettings = await this.checkForPersistentSettings(port, botPresets);
         const botObject = new Bot(this.app, detectedBotSettings);
         botObject.setPort(port.comName);
         let cleanUniqueIdentifier;
@@ -117,8 +120,8 @@ class UsbDiscovery {
 
   // compare the bot's pnpId with all of the bots in our database
   // if a pnpId exists, lost the bot with those settings, otherwise pull from a generic bot
-  async checkForPersistentSettings(port) {
-    let detectedBotSettings = {};
+  async checkForPersistentSettings(port, botPresets) {
+    let detectedBotSettings = undefined;
     const availableBots = await this.app.context.bots.BotModel.findAll();
     const savedDbProfile = availableBots.find((bot) => {
       return port.pnpId && bot.dataValues.uniqueIdentifier === port.pnpId;
@@ -131,17 +134,9 @@ class UsbDiscovery {
       // If pnpid or serial number, need to add it to the database
       // else set port to port
       if (port.pnpId !== undefined) {
-        const uniqueIdentifier = port.pnpId;
-        detectedBotSettings = await this.app.context.bots.createBot({
-          uniqueIdentifier,
-          connectionType: `serial`,
-        });
-        await this.app.context.bots.BotModel.create(detectedBotSettings);
-      } else {
-        detectedBotSettings = await this.app.context.bots.createBot({
-          connectionType: `serial`,
-        });
+        botPresets.settings.uniqueIdentifier = port.pnpId;
       }
+      detectedBotSettings = botPresets.settings;
     }
     return detectedBotSettings;
   }

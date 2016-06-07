@@ -1,9 +1,0 @@
-{"level":"info","message":"Server initialized","timestamp":"2016-03-28T18:53:02.087Z"}
-{"level":"info","message":"Files router setup complete","timestamp":"2016-03-28T18:53:02.129Z"}
-{"level":"info","message":"Files instance initialized","timestamp":"2016-03-28T18:53:02.134Z"}
-{"level":"info","message":"Jobs router setup complete","timestamp":"2016-03-28T18:53:02.138Z"}
-{"level":"info","message":"Job event startup: Transitioning from none to paused.","timestamp":"2016-03-28T18:53:02.172Z"}
-{"level":"info","message":"Jobs instance initialized","timestamp":"2016-03-28T18:53:02.173Z"}
-{"level":"info","message":"Bot event startup: Transitioning from none to unavailable.","timestamp":"2016-03-28T18:53:02.175Z"}
-{"level":"info","message":"Bot router setup complete","timestamp":"2016-03-28T18:53:02.178Z"}
-{"level":"info","message":"Bot instance initialized","timestamp":"2016-03-28T18:53:02.215Z"}

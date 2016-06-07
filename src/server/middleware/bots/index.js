@@ -30,6 +30,7 @@ class Bots {
     this.router = router;
 
     // Initialize list of bots to be an empty object
+    this.botPresetList = {};
     this.botList = {};
   }
 
@@ -39,6 +40,7 @@ class Bots {
   async initialize() {
     try {
       // Set up the router
+      await this.loadBotPresets();
       await this.setupRouter();
 
       // Set up the bot database model
@@ -49,22 +51,7 @@ class Bots {
       // This first bot object is where we will save settings for
       // generic usb bots that cannot be made persistent
       if (botsDbArray.length === 0) {
-        await this.BotModel.create({
-          uniqueIdentifier: `default`,
-          connectionType: undefined,
-          name: `Cool Bot`,
-          jogXSpeed: `2000`,
-          jogYSpeed: `2000`,
-          jogZSpeed: `1000`,
-          jogESpeed: `120`,
-          tempE: `200`,
-          tempB: `60`,
-          speedRatio: `1.0`,
-          eRatio: `1.0`,
-          offsetX: `0`,
-          offsetY: `0`,
-          offsetZ: `0`,
-        });
+        await this.BotModel.create(this.botPresetList[`defaultBot`].settings);
         // reload the botDbArray now that we have one
         botsDbArray = await this.BotModel.findAll();
       }
@@ -124,31 +111,6 @@ class Bots {
     botSettings.offsetY = dbBot.dataValues.offsetY;
     botSettings.offsetZ = dbBot.dataValues.offsetZ;
     return botSettings;
-  }
-
-  /*
-   * Pass in unique settings to overwrite a default bot's settings
-   * Throw an error if the connectionType is not defined
-   */
-  async createBot(userSettings) {
-    // TODO consider using the default initially saved settings instead of
-    // these settings as the placeholder settings
-    const dbBots = await this.BotModel.findAll();
-    const settings = this.parseDbBotSettings(dbBots[0]);
-
-    for (const setting in userSettings) {
-      if (userSettings.hasOwnProperty(setting)) {
-        settings[setting] = userSettings[setting];
-      }
-    }
-
-    if (settings.connectionType === undefined) {
-      const errorMessage = `Bot connectionType must be defined`;
-      this.logger.error(errorMessage);
-      throw errorMessage;
-    }
-
-    return settings;
   }
 
   /*
@@ -243,6 +205,22 @@ class Bots {
       throw `No bot is currently available`;
     }
     return soloBotId;
+  }
+
+  async loadBotPresets() {
+    const botPresets = await fs.readdir(path.join(__dirname, './hardware/bots'));
+    botPresets.forEach((botPreset) => {
+      // Scan through all of the bot presets.
+      // Make sure to ignore the source map files
+      // TODO refactor in case helper files are necessary in the 'hardware' folder
+      if (botPreset.indexOf(`.map`) === -1) {
+        const presetType = botPreset.split(`.`)[0];
+        const presetPath = path.join(__dirname, `./hardware/bots/${botPreset}`);
+        const BotPresetClass = require(presetPath);
+        const botPresetObject = new BotPresetClass(this.app);
+        this.botPresetList[presetType] = botPresetObject;
+      }
+    });
   }
 }
 
