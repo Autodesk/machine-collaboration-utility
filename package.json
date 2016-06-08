@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "debug": "node node_modules/gulp/bin/gulp.js debug",
     "test": "node node_modules/gulp/bin/gulp.js test",
     "start": "node node_modules/gulp/bin/gulp.js"
   },
@@ -72,8 +73,10 @@
     "gulp-mocha": "^2.2.0",
     "gulp-nodemon": "^2.0.4",
     "gulp-sass": "^2.2.0",
+    "gulp-shell": "^0.5.2",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-webpack": "^1.5.0",
+    "node-inspector": "^0.12.8",
     "react": "^15.0.2",
     "react-dom": "^15.0.2",
     "react-router": "^2.4.0",

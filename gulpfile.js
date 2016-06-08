@@ -6,6 +6,7 @@ const autoprefixer = require(`gulp-autoprefixer`);
 const mocha = require(`gulp-mocha`);
 const sass = require(`gulp-sass`);
 const webpack = require('gulp-webpack');
+const shell = require(`gulp-shell`);
 
 const src = {
   server: `src/server/**/*.js`,
@@ -176,3 +177,8 @@ gulp.task(`default`, [
   `watch`,
   `develop`,
 ]);
+
+gulp.task('debug', [`build`], () => {
+  return gulp.src('')
+  .pipe(shell(['node_modules/node-inspector/bin/node-debug.js dist/server/index.js']));
+});
