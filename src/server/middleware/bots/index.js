@@ -51,7 +51,7 @@ class Bots {
       // This first bot object is where we will save settings for
       // generic usb bots that cannot be made persistent
       if (botsDbArray.length === 0) {
-        await this.BotModel.create(this.botPresetList[`defaultBot`].settings);
+        await this.BotModel.create(this.botPresetList[`defaultbot`].settings);
         // reload the botDbArray now that we have one
         botsDbArray = await this.BotModel.findAll();
       }
@@ -80,7 +80,7 @@ class Bots {
     // The first bot object created will always be the serial port bot
     const botKey = dbBot.dataValues.uniqueIdentifier;
     const botObject = new Bot(this.app, botSettings);
-    switch (botObject.settings.connectionType) {
+    switch (botObject.connectionType) {
       case `http`:
       case `telnet`:
         botObject.setPort(botObject.settings.uniqueIdentifier);
@@ -96,9 +96,9 @@ class Bots {
    */
   parseDbBotSettings(dbBot) {
     const botSettings = {};
-    botSettings.uniqueIdentifier = dbBot.dataValues.uniqueIdentifier;
-    botSettings.connectionType = dbBot.dataValues.connectionType;
+    botSettings.model = dbBot.dataValues.model;
     botSettings.name = dbBot.dataValues.name;
+    botSettings.uniqueIdentifier = dbBot.dataValues.uniqueIdentifier;
     botSettings.jogXSpeed = dbBot.dataValues.jogXSpeed;
     botSettings.jogYSpeed = dbBot.dataValues.jogYSpeed;
     botSettings.jogZSpeed = dbBot.dataValues.jogZSpeed;
@@ -218,7 +218,7 @@ class Bots {
         const presetPath = path.join(__dirname, `./hardware/bots/${botPreset}`);
         const BotPresetClass = require(presetPath);
         const botPresetObject = new BotPresetClass(this.app);
-        this.botPresetList[presetType] = botPresetObject;
+        this.botPresetList[presetType.toLowerCase()] = botPresetObject;
       }
     });
   }

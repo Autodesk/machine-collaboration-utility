@@ -10,76 +10,6 @@ const TelnetExecutor = require(`./comProtocols/telnet/executor`);
 const VirtualExecutor = require(`./comProtocols/virtual/executor`);
 const CommandQueue = require(`./commandQueue`);
 
-const parkCommands = function parkCommands(that) {
-  return {
-    code: 'M114',
-    processData: (inCommand, inReply) => {
-      const commandArray = [];
-
-      const preParkLocation = {
-        X: Number(inReply.split('X:')[1].split('Y:')[0]),
-        Z: Number(inReply.split('Z:')[1].split('E:')[0]),
-      };
-
-      that.logger.info('preParkLocation ', preParkLocation);
-
-      if (preParkLocation.Z < 18) {
-        commandArray.push('G1 Y25 Z18 F3600');
-      }
-      commandArray.push('G1 Y2 F3600');
-      commandArray.push('G92 E0');
-      commandArray.push('G1 E-10 F1000');
-      commandArray.push({
-        postCallback: () => {
-          that.fsm.parkDone();
-        },
-      });
-
-      that.queue.queueCommands(commandArray);
-
-      return true;
-    },
-  };
-};
-
-const unparkCommands = function unparkCommands(that, xEntry, dryJob = 'false') {
-  const commandArray = [
-    {
-      code: 'M114',
-      processData: (inCommand, inReply) => {
-        const purgeArray = [];
-        that.logger.info('Unparking: ', xEntry, '\t', dryJob);
-        that.logger.info('xEntry Type: ', typeof(xEntry));
-        that.logger.info('dry Type: ', typeof(dryJob));
-
-        if (xEntry !== undefined) {
-          that.logger.info('Unparking: Moving to entry X');
-          purgeArray.push('G1 X' + xEntry + ' F3600');
-        }
-        if (dryJob.toLowerCase() === 'false') {
-          that.logger.info('Unparking: Purging');
-
-          purgeArray.push('G92 E-10');
-          purgeArray.push('G1 E-2 F1000');
-          purgeArray.push('G1 E0 F500');
-          purgeArray.push('G1 E5 F200');
-          purgeArray.push('G1 E4 F1800');
-          purgeArray.push('G1 Y27 F3600');
-        }
-        commandArray.push({
-          postCallback: () => {
-            that.fsm.unparkDone();
-          },
-        });
-        that.queue.queueCommands(purgeArray);
-        return true;
-      },
-    },
-  ];
-  return commandArray;
-};
-
-
 /**
  * This is a Bot class representing hardware that can process jobs.
  * All commands to the bot are passed to it's queue and processed sequentially
@@ -100,20 +30,10 @@ class Bot {
     this.config = app.context.config;
     this.logger = app.context.logger;
 
-    this.virtual = false;
     this.queue = undefined;
-
-    // File reading assets
     this.currentJob = undefined;
     this.lr = undefined; // buffered file line reader
     this.currentLine = undefined;
-
-    this.stopCommands = [
-      'G90',
-      'G1 Z10',
-      'G91',
-      'M104 S0',
-    ];
 
     this.fsm = StateMachine.create({
       initial: 'unavailable',
@@ -162,9 +82,22 @@ class Bot {
       },
     });
 
+    debugger;
+    const botPresets = this.app.context.bots.botPresetList[settings.model.toLowerCase()];
+    for (const botPresetKey in botPresets) {
+      if (
+        botPresets.hasOwnProperty(botPresetKey) &&
+        botPresetKey !== `app` &&
+        botPresetKey !== `logger`
+      ) {
+        this[botPresetKey] = botPresets[botPresetKey];
+      }
+    }
+
     this.settings = settings;
 
-    switch (this.settings.connectionType) {
+    // LOAD PRESETS HERE
+    switch (this.connectionType) {
       // In case there is no detection method required, detect the device and
       // move directly to a "ready" state
       case `http`:
@@ -436,7 +369,7 @@ class Bot {
       let executor;
       let validator;
       // Set up the validator and executor
-      switch (this.settings.connectionType) {
+      switch (this.connectionType) {
         case `serial`:
           const openPrime = 'M501';
           executor = new SerialCommandExecutor(
@@ -460,7 +393,7 @@ class Bot {
           validator = this.validateSerialReply;
           break;
         default:
-          const errorMessage = `connectionType "${this.settings.connectionType}" is not supported.`;
+          const errorMessage = `connectionType "${this.connectionType}" is not supported.`;
           throw errorMessage;
       }
 

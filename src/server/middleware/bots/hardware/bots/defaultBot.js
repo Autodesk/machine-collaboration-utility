@@ -2,11 +2,12 @@ module.exports = class DefaultBot {
   constructor(app) {
     this.app = app;
     this.logger = app.context.logger;
+    this.connectionType = undefined;
 
     this.settings = {
+      name: `Default`,
+      model: `defaultbot`,
       uniqueIdentifier: `default`,
-      connectionType: undefined,
-      name: `Default Bot`,
       jogXSpeed: `1000`,
       jogYSpeed: `2000`,
       jogZSpeed: `1000`,
@@ -19,12 +20,9 @@ module.exports = class DefaultBot {
       offsetY: `0`,
       offsetZ: `0`,
     };
-
-    this.name = `Default`;
     this.vid = undefined;
     this.pid = undefined;
     this.baudrate = undefined;
-    this.connectionType = undefined;
   }
 
   parkCommands(that) {

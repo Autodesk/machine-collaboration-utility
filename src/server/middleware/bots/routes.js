@@ -103,14 +103,14 @@ const deleteBot = (self) => {
       if (bot === undefined) {
         throw `Bot ${botId} does not exist`;
       }
-      switch (bot.settings.connectionType) {
+      switch (bot.connectionType) {
         case `http`:
         case `telnet`:
         case `virtual`:
           // do nothing
           break;
         default:
-          const errorMessage = `Cannot delete bot of type ${bot.settings.connectionType}`;
+          const errorMessage = `Cannot delete bot of type ${bot.connectionType}`;
           throw errorMessage;
       }
       const bots = await self.BotModel.findAll();

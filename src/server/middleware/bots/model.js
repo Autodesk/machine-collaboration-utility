@@ -3,10 +3,10 @@ const Sequelize = require('sequelize');
 module.exports = async (app) => {
   // Define the model for a job
   const Bot = await app.context.db.define('Bot', {
+    model: Sequelize.STRING,
+    name: Sequelize.STRING,
     // The identifier is either an ip address endpoint or a pnpid
     uniqueIdentifier: Sequelize.STRING,
-    connectionType: Sequelize.STRING,
-    name: Sequelize.STRING,
     jogXSpeed: Sequelize.STRING,
     jogYSpeed: Sequelize.STRING,
     jogZSpeed: Sequelize.STRING,
