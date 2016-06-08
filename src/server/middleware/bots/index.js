@@ -51,7 +51,7 @@ class Bots {
       // This first bot object is where we will save settings for
       // generic usb bots that cannot be made persistent
       if (botsDbArray.length === 0) {
-        await this.BotModel.create(this.botPresetList[`defaultbot`].settings);
+        await this.BotModel.create(this.botPresetList[`DefaultBot`].settings);
         // reload the botDbArray now that we have one
         botsDbArray = await this.BotModel.findAll();
       }
@@ -218,7 +218,7 @@ class Bots {
         const presetPath = path.join(__dirname, `./hardware/bots/${botPreset}`);
         const BotPresetClass = require(presetPath);
         const botPresetObject = new BotPresetClass(this.app);
-        this.botPresetList[presetType.toLowerCase()] = botPresetObject;
+        this.botPresetList[presetType] = botPresetObject;
       }
     });
   }

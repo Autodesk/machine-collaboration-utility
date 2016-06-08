@@ -83,7 +83,7 @@ class Bot {
     });
 
     debugger;
-    const botPresets = this.app.context.bots.botPresetList[settings.model.toLowerCase()];
+    const botPresets = this.app.context.bots.botPresetList[settings.model];
     for (const botPresetKey in botPresets) {
       if (
         botPresets.hasOwnProperty(botPresetKey) &&
