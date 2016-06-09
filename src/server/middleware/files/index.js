@@ -61,7 +61,7 @@ class Files {
       const uuid = filename.split('_')[filename.split('_').length - 1].split('.')[0];
       const name = filename.split('_' + uuid)[0] + '.' + filename.split('.')[1];
       const fileStats = await fs.stat(`${basedir}/${filename}`);
-      const dateChanged = self.createFormattedDate(fileStats.ctime);
+      const dateChanged = fileStats.ctime;
       const fileObject = {
         uuid,
         name,
@@ -97,13 +97,14 @@ class Files {
     const uuid = userUuid ? userUuid : await uuidGenerator.v1();
     const name = file.name;
     const fileStats = await fs.stat(file.path);
-    const dateChanged = this.createFormattedDate(fileStats.ctime);
+    const dateChanged = fileStats.ctime;
     const fileObject = { uuid, name, dateChanged };
 
     // Rename the file from it's random name to the file's name plus the uuid
     const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
     await fs.rename(file.path, filenameWithUuid);
     this.fileList[uuid] = fileObject;
+    this.app.io.emit(`filesUpdated`, this.fileList);
     return fileObject;
   }
 
@@ -131,15 +132,15 @@ class Files {
     return false;
   }
 
-  createFormattedDate(utcStamp) {
-    const year = `20${utcStamp.getYear() - 100}`;
-    const month = `${utcStamp.getMonth()}`;
-    const date = `${utcStamp.getDate()}`;
-    const hour = `${utcStamp.getHours()}`;
-    const minute = `${utcStamp.getMinutes()}`;
-    const dateChanged = `${year}/${month}/${date} ${hour}:${minute}`;
-    return dateChanged;
-  }
+  // createFormattedDate(utcStamp) {
+  //   const year = `20${utcStamp.getYear() - 100}`;
+  //   const month = `${utcStamp.getMonth()}`;
+  //   const date = `${utcStamp.getDate()}`;
+  //   const hour = `${utcStamp.getHours()}`;
+  //   const minute = `${utcStamp.getMinutes()}`;
+  //   const dateChanged = `${year}/${month}/${date} ${hour}:${minute}`;
+  //   return dateChanged;
+  // }
 }
 
 module.exports = Files;

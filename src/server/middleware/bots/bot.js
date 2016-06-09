@@ -3,6 +3,7 @@ const LineByLineReader = Promise.promisifyAll(require(`line-by-line`));
 const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 const fs = require(`fs`);
 const _ = require(`underscore`);
+const request = require(`request-promise`);
 
 const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
 const HttpExecutor = require(`./comProtocols/http/executor`);
@@ -34,6 +35,8 @@ class Bot {
     this.currentJob = undefined;
     this.lr = undefined; // buffered file line reader
     this.currentLine = undefined;
+
+    this.subscribers = [];
 
     this.fsm = StateMachine.create({
       initial: 'unavailable',
@@ -82,7 +85,6 @@ class Bot {
       },
     });
 
-    debugger;
     const botPresets = this.app.context.bots.botPresetList[settings.model];
     for (const botPresetKey in botPresets) {
       if (
@@ -103,6 +105,7 @@ class Bot {
       case `http`:
       case `telnet`:
       case `virtual`:
+        console.log('yoooo');
         this.detect();
         break;
       default:
@@ -301,6 +304,18 @@ class Bot {
           await self.fsm.stop();
           await self.fsm.stopDone();
           await self.currentJob.fsm.runningDone();
+          await Promise.map(self.subscribers, async (subscriber) => {
+            const requestParams = {
+              method: `POST`,
+              uri: subscriber,
+              body: {
+                botId: self.settings.uniqueIdentifier,
+                jobUuid: self.currentJob.uuid,
+              },
+              json: true,
+            };
+            await request(requestParams);
+          });
           await self.currentJob.stopwatch.stop();
         },
       });
@@ -566,6 +581,10 @@ class Bot {
 
   addFeedMultiplier(command) {
     return command;
+  }
+
+  addBotSubscriber(subscriberEndpoint) {
+    this.subscribers.push(subscriberEndpoint);
   }
 }
 

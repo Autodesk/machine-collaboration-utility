@@ -16,6 +16,7 @@ module.exports = function botTests() {
         uri: `http://localhost:9000/v1/bots/`,
         body: {
           connectionType: `virtual`,
+          uniqueIdentifier: `virtual-test-bot`,
         },
         json: true,
       };

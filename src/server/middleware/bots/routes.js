@@ -27,27 +27,16 @@ const createBot = (self) => {
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       const paramSettings = {};
+      const model = ctx.request.body.model;
+
       // Overwrite the default settings with any settings passed by the request
       for (const setting in ctx.request.body) {
-        if (ctx.request.body.hasOwnProperty(setting)) {
+        if (ctx.request.body.hasOwnProperty(setting) && ctx.request.body[setting] !== `model`) {
           paramSettings[setting] = ctx.request.body[setting];
         }
       }
 
-      const botSettings = self.createBot(paramSettings);
-
-      // Don't add the bot if it has a duplicate unique identifier in the database
-      if (self.botList[botSettings.uniqueIdentifier] !== undefined) {
-        const errorMessage = `Cannot create bot with unique identifier ${botSettings.uniqueIdentifier}. Bot already exists`;
-        throw errorMessage;
-      }
-
-      const dbBot = await self.BotModel.create(botSettings);
-      const botKey = dbBot.dataValues.id;
-
-      self.botList[botKey] = await new Bot(self.app, botSettings);
-      const reply = {};
-      reply[botKey] = botSettings;
+      const reply = await self.createBot(paramSettings, model);
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
@@ -187,6 +176,46 @@ const processBotCommand = (self) => {
             ctx.body = new Response(ctx, requestDescription, commandReply);
           } else {
             throw `Command is undefined.`;
+          }
+        } else {
+          throw `Bot "${botId}" not found.`;
+        }
+      } else {
+        throw `botId is undefined`;
+      }
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
+/**
+ * Handle all logic at this endpoint for sending a command to the bot
+ */
+const addBotSubscriber = (self) => {
+  const requestDescription = `Add Bot Subscriber`;
+  self.router.post(`${self.routeEndpoint}/:botId/addSubscriber`, async (ctx) => {
+    try {
+      let botId = ctx.params.botId;
+
+      // For ease of communication with single bots using the api
+      // allow the first connected bot to be address as `solo`
+      if (botId === `solo`) {
+        botId = self.soloBot();
+      }
+
+      const bot = self.botList[botId];
+      if (botId) {
+        if (bot) {
+          const subscriberEndpoint = ctx.request.body.subscriberEndpoint;
+          if (subscriberEndpoint) {
+            const addSubscriberReplay = await bot.addBotSubscriber(subscriberEndpoint);
+            ctx.status = 200;
+            ctx.body = new Response(ctx, requestDescription, commandReply);
+          } else {
+            throw `"subscriberEndpoint" is undefined.`;
           }
         } else {
           throw `Bot "${botId}" not found.`;

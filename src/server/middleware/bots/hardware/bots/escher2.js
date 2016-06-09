@@ -1,6 +1,6 @@
 const DefaultBot = require(`./DefaultBot`);
 
-module.exports = class Escher_2 extends DefaultBot {
+module.exports = class Escher2 extends DefaultBot {
   constructor(app) {
     super(app);
     this.settings.name = `Escher 2.0`;

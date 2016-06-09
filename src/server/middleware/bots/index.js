@@ -84,6 +84,7 @@ class Bots {
       case `http`:
       case `telnet`:
         botObject.setPort(botObject.settings.uniqueIdentifier);
+        break;
       default:
         // do nothing
     }
@@ -130,6 +131,29 @@ class Bots {
       }
     }
     return filteredBots;
+  }
+
+  async createBot(inputSettings, model) {
+    const botSettings = {};
+    const botPresets = model === undefined ? this.botPresetList[`DefaultBot`] : this.botPresetList[model];
+    for (const setting in botPresets.settings) {
+      botSettings[setting] = botPresets[setting];
+      if (inputSettings.hasOwnProperty(setting)) {
+        botSettings[setting] = inputSettings[setting];
+      }
+    }
+
+    // Don't add the bot if it has a duplicate unique identifier in the database
+    if (this.botList[botSettings.uniqueIdentifier] !== undefined) {
+      const errorMessage = `Cannot create bot with unique identifier ${botSettings.uniqueIdentifier}. Bot already exists`;
+      throw errorMessage;
+    }
+
+    const dbBot = await this.BotModel.create(botSettings);
+    const botKey = this.sanitizeStringForRouting(dbBot.dataValues.uniqueIdentifier);
+
+    this.botList[botKey] = await new Bot(this.app, botSettings);
+    return botSettings;
   }
 
   /*

@@ -9,11 +9,8 @@ const http = require(`http`);
 const config = require(`./config`);
 const KoaApp = require(`./koaApp`);
 
-// Pass a flag to the app to be a conductor or a bot
-const conducting = process.env.NODE_ENV === `conducting` ? true : false;
-
 // Create a new app object and set it up
-const koaApp = new KoaApp(config, conducting);
+const koaApp = new KoaApp(config);
 koaApp.initialize();
 
 const app = koaApp.app; // Messy, but the app is actually in the koaApp object

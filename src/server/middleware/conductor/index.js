@@ -5,7 +5,6 @@ const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 const request = require(`request-promise`);
 const unzip = require(`unzip2`);
 const fs = require(`fs`);
-const path = require(`path`);
 const _ = require(`underscore`);
 
 const conductorRoutes = require(`./routes`);
@@ -302,21 +301,21 @@ class Conductor {
   // If the database doesn't yet have printers for the endpoints, create them
   async setupConductorArms() {
     // Sweet through every player
-    for (const player of this.app.context.config.conductor.players) {
+    for (let player of this.app.context.config.conductor.players) {
       // Check if a bot exists with that end point
       let endpoint;
       switch (this.app.context.config.conductor.comType) {
         case 'http':
-          endpoint = `http://escher2${player}.local:9000/v1/bots/usb`;
+          endpoint = `http://escher2${player}.local:9000/v1/bots/solo`;
           break;
         default:
           endpoint = `http://escher2${player}.local`;
       }
-      const bots = this.app.context.bots.getBots();
+      let bots = this.app.context.bots.getBots();
       let uniqueIdentifier = true;
       for (const bot in bots) {
         if (bots.hasOwnProperty(bot)) {
-          if (bots[bot].port === endpoint) {
+          if (bots[bot].uniqueIdentifier === endpoint) {
             this.players[player] = bots[bot];
             uniqueIdentifier = false;
             break;
@@ -326,16 +325,21 @@ class Conductor {
 
       // If a bot doesn't exist yet with that endpoint, create it
       if (uniqueIdentifier) {
-        const botSettings = await this.app.context.bots.createBot({
-          connectionType: this.app.context.config.conductor.comType,
-          port: endpoint,
-        });
-        const dbBot = await this.app.context.bots.BotModel.create(botSettings);
-        const botKey = dbBot.dataValues.id;
-        this.app.context.bots.botList[botKey] = await new Bot(this.app, botSettings);
-        this.players[player] = bots[botKey];
+        const newBot = await this.app.context.bots.createBot(
+          {
+            uniqueIdentifier: endpoint,
+            name: `escher2${player}`,
+          },
+          this.app.context.config.conductor.botType
+        );
+        bots = this.app.context.bots.getBots();
+        this.players[player] = bots[newBot.uniqueIdentifier];
       }
     }
+  }
+
+  handleBotUpdates(botId, jobUuid) {
+    console.log('heres an update. doooo something!', botId, jobUuid);
   }
 }
 

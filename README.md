@@ -8,7 +8,7 @@ The framework is built on the following the following libraries/technologies:
 - Sequelize
 - Socket.io
 
-Built and tested using Node V5
+Built and tested using Node V6.2
 
 Install all dependencies:
 ```

@@ -31,7 +31,8 @@ logger.info(`Test initialized.`);
 // Collect the test file from each middleware module
 walk.walkSync('./dist/server', (basedir, filename) => {
 
-  const testArg = npmArgs.cooked[1].split('--')[1].toLowerCase();
+  const testArg = npmArgs.cooked[1] && npmArgs.cooked[1].split('--')[1].toLowerCase();
+
   const basedirArray = basedir.split('/');
   if (filename === 'test.js') {
     if (

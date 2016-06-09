@@ -5,8 +5,9 @@ const nodemon = require(`gulp-nodemon`);
 const autoprefixer = require(`gulp-autoprefixer`);
 const mocha = require(`gulp-mocha`);
 const sass = require(`gulp-sass`);
-const webpack = require('gulp-webpack');
+const webpack = require(`gulp-webpack`);
 const shell = require(`gulp-shell`);
+const exec = require(`child_process`).exec;
 
 const src = {
   server: `src/server/**/*.js`,
@@ -148,10 +149,9 @@ gulp.task(`build-react-server`, () => {
   .pipe(gulp.dest(dest.reactServer));
 });
 
-gulp.task(`run-tests`, [`default`], () => {
+gulp.task(`test`, [`default`], () => {
   // Timeout is ugly hack to allow time for the server instance to initialize
   // TODO Get rid of timeout for running tests
-
   setTimeout(() => {
     return gulp.src(`./test.js`, { read: false })
     .pipe(mocha())
@@ -166,11 +166,6 @@ gulp.task(`run-tests`, [`default`], () => {
     });
   }, 3000);
 });
-
-gulp.task(`test`, [
-  `default`,
-  `run-tests`,
-]);
 
 gulp.task(`default`, [
   `build`,

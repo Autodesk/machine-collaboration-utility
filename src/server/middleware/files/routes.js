@@ -18,41 +18,33 @@ const uploadFile = (self) => {
       const uploadedFiles = [];
       try {
         const files = ctx.request.body.files;
-
-        if (files) {
-          // Rename each file to be its filename plus a uuid
-          // Iterate through every single file in the 'files' object
-          await Promise.map(
-            Object.keys(files),
-            async (theFile) => {
-              // If multiple files are passed with the same key, they are an Array
-              if (Array.isArray(files[theFile])) {
-                await Promise.map(
-                  files[theFile],
-                  async (file) => {
-                    uploadedFiles.push(await self.createFileObject(file));
-                  },
-                  { concurrency: 4 }
-                );
-              } else {
-                uploadedFiles.push(await self.createFileObject(files[theFile]));
-              }
-            },
-            { concurrency: 4 }
-          );
-          // Once the file is uploaded, then add it to the array of available files
-          ctx.status = 200;
-          ctx.body = new Response(ctx, requestDescription, uploadedFiles);
-
-          // TODO handle passing multiple files as a socket event
-          self.app.io.emit(`fileEvent`, uploadedFiles[0]);
-        } else {
+        if (files === undefined) {
           const errorMessage = `No file was received.`;
-          ctx.status = 404;
-          ctx.body = new Response(ctx, requestDescription, errorMessage);
-          self.logger.error(errorMessage);
-          return;
+          throw errorMessage;
         }
+        // Rename each file to be its filename plus a uuid
+        // Iterate through every single file in the 'files' object
+        await Promise.map(
+          Object.keys(files),
+          async (theFile) => {
+            // If multiple files are passed with the same key, they are an Array
+            if (Array.isArray(files[theFile])) {
+              await Promise.map(
+                files[theFile],
+                async (file) => {
+                  uploadedFiles.push(await self.createFileObject(file));
+                },
+                { concurrency: 4 }
+              );
+            } else {
+              uploadedFiles.push(await self.createFileObject(files[theFile]));
+            }
+          },
+          { concurrency: 4 }
+        );
+        // Once the file is uploaded, then add it to the array of available files
+        ctx.status = 200;
+        ctx.body = new Response(ctx, requestDescription, uploadedFiles);
       } catch (ex) {
         ctx.status = 500;
         ctx.body = new Response(ctx, requestDescription, ex);
@@ -70,27 +62,22 @@ const deleteFile = (self) => {
   self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
       const fileUuid = ctx.request.body.uuid;
-      const file = self.files[fileUuid];
+      const file = self.fileList[fileUuid];
       if (fileUuid === undefined) {
-        const errorMessage = `No "file uuid" was provided`;
-        ctx.status = 404;
-        ctx.body = new Response(ctx, requestDescription, errorMessage);
-        self.logger.error(errorMessage);
-      } else if (file === undefined) {
+        const errorMessage = `"fileUuid" not provided`;
+        throw errorMessage;
+      }
+      if (file === undefined) {
         const errorMessage = `File ${fileUuid} not found`;
-        ctx.status = 404;
-        ctx.body = new Response(ctx, requestDescription, errorMessage);
-        self.logger.error(errorMessage);
+        throw errorMessage;
+      }
+      const reply = await self.deleteFile(fileUuid);
+      if (reply !== false) {
+        ctx.status = 200;
+        ctx.body = new Response(ctx, requestDescription, reply);
       } else {
-        const reply = await self.deleteFile(fileUuid);
-        if (reply !== false) {
-          ctx.status = 200;
-          ctx.body = new Response(ctx, requestDescription, reply);
-        } else {
-          const errorMessage = `File does not exist`;
-          ctx.status = 404;
-          ctx.body = new Response(ctx, requestDescription, errorMessage);
-        }
+        const errorMessage = `File does not exist`;
+        throw errorMessage
       }
     } catch (ex) {
       ctx.status = 500;
@@ -108,7 +95,7 @@ const getFiles = (self) => {
   self.router.get(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       ctx.status = 200;
-      ctx.body = new Response(ctx, requestDescription, self.files);
+      ctx.body = new Response(ctx, requestDescription, self.fileList);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
@@ -124,22 +111,24 @@ const getFile = (self) => {
   const requestDescription = 'Get File';
   self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
+      // Parse the file's uuid
       const fileUuid = ctx.params.uuid;
-      const file = self.files[fileUuid];
-      if (file) {
-        ctx.status = 200;
-        ctx.body = new Response(ctx, requestDescription, file);
-      } else {
-        const errorMessage = `File ${fileUuid} not found`;
-        ctx.status = 404;
-        ctx.body = new Response(ctx, requestDescription, errorMessage);
-        self.logger.error(errorMessage);
+      if (fileUuid === undefined) {
+        const errorMessage = `uuid of file is not defined`;
+        throw errorMessage;
       }
+      // Load the file from the list of files
+      const file = self.fileList[fileUuid];
+      if (file === undefined) {
+        const errorMessage = `File ${fileUuid} not found`;
+        throw errorMessage;
+      }
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, file);
     } catch (ex) {
-      const errorMessage = `To-do list "Read Task ${ctx.params.uuid}" request error: ${ex}`;
       ctx.status = 500;
-      ctx.body = new Response(ctx, requestDescription, errorMessage);
-      self.logger.error(errorMessage);
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
     }
   });
 };
@@ -151,17 +140,22 @@ const downloadFile = (self) => {
   self.router.get(`${self.routeEndpoint}/:uuid/download`, async (ctx) => {
     const requestDescription = 'Download File';
     try {
+      // Parse the file's uuid
       const fileUuid = ctx.params.uuid;
-      const file = self.files[fileUuid];
-      if (file) {
-        ctx.res.setHeader(`Content-disposition`, `attachment; filename=${file.name}`);
-        ctx.body = fs.createReadStream(self.getFilePath(file));
-      } else {
-        const errorMessage = `File "${fileUuid}" not found`;
-        ctx.status = 404;
-        ctx.body = new Response(ctx, requestDescription, errorMessage);
-        self.logger.error(errorMessage);
+      if (fileUuid === undefined) {
+        const errorMessage = `uuid of file is not defined`;
+        throw errorMessage;
       }
+      // Load the file from the list of files
+      const file = self.fileList[fileUuid];
+      if (file === undefined) {
+        const errorMessage = `File ${fileUuid} not found`;
+        throw errorMessage;
+      }
+      const fileName = file.name;
+      const filePath = self.getFilePath(file);
+      ctx.res.setHeader(`Content-disposition`, `attachment; filename=${fileName}`);
+      ctx.body = fs.createReadStream(filePath);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
@@ -177,9 +171,9 @@ const deleteAllFiles = (self) => {
   const requestDescription = `Delete All Files`;
   self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
     try {
-      for (const file in self.files) {
-        if (self.files.hasOwnProperty(file)) {
-          await self.deleteFile(self.files[file].uuid);
+      for (const file in self.fileList) {
+        if (self.fileList.hasOwnProperty(file)) {
+          await self.deleteFile(self.fileList[file].uuid);
         }
       }
       const status = `All files deleted`;

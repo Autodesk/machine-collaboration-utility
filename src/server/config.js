@@ -4,8 +4,8 @@ module.exports = {
   testLogFileName: `hydra-print-test.log`,
   virtualDelay: 1000,
   conductor: {
-    enabled: false,
-    comType: 'http',
+    enabled: true,
+    botType: `Escher2`,
     players: [
       'a',
       'b',

@@ -4,6 +4,7 @@ const should = require(`should`);
 const request = require(`request-promise`);
 const fs = require(`fs-promise`);
 const path = require(`path`);
+const Promise = require(`bluebird`);
 
 module.exports = function toDoListTests() {
   let fileUuid;
@@ -76,9 +77,8 @@ module.exports = function toDoListTests() {
         done();
       } catch (ex) {
         should(ex.error.error).equal(`File ${fileUuid}foobar not found`);
-        should(ex.error.status).equal(404);
+        should(ex.error.status).equal(500);
         should(ex.error.query).equal(`Get File`);
-        should(ex.statusCode).equal(404);
         done();
       }
     });
