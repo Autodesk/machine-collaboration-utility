@@ -9,6 +9,24 @@ module.exports = function toDoListTests() {
   let nJobs;
 
   describe('Jobs unit test', function () {
+    it('should create a virtual printer to execute jobs on', async function (done) {
+      const requestParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/bots/`,
+        body: {
+          connectionType: `virtual`,
+          botId: `virtual-test-bot`,
+        },
+        json: true,
+      };
+      const initializeBotReply = await request(requestParams);
+      console.log('initialize bot reply', initializeBotReply.data);
+      botId = Object.keys(initializeBotReply.data)[0];
+      should(initializeBotReply.status).equal(201);
+      should(initializeBotReply.query).equal(`Create Bot`);
+      done();
+    });
+
     it('should create a job', async function (done) {
       const requestParams = {
         body: { botId: 1 },

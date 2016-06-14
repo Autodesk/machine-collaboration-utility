@@ -7,7 +7,7 @@ module.exports = class DefaultBot {
     this.settings = {
       name: `Default`,
       model: `DefaultBot`,
-      uniqueIdentifier: `default`,
+      botId: `default`,
       jogXSpeed: `1000`,
       jogYSpeed: `2000`,
       jogZSpeed: `1000`,

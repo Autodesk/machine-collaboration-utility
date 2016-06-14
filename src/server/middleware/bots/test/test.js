@@ -15,13 +15,13 @@ module.exports = function botTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/bots/`,
         body: {
-          connectionType: `virtual`,
-          uniqueIdentifier: `virtual-test-bot`,
+          model: `Virtual`,
+          botId: `virtual-test-bot`,
         },
         json: true,
       };
       const initializeBotReply = await request(requestParams);
-      botId = Object.keys(initializeBotReply.data)[0];
+      botId = initializeBotReply.data.settings.botId;
       should(initializeBotReply.status).equal(201);
       should(initializeBotReply.query).equal(`Create Bot`);
       done();
@@ -41,6 +41,28 @@ module.exports = function botTests() {
       done();
     });
 
+    it('should fail to make a virtual bot if it conflicts with an existing botId', async function (done) {
+      const requestParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/bots/`,
+        body: {
+          model: `Virtual`,
+          botId: `virtual-test-bot`,
+        },
+        json: true,
+      };
+      let initializeBotReply;
+      try {
+        initializeBotReply = await request(requestParams);
+      } catch(ex) {
+        initializeBotReply = ex;
+      }
+
+      should(initializeBotReply.error.status).equal(500);
+      should(initializeBotReply.error.query).equal(`Create Bot`);
+      done();
+    });
+
     it('should destroy the virtual bot', async function (done) {
       const requestParams = {
         method: `DELETE`,
@@ -53,7 +75,7 @@ module.exports = function botTests() {
 
       should(destroyBotReply.status).equal(200);
       should(destroyBotReply.query).equal(`Delete Bot`);
-      should(destroyBotReply.data).equal(`Bot successfully deleted`);
+      should(destroyBotReply.data).equal(`Bot "virtual-test-bot" successfully deleted`);
       done();
     });
 
@@ -62,12 +84,13 @@ module.exports = function botTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/bots/`,
         body: {
-          connectionType: `virtual`,
+          model: `Virtual`,
+          botId: `virtual-test-bot`,
         },
         json: true,
       };
       const initializeBotReply = await request(requestParams);
-      botId = Object.keys(initializeBotReply.data)[0];
+      botId = initializeBotReply.data.settings.botId;
       should(initializeBotReply.status).equal(201);
       should(initializeBotReply.query).equal(`Create Bot`);
       done();
@@ -155,7 +178,6 @@ module.exports = function botTests() {
       };
       try {
         const setFileToJobReply = await request(setFileToJobParams);
-        console.log('reply', setFileToJobReply);
         job = setFileToJobReply.data;
         should(setFileToJobReply.status).equal(200);
         should(setFileToJobReply.query).equal(`Set File to Job`);
@@ -319,7 +341,7 @@ module.exports = function botTests() {
 
       should(destroyBotReply.status).equal(200);
       should(destroyBotReply.query).equal(`Delete Bot`);
-      should(destroyBotReply.data).equal(`Bot successfully deleted`);
+      should(destroyBotReply.data).equal(`Bot "virtual-test-bot" successfully deleted`);
       done();
     });
   });

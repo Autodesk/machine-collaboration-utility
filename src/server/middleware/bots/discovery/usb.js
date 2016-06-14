@@ -107,10 +107,10 @@ class UsbDiscovery {
         const botObject = new Bot(this.app, detectedBotSettings);
         botObject.setPort(port.comName);
         let cleanUniqueIdentifier;
-        if (botObject.settings.uniqueIdentifier === `default`) {
+        if (botObject.settings.botId === `default`) {
           cleanUniqueIdentifier = this.app.context.bots.sanitizeStringForRouting(botObject.port);
         } else {
-          cleanUniqueIdentifier = this.app.context.bots.sanitizeStringForRouting(botObject.settings.uniqueIdentifier);
+          cleanUniqueIdentifier = this.app.context.bots.sanitizeStringForRouting(botObject.settings.botId);
         }
         this.app.context.bots.botList[cleanUniqueIdentifier] = botObject;
         botObject.detect();
@@ -124,7 +124,7 @@ class UsbDiscovery {
     let detectedBotSettings = undefined;
     const availableBots = await this.app.context.bots.BotModel.findAll();
     const savedDbProfile = availableBots.find((bot) => {
-      return port.pnpId && bot.dataValues.uniqueIdentifier === port.pnpId;
+      return port.pnpId && bot.dataValues.botId === port.pnpId;
     });
 
     if (savedDbProfile !== undefined) {
@@ -134,7 +134,7 @@ class UsbDiscovery {
       // If pnpid or serial number, need to add it to the database
       // else set port to port
       if (port.pnpId !== undefined) {
-        botPresets.settings.uniqueIdentifier = port.pnpId;
+        botPresets.settings.botId = port.pnpId;
       }
       detectedBotSettings = botPresets.settings;
     }

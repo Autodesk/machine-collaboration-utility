@@ -30,26 +30,24 @@ class Jobs {
    * initialize the jobs endpoint
    */
   async initialize() {
-    const self = this;
     try {
       await this.setupRouter();
       // initial setup of the db
-      this.Job = await jobModel(this.app);
+      this.JobModel = await jobModel(this.app);
 
       // load all existing jobs from the database
-      const jobs = await this.Job.findAll();
-      for (let i = 0; i < jobs.length; i++) {
-        const job = jobs[i];
+      const jobs = await this.JobModel.findAll();
+      for (const job of jobs) {
         const botId = job.dataValues.botId;
         const uuid = job.dataValues.uuid;
         const state = job.dataValues.state;
         const id = job.dataValues.id;
         const fileUuid = job.dataValues.fileUuid;
-        const jobObject = await self.createJobObject(botId, uuid, state, id, fileUuid);
+        const jobObject = await this.createJobObject(botId, uuid, state, id, fileUuid);
         jobObject.percentComplete = job.dataValues.percentComplete;
         jobObject.started = job.dataValues.started;
         jobObject.elapsed = job.dataValues.elapsed;
-        self.jobList[uuid] = jobObject;
+        this.jobList[uuid] = jobObject;
       }
 
       this.logger.info(`Jobs instance initialized`);
@@ -108,7 +106,7 @@ class Jobs {
             if (event.indexOf('Done') !== -1) {
               try {
                 // As soon as an event successfully transistions, update it in the database
-                const dbJob = await self.Job.findById(theJob.id);
+                const dbJob = await self.JobModel.findById(theJob.id);
                 await Promise.delay(0); // For some reason this can't happen in the same tick
                 await dbJob.updateAttributes({
                   state: theJob.fsm.current,
@@ -156,7 +154,7 @@ class Jobs {
   async createPersistentJob(botId, uuid) {
     const jobObject = await this.createJobObject(botId, uuid);
     const jobJson = this.jobToJson(jobObject);
-    const dbJob = await this.Job.create(jobJson);
+    const dbJob = await this.JobModel.create(jobJson);
     uuid = dbJob.dataValues.uuid;
     jobObject.id = dbJob.dataValues.id;
     this.jobList[uuid] = jobObject;
@@ -313,7 +311,7 @@ class Jobs {
   async deleteJob(jobUuid) {
     const theJob = this.jobList[jobUuid];
     const theJobJson = this.jobToJson(theJob);
-    const dbJob = await this.Job.findById(theJob.id);
+    const dbJob = await this.JobModel.findById(theJob.id);
     this.app.io.emit('deleteJob', theJobJson);
     await dbJob.destroy();
     delete this.jobList[jobUuid];

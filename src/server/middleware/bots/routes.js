@@ -26,17 +26,8 @@ const createBot = (self) => {
   const requestDescription = 'Create Bot';
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const paramSettings = {};
-      const model = ctx.request.body.model;
-
-      // Overwrite the default settings with any settings passed by the request
-      for (const setting in ctx.request.body) {
-        if (ctx.request.body.hasOwnProperty(setting) && ctx.request.body[setting] !== `model`) {
-          paramSettings[setting] = ctx.request.body[setting];
-        }
-      }
-
-      const reply = await self.createBot(paramSettings, model);
+      const newBot = await self.createBot(ctx.request.body);
+      const reply = newBot.getBot();
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
@@ -52,22 +43,22 @@ const createBot = (self) => {
  */
 const updateBot = (self) => {
   const requestDescription = 'Update Bot Settings';
-  self.router.put(`${self.routeEndpoint}/:uniqueIdentifier`, async (ctx) => {
+  self.router.put(`${self.routeEndpoint}/:botId`, async (ctx) => {
     try {
-      const uniqueIdentifier = ctx.params.uniqueIdentifier;
-      if (uniqueIdentifier) {
-        const bot = self.botList[uniqueIdentifier];
-        if (bot) {
-          const botSettings = ctx.request.body;
-          const reply = await bot.updateBot(botSettings);
-          ctx.status = 200;
-          ctx.body = new Response(ctx, requestDescription, reply);
-        } else {
-          throw `Bot "${uniqueIdentifier}" not found`;
-        }
-      } else {
-        throw `uniqueIdentifier is undefined`;
+      const botId = ctx.params.botId;
+      if (botId === undefined) {
+        throw `botId is undefined`;
       }
+
+      const bot = self.botList[botId];
+      if (bot === undefined) {
+        throw `Bot ${botId} can not be found`;
+      }
+
+      const botSettings = ctx.request.body;
+      const reply = await bot.updateBot(botSettings);
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
@@ -84,38 +75,12 @@ const deleteBot = (self) => {
   self.router.delete(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       const botId = ctx.request.body.botId;
-
       if (botId === undefined) {
         throw `botId is undefined.`
       }
-      const bot = self.botList[botId];
-      if (bot === undefined) {
-        throw `Bot ${botId} does not exist`;
-      }
-      switch (bot.connectionType) {
-        case `http`:
-        case `telnet`:
-        case `virtual`:
-          // do nothing
-          break;
-        default:
-          const errorMessage = `Cannot delete bot of type ${bot.connectionType}`;
-          throw errorMessage;
-      }
-      const bots = await self.BotModel.findAll();
-      let destroyed = false;
-      for (const dbBot of bots) {
-        const dbBotId = dbBot.dataValues.id;
-        if (botId === dbBotId) {
-          dbBot.destroy();
-          delete self.botList[botId];
-          destroyed = true;
-        }
-      }
-      if (!destroyed) {
-        throw `Bot ${botId} not found in database`;
-      }
-      const reply = `Bot successfully deleted`;
+
+      const reply = await self.deleteBot(botId);
+      // const reply = `Bot successfully deleted`;
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {

@@ -26,7 +26,7 @@ class Bot {
    * @param {Object} app - The parent Koa app.
    * @param {string} settings - The settings, as retreived from the database.
    */
-  constructor(app, settings) {
+  constructor(app, presets) {
     this.app = app;
     this.config = app.context.config;
     this.logger = app.context.logger;
@@ -85,7 +85,7 @@ class Bot {
       },
     });
 
-    const botPresets = this.app.context.bots.botPresetList[settings.model];
+    const botPresets = this.app.context.bots.botPresetList[presets.settings.model];
     for (const botPresetKey in botPresets) {
       if (
         botPresets.hasOwnProperty(botPresetKey) &&
@@ -96,20 +96,26 @@ class Bot {
       }
     }
 
-    this.settings = settings;
-
-    // LOAD PRESETS HERE
     switch (this.connectionType) {
       // In case there is no detection method required, detect the device and
       // move directly to a "ready" state
       case `http`:
       case `telnet`:
       case `virtual`:
-        console.log('yoooo');
         this.detect();
         break;
       default:
         // Do nothing
+    }
+
+    // Set the bot's botId to also be the port, for bots that use an IP address
+    switch (this.connectionType) {
+      case `http`:
+      case `telnet`:
+        this.setPort(settings.botId);
+        break;
+      default:
+        // do nothing
     }
   }
 
@@ -158,8 +164,8 @@ class Bot {
   getBot() {
     return {
       state: this.fsm.current,
-      settings: this.settings,
       port: this.port,
+      settings: this.settings,
     };
   }
 
@@ -186,7 +192,7 @@ class Bot {
 
     const dbBots = await this.app.context.bots.BotModel.findAll();
     const dbBot = _.find(dbBots, (bot) => {
-      return bot.dataValues.uniqueIdentifier === this.settings.uniqueIdentifier;
+      return bot.dataValues.botId === this.settings.botId;
     });
 
     await dbBot.update(settingsToUpdate);
@@ -200,7 +206,7 @@ class Bot {
   }
 
   /*
-   * Set the port of the bot. This is only necessary for usb printers
+   * Set the port of the bot.
    */
   setPort(port) {
     // Validate?
@@ -309,7 +315,7 @@ class Bot {
               method: `POST`,
               uri: subscriber,
               body: {
-                botId: self.settings.uniqueIdentifier,
+                botId: self.settings.botId,
                 jobUuid: self.currentJob.uuid,
               },
               json: true,

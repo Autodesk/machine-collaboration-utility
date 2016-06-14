@@ -29,11 +29,14 @@ class Bots {
     this.routeEndpoint = routeEndpoint;
     this.router = router;
 
-    // Initialize list of bots to be an empty object
+    // Initialize list of bots and bot presets to be empty objects
     this.botPresetList = {};
     this.botList = {};
   }
 
+/*******************************************************************************
+ * Initialization functions
+ ******************************************************************************/
   /**
    * initialize the bots endpoint
    */
@@ -46,19 +49,16 @@ class Bots {
       // Set up the bot database model
       this.BotModel = await botModel(this.app);
       let botsDbArray = await this.BotModel.findAll();
+      // Load all bots from the database and add them to the 'bots' object
+      for (const dbBot of botsDbArray) {
+        this.createBot(dbBot.dataValues);
+      }
 
       // If there are not bots saved yet, create one
       // This first bot object is where we will save settings for
       // generic usb bots that cannot be made persistent
       if (botsDbArray.length === 0) {
-        await this.BotModel.create(this.botPresetList[`DefaultBot`].settings);
-        // reload the botDbArray now that we have one
-        botsDbArray = await this.BotModel.findAll();
-      }
-
-      // Load all bots from the database and add them to the 'bots' object
-      for (const dbBot of botsDbArray) {
-        this.addDbBot(dbBot);
+        await this.createBot();
       }
 
       // Start scanning for all bots
@@ -67,107 +67,6 @@ class Bots {
     } catch (ex) {
       this.logger.error(`Bot initialization error`, ex);
     }
-  }
-
-  /*
-   * Read a database bot object. Create a bot object from the database object
-   * Then add the bot object to the 'bots' dictionary
-   */
-  addDbBot(dbBot) {
-    const botSettings = this.parseDbBotSettings(dbBot);
-
-    // Create a bot object
-    // The first bot object created will always be the serial port bot
-    const botKey = dbBot.dataValues.uniqueIdentifier;
-    const botObject = new Bot(this.app, botSettings);
-    switch (botObject.connectionType) {
-      case `http`:
-      case `telnet`:
-        botObject.setPort(botObject.settings.uniqueIdentifier);
-        break;
-      default:
-        // do nothing
-    }
-    this.botList[botKey] = botObject;
-  }
-
-  /*
-   * Read a database bot object. Create a bot object from the database object
-   * Then add the bot object to the 'bots' dictionary
-   */
-  parseDbBotSettings(dbBot) {
-    const botSettings = {};
-    botSettings.model = dbBot.dataValues.model;
-    botSettings.name = dbBot.dataValues.name;
-    botSettings.uniqueIdentifier = dbBot.dataValues.uniqueIdentifier;
-    botSettings.jogXSpeed = dbBot.dataValues.jogXSpeed;
-    botSettings.jogYSpeed = dbBot.dataValues.jogYSpeed;
-    botSettings.jogZSpeed = dbBot.dataValues.jogZSpeed;
-    botSettings.jogESpeed = dbBot.dataValues.jogESpeed;
-    botSettings.tempE = dbBot.dataValues.tempE;
-    botSettings.tempB = dbBot.dataValues.tempB;
-    botSettings.speedRatio = dbBot.dataValues.speedRatio;
-    botSettings.eRatio = dbBot.dataValues.eRatio;
-    botSettings.offsetX = dbBot.dataValues.offsetX;
-    botSettings.offsetY = dbBot.dataValues.offsetY;
-    botSettings.offsetZ = dbBot.dataValues.offsetZ;
-    return botSettings;
-  }
-
-  /*
-   * get a json friendly description of the Bots
-   */
-  getBots(filter) {
-    const filteredBots = {};
-    for (const bot in this.botList) {
-      if (this.botList.hasOwnProperty(bot)) {
-        if (typeof filter === `function`) {
-          if (filter(this.botList[bot])) {
-            filteredBots[bot] = this.botList[bot].getBot();
-          }
-        } else {
-          filteredBots[bot] = this.botList[bot].getBot();
-        }
-      }
-    }
-    return filteredBots;
-  }
-
-  async createBot(inputSettings, model) {
-    const botSettings = {};
-    const botPresets = model === undefined ? this.botPresetList[`DefaultBot`] : this.botPresetList[model];
-    for (const setting in botPresets.settings) {
-      botSettings[setting] = botPresets[setting];
-      if (inputSettings.hasOwnProperty(setting)) {
-        botSettings[setting] = inputSettings[setting];
-      }
-    }
-
-    // Don't add the bot if it has a duplicate unique identifier in the database
-    if (this.botList[botSettings.uniqueIdentifier] !== undefined) {
-      const errorMessage = `Cannot create bot with unique identifier ${botSettings.uniqueIdentifier}. Bot already exists`;
-      throw errorMessage;
-    }
-
-    const dbBot = await this.BotModel.create(botSettings);
-    const botKey = this.sanitizeStringForRouting(dbBot.dataValues.uniqueIdentifier);
-
-    this.botList[botKey] = await new Bot(this.app, botSettings);
-    return botSettings;
-  }
-
-  /*
-   * get a json friendly description of a specific bot
-   */
-  getBot(id) {
-    const bot = this.botList[id];
-    if (bot === undefined) {
-      const errorMessage = `Bot with id '${id}' does not exist`;
-      this.logger.error(errorMessage);
-      throw errorMessage;
-    }
-    const botJson = bot.getBot();
-    return botJson;
   }
 
   /**
@@ -208,8 +107,112 @@ class Bots {
     });
   }
 
-  sanitizeStringForRouting(portName) {
-    return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
+  async loadBotPresets() {
+    const botPresets = await fs.readdir(path.join(__dirname, './hardware/bots'));
+    botPresets.forEach((botPreset) => {
+      // Scan through all of the bot presets.
+      // Make sure to ignore the source map files
+      // TODO refactor in case helper files are necessary in the 'hardware' folder
+      if (botPreset.indexOf(`.map`) === -1) {
+        const presetType = botPreset.split(`.`)[0];
+        const presetPath = path.join(__dirname, `./hardware/bots/${botPreset}`);
+        const BotPresetClass = require(presetPath);
+        const botPresetObject = new BotPresetClass(this.app);
+        this.botPresetList[presetType] = botPresetObject;
+      }
+    });
+  }
+
+
+/*******************************************************************************
+ * Core functions
+ ******************************************************************************/
+  async createBot(inputSettings = {}) {
+    // Load presets based on the model
+    // If no model is passed, or if the model does not exist use the default presets
+    const botPresets = inputSettings.model === undefined && this.botPresetList[inputSettings.model] === undefined ? this.botPresetList[`DefaultBot`] : this.botPresetList[inputSettings.model];
+    for (const setting in botPresets.settings) {
+      if (inputSettings.hasOwnProperty(setting)) {
+        botPresets.settings[setting] = inputSettings[setting];
+      }
+    }
+
+    // Don't add the bot if it has a duplicate botId in the database
+    if (this.botList[botPresets.settings.botId] !== undefined) {
+      const errorMessage = `Cannot create bot with unique identifier "${botPresets.settings.botId}". Bot already exists`;
+      throw errorMessage;
+    }
+
+    // Need to work out caveat for USB printers that don't have a pnpid
+    await this.BotModel.create(botPresets.settings);
+
+    const newBot = await new Bot(this.app, botPresets);
+    this.botList[botPresets.settings.botId] = newBot;
+    return newBot;
+  }
+
+  async deleteBot(botId) {
+    const bot = this.botList[botId];
+    if (bot === undefined) {
+      throw `Bot "${botId}" is undefined`;
+    }
+
+    switch (bot.connectionType) {
+      case `http`:
+      case `telnet`:
+      case `virtual`:
+        // do nothing
+        break;
+      default:
+        const errorMessage = `Cannot delete bot of type ${bot.connectionType}`;
+        throw errorMessage;
+    }
+
+    // Sweep through all of the bots in the database
+    // Make sure the bot is in the database. If it is, delete it
+    const bots = await this.BotModel.findAll();
+    let deleted = false;
+    for (const dbBot of bots) {
+      const dbBotId = dbBot.dataValues.botId;
+      if (botId === dbBotId) {
+        dbBot.destroy();
+        delete this.botList[botId];
+        deleted = true;
+      }
+    }
+    if (!deleted) {
+      throw `Bot "${botId}" was not deleted from the database because it cound not be found in the database.`;
+    }
+    return `Bot "${botId}" successfully deleted`;
+  }
+
+/*******************************************************************************
+ * Utility functions
+ ******************************************************************************/
+  /*
+   * get a json friendly description of the Bots
+   */
+  getBots(filter) {
+    const filteredBots = {};
+    for (const bot in this.botList) {
+      if (this.botList.hasOwnProperty(bot)) {
+        if (typeof filter === `function`) {
+          if (filter(this.botList[bot])) {
+            filteredBots[bot] = this.botList[bot].getBot();
+          }
+        } else {
+          filteredBots[bot] = this.botList[bot].getBot();
+        }
+      }
+    }
+    return filteredBots;
+  }
+
+  /*
+   * get a json friendly description of a Bots
+   */
+  getBot(botId) {
+    return this.botList[botId].getBot();
   }
 
   // For ease of communication with single bots using the api
@@ -231,20 +234,9 @@ class Bots {
     return soloBotId;
   }
 
-  async loadBotPresets() {
-    const botPresets = await fs.readdir(path.join(__dirname, './hardware/bots'));
-    botPresets.forEach((botPreset) => {
-      // Scan through all of the bot presets.
-      // Make sure to ignore the source map files
-      // TODO refactor in case helper files are necessary in the 'hardware' folder
-      if (botPreset.indexOf(`.map`) === -1) {
-        const presetType = botPreset.split(`.`)[0];
-        const presetPath = path.join(__dirname, `./hardware/bots/${botPreset}`);
-        const BotPresetClass = require(presetPath);
-        const botPresetObject = new BotPresetClass(this.app);
-        this.botPresetList[presetType] = botPresetObject;
-      }
-    });
+  sanitizeStringForRouting(portName) {
+    // This replaces the "/" character with "_s_" and the ":" character with "_c_"
+    return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
   }
 }
 

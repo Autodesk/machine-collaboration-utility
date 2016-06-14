@@ -86,12 +86,12 @@ class KoaApp {
       const files = await new Files(this.app, `/${this.apiVersion}/files`);
       await files.initialize();
 
-      // const jobs = new Jobs(this.app, `/${this.apiVersion}/jobs`);
-      // await jobs.initialize();
-      // 
-      // const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
-      // await bots.initialize();
-      // 
+      const jobs = new Jobs(this.app, `/${this.apiVersion}/jobs`);
+      await jobs.initialize();
+
+      const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
+      await bots.initialize();
+
       // if (this.app.context.config.conductor.enabled) {
       //   const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);
       //   await conductor.initialize();

@@ -312,28 +312,28 @@ class Conductor {
           endpoint = `http://escher2${player}.local`;
       }
       let bots = this.app.context.bots.getBots();
-      let uniqueIdentifier = true;
+      let botId = true;
       for (const bot in bots) {
         if (bots.hasOwnProperty(bot)) {
-          if (bots[bot].uniqueIdentifier === endpoint) {
+          if (bots[bot].botId === endpoint) {
             this.players[player] = bots[bot];
-            uniqueIdentifier = false;
+            botId = false;
             break;
           }
         }
       }
 
       // If a bot doesn't exist yet with that endpoint, create it
-      if (uniqueIdentifier) {
+      if (botId) {
         const newBot = await this.app.context.bots.createBot(
           {
-            uniqueIdentifier: endpoint,
+            botId: endpoint,
             name: `escher2${player}`,
           },
           this.app.context.config.conductor.botType
         );
         bots = this.app.context.bots.getBots();
-        this.players[player] = bots[newBot.uniqueIdentifier];
+        this.players[player] = bots[newBot.botId];
       }
     }
   }

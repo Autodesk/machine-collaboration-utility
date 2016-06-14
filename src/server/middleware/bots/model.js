@@ -6,7 +6,7 @@ module.exports = async (app) => {
     model: Sequelize.STRING,
     name: Sequelize.STRING,
     // The identifier is either an ip address endpoint or a pnpid
-    uniqueIdentifier: Sequelize.STRING,
+    botId: Sequelize.STRING,
     jogXSpeed: Sequelize.STRING,
     jogYSpeed: Sequelize.STRING,
     jogZSpeed: Sequelize.STRING,

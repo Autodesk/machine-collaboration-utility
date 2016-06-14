@@ -15,6 +15,9 @@ const createJob = (self) => {
       }
 
       const uuid = ctx.request.body.uuid;
+
+      // Do not allow for duplicate uuid's.
+      // If you pass a uuid, you are deleting the existing job
       if (self.jobList[uuid] !== undefined) {
         // Delete the job from the database and the jobs object
         await self.deleteJob(uuid);
