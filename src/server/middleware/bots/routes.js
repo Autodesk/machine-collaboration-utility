@@ -310,5 +310,3 @@ const botRoutes = (self) => {
 };
 
 module.exports = botRoutes;
-
-// module.exports = botRoutes;

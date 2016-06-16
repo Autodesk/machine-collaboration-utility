@@ -85,7 +85,7 @@ class Bot {
       },
     });
 
-    const botPresets = this.app.context.bots.botPresetList[presets.settings.model];
+    const botPresets = Object.assign({}, this.app.context.bots.botPresetList[presets.settings.model]);
     for (const botPresetKey in botPresets) {
       if (
         botPresets.hasOwnProperty(botPresetKey) &&

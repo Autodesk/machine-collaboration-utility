@@ -54,7 +54,7 @@ module.exports = function botTests() {
       let initializeBotReply;
       try {
         initializeBotReply = await request(requestParams);
-      } catch(ex) {
+      } catch (ex) {
         initializeBotReply = ex;
       }
 
@@ -71,7 +71,6 @@ module.exports = function botTests() {
         json: true,
       };
       const destroyBotReply = await request(requestParams);
-      console.log('destroyBotReply', destroyBotReply);
 
       should(destroyBotReply.status).equal(200);
       should(destroyBotReply.query).equal(`Delete Bot`);
@@ -337,7 +336,6 @@ module.exports = function botTests() {
         json: true,
       };
       const destroyBotReply = await request(requestParams);
-      console.log('destroyBotReply', destroyBotReply);
 
       should(destroyBotReply.status).equal(200);
       should(destroyBotReply.query).equal(`Delete Bot`);

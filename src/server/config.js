@@ -5,13 +5,8 @@ module.exports = {
   virtualDelay: 1000,
   conductor: {
     enabled: true,
-    botType: `Escher2`,
-    players: [
-      'a',
-      'b',
-      'c',
-      'd',
-      'e',
-    ],
+    // botModel: `Escher2`,
+    botModel: `Virtual`,
+    n_players: [5, 0],
   },
 };

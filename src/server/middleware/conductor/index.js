@@ -95,7 +95,21 @@ class Conductor {
   getConductor() {
     return {
       state: this.fsm.current,
+      players: this.getPlayers(),
     };
+  }
+
+  /*
+   *  Get a json friendly description of the available players
+   */
+  getPlayers() {
+    const players = {};
+    for (const player in this.players) {
+      if (this.players.hasOwnProperty(player)) {
+        players[player] = this.players[player].getBot();
+      }
+    }
+    return players;
   }
 
   /*
@@ -178,8 +192,7 @@ class Conductor {
               },
               json: true,
             };
-            const linkFileToJobReply = await request(linkFileToJobParams);
-            console.log(linkFileToJobReply);
+            await request(linkFileToJobParams);
           }, { concurrency: 5 });
         }, { concurrency: 5 });
       });
@@ -301,39 +314,45 @@ class Conductor {
   // If the database doesn't yet have printers for the endpoints, create them
   async setupConductorArms() {
     // Sweet through every player
-    for (let player of this.app.context.config.conductor.players) {
-      // Check if a bot exists with that end point
-      let endpoint;
-      switch (this.app.context.config.conductor.comType) {
-        case 'http':
-          endpoint = `http://escher2${player}.local:9000/v1/bots/solo`;
-          break;
-        default:
-          endpoint = `http://escher2${player}.local`;
-      }
-      let bots = this.app.context.bots.getBots();
-      let botId = true;
-      for (const bot in bots) {
-        if (bots.hasOwnProperty(bot)) {
-          if (bots[bot].botId === endpoint) {
-            this.players[player] = bots[bot];
-            botId = false;
+    for (let playerX = 0; playerX <= this.app.context.config.conductor.n_players[0]; playerX++) {
+      for (let playerY = 0; playerY <= this.app.context.config.conductor.n_players[1]; playerY++) {
+        // Check if a bot exists with that end point
+        let endpoint;
+        const botModel = this.app.context.config.conductor.botModel;
+        const botName = `${botModel}-${playerX}-${playerY}`;
+        switch (botModel) {
+          case `http`:
+            endpoint = `http://${botName}.local:9000/v1/bots/solo`;
             break;
+          case `Virtual`:
+            endpoint = `http://localhost:${process.env.PORT}/v1/bots/${botName}`;
+            break;
+          default:
+            endpoint = `http://${botName}.local:9000/v1/bots/solo`;
+        }
+        const bots = this.app.context.bots.getBots();
+        let unique = true;
+        for (const bot in bots) {
+          if (bots.hasOwnProperty(bot)) {
+            if (bots[bot].botId === endpoint) {
+              this.players[botName] = Object.assign({}, bots[bot]);
+              unique = false;
+              break;
+            }
           }
         }
-      }
 
-      // If a bot doesn't exist yet with that endpoint, create it
-      if (botId) {
-        const newBot = await this.app.context.bots.createBot(
-          {
-            botId: endpoint,
-            name: `escher2${player}`,
-          },
-          this.app.context.config.conductor.botType
-        );
-        bots = this.app.context.bots.getBots();
-        this.players[player] = bots[newBot.botId];
+        // If a bot doesn't exist yet with that endpoint, create it
+        if (unique) {
+          const newBot = await this.app.context.bots.createBot(
+            {
+              botId: endpoint,
+              name: `${botModel}-${playerX}-${playerY}`,
+              model: this.app.context.config.conductor.botModel,
+            }
+          );
+          this.players[endpoint] = newBot;
+        }
       }
     }
   }

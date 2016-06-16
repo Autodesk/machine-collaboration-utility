@@ -4,7 +4,7 @@ module.exports = class Virtual extends DefaultBot {
   constructor(app) {
     super(app);
     this.settings.name = `Virtual Bot`;
-    this.settings.model = `virtual`;
+    this.settings.model = `Virtual`;
     this.connectionType = `virtual`;
   }
 };

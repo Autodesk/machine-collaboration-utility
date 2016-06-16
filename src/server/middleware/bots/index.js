@@ -128,9 +128,11 @@ class Bots {
  * Core functions
  ******************************************************************************/
   async createBot(inputSettings = {}) {
+    debugger;
+
     // Load presets based on the model
     // If no model is passed, or if the model does not exist use the default presets
-    const botPresets = inputSettings.model === undefined && this.botPresetList[inputSettings.model] === undefined ? this.botPresetList[`DefaultBot`] : this.botPresetList[inputSettings.model];
+    const botPresets = Object.assign({}, (inputSettings.model === undefined || this.botPresetList[inputSettings.model] === undefined) ? this.botPresetList[`DefaultBot`] : this.botPresetList[inputSettings.model]);
     for (const setting in botPresets.settings) {
       if (inputSettings.hasOwnProperty(setting)) {
         botPresets.settings[setting] = inputSettings[setting];
@@ -145,9 +147,8 @@ class Bots {
 
     // Need to work out caveat for USB printers that don't have a pnpid
     await this.BotModel.create(botPresets.settings);
-
-    const newBot = await new Bot(this.app, botPresets);
-    this.botList[botPresets.settings.botId] = newBot;
+    const newBot = new Bot(this.app, botPresets);
+    this.botList[this.sanitizeStringForRouting(botPresets.settings.botId)] = newBot;
     return newBot;
   }
 
