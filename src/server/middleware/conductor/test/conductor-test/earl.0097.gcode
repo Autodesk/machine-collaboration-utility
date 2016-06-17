@@ -1,0 +1,35 @@
+; printEnd1
+G1 X0.000 Y1.000 Z210.000; move to x home
+M84 ; disable motors
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0

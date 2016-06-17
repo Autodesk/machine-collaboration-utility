@@ -1,6 +1,7 @@
 const router = require(`koa-router`)();
 const fs = require(`fs-promise`);
 const path = require(`path`);
+const _ = require(`underscore`);
 
 const botsRoutes = require(`./routes`);
 const botModel = require(`./model`);
@@ -128,16 +129,17 @@ class Bots {
  * Core functions
  ******************************************************************************/
   async createBot(inputSettings = {}) {
-    debugger;
-
     // Load presets based on the model
     // If no model is passed, or if the model does not exist use the default presets
-    const botPresets = Object.assign({}, (inputSettings.model === undefined || this.botPresetList[inputSettings.model] === undefined) ? this.botPresetList[`DefaultBot`] : this.botPresetList[inputSettings.model]);
-    for (const setting in botPresets.settings) {
-      if (inputSettings.hasOwnProperty(setting)) {
-        botPresets.settings[setting] = inputSettings[setting];
-      }
-    }
+    const officialBotPresets = (
+      inputSettings.model === undefined ||
+      this.botPresetList[inputSettings.model] === undefined
+    ) ? this.botPresetList[`DefaultBot`] : this.botPresetList[inputSettings.model];
+
+    // This should copy the object, but it doesn't work. Using a json hack instead
+    //const botPresets = Object.assign({}, officialBotPresets);
+    const botPresets = JSON.parse(JSON.stringify(officialBotPresets));
+    _.extend(botPresets.settings, inputSettings);
 
     // Don't add the bot if it has a duplicate botId in the database
     if (this.botList[botPresets.settings.botId] !== undefined) {
@@ -238,6 +240,15 @@ class Bots {
   sanitizeStringForRouting(portName) {
     // This replaces the "/" character with "_s_" and the ":" character with "_c_"
     return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
+  }
+
+  cloneObject(obj) {
+    if (null == obj || "object" != typeof obj) return obj;
+    const copy = obj.constructor();
+    for (const attr in obj) {
+      if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+    }
+    return copy;
   }
 }
 

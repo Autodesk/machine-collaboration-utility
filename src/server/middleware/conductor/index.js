@@ -76,8 +76,11 @@ class Conductor {
     });
   }
 
+/*******************************************************************************
+ * Initialization functions
+ ******************************************************************************/
   /**
-   * initialize the jobs endpoint
+   * initialize the conductor endpoint
    */
   async initialize() {
     try {
@@ -89,6 +92,73 @@ class Conductor {
     }
   }
 
+  // If the database doesn't yet have printers for the endpoints, create them
+  async setupConductorArms() {
+    // Sweet through every player
+    for (let playerX = 0; playerX < this.app.context.config.conductor.n_players[0]; playerX++) {
+      for (let playerY = 0; playerY < this.app.context.config.conductor.n_players[1]; playerY++) {
+        // Check if a bot exists with that end point
+        let endpoint;
+        const botModel = this.app.context.config.conductor.botModel;
+        const botName = `${botModel}-${playerX}-${playerY}`;
+        switch (botModel) {
+          case `http`:
+            endpoint = `http://${botName}.local:9000/v1/bots/solo`;
+            break;
+          case `Virtual`:
+            const sanitizedId = this.app.context.bots.sanitizeStringForRouting(botName);
+            endpoint = `http://localhost:${process.env.PORT}/v1/bots/${sanitizedId}`;
+            break;
+          default:
+            endpoint = `http://${botName}.local:9000/v1/bots/solo`;
+        }
+        const bots = this.app.context.bots.getBots();
+        let unique = true;
+        for (const bot in bots) {
+          if (bots.hasOwnProperty(bot)) {
+            if (bots[bot].botId === endpoint) {
+              this.players[botName] = Object.assign({}, bots[bot]);
+              unique = false;
+              break;
+            }
+          }
+        }
+
+        // If a bot doesn't exist yet with that endpoint, create it
+        if (unique) {
+          const newBot = await this.app.context.bots.createBot(
+            {
+              botId: endpoint,
+              name: `${botModel}-${playerX}-${playerY}`,
+              model: this.app.context.config.conductor.botModel,
+            }
+          );
+          this.players[endpoint] = newBot;
+        }
+      }
+    }
+  }
+
+  /**
+   * Set up the conductor's instance's router
+   */
+  async setupRouter() {
+    try {
+      // Populate this.router with all routes
+      // Then register all routes with the app
+      await conductorRoutes(this);
+
+      // Register all router routes with the app
+      this.app.use(this.router.routes()).use(this.router.allowedMethods());
+      this.logger.info(`Conductor router setup complete`);
+    } catch (ex) {
+      this.logger.error(`Conductor router setup error`, ex);
+    }
+  }
+
+  /*******************************************************************************
+   * Core functions
+   ******************************************************************************/
   /*
    * get a json friendly description of the Conductor
    */
@@ -97,19 +167,6 @@ class Conductor {
       state: this.fsm.current,
       players: this.getPlayers(),
     };
-  }
-
-  /*
-   *  Get a json friendly description of the available players
-   */
-  getPlayers() {
-    const players = {};
-    for (const player in this.players) {
-      if (this.players.hasOwnProperty(player)) {
-        players[player] = this.players[player].getBot();
-      }
-    }
-    return players;
   }
 
   /*
@@ -136,6 +193,23 @@ class Conductor {
         const errorMessage = `Command "${command}" is not supported.`;
         throw errorMessage;
     }
+  }
+
+  /*
+   *  Get a json friendly description of the available players
+   */
+  getPlayers() {
+    const players = {};
+    for (const player in this.players) {
+      if (this.players.hasOwnProperty(player)) {
+        players[player] = this.players[player].getBot();
+      }
+    }
+    return players;
+  }
+
+  handleBotUpdates(botId, jobUuid) {
+    console.log('heres an update. doooo something!', botId, jobUuid);
   }
 
   // In order to start processing a job, the job's file is opened and then
@@ -232,24 +306,6 @@ class Conductor {
     }
   }
 
-
-  /**
-   * Set up the conductor's instance's router
-   */
-  async setupRouter() {
-    try {
-      // Populate this.router with all routes
-      // Then register all routes with the app
-      await conductorRoutes(this);
-
-      // Register all router routes with the app
-      this.app.use(this.router.routes()).use(this.router.allowedMethods());
-      this.logger.info(`Conductor router setup complete`);
-    } catch (ex) {
-      this.logger.error(`Conductor router setup error`, ex);
-    }
-  }
-
   async connect() {
     this.fsm.connect();
     this.connectAllPlayers();
@@ -265,100 +321,53 @@ class Conductor {
     }
   }
 
+/*******************************************************************************
+ * Utility functions
+ ******************************************************************************/
   async connectAllPlayers() {
-    // Check if the players are all connected
-    // If they are not, command them to connect
-    // Keep checking on them until they are all connected
-    const scanInterval = setInterval(async () => {
-      let connected = true;
-      // connect all local players
-      for (const player in this.players) {
-        if (this.players.hasOwnProperty(player)) {
-          const uri = this.players[player].port;
-          const requestParams = {
-            method: `GET`,
-            uri,
-            json: true,
-          };
-          let res;
-          try {
-            res = await request(requestParams);
-          } catch (ex) {
-            res = false;
-          }
-          if (res.data && res.data.state && res.data.state === `connected`) {
-            // this bot is connected
-          } else {
-            if (res.data && res.data.state && res.data.state === `ready`) {
-              const connectParams = {
-                method: `POST`,
-                uri,
-                body: {
-                  command: `connect`,
-                },
-                json: true,
-              };
-              request(connectParams);
-            }
-            connected = false;
-          }
-        }
-      }
-      if (connected) {
-        clearInterval(scanInterval);
-        await this.fsm.connectDone();
-      }
-    }, 1000);
-  }
-
-  // If the database doesn't yet have printers for the endpoints, create them
-  async setupConductorArms() {
-    // Sweet through every player
-    for (let playerX = 0; playerX <= this.app.context.config.conductor.n_players[0]; playerX++) {
-      for (let playerY = 0; playerY <= this.app.context.config.conductor.n_players[1]; playerY++) {
-        // Check if a bot exists with that end point
-        let endpoint;
-        const botModel = this.app.context.config.conductor.botModel;
-        const botName = `${botModel}-${playerX}-${playerY}`;
-        switch (botModel) {
-          case `http`:
-            endpoint = `http://${botName}.local:9000/v1/bots/solo`;
-            break;
-          case `Virtual`:
-            endpoint = `http://localhost:${process.env.PORT}/v1/bots/${botName}`;
-            break;
-          default:
-            endpoint = `http://${botName}.local:9000/v1/bots/solo`;
-        }
-        const bots = this.app.context.bots.getBots();
-        let unique = true;
-        for (const bot in bots) {
-          if (bots.hasOwnProperty(bot)) {
-            if (bots[bot].botId === endpoint) {
-              this.players[botName] = Object.assign({}, bots[bot]);
-              unique = false;
-              break;
-            }
-          }
-        }
-
-        // If a bot doesn't exist yet with that endpoint, create it
-        if (unique) {
-          const newBot = await this.app.context.bots.createBot(
-            {
-              botId: endpoint,
-              name: `${botModel}-${playerX}-${playerY}`,
-              model: this.app.context.config.conductor.botModel,
-            }
-          );
-          this.players[endpoint] = newBot;
-        }
-      }
-    }
-  }
-
-  handleBotUpdates(botId, jobUuid) {
-    console.log('heres an update. doooo something!', botId, jobUuid);
+   // Check if the players are all connected
+   // If they are not, command them to connect
+   // Keep checking on them until they are all connected
+   const scanInterval = setInterval(async () => {
+     let connected = true;
+     // connect all local players
+     for (const player in this.players) {
+       if (this.players.hasOwnProperty(player)) {
+         const uri = this.players[player].port;
+         const requestParams = {
+           method: `GET`,
+           uri,
+           json: true,
+         };
+         let res;
+         try {
+           res = await request(requestParams);
+         } catch (ex) {
+           res = false;
+         }
+         if (res.data && res.data.state && res.data.state === `connected`) {
+           // this bot is connected
+         } else {
+           if (res.data && res.data.state && res.data.state === `ready`) {
+             const connectParams = {
+               method: `POST`,
+               uri,
+               body: {
+                 command: `connect`,
+               },
+               json: true,
+             };
+             request(connectParams);
+           }
+           connected = false;
+         }
+       }
+     }
+     if (connected) {
+       clearInterval(scanInterval);
+       await this.fsm.connectDone();
+     }
+   }, 1000);
   }
 }
 

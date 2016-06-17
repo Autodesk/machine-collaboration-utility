@@ -85,14 +85,13 @@ class Bot {
       },
     });
 
-    const botPresets = Object.assign({}, this.app.context.bots.botPresetList[presets.settings.model]);
-    for (const botPresetKey in botPresets) {
+    for (const presetKey in presets) {
       if (
-        botPresets.hasOwnProperty(botPresetKey) &&
-        botPresetKey !== `app` &&
-        botPresetKey !== `logger`
+        presets.hasOwnProperty(presetKey) &&
+        presetKey !== `app` &&
+        presetKey !== `logger`
       ) {
-        this[botPresetKey] = botPresets[botPresetKey];
+        this[presetKey] = presets[presetKey];
       }
     }
 
@@ -112,7 +111,8 @@ class Bot {
     switch (this.connectionType) {
       case `http`:
       case `telnet`:
-        this.setPort(settings.botId);
+      case `virtual`:
+        this.setPort(`http://localhost:9000/v1/bots/${this.app.context.bots.sanitizeStringForRouting(this.settings.botId)}`);
         break;
       default:
         // do nothing

@@ -67,7 +67,9 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const conductorCommandReply = await request(requestParams);
-      console.log('conductor reply', conductorCommandReply);
+      should(conductorCommandReply.status).equal(200);
+      should(conductorCommandReply.query).equal(`Process Conductor Command`);
+      should(conductorCommandReply.data.state).equal(`connecting`);
       done();
     });
     it('should see a connected conductor after 5 seconds', async function (done) {
@@ -79,7 +81,9 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const conductorStatus = await request(requestParams);
-      console.log('conductor reply', conductorStatus);
+      should(conductorStatus.status).equal(200);
+      should(conductorStatus.query).equal(`Get Conductor`);
+      should(conductorStatus.data.state).equal(`connected`);
       done();
     });
     it('should start the job', async function (done) {
@@ -94,7 +98,7 @@ module.exports = function toDoListTests() {
       };
       try {
         const jobCommandReply = await request(setFileToJobParams);
-        console.log('job command reply', jobCommandReply);
+        console.log('the job is started', jobCommandReply);
       } catch (ex) {
         console.log('flailboat', ex);
       }

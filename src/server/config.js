@@ -7,6 +7,6 @@ module.exports = {
     enabled: true,
     // botModel: `Escher2`,
     botModel: `Virtual`,
-    n_players: [5, 0],
+    n_players: [5, 1],
   },
 };

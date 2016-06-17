@@ -13,6 +13,6 @@ module.exports = async (app) => {
   });
 
   // Update the database tables to contain 'Task'
-  await app.context.db.sync({ force: true });
+  await app.context.db.sync();
   return Job;
 };
