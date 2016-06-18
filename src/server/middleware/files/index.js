@@ -104,7 +104,8 @@ class Files {
     const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
     await fs.rename(file.path, filenameWithUuid);
     this.fileList[uuid] = fileObject;
-    this.app.io.emit(`filesUpdated`, this.fileList);
+    // this.logger.info(`filesUpdated`, this.fileList);
+    // this.app.io.emit(`filesUpdated`, this.fileList);
     return fileObject;
   }
 
@@ -123,8 +124,8 @@ class Files {
     if (fileExists) {
       // Delete the file
       await fs.unlink(filePath);
-      this.app.io.emit('deleteFile', file);
       this.logger.info('Just deleted file', filePath);
+      // this.app.io.emit('deleteFile', file);
       // Remove the file object from the 'files' array
       delete this.fileList[fileUuid];
       return `File ${fileUuid} deleted`;

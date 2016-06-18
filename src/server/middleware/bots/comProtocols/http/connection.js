@@ -43,10 +43,14 @@ class HttpConnection {
       },
       json: true,
     };
-    request(requestParams)
-    .then(() => {
-      doneFunction(this);
-    });
+    try {
+      request(requestParams)
+      .then(() => {
+        doneFunction(this);
+      });
+    } catch (ex) {
+      console.log('http connection errrrror');
+    }
   }
 
   /*******************************************************************************
@@ -95,6 +99,7 @@ class HttpConnection {
       }
       commandSent = true;
     } catch (ex) {
+      this.logger.error('Send command fail', ex);
       setTimeout(() => {
         this.send(inCommandStr);
       }, 1000);

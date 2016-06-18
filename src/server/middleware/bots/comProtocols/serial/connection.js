@@ -76,7 +76,8 @@ var SerialConnection = function(
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
               if (data !== 'ok') {
-                that.io.emit('botReply', data);
+                that.logger.info('botReply', data);
+                // that.io.emit('botReply', data);
               }
               if (_.isFunction(that.mDataFunc)) {
                 that.mDataFunc(data);

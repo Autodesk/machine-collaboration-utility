@@ -69,8 +69,8 @@ class Conductor {
       ],
       callbacks: {
         onenterstate: (event, from, to) => {
-          this.app.io.emit(`stateChange`, to);
           this.logger.info(`Conductor event ${event}: Transitioning from ${from} to ${to}.`);
+          // this.app.io.emit(`stateChange`, to);
         },
       },
     });
@@ -117,7 +117,7 @@ class Conductor {
         for (const bot in bots) {
           if (bots.hasOwnProperty(bot)) {
             if (bots[bot].botId === endpoint) {
-              this.players[botName] = Object.assign({}, bots[bot]);
+              this.players[this.app.context.bots.sanitizeStringForRouting(botName)] = bots[bot];
               unique = false;
               break;
             }
@@ -125,15 +125,16 @@ class Conductor {
         }
 
         // If a bot doesn't exist yet with that endpoint, create it
+        const sanitizedBotId = this.app.context.bots.sanitizeStringForRouting(endpoint);
         if (unique) {
           const newBot = await this.app.context.bots.createBot(
             {
-              botId: endpoint,
+              botId: sanitizedBotId,
               name: `${botModel}-${playerX}-${playerY}`,
               model: this.app.context.config.conductor.botModel,
             }
           );
-          this.players[endpoint] = newBot;
+          this.players[sanitizedBotId] = newBot;
         }
       }
     }
@@ -212,68 +213,133 @@ class Conductor {
     console.log('heres an update. doooo something!', botId, jobUuid);
   }
 
-  // In order to start processing a job, the job's file is opened and then
-  // processed one line at a time
-  async startJob(job) {
+  async uploadAndSetupPlayerJobs(job) {
     const self = this;
 
-    self.currentJob = job;
-    await self.fsm.start();
     const filesApp = self.app.context.files;
     const theFile = filesApp.getFile(job.fileUuid);
     const filePath = filesApp.getFilePath(theFile);
+
     try {
-      fs.createReadStream(filePath)
-      .pipe(unzip.Extract({ path: filePath.split(`.`)[0] }))
-      .on(`close`, async () => {
-        this.metajob = require(filePath.split(`.`)[0] + `/metajob.json`);
-        const playerArray = _.toArray(this.metajob);
-        Promise.map(playerArray, (player) => {
-          Promise.map(player.jobs, async(playerJob) => {
-            let fileUuid;
-            let jobUuid;
-            // upload the file
-            const jobFilePath = filePath.split(`.`)[0] + '/' + playerJob.filename;
-            const fileStream = await fs.createReadStream(jobFilePath);
-            const formData = { file: fileStream };
-            const fileUploadParams = {
-              method: `POST`,
-              uri: `http://${player.location}/v1/files`,
-              formData,
-              json: true,
-            };
-            const uploadFileReply = await request(fileUploadParams);
-            fileUuid = uploadFileReply.data[0].uuid;
+      await new Promise(async (resolve, reject) => {
+        await fs.createReadStream(filePath)
+        .pipe(unzip.Extract({ path: filePath.split(`.`)[0] }))
+        .on(`close`, async () => {
+          this.metajob = require(filePath.split(`.`)[0] + `/metajob.json`);
+          const playerArray = _.toArray(this.metajob);
+          await Promise.map(playerArray, async (metajobPlayer) => {
+            await Promise.map(metajobPlayer.jobs, async(playerJob) => {
+              let fileUuid;
+              let jobUuid;
+              // upload the file
+              const jobFilePath = filePath.split(`.`)[0] + '/' + playerJob.filename;
+              const fileStream = await fs.createReadStream(jobFilePath);
+              const formData = { file: fileStream };
+              const fileUrl = `http://localhost:${process.env.PORT}/v1/files`;
 
-            // create the job
-            const jobParams = {
-              method: `POST`,
-              uri: `http://${player.location}/v1/jobs`,
-              body: {
-                botId: `usb`,
-              },
-              json: true,
-            };
-            const createJobReply = await request(jobParams);
-            jobUuid = createJobReply.data.uuid;
+              const fileUploadParams = {
+                method: `POST`,
+                uri: fileUrl,
+                formData,
+                json: true,
+              };
+              let uploadFileReply;
+              try {
+                uploadFileReply = await request(fileUploadParams);
+              } catch (ex) {
+                self.logger.error('upload file error', ex);
+              }
+              fileUuid = uploadFileReply.data[0].uuid;
 
-            // link the file to the job
-            const linkFileToJobParams = {
-              method: `POST`,
-              uri: `http://${player.location}/v1/jobs/${jobUuid}/setFile`,
-              body: {
-                fileUuid,
-              },
-              json: true,
-            };
-            await request(linkFileToJobParams);
+              let botId;
+              const indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`;
+              for (const playerKey in this.players) {
+                if (this.players.hasOwnProperty(playerKey)) {
+                  const player = this.players[playerKey];
+                  if (player.settings.botId.indexOf(indexKey) !== -1) {
+                    botId = player.settings.botId;
+                    break;
+                  }
+                }
+              }
+              // create the job
+              const jobParams = {
+                method: `POST`,
+                uri: `http://localhost:${process.env.PORT}/v1/jobs`,
+                body: {
+                  botId,
+                },
+                json: true,
+              };
+              let createJobReply;
+              try {
+                createJobReply = await request(jobParams);
+              } catch (ex) {
+                self.logger.error('create job error', ex);
+              }
+              jobUuid = createJobReply.data.uuid;
+
+              // link the file to the job
+              const linkFileToJobParams = {
+                method: `POST`,
+                uri: `http://localhost:${process.env.PORT}/v1/jobs/${jobUuid}/setFile`,
+                body: {
+                  fileUuid,
+                },
+                json: true,
+              };
+              try {
+                await request(linkFileToJobParams);
+              } catch (ex) {
+                self.logger.error('Link conductor job error', ex);
+              }
+            }, { concurrency: 5 });
           }, { concurrency: 5 });
-        }, { concurrency: 5 });
+          resolve();
+          // do something here
+        });
       });
     } catch (ex) {
-      this.logger.error(new Error(ex));
+      this.logger.error(ex);
     }
-    await self.fsm.startDone();
+  }
+
+  // In order to start processing a job, the job's file is opened and then
+  // processed one line at a time
+  async startJob(job) {
+    this.currentJob = job;
+    await this.fsm.start();
+
+    try {
+      await this.uploadAndSetupPlayerJobs(job);
+      await this.startPlayers();
+      // then grab each player's first job
+    } catch (ex) {
+      console.log('conductor start job fail', ex);
+    }
+
+    await this.fsm.startDone();
+  }
+
+  async startPlayers() {
+    for (const metajobPlayerKey in this.metajob) {
+      if (this.metajob.hasOwnProperty(metajobPlayerKey)) {
+        const metajobPlayer = this.metajob[metajobPlayerKey];
+        // find the player
+        let botId;
+        const indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`;
+        for (const playerKey in this.players) {
+          if (this.players.hasOwnProperty(playerKey)) {
+            const player = this.players[playerKey];
+            if (player.settings.botId.indexOf(indexKey) !== -1) {
+              botId = player.settings.botId;
+              break;
+            }
+          }
+        }
+        this.players[botId].metajobs = metajobPlayer.jobs;
+      }
+    }
   }
 
   async pauseJob() {
@@ -357,7 +423,11 @@ class Conductor {
                },
                json: true,
              };
-             request(connectParams);
+             try {
+               request(connectParams);
+             } catch (ex) {
+               this.logger.error(`Trying to connect to ${uri}`);
+             }
            }
            connected = false;
          }

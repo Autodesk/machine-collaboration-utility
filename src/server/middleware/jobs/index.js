@@ -121,9 +121,11 @@ class Jobs {
               }
             }
             if (event === `startup`) {
-              self.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
+              self.logger.info(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
+              // self.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
             } else {
-              self.app.io.emit(`jobEvent`, self.jobToJson(theJob));
+              self.logger.info(`jobEvent`, self.jobToJson(theJob));
+              // self.app.io.emit(`jobEvent`, self.jobToJson(theJob));
             }
           }
         },
@@ -146,7 +148,8 @@ class Jobs {
     };
 
     stopwatch.onTime((time) => {
-      this.app.io.emit('jobEvent', this.jobToJson(jobObject));
+      this.logger.info('jobEvent', this.jobToJson(jobObject));
+      // this.app.io.emit('jobEvent', this.jobToJson(jobObject));
     });
     return jobObject;
   }
@@ -158,7 +161,8 @@ class Jobs {
     uuid = dbJob.dataValues.uuid;
     jobObject.id = dbJob.dataValues.id;
     this.jobList[uuid] = jobObject;
-    this.app.io.emit('jobEvent', jobJson);
+    this.logger.info('jobEvent', jobJson);
+    // this.app.io.emit('jobEvent', jobJson);
     return jobObject;
   }
   /**
@@ -312,7 +316,8 @@ class Jobs {
     const theJob = this.jobList[jobUuid];
     const theJobJson = this.jobToJson(theJob);
     const dbJob = await this.JobModel.findById(theJob.id);
-    this.app.io.emit('deleteJob', theJobJson);
+    this.logger.info('deleteJob', theJobJson);
+    // this.app.io.emit('deleteJob', theJobJson);
     await dbJob.destroy();
     delete this.jobList[jobUuid];
     return `Job ${jobUuid} deleted`;

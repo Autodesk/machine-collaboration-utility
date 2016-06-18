@@ -25,11 +25,12 @@ let logger;
  *                           connected
  * Return: N/A
  */
-var VirtualConnection = function(connectedFunc, io) {
+var VirtualConnection = function(app, connectedFunc) {
+  this.app = app;
+  this.logger = app.context.logger;
   this.mCloseFunc = undefined;
   this.mErrorFunc = undefined;
   this.mDataFunc = connectedFunc;
-  this.io = io;
 
   this.nBufferedCommands = 0;
   this.bufferSize = 32;
@@ -90,7 +91,8 @@ VirtualConnection.prototype.send = async function (inCommandStr) {
     }
     this.nBufferedCommands--;
     this.mDataFunc(reply);
-    this.io.emit('botReply', reply);
+    this.logger.info('botReply', reply);
+    // this.app.io.emit('botReply', reply);
   }
 };
 

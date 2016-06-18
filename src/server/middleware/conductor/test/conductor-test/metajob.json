@@ -1364,7 +1364,7 @@
         "x_entry": 0.000000
       }
     ],
-    "location": [0, 1],
+    "location": [1, 0],
     "name": "bubba"
   },
   "cletus": {
@@ -2097,7 +2097,7 @@
         "x_entry": 0.000000
       }
     ],
-    "location": [0, 2],
+    "location": [2, 0],
     "name": "cletus"
   },
   "dale": {
@@ -2818,7 +2818,7 @@
         "x_entry": 0.000000
       }
     ],
-    "location": [0, 3],
+    "location": [3, 0],
     "name": "dale"
   },
   "earl": {
@@ -3480,7 +3480,7 @@
         "x_entry": 0.000000
       }
     ],
-    "location": [0, 4],
+    "location": [4, 0],
     "name": "earl"
   }
 }

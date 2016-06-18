@@ -79,8 +79,8 @@ class Bot {
       ],
       callbacks: {
         onenterstate: (event, from, to) => {
-          this.app.io.emit(`stateChange`, to);
           this.logger.info(`Bot event ${event}: Transitioning from ${from} to ${to}.`);
+          // this.app.io.emit(`stateChange`, to);
         },
       },
     });
@@ -320,7 +320,11 @@ class Bot {
               },
               json: true,
             };
-            await request(requestParams);
+            try {
+              await request(requestParams);
+            } catch (ex) {
+              self.logger.error('Bot subscriber error', ex);
+            }
           });
           await self.currentJob.stopwatch.stop();
         },
@@ -394,23 +398,29 @@ class Bot {
         case `serial`:
           const openPrime = 'M501';
           executor = new SerialCommandExecutor(
+            this.app,
             this.port,
             this.config.baudrate,
-            openPrime,
-            this.app.io
+            openPrime
           );
           validator = this.validateSerialReply;
           break;
         case `http`:
-          executor = new HttpExecutor(this.port);
+          executor = new HttpExecutor(
+            this.app,
+            this.port
+          );
           validator = this.validateHttpReply;
           break;
         case `virtual`:
-          executor = new VirtualExecutor(this.app.io);
+          executor = new VirtualExecutor(this.app);
           validator = this.validateSerialReply;
           break;
         case `telnet`:
-          executor = new TelnetExecutor(this.port);
+          executor = new TelnetExecutor(
+            this.app,
+            this.port
+          );
           validator = this.validateSerialReply;
           break;
         default:
