@@ -38,10 +38,20 @@ class Bot {
 
     this.subscribers = [];
 
+    for (const presetKey in presets) {
+      if (
+        presets.hasOwnProperty(presetKey) &&
+        presetKey !== `app` &&
+        presetKey !== `logger`
+      ) {
+        this[presetKey] = presets[presetKey];
+      }
+    }
+
     this.fsm = StateMachine.create({
       initial: 'unavailable',
       error: (one, two) => {
-        const errorMessage = `Invalid bot state change action "${one}". State at "${two}".`;
+        const errorMessage = `Invalid ${this.settings.name} bot state change action "${one}". State at "${two}".`;
         this.logger.error(errorMessage);
         throw errorMessage;
       },
@@ -79,21 +89,11 @@ class Bot {
       ],
       callbacks: {
         onenterstate: (event, from, to) => {
-          this.logger.info(`Bot event ${event}: Transitioning from ${from} to ${to}.`);
+          this.logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
           // this.app.io.emit(`stateChange`, to);
         },
       },
     });
-
-    for (const presetKey in presets) {
-      if (
-        presets.hasOwnProperty(presetKey) &&
-        presetKey !== `app` &&
-        presetKey !== `logger`
-      ) {
-        this[presetKey] = presets[presetKey];
-      }
-    }
 
     switch (this.connectionType) {
       // In case there is no detection method required, detect the device and
@@ -166,6 +166,7 @@ class Bot {
       state: this.fsm.current,
       port: this.port,
       settings: this.settings,
+      subscribers: this.subscribers
     };
   }
 

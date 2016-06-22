@@ -1,0 +1,50 @@
+G1 Y31.165; move to point above task toolpaths start
+G1 Z0.600 F1080; move down to toolpath start
+G1 E0.00000 F1500
+G92 E0
+; bead-perimeter_inner
+G1 Y31.535 E0.01846 F4200
+G1 X620.321 E5.94078
+G1 Y31.165 E5.95924
+G1 X739.028 E11.88156
+; rapid-leaky
+; bead-perimeter_outer
+G1 X739.428 Y31.935 E11.93993 F2400
+G1 X619.921 E17.90216
+G1 Y30.765 E17.96053
+G1 X739.428 E23.92276
+G92 E0
+G1 E-1.00000 F1500
+G1 Z1.600 F5400; move up from layer plane
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0
+G4 P0

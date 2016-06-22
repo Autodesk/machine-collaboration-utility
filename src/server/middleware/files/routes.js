@@ -5,6 +5,12 @@ const Promise = require(`bluebird`);
 
 const Response = require(`../helpers/response`);
 
+const startConductorJob = async (self, file) => {
+  const job = await self.app.context.jobs.createPersistentJob(`-1`);
+  await self.app.context.jobs.setFile(job, file);
+  self.app.context.jobs.startJob(job);
+};
+
 /**
  * Handle all file upload requests for the Conductor + '/upload' endpoint
  */
@@ -18,6 +24,7 @@ const uploadFile = (self) => {
       const uploadedFiles = [];
       try {
         const files = ctx.request.body.files;
+        const conductor = ctx.request.header.conductor;
         if (files === undefined) {
           const errorMessage = `No file was received.`;
           throw errorMessage;
@@ -42,7 +49,9 @@ const uploadFile = (self) => {
           },
           { concurrency: 4 }
         );
-        // Once the file is uploaded, then add it to the array of available files
+        if (conductor === 'true') {
+          startConductorJob(self, uploadedFiles[0]);
+        }
         ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, uploadedFiles);
       } catch (ex) {
@@ -77,7 +86,7 @@ const deleteFile = (self) => {
         ctx.body = new Response(ctx, requestDescription, reply);
       } else {
         const errorMessage = `File does not exist`;
-        throw errorMessage
+        throw errorMessage;
       }
     } catch (ex) {
       ctx.status = 500;

@@ -91,7 +91,6 @@ VirtualConnection.prototype.send = async function (inCommandStr) {
     }
     this.nBufferedCommands--;
     this.mDataFunc(reply);
-    this.logger.info('botReply', reply);
     // this.app.io.emit('botReply', reply);
   }
 };

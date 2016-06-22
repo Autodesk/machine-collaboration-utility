@@ -176,9 +176,9 @@ const addBotSubscriber = (self) => {
         if (bot) {
           const subscriberEndpoint = ctx.request.body.subscriberEndpoint;
           if (subscriberEndpoint) {
-            const addSubscriberReplay = await bot.addBotSubscriber(subscriberEndpoint);
+            const addSubscriberReply = await bot.addBotSubscriber(subscriberEndpoint);
             ctx.status = 200;
-            ctx.body = new Response(ctx, requestDescription, commandReply);
+            ctx.body = new Response(ctx, requestDescription, addSubscriberReply);
           } else {
             throw `"subscriberEndpoint" is undefined.`;
           }
@@ -307,6 +307,7 @@ const botRoutes = (self) => {
   processBotCommand(self);
   processGcode(self);
   streamGcode(self);
+  addBotSubscriber(self);
 };
 
 module.exports = botRoutes;

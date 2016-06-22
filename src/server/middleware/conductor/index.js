@@ -6,6 +6,7 @@ const request = require(`request-promise`);
 const unzip = require(`unzip2`);
 const fs = require(`fs`);
 const _ = require(`underscore`);
+const ip = require(`ip`);
 
 const conductorRoutes = require(`./routes`);
 const Bot = require(`../bots/bot`);
@@ -86,6 +87,7 @@ class Conductor {
     try {
       await this.setupRouter();
       await this.setupConductorArms();
+      await this.connect();
       this.logger.info(`Conductor instance initialized`);
     } catch (ex) {
       this.logger.error(`Conductor initialization error`, ex);
@@ -117,6 +119,7 @@ class Conductor {
         for (const bot in bots) {
           if (bots.hasOwnProperty(bot)) {
             if (bots[bot].botId === endpoint) {
+              bots[bot].endpoint = endpoint;
               this.players[this.app.context.bots.sanitizeStringForRouting(botName)] = bots[bot];
               unique = false;
               break;
@@ -136,6 +139,31 @@ class Conductor {
           );
           this.players[sanitizedBotId] = newBot;
         }
+      }
+    }
+
+    // Now that all of the players are added, give them an extra property 'metajobQueue'
+    // This will be used to keep track of the metajob's progress
+
+    // We will also add this conductor as a subscribed endpoint for the players
+    for (const playerKey in this.players) {
+      if (this.players.hasOwnProperty(playerKey)) {
+        const addSubscriberParams = {
+          method: `POST`,
+          uri: `${this.players[playerKey].port}/addSubscriber`,
+          body: {
+            subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/conductor/update`,
+          },
+          json: true,
+        };
+        try {
+          const subscribeReply = await request(addSubscriberParams);
+        } catch (ex) {
+          this.logger.error(`Add subscriber failed`);
+        }
+        // Add a metajobQueue array
+        this.players[playerKey].metajobQueue = [];
+        this.players[playerKey].currentJobIndex = 0;
       }
     }
   }
@@ -204,13 +232,19 @@ class Conductor {
     for (const player in this.players) {
       if (this.players.hasOwnProperty(player)) {
         players[player] = this.players[player].getBot();
+        players[player].metajobQueue = this.players[player].metajobQueue;
+        players[player].currentJobIndex = this.players[player].currentJobIndex;
       }
     }
     return players;
   }
 
-  handleBotUpdates(botId, jobUuid) {
-    console.log('heres an update. doooo something!', botId, jobUuid);
+  async handleBotUpdates(botId, jobUuid) {
+    const player = this.players[botId];
+    if (player !== undefined) {
+      player.metajobQueue.shift();
+      await this.scanForNextJob();
+    }
   }
 
   async uploadAndSetupPlayerJobs(job) {
@@ -222,10 +256,14 @@ class Conductor {
 
     try {
       await new Promise(async (resolve, reject) => {
+        // Open and unzip the file
         await fs.createReadStream(filePath)
         .pipe(unzip.Extract({ path: filePath.split(`.`)[0] }))
+        // As soon as the file is done being unzipped
         .on(`close`, async () => {
+          // Read the metajob.json file inside of the unzipped folder
           this.metajob = require(filePath.split(`.`)[0] + `/metajob.json`);
+          // Convert the list of players into an array so that we can map the array
           const playerArray = _.toArray(this.metajob);
           await Promise.map(playerArray, async (metajobPlayer) => {
             await Promise.map(metajobPlayer.jobs, async(playerJob) => {
@@ -251,6 +289,7 @@ class Conductor {
               }
               fileUuid = uploadFileReply.data[0].uuid;
 
+              // find the bot that corresponds with the metajob player we're currently populating
               let botId;
               const indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`;
               for (const playerKey in this.players) {
@@ -262,12 +301,14 @@ class Conductor {
                   }
                 }
               }
+
               // create the job
               const jobParams = {
                 method: `POST`,
                 uri: `http://localhost:${process.env.PORT}/v1/jobs`,
                 body: {
                   botId,
+                  uuid: playerJob.id,
                 },
                 json: true,
               };
@@ -288,15 +329,20 @@ class Conductor {
                 },
                 json: true,
               };
+
               try {
+                // Link the uploaded file to the job
                 await request(linkFileToJobParams);
               } catch (ex) {
                 self.logger.error('Link conductor job error', ex);
               }
+              // add the job to a list
+              // the array order from metajob must be maintained
+              playerJob.botId = botId;
+              this.players[botId].metajobQueue.push(playerJob);
             }, { concurrency: 5 });
           }, { concurrency: 5 });
           resolve();
-          // do something here
         });
       });
     } catch (ex) {
@@ -312,7 +358,9 @@ class Conductor {
 
     try {
       await this.uploadAndSetupPlayerJobs(job);
-      await this.startPlayers();
+      this.logger.info('All files uploaded and set up');
+      await this.scanForNextJob();
+      this.logger.info('Players have begun');
       // then grab each player's first job
     } catch (ex) {
       console.log('conductor start job fail', ex);
@@ -321,23 +369,38 @@ class Conductor {
     await this.fsm.startDone();
   }
 
-  async startPlayers() {
-    for (const metajobPlayerKey in this.metajob) {
-      if (this.metajob.hasOwnProperty(metajobPlayerKey)) {
-        const metajobPlayer = this.metajob[metajobPlayerKey];
-        // find the player
-        let botId;
-        const indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`;
-        for (const playerKey in this.players) {
-          if (this.players.hasOwnProperty(playerKey)) {
-            const player = this.players[playerKey];
-            if (player.settings.botId.indexOf(indexKey) !== -1) {
-              botId = player.settings.botId;
-              break;
+  async scanForNextJob() {
+    debugger;
+    for (const playerKey in this.players) {
+      if (this.players.hasOwnProperty(playerKey)) {
+        const player = this.players[playerKey];
+        // check each player's first job. Queue it up.
+        let noPrecursors = true;
+        const currentJob = player.metajobQueue[0];
+        if (currentJob !== undefined) {
+          // go through every precursor to the current job
+          for (let i = 0; i < currentJob.precursors.length; i++) {
+            const precursor = currentJob.precursors[i];
+            const job = this.app.context.jobs.jobList[precursor];
+            if (job === undefined) {
+              throw `Error, the job ${precursor} is undefined`;
+            }
+            // flag noPrecursors if any of the jobs aren't complete yet
+            if (job.state !== `complete`) {
+              noPrecursors = false;
+            }
+          }
+          if (noPrecursors) {
+            try {
+              await this.app.context.jobs.startJob(this.app.context.jobs.jobList[currentJob.id]);
+              // If the job starts without any issues
+              // remove the first job from the list
+              player.metajobQueue.shift();
+            } catch (ex) {
+              this.logger.error(`Job start fail`, ex);
             }
           }
         }
-        this.players[botId].metajobs = metajobPlayer.jobs;
       }
     }
   }

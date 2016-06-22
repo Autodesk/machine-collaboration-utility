@@ -11,20 +11,20 @@ module.exports = function toDoListTests() {
   describe('UI unit test', function () {
     it('should upload an escher file', async function (done) {
       try {
-      const escherFilePath = path.join(__dirname, `conductor-test.zip`);
-      const fileStream = await fs.createReadStream(escherFilePath);
-      const formData = { file: fileStream };
-      const fileParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/files`,
-        formData,
-        json: true,
-      };
-      const uploadFileReply = await request(fileParams);
-      should(uploadFileReply.status).equal(200);
-      should(uploadFileReply.query).equal(`Upload File`);
-      fileUuid = uploadFileReply.data[0].uuid;
-      done();
+        const escherFilePath = path.join(__dirname, `conductor-test.zip`);
+        const fileStream = await fs.createReadStream(escherFilePath);
+        const formData = { file: fileStream };
+        const fileParams = {
+          method: `POST`,
+          uri: `http://localhost:9000/v1/files`,
+          formData,
+          json: true,
+        };
+        const uploadFileReply = await request(fileParams);
+        should(uploadFileReply.status).equal(200);
+        should(uploadFileReply.query).equal(`Upload File`);
+        fileUuid = uploadFileReply.data[0].uuid;
+        done();
       } catch (ex) {
         console.log('Upload Escher File error', ex);
       }
@@ -118,12 +118,30 @@ module.exports = function toDoListTests() {
           json: true,
         };
         try {
-          const jobCommandReply = await request(setFileToJobParams);
-          console.log('the job is started', jobCommandReply);
+          await request(setFileToJobParams);
         } catch (ex) {
           console.log('flailboat', ex);
         }
         await Promise.delay(9000);
+        done();
+      } catch (ex) {
+        console.log('Start conductor job error', ex);
+      }
+    });
+    it('should see a populated metajob', async function (done) {
+      try {
+        this.timeout(10000);
+        await Promise.delay(2000);
+        const getConductorRequest = {
+          method: `GET`,
+          uri: `http://localhost:9000/v1/conductor`,
+          json: true,
+        };
+        try {
+          const getConductorReply = await request(getConductorRequest);
+        } catch (ex) {
+          console.log('flailboat', ex);
+        }
         done();
       } catch (ex) {
         console.log('Start conductor job error', ex);

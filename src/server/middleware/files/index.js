@@ -132,16 +132,6 @@ class Files {
     }
     return false;
   }
-
-  // createFormattedDate(utcStamp) {
-  //   const year = `20${utcStamp.getYear() - 100}`;
-  //   const month = `${utcStamp.getMonth()}`;
-  //   const date = `${utcStamp.getDate()}`;
-  //   const hour = `${utcStamp.getHours()}`;
-  //   const minute = `${utcStamp.getMinutes()}`;
-  //   const dateChanged = `${year}/${month}/${date} ${hour}:${minute}`;
-  //   return dateChanged;
-  // }
 }
 
 module.exports = Files;
