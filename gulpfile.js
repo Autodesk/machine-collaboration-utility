@@ -76,8 +76,7 @@ gulp.task(`build-server`, () => {
   .pipe(sourcemaps.init())
   .pipe(
     babel({
-      presets: [`es2015-node5`, `stage-3`, `react`],
-      plugins: [`transform-async-to-generator`],
+      presets: [`es2017`, `react`],
     })
   )
   .pipe(sourcemaps.write(`.`))
@@ -109,7 +108,7 @@ gulp.task(
 gulp.task('build-react-client', () => {
   return gulp.src('./src/client/js/index.js')
     .pipe(webpack({
-      entry: './src/client/js/index.js',
+      entry: ['babel-polyfill', './src/client/js/index.js'],
 
       output: {
         path: '/dist/client',
@@ -128,7 +127,7 @@ gulp.task('build-react-client', () => {
           {
             test: /\.js$/,
             exclude: /node_modules/,
-            loader: 'babel-loader?presets[]=es2015&presets[]=react',
+            loader: 'babel-loader?presets[]=es2017&presets[]=react',
           },
         ],
       },
@@ -141,8 +140,7 @@ gulp.task(`build-react-server`, () => {
   .pipe(sourcemaps.init())
   .pipe(
     babel({
-      presets: [`es2015-node5`, `stage-3`, `react`],
-      plugins: [`transform-async-to-generator`],
+      presets: [`react`, `es2017`],
     })
   )
   .pipe(sourcemaps.write(`.`))

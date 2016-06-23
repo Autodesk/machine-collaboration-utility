@@ -39,7 +39,6 @@ class TelnetConnection {
     });
 
     this.mPort.on('data', (data) => {
-      console.log('data:', data.toString());
       if (_.isFunction(this.mDataFunc)) {
         this.mDataFunc(data);
       }
@@ -77,7 +76,6 @@ class TelnetConnection {
    */
   async send(inCommandStr) {
     try {
-      console.log('about to send', inCommandStr);
       this.mPort.write(inCommandStr);
       this.mDataFunc('ok');
       // commandSent = true;
@@ -96,7 +94,7 @@ class TelnetConnection {
    */
   close() {
     this.mPort.destroy();
-    console.log(`Closing telnet connection!`);
+    this.logger.info(`Closing telnet connection!`);
   }
 }
 

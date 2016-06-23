@@ -8,6 +8,7 @@
     "start": "node node_modules/gulp/bin/gulp.js"
   },
   "dependencies": {
+    "babel-preset-es2017": "^1.4.0",
     "bluebird": "^3.1.1",
     "co": "^4.6.0",
     "debug": "^2.2.0",

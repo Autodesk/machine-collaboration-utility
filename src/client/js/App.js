@@ -25,7 +25,7 @@ export default class App extends React.Component {
       req.attach(file.name, file);
     });
     req.end(() => {
-      console.log('uploaded files!');
+      // After the file is uploaded
     });
   }
   render() {

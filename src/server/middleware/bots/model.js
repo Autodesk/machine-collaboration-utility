@@ -21,6 +21,6 @@ module.exports = async (app) => {
   });
 
   // Update the database tables to contain 'Bot'
-  await app.context.db.sync();
+  await app.context.db.sync({force:true});
   return Bot;
 };

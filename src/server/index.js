@@ -1,8 +1,10 @@
 require(`source-map-support`).install();
 // Enable sourcemaps for debugging es7
 
-require('dotenv').config();
+require(`dotenv`).config();
 // Mixin process.env variables with a .env file
+
+require(`babel-polyfill`);
 
 try {
   const http = require(`http`);

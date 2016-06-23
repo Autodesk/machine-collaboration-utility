@@ -152,7 +152,8 @@ class Conductor {
           method: `POST`,
           uri: `${this.players[playerKey].port}/addSubscriber`,
           body: {
-            subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/conductor/update`,
+            subscriberEndpoint: `http://localhost:${process.env.PORT}/v1/conductor/update`,
+            // subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/conductor/update`,
           },
           json: true,
         };
@@ -242,8 +243,9 @@ class Conductor {
   async handleBotUpdates(botId, jobUuid) {
     const player = this.players[botId];
     if (player !== undefined) {
-      player.metajobQueue.shift();
       await this.scanForNextJob();
+    } else {
+      this.logger.error(`Player ${botId} is undefined`);
     }
   }
 
@@ -266,6 +268,19 @@ class Conductor {
           // Convert the list of players into an array so that we can map the array
           const playerArray = _.toArray(this.metajob);
           await Promise.map(playerArray, async (metajobPlayer) => {
+            // find the bot that corresponds with the metajob player we're currently populating
+            let botId;
+            const indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`;
+            for (const playerKey in this.players) {
+              if (this.players.hasOwnProperty(playerKey)) {
+                const player = this.players[playerKey];
+                if (player.settings.botId.indexOf(indexKey) !== -1) {
+                  botId = player.settings.botId;
+                  break;
+                }
+              }
+            }
+
             await Promise.map(metajobPlayer.jobs, async(playerJob) => {
               let fileUuid;
               let jobUuid;
@@ -288,19 +303,6 @@ class Conductor {
                 self.logger.error('upload file error', ex);
               }
               fileUuid = uploadFileReply.data[0].uuid;
-
-              // find the bot that corresponds with the metajob player we're currently populating
-              let botId;
-              const indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`;
-              for (const playerKey in this.players) {
-                if (this.players.hasOwnProperty(playerKey)) {
-                  const player = this.players[playerKey];
-                  if (player.settings.botId.indexOf(indexKey) !== -1) {
-                    botId = player.settings.botId;
-                    break;
-                  }
-                }
-              }
 
               // create the job
               const jobParams = {
@@ -339,8 +341,9 @@ class Conductor {
               // add the job to a list
               // the array order from metajob must be maintained
               playerJob.botId = botId;
-              this.players[botId].metajobQueue.push(playerJob);
+              playerJob.state = this.app.context.jobs.jobList[jobUuid].fsm.current;
             }, { concurrency: 5 });
+            this.players[botId].metajobQueue = metajobPlayer.jobs;
           }, { concurrency: 5 });
           resolve();
         });
@@ -363,14 +366,13 @@ class Conductor {
       this.logger.info('Players have begun');
       // then grab each player's first job
     } catch (ex) {
-      console.log('conductor start job fail', ex);
+      this.logger.error(`Conductor failed to start job: ${ex}`);
     }
 
     await this.fsm.startDone();
   }
 
   async scanForNextJob() {
-    debugger;
     for (const playerKey in this.players) {
       if (this.players.hasOwnProperty(playerKey)) {
         const player = this.players[playerKey];
@@ -378,7 +380,17 @@ class Conductor {
         let noPrecursors = true;
         const currentJob = player.metajobQueue[0];
         if (currentJob !== undefined) {
+          // If the current job is still processing, let it go
+          if (this.app.context.jobs.jobList[currentJob.id].fsm.current !== `ready`) {
+            break;
+          }
+
+          // If the current bot is still doing something else, let it go
+          const bot = this.app.context.bots.botList[currentJob.botId];
           // go through every precursor to the current job
+          if (bot.fsm.current !== `connected`) {
+            break;
+          }
           for (let i = 0; i < currentJob.precursors.length; i++) {
             const precursor = currentJob.precursors[i];
             const job = this.app.context.jobs.jobList[precursor];
@@ -386,13 +398,24 @@ class Conductor {
               throw `Error, the job ${precursor} is undefined`;
             }
             // flag noPrecursors if any of the jobs aren't complete yet
-            if (job.state !== `complete`) {
+            if (job.fsm.current !== `complete`) {
+              this.logger.info(`${currentJob.botId} job ${currentJob.id} won't start because job ${job.uuid} is ${job.fsm.current}`);
               noPrecursors = false;
             }
           }
           if (noPrecursors) {
+            if (bot.fsm.current !== `connected`) {
+              break;
+            }
+            if (this.app.context.jobs.jobList[currentJob.id].fsm.current !== `ready`) {
+              break;
+            }
             try {
-              await this.app.context.jobs.startJob(this.app.context.jobs.jobList[currentJob.id]);
+              const jobToStart = this.app.context.jobs.jobList[currentJob.id];
+              if (jobToStart === undefined) {
+                throw `job ${currentJob.id} is undefined`;
+              }
+              await this.app.context.jobs.startJob(jobToStart);
               // If the job starts without any issues
               // remove the first job from the list
               player.metajobQueue.shift();
@@ -402,6 +425,24 @@ class Conductor {
           }
         }
       }
+    }
+    this.checkIfDoneConducting();
+  }
+
+  async checkIfDoneConducting() {
+    let doneConducting = true;
+    for (const [jobUuid, job] of Object.entries(this.app.context.jobs.jobList)) {
+      if (job.botId === `-1`) {
+        continue;
+      } else {
+        if (job.fsm.current !== `complete`) {
+          doneConducting = false;
+          break;
+        }
+      }
+    }
+    if (doneConducting) {
+      await this.stopJob();
     }
   }
 
@@ -429,9 +470,11 @@ class Conductor {
 
   async stopJob() {
     if (this.fsm.current !== `connected`) {
+      this.currentJob.percentComplete = 100;
       await this.fsm.stop();
-      // do the stop stuff here
       await this.fsm.stopDone();
+      await this.currentJob.fsm.runningDone();
+      await this.currentJob.stopwatch.stop();
     }
   }
 

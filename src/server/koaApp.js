@@ -45,6 +45,7 @@ class KoaApp {
     this.app = new Koa();
     this.app.context.config = config;
     this.apiVersion = config.apiVersion;
+
   }
 
   initialize() {

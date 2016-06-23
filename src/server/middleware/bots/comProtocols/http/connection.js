@@ -49,7 +49,7 @@ class HttpConnection {
         doneFunction(this);
       });
     } catch (ex) {
-      console.log('http connection errrrror');
+      this.logger.error('Http connection error');
     }
   }
 
@@ -114,8 +114,8 @@ class HttpConnection {
    * Args:   N/A
    * Return: N/A
    */
-   close() {
-    console.log('closing!');
+  close() {
+    logger.info(`Clowing http connection`);
   }
 }
 

@@ -100,7 +100,7 @@ class Jobs {
       ],
       callbacks: {
         onenterstate: async (event, from, to) => {
-          self.logger.info(`Job event ${event}: Transitioning from ${from} to ${to}.`);
+          self.logger.info(`Bot ${self.botId} Job ${uuid} event ${event}: Transitioning from ${from} to ${to}.`);
           if (from !== `none`) {
             const theJob = self.jobList[uuid];
             if (event.indexOf('Done') !== -1) {
@@ -115,7 +115,7 @@ class Jobs {
                   elapsed: theJob.stopwatch.ms,
                   percentComplete: theJob.percentComplete,
                 });
-                self.logger.info(`Job event ${event} for job ${uuid} successfully updated to ${theJob.fsm.current}`);
+                self.logger.info(`Job event. ${event} for job ${uuid} successfully updated to ${theJob.fsm.current}`);
               } catch (ex) {
                 self.logger.info(`Job event ${event} for job ${uuid} failed to update: ${ex}`);
               }

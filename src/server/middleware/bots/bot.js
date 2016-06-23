@@ -311,6 +311,7 @@ class Bot {
           await self.fsm.stop();
           await self.fsm.stopDone();
           await self.currentJob.fsm.runningDone();
+          await self.currentJob.stopwatch.stop();
           await Promise.map(self.subscribers, async (subscriber) => {
             const requestParams = {
               method: `POST`,
@@ -327,7 +328,6 @@ class Bot {
               self.logger.error('Bot subscriber error', ex);
             }
           });
-          await self.currentJob.stopwatch.stop();
         },
       });
     });
