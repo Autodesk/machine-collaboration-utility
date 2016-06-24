@@ -25,27 +25,11 @@ const Jobs = require(`./middleware/jobs`);
 const Bots = require(`./middleware/bots`);
 const Conductor = require(`./middleware/conductor`);
 
-function renderPage(appHtml) {
-  return `
-    <!doctype html public="storage">
-    <html>
-    <meta charset=utf-8/>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hydra-Print</title>
-    <link rel=stylesheet href=/styles.css>
-    <div id=app>${appHtml}</div>
-    <script src="/vendorJs/socket.io.js"></script>
-    <script src="/bundle.js"></script>
-   `;
-}
-
-
 class KoaApp {
   constructor(config) {
     this.app = new Koa();
     this.app.context.config = config;
     this.apiVersion = config.apiVersion;
-
   }
 
   initialize() {
@@ -107,10 +91,20 @@ class KoaApp {
           } else if (redirect) {
             ctx.redirect(redirect.pathname + redirect.search);
           } else if (props) {
+            props.params.hydraPrint = {};
+            props.params.hydraPrint.files = this.app.context.files.fileList;
+            props.params.hydraPrint.jobs = this.app.context.jobs.jobList;
+            props.params.hydraPrint.bots = this.app.context.bots.botList;
             const appHtml = renderToString(<RouterContext {...props}/>);
-            ctx.body = renderPage(appHtml);
+            ctx.body = this.renderPage(appHtml);
           } else {
-            ctx.redirect('/bots');
+            // Redirect to an error page if making a bad api query
+            if (ctx.req.url.indexOf(`/v1`) !== -1) {
+              ctx.body = `404`;
+            // Otherwise just redirect them to the homepage
+            } else {
+              ctx.redirect('/');
+            }
           }
         });
       });
@@ -123,6 +117,20 @@ class KoaApp {
     this.app.on(`error`, (err, ctx) => {
       this.app.context.logger.error(`server error`, err, ctx);
     });
+  }
+
+  renderPage(appHtml) {
+    return `
+      <!doctype html public="storage">
+      <html>
+      <meta charset=utf-8/>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Hydra-Print</title>
+      <link rel=stylesheet href=/styles.css>
+      <div id=app>${appHtml}</div>
+      <script src="/vendorJs/socket.io.js"></script>
+      <script src="/bundle.js"></script>
+     `;
   }
 }
 

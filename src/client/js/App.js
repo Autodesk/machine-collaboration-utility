@@ -7,17 +7,10 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      bots: {
-
-      },
-      jobs: {
-
-      },
-      files: {
-
-      },
-    };
+      hydraPrint: props.hydraPrint
+    }
   }
+
   onDrop(files) {
     const req = request.post('/v1/files');
     req.set('conductor', 'true');
@@ -25,17 +18,29 @@ export default class App extends React.Component {
       req.attach(file.name, file);
     });
     req.end(() => {
-      // After the file is uploaded
+      // Called after the file is uploaded
     });
   }
+
   render() {
+    const dropzoneStyle = {
+      width: "100%",
+      height: "100%",
+    };
+    const childrenComponents = React.Children.map(this.props.children, child => {
+      // mapping through all of the children components in order to inject hydraPrint app objects
+      return React.cloneElement(child, this.state.hydraPrint);
+    });
     return (
       <div>
-        <Dropzone onDrop={this.onDrop}>
-          <div>Try dropping some files here, or click to select files to upload.</div>
+        <Dropzone
+          style={dropzoneStyle}
+          disableClick={true}
+          onDrop={this.onDrop}
+        >
+          <Header/>
+          {childrenComponents}
         </Dropzone>
-        <Header/>
-        {this.props.children}
       </div>
     );
   }
