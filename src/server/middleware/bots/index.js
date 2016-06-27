@@ -2,6 +2,7 @@ const router = require(`koa-router`)();
 const fs = require(`fs-promise`);
 const path = require(`path`);
 const _ = require(`underscore`);
+const Promise = require(`bluebird`);
 
 const botsRoutes = require(`./routes`);
 const botModel = require(`./model`);
@@ -61,7 +62,6 @@ class Bots {
       if (botsDbArray.length === 0) {
         await this.createBot();
       }
-
       // Start scanning for all bots
       await this.setupDiscovery();
       this.logger.info(`Bots instance initialized`);
@@ -110,7 +110,7 @@ class Bots {
 
   async loadBotPresets() {
     const botPresets = await fs.readdir(path.join(__dirname, './hardware/bots'));
-    botPresets.forEach((botPreset) => {
+    await Promise.map(botPresets, (botPreset) => {
       // Scan through all of the bot presets.
       // Make sure to ignore the source map files
       // TODO refactor in case helper files are necessary in the 'hardware' folder

@@ -160,7 +160,7 @@ class Conductor {
         try {
           const subscribeReply = await request(addSubscriberParams);
         } catch (ex) {
-          this.logger.error(`Add subscriber failed`);
+          this.logger.error(`Add subscriber failed`, ex);
         }
         // Add a metajobQueue array
         this.players[playerKey].metajobQueue = [];
