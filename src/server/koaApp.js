@@ -77,7 +77,7 @@ class KoaApp {
       const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
       await bots.initialize();
 
-      if (this.app.context.config.conductor.enabled) {
+      if (process.env.CONDUCTING) {
         const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);
         await conductor.initialize();
       }
