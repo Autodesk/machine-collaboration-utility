@@ -16,7 +16,6 @@
 var SerialConnection = require('./connection');
 
 var SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr) {
-  console.log('inComName', inComName, inBaud, inOpenPrimeStr);
   this.mComName = inComName;
   this.mBaud = inBaud;
   this.mOpenPrimeStr = inOpenPrimeStr;

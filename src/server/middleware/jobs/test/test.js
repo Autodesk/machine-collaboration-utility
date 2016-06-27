@@ -20,7 +20,6 @@ module.exports = function toDoListTests() {
         json: true,
       };
       const initializeBotReply = await request(requestParams);
-      console.log('initialize bot reply', initializeBotReply.data);
       botId = Object.keys(initializeBotReply.data)[0];
       should(initializeBotReply.status).equal(201);
       should(initializeBotReply.query).equal(`Create Bot`);

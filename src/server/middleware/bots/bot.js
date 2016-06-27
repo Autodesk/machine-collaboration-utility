@@ -111,6 +111,10 @@ class Bot {
     switch (this.connectionType) {
       case `http`:
       case `telnet`:
+        const hackedPortName = `http://Escher2-${this.settings.botId.split('Escher2Conductor-')[1].split('.')[0]}.local:9000/v1/bots/solo`;
+        console.log('hacked it', hackedPortName);
+        this.setPort(hackedPortName);
+        break;
       case `virtual`:
         this.setPort(`http://localhost:9000/v1/bots/${this.app.context.bots.sanitizeStringForRouting(this.settings.botId)}`);
         break;
@@ -395,7 +399,6 @@ class Bot {
       let executor;
       let validator;
       // Set up the validator and executor
-      console.log('this', this);
       switch (this.connectionType) {
         case `serial`:
           const openPrime = 'M501';
@@ -602,7 +605,15 @@ class Bot {
   }
 
   addBotSubscriber(subscriberEndpoint) {
-    this.subscribers.push(subscriberEndpoint);
+    let unique = true;
+    for (const subscriber of this.subscribers) {
+      if (subscriber === subscriberEndpoint) {
+        unique = false;
+      }
+    }
+    if (unique) {
+      this.subscribers.push(subscriberEndpoint);
+    }
   }
 }
 
