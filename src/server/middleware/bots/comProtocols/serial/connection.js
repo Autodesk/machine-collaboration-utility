@@ -8,7 +8,6 @@
  ******************************************************************************/
 var _ = require('underscore'),
     Heartbeat = require('heartbeater');
-let logger;
 
 // loading serialport may fail, so surround it with a try
 var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
@@ -35,14 +34,16 @@ var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
  * Return: N/A
  */
 var SerialConnection = function(
+  app,
   inComName,
   inBaud,
   inOpenPrimeStr,
   inInitDataFunc,
-  inConnectedFunc,
-  io
+  inConnectedFunc
 ) {
-    this.io = io;
+    this.app = app;
+    this.io = app.io;
+    this.logger = app.context.logger;
     var that = this;
     var portParams = { baudrate : inBaud,
                        parser: SerialPort.parsers.readline('\n') };

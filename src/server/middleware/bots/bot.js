@@ -395,13 +395,14 @@ class Bot {
       let executor;
       let validator;
       // Set up the validator and executor
+      console.log('this', this);
       switch (this.connectionType) {
         case `serial`:
           const openPrime = 'M501';
           executor = new SerialCommandExecutor(
             this.app,
             this.port,
-            this.config.baudrate,
+            this.baudrate,
             openPrime
           );
           validator = this.validateSerialReply;

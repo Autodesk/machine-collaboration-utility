@@ -15,13 +15,16 @@
 
 var SerialConnection = require('./connection');
 
-var SerialCommandExecutor = function (inComName, inBaud, inOpenPrimeStr, io) {
-    this.mComName = inComName;
-    this.mBaud = inBaud;
-    this.mOpenPrimeStr = inOpenPrimeStr;
-    this.mConnection = undefined;
-    this.mCommandsProcessed = undefined;
-    this.io = io;
+var SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr) {
+  console.log('inComName', inComName, inBaud, inOpenPrimeStr);
+  this.mComName = inComName;
+  this.mBaud = inBaud;
+  this.mOpenPrimeStr = inOpenPrimeStr;
+  this.mConnection = undefined;
+  this.mCommandsProcessed = undefined;
+  this.app = app;
+  this.io = app.io;
+  this.logger = app.context.logger;
 };
 
 /**
@@ -43,19 +46,18 @@ SerialCommandExecutor.prototype.getCommandsProcessed = function () {
  * Return: N/A
  */
 SerialCommandExecutor.prototype.open = function (inDoneFunc) {
-    var that = this;
-    that.mConnection = new SerialConnection(
-        that.mComName,
-        that.mBaud,
-        that.mOpenPrimeStr,
-        function (inData) {
-          // console.log('Serial Port Initial Data', inData);
-        },
-        function () { inDoneFunc(true); },
-        this.io
-    );
-    // ****** WHAT TO DO IF OPEN FAILS???? ********//
-    that.mCommandsProcessed = 0;
+  this.mConnection = new SerialConnection(
+    this.app,
+    this.mComName,
+    this.mBaud,
+    this.mOpenPrimeStr,
+    function (inData) {
+      // console.log('Serial Port Initial Data', inData);
+    },
+    function () { inDoneFunc(true); }
+  );
+  // ****** WHAT TO DO IF OPEN FAILS???? ********//
+  this.mCommandsProcessed = 0;
 };
 
 /**
