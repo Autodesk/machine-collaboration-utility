@@ -103,8 +103,8 @@ class UsbDiscovery {
       const botPresets = this.botPresetList[botPresetKey];
       if (vid === botPresets.vid && pid === botPresets.pid) {
         // Pass the detected preset to populate new settings
-        const detectedBotSettings = await this.checkForPersistentSettings(port, botPresets);
-        const botObject = new Bot(this.app, detectedBotSettings);
+        const detectedBotPresets = await this.checkForPersistentSettings(port, botPresets);
+        const botObject = new Bot(this.app, detectedBotPresets);
         botObject.setPort(port.comName);
         let cleanUniqueIdentifier;
         if (botObject.settings.botId === `default`) {
@@ -121,7 +121,7 @@ class UsbDiscovery {
   // compare the bot's pnpId with all of the bots in our database
   // if a pnpId exists, lost the bot with those settings, otherwise pull from a generic bot
   async checkForPersistentSettings(port, botPresets) {
-    let detectedBotSettings = undefined;
+    let foundPresets = undefined;
     const availableBots = await this.app.context.bots.BotModel.findAll();
     const savedDbProfile = availableBots.find((bot) => {
       return port.pnpId && bot.dataValues.botId === port.pnpId;
@@ -129,16 +129,16 @@ class UsbDiscovery {
 
     if (savedDbProfile !== undefined) {
       const savedProfile = this.app.context.bots.parseDbBotSettings(savedDbProfile);
-      detectedBotSettings = await this.app.context.bots.createBot(savedProfile);
+      foundPresets = await this.app.context.bots.createBot(savedProfile);
     } else {
       // If pnpid or serial number, need to add it to the database
       // else set port to port
       if (port.pnpId !== undefined) {
         botPresets.settings.botId = port.pnpId;
       }
-      detectedBotSettings = botPresets.settings;
+      foundPresets = botPresets;
     }
-    return detectedBotSettings;
+    return foundPresets;
   }
 }
 
