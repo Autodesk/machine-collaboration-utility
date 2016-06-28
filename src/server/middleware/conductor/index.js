@@ -6,10 +6,10 @@ const request = require(`request-promise`);
 const unzip = require(`unzip2`);
 const fs = require(`fs`);
 const _ = require(`underscore`);
-const ip = require(`ip`);
+const winston = require(`winston`);
+const path = require(`path`);
 
 const conductorRoutes = require(`./routes`);
-const Bot = require(`../bots/bot`);
 
 /**
  * This is a Conductor class representing a system for managing multiple pieces of hardware
@@ -34,6 +34,15 @@ class Conductor {
     this.router = router;
 
     this.players = {};
+
+    const filename = path.join(__dirname, `../../../../conductor-${this.app.context.config.logFileName}`);
+    this.conductorLogger = new (winston.Logger)({
+      level: `debug`,
+      transports: [
+        new (winston.transports.Console)(),
+        new (winston.transports.File)({ filename }),
+      ],
+    });
 
     // File reading assets
     this.currentJob = undefined;
@@ -150,7 +159,7 @@ class Conductor {
       if (this.players.hasOwnProperty(playerKey)) {
         const addSubscriberParams = {
           method: `POST`,
-          uri: `${this.players[playerKey].port}/addSubscriber`,
+          uri: `http://localhost:${process.env.PORT}/v1/bots/${playerKey}/addSubscriber`,
           body: {
             subscriberEndpoint: `http://localhost:${process.env.PORT}/v1/conductor/update`,
             // subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/conductor/update`,
@@ -243,7 +252,8 @@ class Conductor {
   async handleBotUpdates(botId, jobUuid) {
     const player = this.players[botId];
     if (player !== undefined) {
-      await this.scanForNextJob();
+      this.conductorLogger.info(`${botId}, Compleeeeted ${jobUuid}`);
+      //await this.scanForNextJob();
     } else {
       this.logger.error(`Player ${botId} is undefined`);
     }
@@ -310,7 +320,7 @@ class Conductor {
                 uri: `http://localhost:${process.env.PORT}/v1/jobs`,
                 body: {
                   botId,
-                  uuid: playerJob.id,
+                  uuid: playerJob.uuid,
                 },
                 json: true,
               };
@@ -363,6 +373,9 @@ class Conductor {
       await this.uploadAndSetupPlayerJobs(job);
       this.logger.info('All files uploaded and set up');
       await this.scanForNextJob();
+      setInterval(() => {
+        this.scanForNextJob();
+      }, 1000);
       this.logger.info('Players have begun');
       // then grab each player's first job
     } catch (ex) {
@@ -373,23 +386,29 @@ class Conductor {
   }
 
   async scanForNextJob() {
+    debugger;
     for (const playerKey in this.players) {
       if (this.players.hasOwnProperty(playerKey)) {
-        const player = this.players[playerKey];
-        // check each player's first job. Queue it up.
-        let noPrecursors = true;
-        const currentJob = player.metajobQueue[0];
-        if (currentJob !== undefined) {
+        try {
+          const player = this.players[playerKey];
+          // check each player's first job. Queue it up.
+          let noPrecursors = true;
+          const currentJob = player.metajobQueue[0];
+          if (currentJob === undefined ) {
+            throw `First job in metajobQueue is undefined`;
+          }
           // If the current job is still processing, let it go
-          if (this.app.context.jobs.jobList[currentJob.id].fsm.current !== `ready`) {
-            break;
+          if (this.app.context.jobs.jobList[currentJob.uuid].fsm.current !== `ready`) {
+            this.logger.info(`1 Not starting a new job from state ${this.app.context.jobs.jobList[currentJob.uuid].fsm.current}`);
+            continue;
           }
 
           // If the current bot is still doing something else, let it go
           const bot = this.app.context.bots.botList[currentJob.botId];
           // go through every precursor to the current job
           if (bot.fsm.current !== `connected`) {
-            break;
+            this.logger.info(`1 Not starting a new job when bot is in state ${bot.fsm.current}`);
+            continue;
           }
           for (let i = 0; i < currentJob.precursors.length; i++) {
             const precursor = currentJob.precursors[i];
@@ -399,23 +418,27 @@ class Conductor {
             }
             // flag noPrecursors if any of the jobs aren't complete yet
             if (job.fsm.current !== `complete`) {
-              this.logger.info(`${currentJob.botId} job ${currentJob.id} won't start because job ${job.uuid} is ${job.fsm.current}`);
+              this.logger.info(`${currentJob.botId} job ${currentJob.uuid} won't start because job ${job.uuid} is ${job.fsm.current}`);
               noPrecursors = false;
             }
           }
           if (noPrecursors) {
             if (bot.fsm.current !== `connected`) {
-              break;
+              this.logger.info(`2 Not starting a new job when bot is in state ${bot.fsm.current}`);
+              continue;
             }
-            if (this.app.context.jobs.jobList[currentJob.id].fsm.current !== `ready`) {
-              break;
+            if (this.app.context.jobs.jobList[currentJob.uuid].fsm.current !== `ready`) {
+              this.logger.info(`2 Not starting a new job when the job is in state ${this.app.context.jobs.jobList[currentJob.uuid].fsm.current}`);
+              continue;
             }
             try {
-              const jobToStart = this.app.context.jobs.jobList[currentJob.id];
+              const jobToStart = this.app.context.jobs.jobList[currentJob.uuid];
               if (jobToStart === undefined) {
-                throw `job ${currentJob.id} is undefined`;
+                throw `job ${currentJob.uuid} is undefined`;
               }
+              await Promise.delay(100);
               await this.app.context.jobs.startJob(jobToStart);
+              this.conductorLogger.info(`${bot.settings.botId}, Just started ${currentJob.uuid}`);
               // If the job starts without any issues
               // remove the first job from the list
               player.metajobQueue.shift();
@@ -423,6 +446,8 @@ class Conductor {
               this.logger.error(`Job start fail`, ex);
             }
           }
+        } catch (ex) {
+          this.logger.error(`Checking player ${playerKey} error:`, ex);
         }
       }
     }
@@ -437,7 +462,7 @@ class Conductor {
       } else {
         if (job.fsm.current !== `complete`) {
           doneConducting = false;
-          break;
+          continue;
         }
       }
     }
@@ -505,7 +530,8 @@ class Conductor {
      // connect all local players
      for (const player in this.players) {
        if (this.players.hasOwnProperty(player)) {
-         const uri = this.players[player].port;
+         const uri = `http://localhost:${process.env.PORT}/v1/bots/${player}`
+         // const uri = this.players[player].port;
          const requestParams = {
            method: `GET`,
            uri,
