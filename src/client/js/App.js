@@ -35,7 +35,6 @@ export default class App extends React.Component {
       <div>
         <Dropzone
           style={dropzoneStyle}
-          disableClick={true}
           onDrop={this.onDrop}
         >
           <Header/>

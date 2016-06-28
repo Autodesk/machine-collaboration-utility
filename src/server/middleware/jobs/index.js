@@ -100,7 +100,7 @@ class Jobs {
       ],
       callbacks: {
         onenterstate: async (event, from, to) => {
-          self.logger.info(`Bot ${self.botId} Job ${uuid} event ${event}: Transitioning from ${from} to ${to}.`);
+          self.logger.info(`Bot ${botId} Job ${uuid} event ${event}: Transitioning from ${from} to ${to}.`);
           if (from !== `none`) {
             const theJob = self.jobList[uuid];
             if (event.indexOf('Done') !== -1) {
@@ -237,7 +237,13 @@ class Jobs {
       if (Number(job.botId) === -1) {
         await this.app.context.conductor.startJob(job);
       } else {
-        await this.app.context.bots.botList[job.botId].startJob(job);
+        let botId;
+        if (job.botId === 'solo') {
+          botId = this.app.context.bots.soloBot();
+        } else {
+          botId = job.botId;
+        }
+        await this.app.context.bots.botList[botId].startJob(job);
       }
       job.started = new Date().getTime();
       await job.stopwatch.start();
