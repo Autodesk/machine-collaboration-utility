@@ -8,6 +8,7 @@ var _ = require('underscore'),
 let logger;
 
 var request = require(`request-promise`);
+var request2 = require(`request`);
 /**
  * HttpConnection()
  *
@@ -23,7 +24,10 @@ var request = require(`request-promise`);
  * Return: N/A
  */
 class HttpConnection {
-  constructor(externalEndpoint, doneFunction) {
+  constructor(app, externalEndpoint, doneFunction) {
+    this.app = app;
+    this.logger = app.context.logger;
+    this.io = app.io;
     this.externalEndpoint = externalEndpoint;
     this.doneFunction = doneFunction;
 
@@ -49,7 +53,7 @@ class HttpConnection {
         doneFunction(this);
       });
     } catch (ex) {
-      this.logger.error('Http connection error');
+      this.logger.error('Http connection error', ex);
     }
   }
 
@@ -82,7 +86,7 @@ class HttpConnection {
    * Args:   inCommandStr - string to send
    * Return: N/A
    */
-  async send(inCommandStr) {
+  send(inCommandStr) {
     var error = undefined;
     var commandSent = false;
 
@@ -93,16 +97,22 @@ class HttpConnection {
         body: { gcode: inCommandStr },
         json: true,
       };
-      const reply = await request(requestParams);
-      if (_.isFunction(this.mDataFunc)) {
-        this.mDataFunc(reply);
-      }
-      commandSent = true;
+
+      request(requestParams)
+      .then((reply) => {
+        if (_.isFunction(this.mDataFunc)) {
+          this.mDataFunc(reply);
+        }
+        commandSent = true;
+      })
+      .catch((err) => {
+        this.logger.info(err.error);
+        setTimeout(() => {
+          this.send(inCommandStr);
+        }, 1000);
+      });
     } catch (ex) {
       this.logger.error('Send command fail', ex);
-      setTimeout(() => {
-        this.send(inCommandStr);
-      }, 1000);
     }
   }
 
