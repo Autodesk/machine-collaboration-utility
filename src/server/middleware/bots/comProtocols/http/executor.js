@@ -13,7 +13,9 @@
 
 var HttpConnection = require('./connection');
 
-var HttpCommandExecutor = function (externalEndpoint) {
+var HttpCommandExecutor = function (app, externalEndpoint) {
+  this.app = app;
+  this.logger = app.context.logger;
   this.externalEndpoint = externalEndpoint;
   this.mConnection = undefined;
   this.mCommandsProcessed = undefined;
@@ -39,6 +41,7 @@ HttpCommandExecutor.prototype.getCommandsProcessed = function () {
  */
 HttpCommandExecutor.prototype.open = function (inDoneFunc) {
   this.mConnection = new HttpConnection(
+    this.app,
     this.externalEndpoint,
     () => { inDoneFunc(true); }
   );
