@@ -265,7 +265,13 @@ class Jobs {
       if (Number(job.botId) === -1) {
         await this.app.context.conductor.pauseJob();
       } else {
-        await this.app.context.bots.botList[job.botId].pauseJob();
+        let botId;
+        if (job.botId === 'solo') {
+          botId = this.app.context.bots.soloBot();
+        } else {
+          botId = job.botId;
+        }
+        await this.app.context.bots.botList[botId].pauseJob();
       }
       await job.stopwatch.stop();
       await job.fsm.pauseDone();
@@ -286,7 +292,13 @@ class Jobs {
       if (Number(job.botId) === -1) {
         await this.app.context.conductor.resumeJob();
       } else {
-        await this.app.context.bots.botList[job.botId].resumeJob();
+        let botId;
+        if (job.botId === 'solo') {
+          botId = this.app.context.bots.soloBot();
+        } else {
+          botId = job.botId;
+        }
+        await this.app.context.bots.botList[botId].resumeJob();
       }
       await job.stopwatch.start();
       job.fsm.resumeDone();
@@ -307,7 +319,13 @@ class Jobs {
       if (Number(job.botId) === -1) {
         await this.app.context.conductor.stopJob(job);
       } else {
-        await this.app.context.bots.botList[job.botId].stopJob(job);
+        let botId;
+        if (job.botId === 'solo') {
+          botId = this.app.context.bots.soloBot();
+        } else {
+          botId = job.botId;
+        }
+        await this.app.context.bots.botList[botId].stopJob(job);
       }
       await job.stopwatch.stop();
       await job.fsm.cancelDone();
