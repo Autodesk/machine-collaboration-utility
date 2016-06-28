@@ -111,8 +111,8 @@ class Bot {
     switch (this.connectionType) {
       case `http`:
       case `telnet`:
+        // TODO FIX THIS
         const hackedPortName = `http://Escher2-${this.settings.botId.split('Escher2Conductor-')[1].split('.')[0]}.local:9000/v1/bots/solo`;
-        console.log('hacked it', hackedPortName);
         this.setPort(hackedPortName);
         break;
       case `virtual`:
@@ -279,7 +279,6 @@ class Bot {
       // pause the line reader immediately
       // we will resume it as soon as the line is done processing
       await self.lr.pause();
-
       // We only care about the info prior to the first semicolon
       // NOTE This code is assuming we are processing GCODE
       // In case of adding support for multiple contrl formats, this is a good place to start
@@ -299,7 +298,6 @@ class Bot {
             self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
           },
         });
-        // await self.fakePort.write(strippedLine);
         if (self.currentJob.fsm.current === `running`) {
           await self.lr.resume();
         }
@@ -327,6 +325,7 @@ class Bot {
               json: true,
             };
             try {
+              console.log('notifying subscribers', requestParams);
               await request(requestParams);
             } catch (ex) {
               self.logger.error('Bot subscriber error', ex);
@@ -482,18 +481,28 @@ class Bot {
 
   async park() {
     try {
+      if (this.parkCommands === undefined) {
+        const errorMessage = `Park Commands are not defined`;
+        throw errorMessage;
+      }
       this.fsm.park();
-      this.queue.queueCommands(parkCommands(this));
+      this.queue.queueCommands(this.parkCommands(this));
     } catch (ex) {
+      this.logger.error(ex);
       this.fsm.parkFail();
     }
   }
 
   async unpark() {
     try {
+      if (this.unparkCommands === undefined) {
+        const errorMessage = `Unpark Commands are not defined`;
+        throw errorMessage;
+      }
       this.fsm.unpark();
-      this.queue.queueCommands(unparkCommands(this));
+      this.queue.queueCommands(this.unparkCommands(this));
     } catch (ex) {
+      this.logger.error(ex);
       this.fsm.unparkFail();
     }
   }
