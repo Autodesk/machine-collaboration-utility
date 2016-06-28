@@ -275,9 +275,7 @@ const streamGcode = (self) => {
               ctx.status = 200;
               ctx.body = new Response(ctx, requestDescription, reply);
             } else {
-              const reply = `Command Queue error`;
-              ctx.status = 500;
-              ctx.body = new Response(ctx, requestDescription, reply);
+              throw `Command Queue is full`;
             }
           } else {
             throw `Gcode is undefined.`;
