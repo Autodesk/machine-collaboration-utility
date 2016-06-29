@@ -7,6 +7,7 @@ const path = require(`path`);
 module.exports = function toDoListTests() {
   let job;
   let nJobs;
+  let botId;
 
   describe('Jobs unit test', function () {
     it('should create a virtual printer to execute jobs on', async function (done) {
@@ -14,13 +15,13 @@ module.exports = function toDoListTests() {
         method: `POST`,
         uri: `http://localhost:9000/v1/bots/`,
         body: {
-          connectionType: `virtual`,
+          model: `Virtual`,
           botId: `virtual-test-bot`,
         },
         json: true,
       };
       const initializeBotReply = await request(requestParams);
-      botId = Object.keys(initializeBotReply.data)[0];
+      botId = initializeBotReply.data.settings.botId;
       should(initializeBotReply.status).equal(201);
       should(initializeBotReply.query).equal(`Create Bot`);
       done();
@@ -28,7 +29,7 @@ module.exports = function toDoListTests() {
 
     it('should create a job', async function (done) {
       const requestParams = {
-        body: { botId: 1 },
+        body: { botId },
         method: `POST`,
         uri: `http://localhost:9000/v1/jobs/`,
         json: true,
