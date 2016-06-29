@@ -291,6 +291,12 @@ class Bot {
         command = self.addSpeedMultiplier(command);
         command = self.addFeedMultiplier(command);
 
+        if (command.indexOf('G4 P0') !== -1) {
+          console.log('bonus G4!!!');
+          self.queue.queueCommands({
+            code: command,
+          });
+        }
         self.queue.queueCommands({
           code: command,
           postCallback: () => {
@@ -325,7 +331,6 @@ class Bot {
               json: true,
             };
             try {
-              console.log('notifying subscribers', requestParams);
               await request(requestParams);
             } catch (ex) {
               self.logger.error('Bot subscriber error', ex);
@@ -493,14 +498,14 @@ class Bot {
     }
   }
 
-  async unpark() {
+  async unpark(xEntry, dry) {
     try {
       if (this.unparkCommands === undefined) {
         const errorMessage = `Unpark Commands are not defined`;
         throw errorMessage;
       }
       this.fsm.unpark();
-      this.queue.queueCommands(this.unparkCommands(this));
+      this.queue.queueCommands(this.unparkCommands(this, xEntry, String(dry)));
     } catch (ex) {
       this.logger.error(ex);
       this.fsm.unparkFail();
