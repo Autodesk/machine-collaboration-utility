@@ -83,7 +83,6 @@ class Bots {
       // Populate this.router with all routes
       // Then register all routes with the app
       await botsRoutes(this);
-
       // Register all router routes with the app
       this.app.use(this.router.routes()).use(this.router.allowedMethods());
       this.logger.info(`Bots router setup complete`);
@@ -136,9 +135,16 @@ class Bots {
     const newBot = await this.createBot(inputSettings);
     // Need to work out caveat for USB printers that don't have a pnpid
     await this.BotModel.create(newBot.settings);
+    return newBot;
   }
 
   async createBot(inputSettings = {}) {
+    // If the only bot object is a "Default Bot", remove it once the other bot is successfully added
+    let defaultBot = undefined;
+    if (Object.entries(this.botList).length === 1) {
+      defaultBot = Object.entries(this.botList)[0][0];
+    }
+
     // Load presets based on the model
     // If no model is passed, or if the model does not exist use the default presets
     const botPresets = (
@@ -161,6 +167,11 @@ class Bots {
 
     const newBot = new Bot(this.app, botPresets);
     this.botList[this.sanitizeStringForRouting(botPresets.settings.botId)] = newBot;
+
+    // Delete the default bot, if you successfully add the first "non default" bot
+    if (defaultBot !== undefined) {
+      delete this.botList[defaultBot];
+    }
     return newBot;
   }
 
@@ -171,14 +182,14 @@ class Bots {
     }
 
     switch (bot.connectionType) {
-      case `http`:
-      case `telnet`:
-      case `virtual`:
-        // do nothing
+      case `usb`:
+        const errorMessage = `Cannot delete bot of type ${bot.connectionType}`;
+        this.logger.error(errorMessage);
+        throw errorMessage;
         break;
       default:
-        const errorMessage = `Cannot delete bot of type ${bot.connectionType}`;
-        throw errorMessage;
+        // do nothing
+        break;
     }
 
     // Sweep through all of the bots in the database
@@ -196,6 +207,9 @@ class Bots {
     if (!deleted) {
       throw `Bot "${botId}" was not deleted from the database because it cound not be found in the database.`;
     }
+    if (Object.entries(this.botList).length === 0) {
+      this.createBot();
+    }
     return `Bot "${botId}" successfully deleted`;
   }
 
@@ -205,17 +219,11 @@ class Bots {
   /*
    * get a json friendly description of the Bots
    */
-  getBots(filter) {
+  getBots() {
     const filteredBots = {};
     for (const bot in this.botList) {
       if (this.botList.hasOwnProperty(bot)) {
-        if (typeof filter === `function`) {
-          if (filter(this.botList[bot])) {
-            filteredBots[bot] = this.botList[bot].getBot();
-          }
-        } else {
-          filteredBots[bot] = this.botList[bot].getBot();
-        }
+        filteredBots[bot] = this.botList[bot].getBot();
       }
     }
     return filteredBots;

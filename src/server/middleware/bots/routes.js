@@ -26,7 +26,7 @@ const createBot = (self) => {
   const requestDescription = 'Create Bot';
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const newBot = await self.createBot(ctx.request.body);
+      const newBot = await self.createPersistentBot(ctx.request.body);
       const reply = newBot.getBot();
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, reply);

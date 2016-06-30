@@ -112,7 +112,8 @@ class Bot {
       case `http`:
       case `telnet`:
         // TODO FIX THIS
-        const hackedPortName = `http://Escher2-${this.settings.botId.split('Escher2Conductor-')[1].split('.')[0]}.local:9000/v1/bots/solo`;
+        const hackedPortName = this.settings.botId;
+        // const hackedPortName = `http://Escher2-${this.settings.botId.split('Escher2Conductor-')[1].split('.')[0]}.local:9000/v1/bots/solo`;
         this.setPort(hackedPortName);
         break;
       case `virtual`:

@@ -113,6 +113,10 @@ class Files {
     return this.uploadDir + `/` + fileObject.name.split(`.`)[0] + `_` + fileObject.uuid + `.` + fileObject.name.split(`.`)[1];
   }
 
+  getFiles() {
+    return this.fileList;
+  }
+
   getFile(fileUuid) {
     return this.fileList[fileUuid];
   }
