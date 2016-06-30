@@ -386,7 +386,6 @@ class Conductor {
   }
 
   async scanForNextJob() {
-    debugger;
     for (const playerKey in this.players) {
       if (this.players.hasOwnProperty(playerKey)) {
         try {
@@ -406,10 +405,15 @@ class Conductor {
           // If the current bot is still doing something else, let it go
           const bot = this.app.context.bots.botList[currentJob.botId];
           // go through every precursor to the current job
+          if (bot.fsm.current === `parked`) {
+            bot.unpark(currentJob.x_entry, currentJob.dry);
+            continue;
+          }
           if (bot.fsm.current !== `connected`) {
             this.logger.info(`1 Not starting a new job when bot is in state ${bot.fsm.current}`);
             continue;
           }
+
           for (let i = 0; i < currentJob.precursors.length; i++) {
             const precursor = currentJob.precursors[i];
             const job = this.app.context.jobs.jobList[precursor];
@@ -423,14 +427,6 @@ class Conductor {
             }
           }
           if (noPrecursors) {
-            if (bot.fsm.current !== `connected`) {
-              this.logger.info(`2 Not starting a new job when bot is in state ${bot.fsm.current}`);
-              continue;
-            }
-            if (this.app.context.jobs.jobList[currentJob.uuid].fsm.current !== `ready`) {
-              this.logger.info(`2 Not starting a new job when the job is in state ${this.app.context.jobs.jobList[currentJob.uuid].fsm.current}`);
-              continue;
-            }
             try {
               const jobToStart = this.app.context.jobs.jobList[currentJob.uuid];
               if (jobToStart === undefined) {
@@ -445,6 +441,9 @@ class Conductor {
             } catch (ex) {
               this.logger.error(`Job start fail`, ex);
             }
+          } else {
+            // Just sitting there in the ready position. park instead
+            bot.park();
           }
         } catch (ex) {
           this.logger.error(`Checking player ${playerKey} error:`, ex);
