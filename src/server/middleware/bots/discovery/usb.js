@@ -100,10 +100,10 @@ class UsbDiscovery {
     const pid = parseInt(port.productId, 16);
 
     for (const botPresetKey in this.botPresetList) {
-      const botPresets = this.botPresetList[botPresetKey];
+      const BotPresetsClass = this.botPresetList[botPresetKey];
       if (vid === botPresets.vid && pid === botPresets.pid) {
         // Pass the detected preset to populate new settings
-        const detectedBotPresets = await this.checkForPersistentSettings(port, botPresets);
+        const detectedBotPresets = await this.checkForPersistentSettings(port, BotPresetsClass);
         const botObject = new Bot(this.app, detectedBotPresets);
         botObject.setPort(port.comName);
         let cleanUniqueIdentifier;
@@ -120,7 +120,7 @@ class UsbDiscovery {
 
   // compare the bot's pnpId with all of the bots in our database
   // if a pnpId exists, lost the bot with those settings, otherwise pull from a generic bot
-  async checkForPersistentSettings(port, botPresets) {
+  async checkForPersistentSettings(port, BotPresetsClass) {
     let foundPresets = undefined;
     const availableBots = await this.app.context.bots.BotModel.findAll();
     const savedDbProfile = availableBots.find((bot) => {
@@ -133,10 +133,10 @@ class UsbDiscovery {
     } else {
       // If pnpid or serial number, need to add it to the database
       // else set port to port
+      foundPresets = new BotPresetsClass(this.app);
       if (port.pnpId !== undefined) {
-        botPresets.settings.botId = port.pnpId;
+        foundPresets.settings.botId = port.pnpId;
       }
-      foundPresets = botPresets;
     }
     return foundPresets;
   }

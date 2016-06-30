@@ -50,10 +50,15 @@ class Bots {
 
       // Set up the bot database model
       this.BotModel = await botModel(this.app);
-      let botsDbArray = await this.BotModel.findAll();
+      const botsDbArray = await this.BotModel.findAll();
       // Load all bots from the database and add them to the 'bots' object
       for (const dbBot of botsDbArray) {
-        this.createBot(dbBot.dataValues);
+        try {
+          await this.createBot(dbBot.dataValues);
+          this.logger.info(`success`);
+        } catch (ex) {
+          this.logger.error(`Failed to create bot. ${ex}`);
+        }
       }
 
       // If there are not bots saved yet, create one
@@ -118,8 +123,7 @@ class Bots {
         const presetType = botPreset.split(`.`)[0];
         const presetPath = path.join(__dirname, `./hardware/bots/${botPreset}`);
         const BotPresetClass = require(presetPath);
-        const botPresetObject = new BotPresetClass(this.app);
-        this.botPresetList[presetType] = botPresetObject;
+        this.botPresetList[presetType] = BotPresetClass;
       }
     });
   }
@@ -128,27 +132,33 @@ class Bots {
 /*******************************************************************************
  * Core functions
  ******************************************************************************/
+  async createPersistentBot(inputSettings = {}) {
+    const newBot = await this.createBot(inputSettings);
+    // Need to work out caveat for USB printers that don't have a pnpid
+    await this.BotModel.create(newBot.settings);
+  }
+
   async createBot(inputSettings = {}) {
     // Load presets based on the model
     // If no model is passed, or if the model does not exist use the default presets
-    const officialBotPresets = (
+    const botPresets = (
       inputSettings.model === undefined ||
       this.botPresetList[inputSettings.model] === undefined
-    ) ? this.botPresetList[`DefaultBot`] : this.botPresetList[inputSettings.model];
+    ) ?
+    new this.botPresetList[`DefaultBot`](this.app) :
+    new this.botPresetList[inputSettings.model](this.app);
 
     // This should copy the object, but it doesn't work. Using a json hack instead
     //const botPresets = Object.assign({}, officialBotPresets);
-    const botPresets = JSON.parse(JSON.stringify(officialBotPresets));
-    _.extend(botPresets.settings, inputSettings);
+    //const botPresets = JSON.parse(JSON.stringify(officialBotPresets));
 
+    _.extend(botPresets.settings, inputSettings);
     // Don't add the bot if it has a duplicate botId in the database
     if (this.botList[botPresets.settings.botId] !== undefined) {
       const errorMessage = `Cannot create bot with unique identifier "${botPresets.settings.botId}". Bot already exists`;
       throw errorMessage;
     }
 
-    // Need to work out caveat for USB printers that don't have a pnpid
-    await this.BotModel.create(botPresets.settings);
     const newBot = new Bot(this.app, botPresets);
     this.botList[this.sanitizeStringForRouting(botPresets.settings.botId)] = newBot;
     return newBot;
@@ -240,15 +250,6 @@ class Bots {
   sanitizeStringForRouting(portName) {
     // This replaces the "/" character with "_s_" and the ":" character with "_c_"
     return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
-  }
-
-  cloneObject(obj) {
-    if (null == obj || "object" != typeof obj) return obj;
-    const copy = obj.constructor();
-    for (const attr in obj) {
-      if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
-    }
-    return copy;
   }
 }
 
