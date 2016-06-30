@@ -294,8 +294,36 @@ const streamGcode = (self) => {
   });
 };
 
+/**
+ * Handle all logic at this endpoint for deleting all bots
+ */
+const deleteAllBots = (self) => {
+  const requestDescription = `Delete All Bots`;
+  self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
+    try {
+      for (const botId in self.botList) {
+        if (self.botList.hasOwnProperty(botId)) {
+          try {
+            await self.deleteBot(botId);
+          } catch (ex) {
+            self.logger.error(`Delete bot ${botId} error: ${ex}`);
+          }
+        }
+      }
+      const status = `All bots deleted`;
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, status);
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
 const botRoutes = (self) => {
   getBots(self);
+  deleteAllBots(self);
 
   getBot(self);
   createBot(self);
