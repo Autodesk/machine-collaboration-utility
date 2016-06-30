@@ -1,3 +1,5 @@
+/* global APP_VAR, io */
+
 import React from 'react';
 import Header from './modules/Header';
 import Dropzone from 'react-dropzone';
@@ -6,8 +8,10 @@ import request from 'superagent';
 export default class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      hydraPrint: props.hydraPrint
+    try {
+      this.state = APP_VAR;
+    } catch (ex) {
+      this.state = props.params;
     }
   }
 
@@ -29,13 +33,14 @@ export default class App extends React.Component {
     };
     const childrenComponents = React.Children.map(this.props.children, child => {
       // mapping through all of the children components in order to inject hydraPrint app objects
-      return React.cloneElement(child, this.state.hydraPrint);
+      return React.cloneElement(child, this.state);
     });
     return (
       <div>
         <Dropzone
           style={dropzoneStyle}
           onDrop={this.onDrop}
+          disableClick
         >
           <Header/>
           {childrenComponents}

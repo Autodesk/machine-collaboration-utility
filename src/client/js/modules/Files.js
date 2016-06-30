@@ -3,15 +3,16 @@ import React from 'react';
 export default class Files extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      hydraPrint: props.params.hydraPrint
-    }
   }
   createFile(file) {
-    return <div>{file.uuid}</div>
+    return (<div>
+      <div>File UUID: {file.uuid}</div>
+      <div>File name: {file.name}</div>
+      <br></br>
+    </div>);
   }
   render() {
-    const files = Object.entries(this.state.hydraPrint.files).map(([fileKey, file]) => {
+    const files = Object.entries(this.props.files).map(([fileKey, file]) => {
       return this.createFile(file);
     });
     return <div>{files}</div>;

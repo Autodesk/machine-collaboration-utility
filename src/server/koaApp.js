@@ -1,16 +1,15 @@
-const co = require(`co`);
 const Koa = require(`koa`);
 const cors = require(`koa-cors`);
 const convert = require(`koa-convert`);
 const bodyparser = require(`koa-bodyparser`);
 const json = require(`koa-json`);
 const serve = require('koa-static');
-const views = require('koa-views');
 const winston = require(`winston`);
 const IO = require(`koa-socket`);
 const path = require(`path`);
 const Sequelize = require(`sequelize`);
 const router = require(`koa-router`)();
+const _ = require(`underscore`);
 
 const React = require(`react`);
 const renderToString = require(`react-dom/server`).renderToString;
@@ -86,17 +85,20 @@ class KoaApp {
       router.get('*', (ctx) => {
         match({ routes, location: ctx.req.url }, (err, redirect, props) => {
           if (err) {
+            this.logger.error(`Server routing error: ${err}`);
             ctx.status = 500;
             ctx.body = err.message;
           } else if (redirect) {
             ctx.redirect(redirect.pathname + redirect.search);
           } else if (props) {
-            props.params.hydraPrint = {};
-            props.params.hydraPrint.files = this.app.context.files.fileList;
-            props.params.hydraPrint.jobs = this.app.context.jobs.jobList;
-            props.params.hydraPrint.bots = this.app.context.bots.botList;
+            const serverProps = {
+              files: files.getFiles(),
+              jobs: jobs.getJobs(),
+              bots: bots.getBots(),
+            };
+            _.extend(props.params, serverProps);
             const appHtml = renderToString(<RouterContext {...props}/>);
-            ctx.body = this.renderPage(appHtml);
+            ctx.body = this.renderPage(appHtml, serverProps);
           } else {
             // Redirect to an error page if making a bad api query
             if (ctx.req.url.indexOf(`/v1`) !== -1) {
@@ -119,7 +121,7 @@ class KoaApp {
     });
   }
 
-  renderPage(appHtml) {
+  renderPage(appHtml, jsVariables = {}) {
     return `
       <!doctype html public="storage">
       <html>
@@ -127,10 +129,16 @@ class KoaApp {
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>Hydra-Print</title>
       <link rel=stylesheet href=/styles.css>
-      <div id=app>${appHtml}</div>
+      <div id=app><div>${appHtml}</div></div>
+      <script>var APP_VAR=${this.safeStringify(jsVariables)}</script>
       <script src="/vendorJs/socket.io.js"></script>
       <script src="/bundle.js"></script>
      `;
+  }
+
+  // A utility function to safely escape JSON for embedding in a <script> tag
+  safeStringify(obj) {
+    return JSON.stringify(obj).replace(/<\/script/g, '<\\/script').replace(/<!--/g, '<\\!--')
   }
 }
 
