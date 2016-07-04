@@ -344,6 +344,7 @@ class Jobs {
     // this.app.io.emit('deleteJob', theJobJson);
     await dbJob.destroy();
     delete this.jobList[jobUuid];
+    this.app.io.emit('updateJobs', this.jobList);
     return `Job ${jobUuid} deleted`;
   }
 
