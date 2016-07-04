@@ -3,6 +3,9 @@
 @import "font-awesome/font-awesome.scss";
 
 /* GENERAL */
+.modal.fade.in{
+  display: block;
+}
 body {
   font-family:  "turkey-regular";
   background-color: #d1d2d4;

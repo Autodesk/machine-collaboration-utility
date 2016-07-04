@@ -105,7 +105,7 @@ class Files {
     await fs.rename(file.path, filenameWithUuid);
     this.fileList[uuid] = fileObject;
     // this.logger.info(`filesUpdated`, this.fileList);
-    // this.app.io.emit(`filesUpdated`, this.fileList);
+    this.app.io.emit(`updateFiles`, this.fileList);
     return fileObject;
   }
 
@@ -132,6 +132,7 @@ class Files {
       // this.app.io.emit('deleteFile', file);
       // Remove the file object from the 'files' array
       delete this.fileList[fileUuid];
+      this.app.io.emit(`updateFiles`, this.fileList);
       return `File ${fileUuid} deleted`;
     }
     return false;
