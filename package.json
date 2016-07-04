@@ -34,6 +34,7 @@
     "node-uuid": "^1.4.7",
     "path": "^0.12.7",
     "pg": "^4.4.3",
+    "react-bootstrap-modal": "^2.1.0",
     "react-dropzone": "^3.5.1",
     "request": "^2.72.0",
     "request-promise": "^3.0.0",
