@@ -13,6 +13,24 @@ export default class App extends React.Component {
     } catch (ex) {
       this.state = props.params;
     }
+    this.openDropzone = this.openDropzone.bind(this);
+  }
+
+  componentDidMount() {
+    try {
+      this.socket = io();
+      this.socket.on('updateBots', (data) => {
+        console.log('updating Bots', data);
+      });
+      this.socket.on('updateFiles', (files) => {
+        this.setState({ files });
+      });
+      this.socket.on('updateJobs', (jobs) => {
+        this.setState({ jobs });
+      });
+    } catch (ex) {
+      // Not possible on server side
+    }
   }
 
   onDrop(files) {
@@ -26,6 +44,10 @@ export default class App extends React.Component {
     });
   }
 
+  openDropzone() {
+    this.refs.dropzone.open();
+  }
+
   render() {
     const dropzoneStyle = {
       width: "100%",
@@ -33,19 +55,18 @@ export default class App extends React.Component {
     };
     const childrenComponents = React.Children.map(this.props.children, child => {
       // mapping through all of the children components in order to inject hydraPrint app objects
-      return React.cloneElement(child, this.state);
+      return React.cloneElement(child, Object.assign({}, this.state, {dropzoneOpener: this.openDropzone}));
     });
     return (
-      <div>
-        <Dropzone
-          style={dropzoneStyle}
-          onDrop={this.onDrop}
-          disableClick
-        >
-          <Header/>
-          {childrenComponents}
-        </Dropzone>
-      </div>
+      <Dropzone
+        ref="dropzone"
+        style={dropzoneStyle}
+        onDrop={this.onDrop}
+        disableClick
+      >
+        <Header/>
+        {childrenComponents}
+      </Dropzone>
     );
   }
 }
