@@ -95,6 +95,7 @@ class KoaApp {
               files: files.getFiles(),
               jobs: jobs.getJobs(),
               bots: bots.getBots(),
+              botPresets: bots.botPresetList,
             };
             _.extend(props.params, serverProps);
             const appHtml = renderToString(<RouterContext {...props}/>);
@@ -122,18 +123,20 @@ class KoaApp {
   }
 
   renderPage(appHtml, jsVariables = {}) {
-    return `
-      <!doctype html public="storage">
-      <html>
-      <meta charset=utf-8/>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Hydra-Print</title>
-      <link rel=stylesheet href=/styles.css>
-      <div id=app><div>${appHtml}</div></div>
-      <script>var APP_VAR=${this.safeStringify(jsVariables)}</script>
-      <script src="/vendorJs/socket.io.js"></script>
-      <script src="/bundle.js"></script>
-     `;
+    return `<!doctype html public="storage">
+<html>
+<meta charset=utf-8/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hydra-Print</title>
+<link rel=stylesheet href=/styles.css>
+<div id=app><div>${appHtml}</div></div>
+<script src="/vendorJs/jquery.min.js"></script>
+<script>var APP_VAR=${this.safeStringify(jsVariables)}</script>
+<script src="/vendorJs/bootstrap.min.js"></script>
+<script src="/vendorJs/socket.io.js"></script>
+<script src="/bundle.js"></script>
+</html>
+`;
   }
 
   // A utility function to safely escape JSON for embedding in a <script> tag
