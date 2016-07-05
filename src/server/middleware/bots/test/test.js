@@ -4,27 +4,42 @@ const request = require(`request-promise`);
 const fs = require(`fs-promise`);
 const path = require(`path`);
 const Promise = require(`bluebird`);
+const winston = require('winston');
 const config = require(`../../../config`);
+
+// Setup logger
+const filename = path.join(__dirname, `./${config.testLogFileName}`);
+const logger = new (winston.Logger)({
+  level: 'debug',
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename }),
+  ],
+});
 
 module.exports = function botTests() {
   describe('Bot unit test', function() {
     let job, botId;
 
     it('should create a virtual bot', async function (done) {
-      const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/bots/`,
-        body: {
-          model: `Virtual`,
-          botId: `virtual-test-bot`,
-        },
-        json: true,
-      };
-      const initializeBotReply = await request(requestParams);
-      botId = initializeBotReply.data.settings.botId;
-      should(initializeBotReply.status).equal(201);
-      should(initializeBotReply.query).equal(`Create Bot`);
-      done();
+      try {
+        const requestParams = {
+          method: `POST`,
+          uri: `http://localhost:9000/v1/bots/`,
+          body: {
+            model: `Virtual`,
+            botId: `virtual-test-bot-${new Date().getTime()}`,
+          },
+          json: true,
+        };
+        const initializeBotReply = await request(requestParams);
+        botId = initializeBotReply.data.settings.botId;
+        should(initializeBotReply.status).equal(201);
+        should(initializeBotReply.query).equal(`Create Bot`);
+        done();
+      } catch (ex) {
+        logger.error(ex);
+      }
     });
 
     it('the bot should have an initial state to ready', async function (done) {
@@ -170,8 +185,8 @@ module.exports = function botTests() {
 
       // Assign a file to a job
       const setFileToJobParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}/setFile`,
+        method: `PUT`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { fileUuid: file.uuid },
         json: true,
       };

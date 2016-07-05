@@ -3,6 +3,18 @@ const should = require(`should`);
 const request = require(`request-promise`);
 const fs = require(`fs-promise`);
 const path = require(`path`);
+const winston = require('winston');
+const config = require(`../../../config`);
+
+// Setup logger
+const filename = path.join(__dirname, `./${config.testLogFileName}`);
+const logger = new (winston.Logger)({
+  level: 'debug',
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename }),
+  ],
+});
 
 module.exports = function toDoListTests() {
   let job;
@@ -89,8 +101,8 @@ module.exports = function toDoListTests() {
 
       // Set the file to the job
       const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}/setFile`,
+        method: `PUT`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { fileUuid: file.uuid },
         json: true,
       };
@@ -119,8 +131,8 @@ module.exports = function toDoListTests() {
       const file = setFileToJobReply.data[0];
 
       const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}/setFile`,
+        method: `PUT`,
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         body: { fileUuid: file.uuid },
         json: true,
       };

@@ -4,6 +4,18 @@ const request = require(`request-promise`);
 const fs = require(`fs-promise`);
 const path = require(`path`);
 const Promise = require(`bluebird`);
+const winston = require('winston');
+const config = require(`../../../config`);
+
+// Setup logger
+const filename = path.join(__dirname, `./${config.testLogFileName}`);
+const logger = new (winston.Logger)({
+  level: 'debug',
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename }),
+  ],
+});
 
 module.exports = function toDoListTests() {
   let jobUuid;
@@ -52,8 +64,8 @@ module.exports = function toDoListTests() {
     it('should link the file to the conductor job', async function (done) {
       try {
         const setFileToJobParams = {
-          method: `POST`,
-          uri: `http://localhost:9000/v1/jobs/${jobUuid}/setFile`,
+          method: `PUT`,
+          uri: `http://localhost:9000/v1/jobs/${jobUuid}`,
           body: { fileUuid },
           json: true,
         };
