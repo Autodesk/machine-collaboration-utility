@@ -3,7 +3,7 @@ const DefaultBot = require(`./DefaultBot`);
 module.exports = class Escher2Conductor extends DefaultBot {
   constructor(app) {
     super(app);
-    this.settings.name = `Escher 2.0`;
+    this.settings.name = `Escher 2 Conductor`;
     this.settings.model = `Escher2Conductor`;
     this.connectionType = `http`;
   }

@@ -25,6 +25,17 @@ export default class Files extends React.Component {
     this.setState({ showModal: false });
   }
 
+  createBotList() {
+    const options = Object.entries(this.props.botPresets).map(([presetKey, preset]) => {
+      return <option key={presetKey} value={presetKey}>{preset.settings.name}</option>;
+    });
+    return (
+      <select name="carlist" form="carform">
+        {options}
+      </select>
+    );
+  }
+
   renderModal() {
     return (
     <Modal show={this.state.showModal} onHide={this.close}>
@@ -34,10 +45,7 @@ export default class Files extends React.Component {
       <Modal.Body>
         <div>{this.state.fileUuid}</div>
         <div>{this.state.fileName}</div>
-        <h4>Text in a modal</h4>
-        <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula.</p>
-
-        <h4>Popover in a modal</h4>
+        {this.createBotList()}
       </Modal.Body>
       <Modal.Footer>
         <button onClick={this.close}>Close</button>

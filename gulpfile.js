@@ -14,11 +14,11 @@ const src = {
   serverFiles: [
     `src/**/*.*`,
     `!src/server/**/*.js`,
-    `!src/client/js/**/*.*`,
+    `!src/client/react/**/*.*`,
     `!src/client/scss/**/*.*`,
   ],
-  reactClient: `src/client/js/index.js`,
-  reactServer: `src/client/js/**/*.js`,
+  reactClient: `src/client/react/index.js`,
+  reactServer: `src/client/react/**/*.js`,
   scss: `src/client/scss/styles.scss`,
   scssWatch: `src/client/scss/**/*.scss`,
 };
@@ -106,9 +106,9 @@ gulp.task(
 );
 
 gulp.task('build-react-client', () => {
-  return gulp.src('./src/client/js/index.js')
+  return gulp.src('./src/client/react/index.js')
     .pipe(webpack({
-      entry: ['babel-polyfill', './src/client/js/index.js'],
+      entry: ['babel-polyfill', './src/client/react/index.js'],
 
       output: {
         path: '/dist/client',

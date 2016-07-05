@@ -95,7 +95,7 @@ class KoaApp {
               files: files.getFiles(),
               jobs: jobs.getJobs(),
               bots: bots.getBots(),
-              botPresets: bots.botPresetList,
+              botPresets: bots.getBotPresets(),
             };
             _.extend(props.params, serverProps);
             const appHtml = renderToString(<RouterContext {...props}/>);

@@ -236,6 +236,20 @@ class Bots {
     return this.botList[botId].getBot();
   }
 
+  getBotPresets() {
+    const cleanedPresets = {};
+    Object.entries(this.botPresetList).forEach(([presetKey, Preset]) => {
+      const cleanedPresetObject = {};
+      const presetObject = new Preset(this.app);
+      Object.entries(presetObject).map(([settingKey, setting]) => {
+        if (settingKey !== `app` && settingKey !== `logger`) {
+          cleanedPresetObject[settingKey] = setting;
+        }
+      });
+      cleanedPresets[presetKey] = cleanedPresetObject;
+    });
+    return cleanedPresets;
+  }
   // For ease of communication with single bots using the api
   // allow the first connected bot to be address as `solo`
   // return the first connected bot
