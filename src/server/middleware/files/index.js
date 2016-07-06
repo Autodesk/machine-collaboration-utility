@@ -105,7 +105,7 @@ class Files {
     await fs.rename(file.path, filenameWithUuid);
     this.fileList[uuid] = fileObject;
     // this.logger.info(`filesUpdated`, this.fileList);
-    this.app.io.emit(`updateFiles`, this.fileList);
+    this.app.io.emit(`updateFiles`, this.getFiles());
     return fileObject;
   }
 
@@ -114,6 +114,15 @@ class Files {
   }
 
   getFiles() {
+    if (String(process.env.CONDUCTING) === `true`) {
+      const trimmedFileList = {}
+      Object.entries(this.fileList).forEach(([fileKey, file]) => {
+        if (file.name.indexOf(`.zip`) !== -1) {
+          trimmedFileList[fileKey] = file;
+        }
+      });
+      return trimmedFileList;
+    }
     return this.fileList;
   }
 
@@ -132,7 +141,7 @@ class Files {
       // this.app.io.emit('deleteFile', file);
       // Remove the file object from the 'files' array
       delete this.fileList[fileUuid];
-      this.app.io.emit(`updateFiles`, this.fileList);
+      this.app.io.emit(`updateFiles`, this.getFiles());
       return `File ${fileUuid} deleted`;
     }
     return false;

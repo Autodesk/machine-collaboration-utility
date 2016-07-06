@@ -6,6 +6,7 @@ const Stopwatch = Promise.promisifyAll(require('timer-stopwatch'));
 
 const jobsRouter = require(`./routes`);
 const jobModel = require(`./model`);
+const Job = require(`./job`);
 
 /**
  * This is a Jobs class.
@@ -39,15 +40,16 @@ class Jobs {
       const jobs = await this.JobModel.findAll();
       for (const job of jobs) {
         const botId = job.dataValues.botId;
-        const uuid = job.dataValues.uuid;
+        const jobUuid = job.dataValues.uuid;
         const state = job.dataValues.state;
         const id = job.dataValues.id;
         const fileUuid = job.dataValues.fileUuid;
-        const jobObject = await this.createJobObject(botId, uuid, state, id, fileUuid);
+        const jobObject = new Job(this.app, botId, fileUuid, jobUuid, state, id);
+        await jobObject.initialize();
         jobObject.percentComplete = job.dataValues.percentComplete;
         jobObject.started = job.dataValues.started;
         jobObject.elapsed = job.dataValues.elapsed;
-        this.jobList[uuid] = jobObject;
+        this.jobList[jobUuid] = jobObject;
       }
 
       this.logger.info(`Jobs instance initialized`);
@@ -56,115 +58,19 @@ class Jobs {
     }
   }
 
-  /**
-   * Create a job object
-   */
-  async createJobObject(botId, userUuid, initialState, id, fileUuid) {
-    const self = this;
-
-    if (botId === undefined) {
-      throw `botId is not defined`;
-    }
-
-    const cancelable = ['running', 'paused'];
-    const uuid = userUuid ? userUuid : await uuidGenerator.v1();
-    const fsmSettings = {
-      uuid,
-      initial: initialState ? initialState : 'created',
-      error: (eventName, from, to, args, errorCode, errorMessage) => {
-        const fsmError = `Invalid job ${uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
-        this.logger.error(fsmError);
-        throw fsmError;
-      },
-      events: [
-        /* eslint-disable no-multi-spaces */
-        { name: 'setFile',     from: 'created',     to: 'settingFile' },
-        { name: 'setFileFail', from: 'settingFile', to: 'created'     },
-        { name: 'setFileDone', from: 'settingFile', to: 'ready'       },
-        { name: 'start',       from: 'ready',       to: 'starting'    },
-        { name: 'startFail',   from: 'starting',    to: 'ready'       },
-        { name: 'startDone',   from: 'starting',    to: 'running'     },
-        { name: 'pause',       from: 'running',     to: 'pausing'     },
-        { name: 'pause',       from: 'paused',      to: 'paused'      },
-        { name: 'pauseFail',   from: 'pausing',     to: 'running'     },
-        { name: 'pauseDone',   from: 'pausing',     to: 'paused'      },
-        { name: 'resume',      from: 'paused',      to: 'resuming'    },
-        { name: 'resume',      from: 'running',     to: 'running'     },
-        { name: 'resumeFail',  from: 'resuming',    to: 'paused'      },
-        { name: 'resumeDone',  from: 'resuming',    to: 'running'     },
-        { name: 'runningDone', from: 'running',     to: 'complete'    },
-        { name: 'cancel',      from: cancelable,    to: 'canceling'   },
-        { name: 'cancelFail',  from: 'canceling',   to: 'canceled'    },
-        { name: 'cancelDone',  from: 'canceling',   to: 'canceled'    },
-        /* eslint-enable no-multi-spaces */
-      ],
-      callbacks: {
-        onenterstate: async (event, from, to) => {
-          self.logger.info(`Bot ${botId} Job ${uuid} event ${event}: Transitioning from ${from} to ${to}.`);
-          if (from !== `none`) {
-            const theJob = self.jobList[uuid];
-            if (event.indexOf('Done') !== -1) {
-              try {
-                // As soon as an event successfully transistions, update it in the database
-                const dbJob = await self.JobModel.findById(theJob.id);
-                await Promise.delay(0); // For some reason this can't happen in the same tick
-                await dbJob.updateAttributes({
-                  state: theJob.fsm.current,
-                  fileUuid: theJob.fileUuid,
-                  started: theJob.started,
-                  elapsed: theJob.stopwatch.ms,
-                  percentComplete: theJob.percentComplete,
-                });
-                self.logger.info(`Job event. ${event} for job ${uuid} successfully updated to ${theJob.fsm.current}`);
-              } catch (ex) {
-                self.logger.info(`Job event ${event} for job ${uuid} failed to update: ${ex}`);
-              }
-            }
-            if (event === `startup`) {
-              self.logger.info(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
-              // self.app.io.emit(`jobEvent`, { state: `created`, uuid, created: undefined, elapsed: undefined, percentComplete: 0 });
-            } else {
-              self.logger.info(`jobEvent`, self.jobToJson(theJob));
-              // self.app.io.emit(`jobEvent`, self.jobToJson(theJob));
-            }
-          }
-        },
-      },
-    };
-
-    const fsm = await StateMachine.create(fsmSettings);
-    const stopwatch = await new Stopwatch(false, { refreshRateMS: 1000 });
-
-    const jobObject = {
-      id,
-      uuid,
-      fsm,
-      stopwatch,
-      fileUuid,
-      botId,
-      started: undefined,
-      elapsed: undefined,
-      percentComplete: 0,
-    };
-
-    stopwatch.onTime((time) => {
-      this.logger.info('jobEvent', this.jobToJson(jobObject));
-      // this.app.io.emit('jobEvent', this.jobToJson(jobObject));
-    });
-    return jobObject;
-  }
-
-  async createPersistentJob(botId, uuid) {
-    const jobObject = await this.createJobObject(botId, uuid);
-    const jobJson = this.jobToJson(jobObject);
+  async createPersistentJob(botId, fileUuid, jobUuid) {
+    // TODO add fileuuid handling
+    const jobObject = new Job(this.app, botId, fileUuid, jobUuid);
+    await jobObject.initialize();
+    const jobJson = jobObject.getJob();
     const dbJob = await this.JobModel.create(jobJson);
-    uuid = dbJob.dataValues.uuid;
     jobObject.id = dbJob.dataValues.id;
-    this.jobList[uuid] = jobObject;
+    this.jobList[dbJob.dataValues.uuid] = jobObject;
     this.logger.info('jobEvent', jobJson);
     // this.app.io.emit('jobEvent', jobJson);
     return jobObject;
   }
+
   /**
    * Set up the jobs' instance's router
    */
@@ -183,182 +89,36 @@ class Jobs {
   }
 
   /**
-   * Turn a job object into a REST reply friendly object
-   */
-  jobToJson(job) {
-    const state = job.fsm.current ? job.fsm.current : `created`;
-    const started = !!job.started ? job.started : null;
-    const elapsed = !!job.started ? job.stopwatch.ms || job.elapsed : null;
-    return {
-      botId: job.botId,
-      uuid: job.uuid,
-      state,
-      fileUuid: job.fileUuid === undefined ? false : job.fileUuid,
-      started,
-      elapsed,
-      percentComplete: job.percentComplete,
-    };
-  }
-
-  /**
-   * Turn an array of job objects into a REST reply friendly array of jobs
-   */
-  jobsToJson(jobs) {
-    const jobObjects = {};
-    for (let job in jobs) {
-      jobObjects[job] = this.jobToJson(this.jobList[job]);
-    }
-    return jobObjects;
-  }
-
-  /**
    * A generic call to retreive a json friendly job by its uuid
    */
   getJob(jobUuid) {
-    return this.jobToJson(this.jobList[jobUuid]);
+    return this.jobList[jobUuid].getJob();
   }
 
   /**
    * A generic call to retreive a json friendly list of jobs
    */
   getJobs() {
-    const jobs = this.jobsToJson(this.jobList);
-    return jobs;
-  }
-
-  /*
-   * Start processing a job
-   */
-  async startJob(job) {
-    try {
-      await job.fsm.start();
-
-      // Register conductor as a botId of -1
-      if (Number(job.botId) === -1) {
-        await this.app.context.conductor.startJob(job);
-      } else {
-        let botId;
-        if (job.botId === 'solo') {
-          botId = this.app.context.bots.soloBot();
-        } else {
-          botId = job.botId;
-        }
-        await this.app.context.bots.botList[botId].startJob(job);
-      }
-      job.started = new Date().getTime();
-      await job.stopwatch.start();
-      await job.fsm.startDone();
-    } catch (ex) {
-      await job.fsm.startFail();
-      const errorMessage = `Job start failure ${ex}`;
-      this.logger.error(errorMessage);
-    }
-  }
-
-  /*
-   * Pause processing a job
-   */
-  async pauseJob(job) {
-    try {
-      await job.fsm.pause();
-      // Register conductor as a botId of -1
-      if (Number(job.botId) === -1) {
-        await this.app.context.conductor.pauseJob();
-      } else {
-        let botId;
-        if (job.botId === 'solo') {
-          botId = this.app.context.bots.soloBot();
-        } else {
-          botId = job.botId;
-        }
-        await this.app.context.bots.botList[botId].pauseJob();
-      }
-      await job.stopwatch.stop();
-      await job.fsm.pauseDone();
-    } catch (ex) {
-      await job.fsm.pauseFail();
-      const errorMessage = `Job pause failure ${ex}`;
-      this.logger.error(errorMessage);
-    }
-  }
-
-  /*
-   * Resume processing a job
-   */
-  async resumeJob(job) {
-    try {
-      job.fsm.resume();
-      // Register conductor as a botId of -1
-      if (Number(job.botId) === -1) {
-        await this.app.context.conductor.resumeJob();
-      } else {
-        let botId;
-        if (job.botId === 'solo') {
-          botId = this.app.context.bots.soloBot();
-        } else {
-          botId = job.botId;
-        }
-        await this.app.context.bots.botList[botId].resumeJob();
-      }
-      await job.stopwatch.start();
-      job.fsm.resumeDone();
-    } catch (ex) {
-      job.fsm.resumeFail();
-      const errorMessage = `Job resume failure ${ex}`;
-      this.logger.error(errorMessage);
-    }
-  }
-
-  /*
-   * Stop processing a job
-   */
-  async cancelJob(job) {
-    try {
-      await job.fsm.cancel();
-      // Register conductor as a botId of -1
-      if (Number(job.botId) === -1) {
-        await this.app.context.conductor.stopJob(job);
-      } else {
-        let botId;
-        if (job.botId === 'solo') {
-          botId = this.app.context.bots.soloBot();
-        } else {
-          botId = job.botId;
-        }
-        await this.app.context.bots.botList[botId].stopJob(job);
-      }
-      await job.stopwatch.stop();
-      await job.fsm.cancelDone();
-    } catch (ex) {
-      const errorMessage = `Job stop failure ${ex}`;
-      this.logger.error(errorMessage);
-      await job.fsm.cancelFail();
-    }
+    const jobList = {};
+    Object.entries(this.jobList).map(([jobKey, job]) => {
+      jobList[jobKey] = job.getJob();
+    });
+    return jobList;
   }
 
   async deleteJob(jobUuid) {
     const theJob = this.jobList[jobUuid];
-    const theJobJson = this.jobToJson(theJob);
     const dbJob = await this.JobModel.findById(theJob.id);
-    this.logger.info('deleteJob', theJobJson);
     // this.app.io.emit('deleteJob', theJobJson);
     await dbJob.destroy();
     delete this.jobList[jobUuid];
-    this.app.io.emit('updateJobs', this.jobList);
-    return `Job ${jobUuid} deleted`;
-  }
-
-  async setFile(job, file) {
-    await job.fsm.setFile();
+    this.logger.info(`Job ${jobUuid} deleted`);
     try {
-      job.fileUuid = file.uuid;
-      const jobJson = this.jobToJson(job);
-      await job.fsm.setFileDone();
-      return jobJson;
+      this.app.io.emit('updateJobs', this.jobList);
     } catch (ex) {
-      await job.fsm.setFileFail();
-      throw ex;
+      this.logger.error(`Socket error`, ex);
     }
+    return `Job ${jobUuid} deleted`;
   }
 }
 

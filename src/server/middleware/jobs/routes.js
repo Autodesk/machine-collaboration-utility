@@ -1,4 +1,48 @@
 const Response = require(`../helpers/response`);
+const Promise = require(`bluebird`);
+
+/**
+ * Handle all logic at this endpoint for reading all of the jobs
+ */
+const getJobs = (self) => {
+  const requestDescription = `Get Jobs`;
+  self.router.get(`${self.routeEndpoint}/`, async (ctx) => {
+    try {
+      const response = self.getJobs();
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, response);
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
+
+/**
+ * Handle all logic at this endpoint for deleting all jobs
+ */
+const deleteAllJobs = (self) => {
+  const requestDescription = `Delete All Jobs`;
+  self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
+    try {
+      await Promise.map(
+        Object.entries(self.jobList),
+        async ([jobKey, job]) => {
+          await self.deleteJob(jobKey);
+        },
+        { concurrency: 5 }
+      );
+      const status = `All jobs deleted`;
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, status);
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      self.logger.error(ex);
+    }
+  });
+};
 
 /**
  * Handle all logic at this endpoint for creating a job
@@ -8,13 +52,26 @@ const createJob = (self) => {
 
   self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
+      // custom UUID can be passed, but it's not necessary
+      const uuid = ctx.request.body.uuid;
+
       const botId = ctx.request.body.botId;
       if (botId === undefined) {
         const errorMessage = `botId is not defined`;
         throw errorMessage;
       }
 
-      const uuid = ctx.request.body.uuid;
+      const fileUuid = ctx.request.body.fileUuid;
+      if (fileUuid === undefined) {
+        throw `fileUuid is undefined`;
+      }
+
+      const file = self.app.context.files.getFile(fileUuid);
+      if (!file) {
+        throw `File not found`;
+      }
+
+      const startJob = String(ctx.request.body.startJob) === `true`;
 
       // Do not allow for duplicate uuid's.
       // If you pass a uuid, you are deleting the existing job
@@ -24,8 +81,11 @@ const createJob = (self) => {
       }
 
       // Create and save the job object
-      const jobObject = await self.createPersistentJob(botId, uuid);
-      const jobJson = self.jobToJson(jobObject);
+      const jobObject = await self.createPersistentJob(botId, fileUuid, uuid);
+      if (startJob) {
+        await jobObject.start();
+      }
+      const jobJson = jobObject.getJob();
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, jobJson);
     } catch (ex) {
@@ -38,24 +98,6 @@ const createJob = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for reading all of the jobs
- */
-const getJobs = (self) => {
-  const requestDescription = `Get Jobs`;
-  self.router.get(self.routeEndpoint + '/', async (ctx) => {
-    try {
-      const response = self.jobsToJson(self.jobList);
-      ctx.status = 200;
-      ctx.body = new Response(ctx, requestDescription, response);
-    } catch (ex) {
-      ctx.status = 500;
-      ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
-    }
-  });
-};
-
-/**
  * Handle all logic at this endpoint for reading a single job
  */
 const getJob = (self) => {
@@ -63,11 +105,14 @@ const getJob = (self) => {
   self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       const jobUuid = ctx.params.uuid;
+      if (jobUuid === undefined) {
+        throw `jobUuid is undefined`;
+      }
       const job = self.jobList[jobUuid];
       if (job) {
-        const jobJson = self.jobToJson(job);
+        const reply = job.getJob();
         ctx.status = 200;
-        ctx.body = new Response(ctx, requestDescription, jobJson);
+        ctx.body = new Response(ctx, requestDescription, reply);
       } else {
         const errorMessage = `Job ${jobUuid} not found`;
         ctx.status = 404;
@@ -83,30 +128,21 @@ const getJob = (self) => {
 };
 
 /**
- * Should assign a specific file to a job
+ * Handle all logic at this endpoint for deleting a job
  */
-const setFile = (self) => {
-  const requestDescription = `Set File to Job`;
-  self.router.post(`${self.routeEndpoint}/:uuid/setFile`, async (ctx) => {
-
-    // Find the job
+const deleteJob = (self) => {
+  const requestDescription = `Delete Job`;
+  self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
-      const jobUuid = ctx.params.uuid;
-      const job = self.jobList[jobUuid];
-
-      if (!job) {
-        throw `Job is undefined`;
+      const jobUuid = ctx.request.body.uuid;
+      if (jobUuid === undefined) {
+        const errorMessage = `Job uuid "${jobUuid}" is undefined.`;
+        throw errorMessage;
       }
 
-      const fileUuid = ctx.request.body.fileUuid;
-      const file = self.app.context.files.getFile(fileUuid);
-      if (!file) {
-        throw `File uuid is undefined`;
-      }
-
-      const reply = await self.setFile(job, file);
+      const deleteStatus = await self.deleteJob(jobUuid);
       ctx.status = 200;
-      ctx.body = new Response(ctx, requestDescription, reply);
+      ctx.body = new Response(ctx, requestDescription, deleteStatus);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
@@ -127,44 +163,27 @@ const processJobCommand = (self) => {
     try {
       // Find the job
       const jobUuid = ctx.params.uuid;
-      const job = self.jobList[jobUuid];
+      if (jobUuid === undefined) {
+        const errorMessage = `Job uuid "${jobUuid}" is undefined.`;
+        throw errorMessage;
+      }
 
+      const job = self.jobList[jobUuid];
       if (!job) {
-        throw `job is undefined`;
+        const errorMessage = `job is undefined`;
+        throw errorMessage;
       }
 
       // Then process the command for the job
       const command = ctx.request.body.command;
-      if (!command) {
-        throw `command is undefined`;
+      if (command === undefined) {
+        const errorMessage = `command is undefined`;
+        throw errorMessage;
       }
 
-      // populate this variable with the job (or the error), immediately after the command is triggered
-      let commandReply;
-      switch (command) {
-        case `start`:
-          // TODO provide feedback if bot is unavailable, before starting the job
-          self.startJob(job);
-          commandReply = self.jobToJson(job);
-          break;
-        case `pause`:
-          self.pauseJob(job);
-          commandReply = self.jobToJson(job);
-          break;
-        case `resume`:
-          self.resumeJob(job);
-          commandReply = self.jobToJson(job);
-          break;
-        case `cancel`:
-          self.cancelJob(job);
-          commandReply = self.jobToJson(job);
-          break;
-        default:
-          commandReply = `Command ${command} is not supported`;
-          throw commandReply;
-      }
+      const reply = await job.processCommand(command);
       ctx.status = 200;
-      ctx.body = new Response(ctx, requestDescription, commandReply);
+      ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
@@ -172,63 +191,19 @@ const processJobCommand = (self) => {
     }
   });
 };
-
-/**
- * Handle all logic at this endpoint for deleting a job
- */
-const deleteJob = (self) => {
-  const requestDescription = `Delete Job`;
-  self.router.delete(self.routeEndpoint, async (ctx) => {
-    try {
-      const jobUuid = ctx.request.body.uuid;
-      if (jobUuid === undefined) {
-        const errorMessage = `Job uuid "${jobUuid}" is not valid.`;
-        ctx.status = 404;
-        ctx.body = new Response(ctx, requestDescription, errorMessage);
-        return;
-      } else {
-        const deleteStatus = await self.deleteJob(jobUuid);
-        ctx.status = 200;
-        ctx.body = new Response(ctx, requestDescription, deleteStatus);
-      }
-    } catch (ex) {
-      ctx.status = 500;
-      ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
-    }
-  });
-};
-
-/**
- * Handle all logic at this endpoint for deleting all jobs
- */
-const deleteAllJobs = (self) => {
-  const requestDescription = `Delete All Jobs`;
-  self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
-    try {
-      for (const job in self.jobList) {
-        await self.deleteJob(self.jobList[job].uuid);
-      }
-      const status = `All jobs deleted`;
-      ctx.status = 200;
-      ctx.body = new Response(ctx, requestDescription, status);
-    } catch (ex) {
-      ctx.status = 500;
-      ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
-    }
-  });
-};
-
 
 const jobsRoutes = (self) => {
+  // Jobs CRUD
   getJobs(self);
+  deleteAllJobs(self);
+
+  // Job CRUD
   createJob(self);
   getJob(self);
-  setFile(self);
-  processJobCommand(self);
   deleteJob(self);
-  deleteAllJobs(self);
+
+  // Job COMMANDS
+  processJobCommand(self);
 };
 
 module.exports = jobsRoutes;

@@ -34,13 +34,13 @@ const uploadFile = (self) => {
                 async (file) => {
                   uploadedFiles.push(await self.createFileObject(file));
                 },
-                { concurrency: 4 }
+                { concurrency: 5 }
               );
             } else {
               uploadedFiles.push(await self.createFileObject(files[theFile]));
             }
           },
-          { concurrency: 4 }
+          { concurrency: 5 }
         );
         ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, uploadedFiles);

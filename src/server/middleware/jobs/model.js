@@ -1,8 +1,8 @@
 const Sequelize = require('sequelize');
 
-module.exports = async (app) => {
+module.exports = (app) => {
   // Define the model for a job
-  const Job = await app.context.db.define('Job', {
+  const Job = app.context.db.define('Job', {
     botId: Sequelize.STRING,
     uuid: Sequelize.STRING,
     state: Sequelize.STRING,
@@ -13,6 +13,6 @@ module.exports = async (app) => {
   });
 
   // Update the database tables to contain 'Task'
-  await app.context.db.sync();
+  app.context.db.sync();
   return Job;
 };
