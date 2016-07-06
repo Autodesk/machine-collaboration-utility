@@ -336,7 +336,7 @@ class Bot {
             } catch (ex) {
               self.logger.error('Bot subscriber error', ex);
             }
-          });
+          }, { concurrency: 5 });
         },
       });
     });
