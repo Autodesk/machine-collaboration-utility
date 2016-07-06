@@ -50,23 +50,22 @@ class Bots {
 
       // Set up the bot database model
       this.BotModel = await botModel(this.app);
+
+      // If there are not bots saved yet, create one
+      // This first bot object is where we will save settings for
+      // generic usb bots that cannot be made persistent
+      await this.createBot();
+
       const botsDbArray = await this.BotModel.findAll();
       // Load all bots from the database and add them to the 'bots' object
       for (const dbBot of botsDbArray) {
         try {
           await this.createBot(dbBot.dataValues);
-          this.logger.info(`success`);
         } catch (ex) {
           this.logger.error(`Failed to create bot. ${ex}`);
         }
       }
 
-      // If there are not bots saved yet, create one
-      // This first bot object is where we will save settings for
-      // generic usb bots that cannot be made persistent
-      if (botsDbArray.length === 0) {
-        await this.createBot();
-      }
       // Start scanning for all bots
       await this.setupDiscovery();
       this.logger.info(`Bots instance initialized`);
@@ -124,7 +123,7 @@ class Bots {
         const BotPresetClass = require(presetPath);
         this.botPresetList[presetType] = BotPresetClass;
       }
-    });
+    }, { concurrency: 5 });
   }
 
 
@@ -139,9 +138,10 @@ class Bots {
   }
 
   async createBot(inputSettings = {}) {
-    // If the only bot object is a "Default Bot", remove it once the other bot is successfully added
+    // If the only bot object is a "Default Bot"
+    // remove it once the other bot is successfully added
     let defaultBot = undefined;
-    if (Object.entries(this.botList).length === 1) {
+    if (Object.entries(this.botList).length === 1 && this.botList[`default`] !== undefined) {
       defaultBot = Object.entries(this.botList)[0][0];
     }
 
@@ -154,10 +154,6 @@ class Bots {
     new this.botPresetList[`DefaultBot`](this.app) :
     new this.botPresetList[inputSettings.model](this.app);
 
-    // This should copy the object, but it doesn't work. Using a json hack instead
-    //const botPresets = Object.assign({}, officialBotPresets);
-    //const botPresets = JSON.parse(JSON.stringify(officialBotPresets));
-
     _.extend(botPresets.settings, inputSettings);
     // Don't add the bot if it has a duplicate botId in the database
     if (this.botList[botPresets.settings.botId] !== undefined) {
@@ -167,7 +163,6 @@ class Bots {
 
     const newBot = new Bot(this.app, botPresets);
     this.botList[this.sanitizeStringForRouting(botPresets.settings.botId)] = newBot;
-
     // Delete the default bot, if you successfully add the first "non default" bot
     if (defaultBot !== undefined) {
       delete this.botList[defaultBot];
@@ -250,6 +245,7 @@ class Bots {
     });
     return cleanedPresets;
   }
+
   // For ease of communication with single bots using the api
   // allow the first connected bot to be address as `solo`
   // return the first connected bot
