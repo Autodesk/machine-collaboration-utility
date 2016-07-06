@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from 'react-bootstrap-modal';
+import request from 'superagent';
 
 import File from './file';
 
@@ -11,6 +12,7 @@ export default class Files extends React.Component {
     };
     this.handleProcessFile = this.handleProcessFile.bind(this);
     this.close = this.close.bind(this);
+    this.startJob = this.startJob.bind(this);
   }
 
   handleProcessFile(fileInfo) {
@@ -29,8 +31,9 @@ export default class Files extends React.Component {
     const options = Object.entries(this.props.botPresets).map(([presetKey, preset]) => {
       return <option key={presetKey} value={presetKey}>{preset.settings.name}</option>;
     });
+    options.push(<option key={-1} value={`Conductor`}>Conductor</option>);
     return (
-      <select name="carlist" form="carform">
+      <select name="botList" form="newJobForm">
         {options}
       </select>
     );
@@ -46,12 +49,28 @@ export default class Files extends React.Component {
         <div>{this.state.fileUuid}</div>
         <div>{this.state.fileName}</div>
         {this.createBotList()}
+        <button onClick={this.startJob}>Start Job</button>
       </Modal.Body>
       <Modal.Footer>
         <button onClick={this.close}>Close</button>
       </Modal.Footer>
     </Modal>
     );
+  }
+
+  startJob() {
+    // Create a job
+    const requestParams = {
+      fileUuid: this.state.fileUuid,
+      botId: -1,
+      startJob: true,
+    };
+
+    request.post(`/v1/jobs`)
+    .send(requestParams)
+    .set('Accept', 'application/json')
+    .end();
+    this.close();
   }
 
   render() {
