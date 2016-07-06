@@ -17,7 +17,7 @@ const logger = new (winston.Logger)({
   ],
 });
 
-module.exports = function toDoListTests() {
+module.exports = function conductorTests() {
   let jobUuid;
   let fileUuid;
   describe('UI unit test', function () {
@@ -38,13 +38,16 @@ module.exports = function toDoListTests() {
         fileUuid = uploadFileReply.data[0].uuid;
         done();
       } catch (ex) {
-        console.log('Upload Escher File error', ex);
+        logger.error(ex);
       }
     });
     it('should create a conductor job', async function (done) {
       try {
         const requestParams = {
-          body: { botId: -1 },
+          body: {
+            botId: -1,
+            fileUuid,
+          },
           method: `POST`,
           uri: `http://localhost:9000/v1/jobs/`,
           json: true,
@@ -58,27 +61,7 @@ module.exports = function toDoListTests() {
         should(jobCreateReply.query).equal(`Create Job`);
         done();
       } catch (ex) {
-        console.log('Create conductor job error', ex);
-      }
-    });
-    it('should link the file to the conductor job', async function (done) {
-      try {
-        const setFileToJobParams = {
-          method: `PUT`,
-          uri: `http://localhost:9000/v1/jobs/${jobUuid}`,
-          body: { fileUuid },
-          json: true,
-        };
-        try {
-          const setFileToJobReply = await request(setFileToJobParams);
-          should(setFileToJobReply.status).equal(200);
-          should(setFileToJobReply.query).equal(`Set File to Job`);
-          done();
-        } catch (ex) {
-          console.log('flailboat', ex);
-        }
-      } catch (ex) {
-        console.log('Link file to conductor job', ex);
+        logger.error(ex);
       }
     });
     it('should connect the conductor', async function (done) {
@@ -92,12 +75,16 @@ module.exports = function toDoListTests() {
           json: true,
         };
         const conductorCommandReply = await request(requestParams);
+        console.log('conductor command reply', conductorCommandReply);
         should(conductorCommandReply.status).equal(200);
         should(conductorCommandReply.query).equal(`Process Conductor Command`);
-        should(conductorCommandReply.data.state).equal(`connecting`);
+        should(
+          conductorCommandReply.data.state === `connecting` ||
+          conductorCommandReply.data.state === `connected`
+        );
         done();
       } catch (ex) {
-        console.log('Connect the conductor', ex);
+        logger.error(ex);
       }
     });
     it('should see a connected conductor after 5 seconds', async function (done) {
@@ -115,31 +102,31 @@ module.exports = function toDoListTests() {
         should(conductorStatus.data.state).equal(`connected`);
         done();
       } catch (ex) {
-        console.log('Verify conductor connection error', ex);
+        logger.error(ex);
       }
     });
-    it('should start the job', async function (done) {
-      try {
-        this.timeout(10000);
-        const setFileToJobParams = {
-          method: `POST`,
-          uri: `http://localhost:9000/v1/jobs/${jobUuid}`,
-          body: {
-            command: `start`,
-          },
-          json: true,
-        };
-        try {
-          await request(setFileToJobParams);
-        } catch (ex) {
-          console.log('flailboat', ex);
-        }
-        await Promise.delay(9000);
-        done();
-      } catch (ex) {
-        console.log('Start conductor job error', ex);
-      }
-    });
+    // it('should start the job', async function (done) {
+    //   try {
+    //     this.timeout(10000);
+    //     const setFileToJobParams = {
+    //       method: `POST`,
+    //       uri: `http://localhost:9000/v1/jobs/${jobUuid}`,
+    //       body: {
+    //         command: `start`,
+    //       },
+    //       json: true,
+    //     };
+    //     try {
+    //       await request(setFileToJobParams);
+    //     } catch (ex) {
+    //       console.log('flailboat', ex);
+    //     }
+    //     await Promise.delay(9000);
+    //     done();
+    //   } catch (ex) {
+    //     logger.error(ex);
+    //   }
+    // });
     it('should see a populated metajob', async function (done) {
       try {
         this.timeout(10000);
@@ -156,7 +143,7 @@ module.exports = function toDoListTests() {
         }
         done();
       } catch (ex) {
-        console.log('Start conductor job error', ex);
+        logger.error(ex);
       }
     });
   });

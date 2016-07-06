@@ -20,6 +20,7 @@ module.exports = function toDoListTests() {
   let job;
   let nJobs;
   let botId;
+  let fileUuid;
 
   describe('Jobs unit test', function () {
     it('should create a virtual printer to execute jobs on', async function (done) {
@@ -39,9 +40,27 @@ module.exports = function toDoListTests() {
       done();
     });
 
+    it('should upload a file for a job to process', async function (done) {
+      // Upload a file
+      const testFilePath = path.join(__dirname, `blah.txt`);
+      const fileStream = await fs.createReadStream(testFilePath);
+      const formData = { file: fileStream };
+      const fileUploadParams = {
+        method: `POST`,
+        uri: `http://localhost:9000/v1/files`,
+        formData,
+        json: true,
+      };
+      const getFilesReply = await request(fileUploadParams);
+      fileUuid = getFilesReply.data[0].uuid;
+    });
+
     it('should create a job', async function (done) {
       const requestParams = {
-        body: { botId },
+        body: {
+          botId,
+          fileUuid,
+        },
         method: `POST`,
         uri: `http://localhost:9000/v1/jobs/`,
         json: true,
@@ -55,7 +74,7 @@ module.exports = function toDoListTests() {
       done();
     });
 
-    it('should have a job state of "created"', async function (done) {
+    it('should have a job state of "ready"', async function (done) {
       const requestParams = {
         method: `GET`,
         uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
@@ -63,7 +82,7 @@ module.exports = function toDoListTests() {
       };
       const getJobReply = await request(requestParams);
       job = getJobReply.data;
-      should(job.state === `created`);
+      should(job.state === `ready`);
       should(getJobReply.status).equal(200);
       should(getJobReply.query).equal(`Get Job`);
       done();
@@ -83,71 +102,6 @@ module.exports = function toDoListTests() {
 
       nJobs = Object.keys(jobs).length;
       done();
-    });
-
-    it('should assign a file to a job', async function (done) {
-      // Upload a file
-      const testFilePath = path.join(__dirname, `blah.txt`);
-      const fileStream = await fs.createReadStream(testFilePath);
-      const formData = { file: fileStream };
-      const fileUploadParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/files`,
-        formData,
-        json: true,
-      };
-      const getFilesReply = await request(fileUploadParams);
-      const file = getFilesReply.data[0];
-
-      // Set the file to the job
-      const requestParams = {
-        method: `PUT`,
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-        body: { fileUuid: file.uuid },
-        json: true,
-      };
-      const setFileToJobReply = await request(requestParams);
-      job = setFileToJobReply.data;
-      should(!!job.uuid);
-      should(!!job.fileUuid);
-      should(job.state).equal(`settingFile`); // could be a race case? might also be ready
-      should(setFileToJobReply.status).equal(200);
-      should(setFileToJobReply.query).equal(`Set File to Job`);
-      done();
-    });
-
-    it('should fail if it trys to assign a second file to a job', async function (done) {
-      // Upload a file
-      const testFilePath = path.join(__dirname, `blah.txt`);
-      const fileStream = await fs.createReadStream(testFilePath);
-      const formData = { file: fileStream };
-      const fileUploadParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/files`,
-        formData,
-        json: true,
-      };
-      const setFileToJobReply = await request(fileUploadParams);
-      const file = setFileToJobReply.data[0];
-
-      const requestParams = {
-        method: `PUT`,
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-        body: { fileUuid: file.uuid },
-        json: true,
-      };
-
-      try {
-        const setFileToJobReply = await request(requestParams);
-        // request should fail
-        should(0).equal(1);
-        done();
-      } catch (ex) {
-        should(!!ex.error);
-        should(ex.error.status).equal(500);
-        should(ex.error.query).equal(`Set File to Job`);
-        done();
-      }
     });
 
     it('should delete a job', async function (done) {
