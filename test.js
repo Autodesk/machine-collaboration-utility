@@ -1,4 +1,5 @@
 /* global describe, it */
+require(`source-map-support`).install();
 'use strict';
 
 /*******************************************************************************
