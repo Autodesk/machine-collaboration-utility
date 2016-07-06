@@ -30,7 +30,7 @@ export default class Bots extends React.Component {
 
   render() {
     const bots = Object.entries(this.props.bots).map(([botKey, bot]) => {
-      return <Bot key={bot.botId} bot={bot}/>;
+      return <Bot key={botKey} bot={bot}/>;
     });
     return (<div>
       <button onClick={this.toggleModal}>Create Bot</button>
