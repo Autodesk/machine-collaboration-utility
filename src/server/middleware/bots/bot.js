@@ -4,6 +4,7 @@ const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
 const fs = require(`fs`);
 const _ = require(`underscore`);
 const request = require(`request-promise`);
+const uuidGenerator = require(`node-uuid`);
 
 const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
 const HttpExecutor = require(`./comProtocols/http/executor`);
@@ -30,6 +31,7 @@ class Bot {
     this.app = app;
     this.config = app.context.config;
     this.logger = app.context.logger;
+    this.uuid = uuidGenerator.v1();
 
     this.queue = undefined;
     this.currentJob = undefined;
@@ -38,11 +40,14 @@ class Bot {
 
     this.subscribers = [];
 
+    // Mixin the presets to the bot object
+    // except for the app and logger
     for (const presetKey in presets) {
       if (
         presets.hasOwnProperty(presetKey) &&
         presetKey !== `app` &&
-        presetKey !== `logger`
+        presetKey !== `logger` &&
+        presetKey !== `uuid`
       ) {
         this[presetKey] = presets[presetKey];
       }
@@ -225,7 +230,7 @@ class Bot {
    * the bot enters the appropriate transitional state, followed by either
    * "done" or "fail" events and corresponding state transitions
    */
-  async processCommand(command) {
+  async processCommand(command, params) {
     switch (command) {
       // Connect the bot via it's queue's executor
       case `connect`:
@@ -246,6 +251,20 @@ class Bot {
       case `unpark`:
         this.unpark();
         return this.getBot();
+
+      case `addSubscriber`:
+        if (params.subscriberEndpoint === undefined) {
+          throw `"subscriberEndpoint" is not defined`;
+        }
+        return await this.addBotSubscriber(params.subscriberEndpoint);
+
+      case `processGcode`:
+        //do something
+        break;
+
+      case `streamGcode`:
+        // do something
+        break;
 
       // Throw out any bogus command requests
       default:

@@ -5,6 +5,7 @@ module.exports = async (app) => {
   const Bot = await app.context.db.define('Bot', {
     model: Sequelize.STRING,
     name: Sequelize.STRING,
+    uuid: Sequelize.STRING,
     // The identifier is either an ip address endpoint or a pnpid
     botId: Sequelize.STRING,
     jogXSpeed: Sequelize.STRING,
@@ -21,6 +22,6 @@ module.exports = async (app) => {
   });
 
   // Update the database tables to contain 'Bot'
-  await app.context.db.sync();
+  await app.context.db.sync({force:true});
   return Bot;
 };

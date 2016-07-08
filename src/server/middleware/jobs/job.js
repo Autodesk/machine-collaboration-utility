@@ -150,7 +150,7 @@ class Job {
         await this.app.context.conductor.startJob(this);
       } else {
         try {
-          await this.app.context.bots.botList[this.botId].startJob(this);
+          await this.app.context.bots.botList[this.botUuid].startJob(this);
         } catch (ex) {
           console.log('ooooh', ex);
         }

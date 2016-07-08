@@ -3,7 +3,7 @@ const Sequelize = require('sequelize');
 module.exports = (app) => {
   // Define the model for a job
   const Job = app.context.db.define('Job', {
-    botId: Sequelize.STRING,
+    botUuid: Sequelize.STRING,
     uuid: Sequelize.STRING,
     state: Sequelize.STRING,
     fileUuid: Sequelize.STRING,
@@ -13,6 +13,6 @@ module.exports = (app) => {
   });
 
   // Update the database tables to contain 'Task'
-  app.context.db.sync();
+  app.context.db.sync({force:true});
   return Job;
 };

@@ -141,7 +141,9 @@ class Bots {
     // If the only bot object is a "Default Bot"
     // remove it once the other bot is successfully added
     let defaultBot = undefined;
-    if (Object.entries(this.botList).length === 1 && this.botList[`default`] !== undefined) {
+    // TODO check this logic, need to find bot by its name or by its uuid
+    const defaultBot = this.findBotByName(`default`);
+    if (Object.entries(this.botList).length === 1 && defaultBot !== undefined) {
       defaultBot = Object.entries(this.botList)[0][0];
     }
 
@@ -154,26 +156,24 @@ class Bots {
     new this.botPresetList[`DefaultBot`](this.app) :
     new this.botPresetList[inputSettings.model](this.app);
 
+    // Mixin all input settings into the bot object
     _.extend(botPresets.settings, inputSettings);
-    // Don't add the bot if it has a duplicate botId in the database
-    if (this.botList[botPresets.settings.botId] !== undefined) {
-      const errorMessage = `Cannot create bot with unique identifier "${botPresets.settings.botId}". Bot already exists`;
-      throw errorMessage;
-    }
-
     const newBot = new Bot(this.app, botPresets);
-    this.botList[this.sanitizeStringForRouting(botPresets.settings.botId)] = newBot;
+
+    // Add the bot to the list
+    this.botList[newBot.uuid] = newBot;
+
     // Delete the default bot, if you successfully add the first "non default" bot
     if (defaultBot !== undefined) {
-      delete this.botList[defaultBot];
+      delete this.botList[defaultBot.uuid];
     }
     return newBot;
   }
 
-  async deleteBot(botId) {
-    const bot = this.botList[botId];
+  async deleteBot(uuid) {
+    const bot = this.botList[uuid];
     if (bot === undefined) {
-      throw `Bot "${botId}" is undefined`;
+      throw `Bot "${uuid}" is undefined`;
     }
 
     switch (bot.connectionType) {
@@ -192,20 +192,20 @@ class Bots {
     const bots = await this.BotModel.findAll();
     let deleted = false;
     for (const dbBot of bots) {
-      const dbBotId = dbBot.dataValues.botId;
-      if (botId === dbBotId) {
+      const dbBotUuid = dbBot.dataValues.uuid;
+      if (uuid === dbBotUuid) {
         dbBot.destroy();
-        delete this.botList[botId];
+        delete this.botList[uuid];
         deleted = true;
       }
     }
     if (!deleted) {
-      throw `Bot "${botId}" was not deleted from the database because it cound not be found in the database.`;
+      throw `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`;
     }
     if (Object.entries(this.botList).length === 0) {
       this.createBot();
     }
-    return `Bot "${botId}" successfully deleted`;
+    return `Bot "${uuid}" successfully deleted`;
   }
 
 /*******************************************************************************
@@ -216,10 +216,8 @@ class Bots {
    */
   getBots() {
     const filteredBots = {};
-    for (const bot in this.botList) {
-      if (this.botList.hasOwnProperty(bot)) {
-        filteredBots[bot] = this.botList[bot].getBot();
-      }
+    for (const [botKey, bot] of Object.entries(this.botList)) {
+      filteredBots[botKey] = bot.getBot();
     }
     return filteredBots;
   }
@@ -227,8 +225,8 @@ class Bots {
   /*
    * get a json friendly description of a Bots
    */
-  getBot(botId) {
-    return this.botList[botId].getBot();
+  getBot(uuid) {
+    return this.botList[uuid].getBot();
   }
 
   getBotPresets() {
@@ -246,17 +244,26 @@ class Bots {
     return cleanedPresets;
   }
 
+  findBotByName(name) {
+    let botByName = undefined;
+    for (const [botKey, bot] of Object.entries(this.botList)) {
+      if (bot.settings.name === name) {
+        botByName = bot;
+        break;
+      }
+    }
+    return botByName;
+  }
+
   // For ease of communication with single bots using the api
   // allow the first connected bot to be address as `solo`
   // return the first connected bot
   soloBot() {
     let soloBotId = undefined;
-    for (const bot in this.botList) {
-      if (this.botList.hasOwnProperty(bot)) {
-        if (this.botList[bot].fsm.current !== `unavailable`) {
-          soloBotId = bot;
-          break;
-        }
+    for (const [botKey, bot] of Object.entries(this.botList)) {
+      if (bot.fsm.current !== `unavailable`) {
+        soloBotId = bot;
+        break;
       }
     }
     if (soloBotId === undefined) {
@@ -265,10 +272,11 @@ class Bots {
     return soloBotId;
   }
 
-  sanitizeStringForRouting(portName) {
-    // This replaces the "/" character with "_s_" and the ":" character with "_c_"
-    return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
-  }
+  // An old relic
+  // sanitizeStringForRouting(portName) {
+  //   // This replaces the "/" character with "_s_" and the ":" character with "_c_"
+  //   return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
+  // }
 }
 
 module.exports = Bots;
