@@ -13,11 +13,12 @@ class Job {
     this.uuid = jobUuid;
     this.initialState = initialState;
     this.id = id;
-    this.JobModel = jobModel(this.app);
   }
 
   async initialize() {
     const self = this;
+
+    this.JobModel = await jobModel(this.app);
     if (this.botUuid === undefined) {
       throw `"botUuid" is not defined`;
     }
