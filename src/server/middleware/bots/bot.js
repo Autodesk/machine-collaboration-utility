@@ -94,7 +94,11 @@ class Bot {
       callbacks: {
         onenterstate: (event, from, to) => {
           this.logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
-          // this.app.io.emit(`stateChange`, to);
+          try {
+            this.app.io.emit(`updateBots`, this.app.context.bots.getBots());
+          } catch (ex) {
+            this.logger.error(`Update bot socket error`, ex);
+          }
         },
       },
     });
@@ -167,7 +171,6 @@ class Bot {
    */
   getBot() {
     return {
-      uuid: this.uuid,
       state: this.fsm.current,
       port: this.port,
       settings: this.settings,

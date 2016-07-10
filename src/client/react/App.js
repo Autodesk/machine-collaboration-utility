@@ -17,10 +17,11 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    try {
+    // Don't notice socket event on the server side
+    if (require('is-browser')) {
       this.socket = io();
-      this.socket.on('updateBots', (data) => {
-        // console.log('updating Bots', data);
+      this.socket.on('updateBots', (bots) => {
+        this.setState({ bots });
       });
       this.socket.on('updateFiles', (files) => {
         this.setState({ files });
@@ -28,8 +29,6 @@ export default class App extends React.Component {
       this.socket.on('updateJobs', (jobs) => {
         this.setState({ jobs });
       });
-    } catch (ex) {
-      // Not possible on server side
     }
   }
 
@@ -50,12 +49,12 @@ export default class App extends React.Component {
 
   render() {
     const dropzoneStyle = {
-      width: "100%",
-      height: "100%",
+      width: `100%`,
+      height: `100%`,
     };
     const childrenComponents = React.Children.map(this.props.children, child => {
       // mapping through all of the children components in order to inject hydraPrint app objects
-      return React.cloneElement(child, Object.assign({}, this.state, {dropzoneOpener: this.openDropzone}));
+      return React.cloneElement(child, Object.assign({}, this.state, { dropzoneOpener: this.openDropzone }));
     });
     return (
       <Dropzone
