@@ -17,9 +17,10 @@ const logger = new (winston.Logger)({
   ],
 });
 
-module.exports = function botTests() {
+module.exports = function botsTests() {
   describe('Bot unit test', function() {
-    let job, botId;
+    let job;
+    let botUuid;
 
     it('should create a virtual bot', async function (done) {
       try {
@@ -28,12 +29,11 @@ module.exports = function botTests() {
           uri: `http://localhost:9000/v1/bots/`,
           body: {
             model: `Virtual`,
-            botId: `virtual-test-bot-${new Date().getTime()}`,
           },
           json: true,
         };
         const initializeBotReply = await request(requestParams);
-        botId = initializeBotReply.data.settings.botId;
+        botUuid = initializeBotReply.data.settings.uuid;
         should(initializeBotReply.status).equal(201);
         should(initializeBotReply.query).equal(`Create Bot`);
         done();
@@ -46,7 +46,7 @@ module.exports = function botTests() {
       try {
         const requestParams = {
           method: `GET`,
-          uri: `http://localhost:9000/v1/bots/${botId}`,
+          uri: `http://localhost:9000/v1/bots/${botUuid}`,
           json: true,
         };
         await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
@@ -60,44 +60,18 @@ module.exports = function botTests() {
       }
     });
 
-    it('should fail to make a virtual bot if it conflicts with an existing botId', async function (done) {
-      try {
-        const requestParams = {
-          method: `POST`,
-          uri: `http://localhost:9000/v1/bots/`,
-          body: {
-            model: `Virtual`,
-            botId,
-          },
-          json: true,
-        };
-        let initializeBotReply;
-        try {
-          initializeBotReply = await request(requestParams);
-        } catch (ex) {
-          initializeBotReply = ex;
-        }
-        should(initializeBotReply.error.status).equal(500);
-        should(initializeBotReply.error.query).equal(`Create Bot`);
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    });
-
     it('should destroy the virtual bot', async function (done) {
       try {
         const requestParams = {
           method: `DELETE`,
-          uri: `http://localhost:9000/v1/bots`,
-          body: { botId },
+          uri: `http://localhost:9000/v1/bots/${botUuid}`,
           json: true,
         };
         const destroyBotReply = await request(requestParams);
 
         should(destroyBotReply.status).equal(200);
         should(destroyBotReply.query).equal(`Delete Bot`);
-        should(destroyBotReply.data).equal(`Bot "${botId}" successfully deleted`);
+        should(destroyBotReply.data).equal(`Bot "${botUuid}" successfully deleted`);
         done();
       } catch (ex) {
         logger.error(ex);
@@ -111,12 +85,12 @@ module.exports = function botTests() {
           uri: `http://localhost:9000/v1/bots/`,
           body: {
             model: `Virtual`,
-            botId,
+            botUuid,
           },
           json: true,
         };
         const initializeBotReply = await request(requestParams);
-        botId = initializeBotReply.data.settings.botId;
+        botUuid = initializeBotReply.data.settings.uuid;
         should(initializeBotReply.status).equal(201);
         should(initializeBotReply.query).equal(`Create Bot`);
         done();
@@ -125,29 +99,12 @@ module.exports = function botTests() {
       }
     });
 
-    it('should transition from detecting to ready, again', async function (done) {
-      try {
-        const requestParams = {
-          method: `GET`,
-          uri: `http://localhost:9000/v1/bots/${botId}`,
-          json: true,
-        };
-        await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
-        const getStatusReply = await request(requestParams);
-        should(getStatusReply.data.state).equal(`ready`);
-        should(getStatusReply.status).equal(200);
-        should(getStatusReply.query).equal(`Get Bot`);
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    });
-
     it('should connect', async function (done) {
+      await Promise.delay(config.virtualDelay); // Wait for virtual "detecting" event to complete
       try {
         const requestParams = {
           method: `POST`,
-          uri: `http://localhost:9000/v1/bots/${botId}`,
+          uri: `http://localhost:9000/v1/bots/${botUuid}`,
           body: { command: `connect` },
           json: true,
         };
@@ -166,7 +123,7 @@ module.exports = function botTests() {
         await Promise.delay(config.virtualDelay);
         const requestParams = {
           method: `GET`,
-          uri: `http://localhost:9000/v1/bots/${botId}`,
+          uri: `http://localhost:9000/v1/bots/${botUuid}`,
           json: true,
         };
         const getStatusReply = await request(requestParams);
@@ -201,7 +158,7 @@ module.exports = function botTests() {
           method: `POST`,
           uri: `http://localhost:9000/v1/jobs/`,
           body: {
-            botId,
+            botUuid,
             fileUuid: file.uuid,
           },
           json: true,
@@ -405,15 +362,14 @@ module.exports = function botTests() {
       try {
         const requestParams = {
           method: `DELETE`,
-          uri: `http://localhost:9000/v1/bots`,
-          body: { botId },
+          uri: `http://localhost:9000/v1/bots/${botUuid}`,
           json: true,
         };
         const destroyBotReply = await request(requestParams);
 
         should(destroyBotReply.status).equal(200);
         should(destroyBotReply.query).equal(`Delete Bot`);
-        should(destroyBotReply.data).equal(`Bot "${botId}" successfully deleted`);
+        should(destroyBotReply.data).equal(`Bot "${botUuid}" successfully deleted`);
         done();
       } catch (ex) {
         logger.error(ex);

@@ -140,11 +140,11 @@ class Bots {
   async createBot(inputSettings = {}) {
     // If the only bot object is a "Default Bot"
     // remove it once the other bot is successfully added
-    let defaultBot = undefined;
+    let defaultBotFlag = false;
     // TODO check this logic, need to find bot by its name or by its uuid
-    const defaultBot = this.findBotByName(`default`);
+    const defaultBot = this.findBotByName(`Default`);
     if (Object.entries(this.botList).length === 1 && defaultBot !== undefined) {
-      defaultBot = Object.entries(this.botList)[0][0];
+      defaultBotFlag = true;
     }
 
     // Load presets based on the model
@@ -155,17 +155,16 @@ class Bots {
     ) ?
     new this.botPresetList[`DefaultBot`](this.app) :
     new this.botPresetList[inputSettings.model](this.app);
-
     // Mixin all input settings into the bot object
     _.extend(botPresets.settings, inputSettings);
     const newBot = new Bot(this.app, botPresets);
 
     // Add the bot to the list
-    this.botList[newBot.uuid] = newBot;
+    this.botList[newBot.settings.uuid] = newBot;
 
     // Delete the default bot, if you successfully add the first "non default" bot
-    if (defaultBot !== undefined) {
-      delete this.botList[defaultBot.uuid];
+    if (defaultBotFlag) {
+      delete this.botList[defaultBot.settings.uuid];
     }
     return newBot;
   }
@@ -175,13 +174,11 @@ class Bots {
     if (bot === undefined) {
       throw `Bot "${uuid}" is undefined`;
     }
-
     switch (bot.connectionType) {
       case `usb`:
         const errorMessage = `Cannot delete bot of type ${bot.connectionType}`;
         this.logger.error(errorMessage);
         throw errorMessage;
-        break;
       default:
         // do nothing
         break;
@@ -259,24 +256,18 @@ class Bots {
   // allow the first connected bot to be address as `solo`
   // return the first connected bot
   soloBot() {
-    let soloBotId = undefined;
+    let uuid = undefined;
     for (const [botKey, bot] of Object.entries(this.botList)) {
       if (bot.fsm.current !== `unavailable`) {
-        soloBotId = bot;
+        uuid = bot.uuid;
         break;
       }
     }
-    if (soloBotId === undefined) {
+    if (uuid === undefined) {
       throw `No bot is currently available`;
     }
-    return soloBotId;
+    return uuid;
   }
-
-  // An old relic
-  // sanitizeStringForRouting(portName) {
-  //   // This replaces the "/" character with "_s_" and the ":" character with "_c_"
-  //   return portName.replace(/\//g, '_s_').replace(/:/g, '_c_');
-  // }
 }
 
 module.exports = Bots;

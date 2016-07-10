@@ -7,7 +7,6 @@ module.exports = class DefaultBot {
     this.settings = {
       name: `Default`,
       model: `DefaultBot`,
-      botId: `default`,
       jogXSpeed: `1000`,
       jogYSpeed: `2000`,
       jogZSpeed: `1000`,
@@ -20,8 +19,28 @@ module.exports = class DefaultBot {
       offsetY: `0`,
       offsetZ: `0`,
     };
+
     this.vid = undefined;
     this.pid = undefined;
     this.baudrate = undefined;
+
+    this.parkCommands = (that) => {
+      return {
+        code: 'G4 S1',
+        postCallback: () => {
+          that.fsm.parkDone();
+        },
+      };
+    };
+
+    this.unparkCommands = (that) => {
+      return {
+        code: 'G4 S1',
+        postCallback: () => {
+          that.fsm.unparkDone();
+        },
+      };
+    };
   }
+
 };

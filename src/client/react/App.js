@@ -20,7 +20,7 @@ export default class App extends React.Component {
     try {
       this.socket = io();
       this.socket.on('updateBots', (data) => {
-        console.log('updating Bots', data);
+        // console.log('updating Bots', data);
       });
       this.socket.on('updateFiles', (files) => {
         this.setState({ files });

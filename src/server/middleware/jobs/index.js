@@ -58,13 +58,15 @@ class Jobs {
     }
   }
 
-  async createPersistentJob(botId, fileUuid, jobUuid) {
-    // TODO add fileuuid handling
-    const jobObject = new Job(this.app, botId, fileUuid, jobUuid);
+  async createPersistentJob(botUuid, fileUuid, jobUuid) {
+    const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid);
     await jobObject.initialize();
     const jobJson = jobObject.getJob();
     const dbJob = await this.JobModel.create(jobJson);
+
+    // Hack, the job's id cannot be known until it is added to the database
     jobObject.id = dbJob.dataValues.id;
+
     this.jobList[dbJob.dataValues.uuid] = jobObject;
     this.logger.info('jobEvent', jobJson);
     // this.app.io.emit('jobEvent', jobJson);

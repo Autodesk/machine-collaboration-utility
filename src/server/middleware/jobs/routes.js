@@ -55,9 +55,9 @@ const createJob = (self) => {
       // custom UUID can be passed, but it's not necessary
       const uuid = ctx.request.body.uuid;
 
-      const botId = ctx.request.body.botId;
-      if (botId === undefined) {
-        const errorMessage = `botId is not defined`;
+      const botUuid = ctx.request.body.botUuid;
+      if (botUuid === undefined) {
+        const errorMessage = `botUuid is not defined`;
         throw errorMessage;
       }
 
@@ -71,8 +71,6 @@ const createJob = (self) => {
         throw `File not found`;
       }
 
-      const startJob = String(ctx.request.body.startJob) === `true`;
-
       // Do not allow for duplicate uuid's.
       // If you pass a uuid, you are deleting the existing job
       if (self.jobList[uuid] !== undefined) {
@@ -81,10 +79,13 @@ const createJob = (self) => {
       }
 
       // Create and save the job object
-      const jobObject = await self.createPersistentJob(botId, fileUuid, uuid);
+      const jobObject = await self.createPersistentJob(botUuid, fileUuid, uuid);
+
+      const startJob = String(ctx.request.body.startJob) === `true`;
       if (startJob) {
         await jobObject.start();
       }
+
       const jobJson = jobObject.getJob();
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, jobJson);

@@ -80,6 +80,8 @@ class KoaApp {
         const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);
         await conductor.initialize();
       }
+      // Update the database tables
+      await this.app.context.db.sync({ force: true });
 
       // Set up Koa to match any routes to the React App. If a route exists, render it.
       router.get('*', (ctx) => {

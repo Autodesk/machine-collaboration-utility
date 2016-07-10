@@ -45,7 +45,7 @@ module.exports = function conductorTests() {
       try {
         const requestParams = {
           body: {
-            botId: -1,
+            botUuid: -1,
             fileUuid,
           },
           method: `POST`,
@@ -75,7 +75,6 @@ module.exports = function conductorTests() {
           json: true,
         };
         const conductorCommandReply = await request(requestParams);
-        console.log('conductor command reply', conductorCommandReply);
         should(conductorCommandReply.status).equal(200);
         should(conductorCommandReply.query).equal(`Process Conductor Command`);
         should(
@@ -105,28 +104,28 @@ module.exports = function conductorTests() {
         logger.error(ex);
       }
     });
-    // it('should start the job', async function (done) {
-    //   try {
-    //     this.timeout(10000);
-    //     const setFileToJobParams = {
-    //       method: `POST`,
-    //       uri: `http://localhost:9000/v1/jobs/${jobUuid}`,
-    //       body: {
-    //         command: `start`,
-    //       },
-    //       json: true,
-    //     };
-    //     try {
-    //       await request(setFileToJobParams);
-    //     } catch (ex) {
-    //       console.log('flailboat', ex);
-    //     }
-    //     await Promise.delay(9000);
-    //     done();
-    //   } catch (ex) {
-    //     logger.error(ex);
-    //   }
-    // });
+    it('should start the job', async function (done) {
+      try {
+        this.timeout(10000);
+        const setFileToJobParams = {
+          method: `POST`,
+          uri: `http://localhost:9000/v1/jobs/${jobUuid}`,
+          body: {
+            command: `start`,
+          },
+          json: true,
+        };
+        try {
+          await request(setFileToJobParams);
+        } catch (ex) {
+          console.log('flailboat', ex);
+        }
+        await Promise.delay(9000);
+        done();
+      } catch (ex) {
+        logger.error(ex);
+      }
+    });
     it('should see a populated metajob', async function (done) {
       try {
         this.timeout(10000);

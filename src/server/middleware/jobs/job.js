@@ -5,10 +5,10 @@ const Stopwatch = require(`timer-stopwatch`);
 const jobModel = require(`./model`);
 
 class Job {
-  constructor(app, botId, fileUuid, jobUuid, initialState, id) {
+  constructor(app, botUuid, fileUuid, jobUuid, initialState, id) {
     this.app = app;
     this.logger = this.app.context.logger;
-    this.botId = botId;
+    this.botUuid = botUuid;
     this.fileUuid = fileUuid;
     this.uuid = jobUuid;
     this.initialState = initialState;
@@ -18,8 +18,8 @@ class Job {
 
   async initialize() {
     const self = this;
-    if (this.botId === undefined) {
-      throw `botId is not defined`;
+    if (this.botUuid === undefined) {
+      throw `"botUuid" is not defined`;
     }
 
     const cancelable = ['running', 'paused'];
@@ -53,7 +53,7 @@ class Job {
       ],
       callbacks: {
         onenterstate: async (event, from, to) => {
-          self.logger.info(`Bot ${self.botId} Job ${self.uuid} event ${event}: Transitioning from ${from} to ${to}.`);
+          self.logger.info(`Bot ${self.botUuid} Job ${self.uuid} event ${event}: Transitioning from ${from} to ${to}.`);
           if (from !== `none`) {
             if (event.indexOf('Done') !== -1) {
               try {
@@ -128,7 +128,7 @@ class Job {
     const started = !!this.started ? this.started : null;
     const elapsed = !!this.started ? this.stopwatch.ms || this.elapsed : null;
     return {
-      botId: this.botId,
+      botUuid: this.botUuid,
       uuid: this.uuid,
       state,
       fileUuid: this.fileUuid === undefined ? false : this.fileUuid,
@@ -145,8 +145,9 @@ class Job {
     try {
       await this.fsm.start();
 
-      // Register conductor as a botId of -1
-      if (Number(this.botId) === -1) {
+      /// TODO fix this conductor logic
+      // Register conductor as a botUuid of -1
+      if (Number(this.botUuid) === -1) {
         await this.app.context.conductor.startJob(this);
       } else {
         try {
@@ -171,11 +172,11 @@ class Job {
   async pause() {
     try {
       await this.fsm.pause();
-      // Register conductor as a botId of -1
-      if (Number(this.botId) === -1) {
+      // Register conductor as a botUuid of -1
+      if (Number(this.botUuid) === -1) {
         await this.app.context.conductor.pauseJob(this);
       } else {
-        await this.app.context.bots.botList[this.botId].pauseJob();
+        await this.app.context.bots.botList[this.botUuid].pauseJob();
       }
       await this.stopwatch.stop();
       await this.fsm.pauseDone();
@@ -192,11 +193,11 @@ class Job {
   async resume() {
     try {
       this.fsm.resume();
-      // Register conductor as a botId of -1
-      if (Number(this.botId) === -1) {
+      // Register conductor as a botUuid of -1
+      if (Number(this.botUuid) === -1) {
         await this.app.context.conductor.resumeJob(this);
       } else {
-        await this.app.context.bots.botList[this.botId].resumeJob(this);
+        await this.app.context.bots.botList[this.botUuid].resumeJob(this);
       }
       await this.stopwatch.start();
       this.fsm.resumeDone();
@@ -213,11 +214,11 @@ class Job {
   async cancel() {
     try {
       await this.fsm.cancel();
-      // Register conductor as a botId of -1
-      if (Number(this.botId) === -1) {
+      // Register conductor as a botUuid of -1
+      if (Number(this.botUuid) === -1) {
         await this.app.context.conductor.stopJob(this);
       } else {
-        await this.app.context.bots.botList[this.botId].stopJob(this);
+        await this.app.context.bots.botList[this.botUuid].stopJob(this);
       }
       await this.stopwatch.stop();
       await this.fsm.cancelDone();

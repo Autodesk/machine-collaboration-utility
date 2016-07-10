@@ -48,16 +48,16 @@ const handleBotUpdates = (self) => {
   const requestDescription = `Handle Bot Updates`;
   self.router.post(`${self.routeEndpoint}/update`, async (ctx) => {
     try {
-      const botId = ctx.request.body.botId;
-      if (botId === undefined) {
-        throw `Command is undefined.`;
+      const botUuid = ctx.request.body.botUuid;
+      if (botUuid === undefined) {
+        throw `"botUuid" is undefined.`;
       }
 
       const jobUuid = ctx.request.body.jobUuid;
       if (jobUuid === undefined) {
         throw `jobUuid is undefined.`;
       }
-      const reply = await self.handleBotUpdates(botId, jobUuid);
+      const reply = await self.handleBotUpdates(botUuid, jobUuid);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {

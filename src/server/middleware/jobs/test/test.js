@@ -16,10 +16,10 @@ const logger = new (winston.Logger)({
   ],
 });
 
-module.exports = function toDoListTests() {
+module.exports = function jobsTests() {
   let job;
   let nJobs;
-  let botId;
+  let botUuid;
   let fileUuid;
 
   describe('Jobs unit test', function () {
@@ -29,12 +29,11 @@ module.exports = function toDoListTests() {
         uri: `http://localhost:9000/v1/bots/`,
         body: {
           model: `Virtual`,
-          botId: `virtual-test-bot`,
         },
         json: true,
       };
       const initializeBotReply = await request(requestParams);
-      botId = initializeBotReply.data.settings.botId;
+      botUuid = initializeBotReply.data.settings.uuid;
       should(initializeBotReply.status).equal(201);
       should(initializeBotReply.query).equal(`Create Bot`);
       done();
@@ -53,25 +52,30 @@ module.exports = function toDoListTests() {
       };
       const getFilesReply = await request(fileUploadParams);
       fileUuid = getFilesReply.data[0].uuid;
+      done();
     });
 
     it('should create a job', async function (done) {
-      const requestParams = {
-        body: {
-          botId,
-          fileUuid,
-        },
-        method: `POST`,
-        uri: `http://localhost:9000/v1/jobs/`,
-        json: true,
-      };
-      const jobCreateReply = await request(requestParams);
-      job = jobCreateReply.data;
-      should(!!job.uuid);
-      should(!!job.state);
-      should(jobCreateReply.status).equal(201);
-      should(jobCreateReply.query).equal(`Create Job`);
-      done();
+      try {
+        const requestParams = {
+          body: {
+            botUuid,
+            fileUuid,
+          },
+          method: `POST`,
+          uri: `http://localhost:9000/v1/jobs/`,
+          json: true,
+        };
+        const jobCreateReply = await request(requestParams);
+        job = jobCreateReply.data;
+        should(!!job.uuid);
+        should(!!job.state);
+        should(jobCreateReply.status).equal(201);
+        should(jobCreateReply.query).equal(`Create Job`);
+        done();
+      } catch (ex) {
+        logger.error(ex);
+      }
     });
 
     it('should have a job state of "ready"', async function (done) {

@@ -26,12 +26,12 @@ const deleteAllBots = (self) => {
   const requestDescription = `Delete All Bots`;
   self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
     try {
-      for (const botId in self.botList) {
-        if (self.botList.hasOwnProperty(botId)) {
+      for (const uuid in self.botList) {
+        if (self.botList.hasOwnProperty(uuid)) {
           try {
-            await self.deleteBot(botId);
+            await self.deleteBot(uuid);
           } catch (ex) {
-            self.logger.error(`Delete bot ${botId} error: ${ex}`);
+            self.logger.error(`Delete bot ${uuid} error: ${ex}`);
           }
         }
       }
@@ -85,7 +85,7 @@ const updateBot = (self) => {
 
       const bot = self.botList[uuid];
       if (bot === undefined) {
-        throw `Bot ${botId} can not be found`;
+        throw `Bot ${uuid} can not be found`;
       }
 
       const botSettings = ctx.request.body;

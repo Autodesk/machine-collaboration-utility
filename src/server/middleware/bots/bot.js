@@ -31,7 +31,6 @@ class Bot {
     this.app = app;
     this.config = app.context.config;
     this.logger = app.context.logger;
-    this.uuid = uuidGenerator.v1();
 
     this.queue = undefined;
     this.currentJob = undefined;
@@ -46,12 +45,12 @@ class Bot {
       if (
         presets.hasOwnProperty(presetKey) &&
         presetKey !== `app` &&
-        presetKey !== `logger` &&
-        presetKey !== `uuid`
+        presetKey !== `logger`
       ) {
         this[presetKey] = presets[presetKey];
       }
     }
+    this.settings.uuid = uuidGenerator.v1();
 
     this.fsm = StateMachine.create({
       initial: 'unavailable',
@@ -116,13 +115,11 @@ class Bot {
     switch (this.connectionType) {
       case `http`:
       case `telnet`:
-        // TODO FIX THIS
-        const hackedPortName = this.settings.botId;
-        // const hackedPortName = `http://Escher2-${this.settings.botId.split('Escher2Conductor-')[1].split('.')[0]}.local:9000/v1/bots/solo`;
-        this.setPort(hackedPortName);
-        break;
       case `virtual`:
-        this.setPort(`http://localhost:9000/v1/bots/${this.app.context.bots.sanitizeStringForRouting(this.settings.botId)}`);
+        // TODO FIX THIS
+        // const hackedPortName = this.settings.botId;
+        // const hackedPortName = `http://Escher2-${this.settings.botId.split('Escher2Conductor-')[1].split('.')[0]}.local:9000/v1/bots/solo`;
+        this.setPort(`http://localhost:9000/v1/bots/${this.uuid}`);
         break;
       default:
         // do nothing
@@ -173,10 +170,11 @@ class Bot {
    */
   getBot() {
     return {
+      uuid: this.uuid,
       state: this.fsm.current,
       port: this.port,
       settings: this.settings,
-      subscribers: this.subscribers
+      subscribers: this.subscribers,
     };
   }
 
@@ -203,7 +201,7 @@ class Bot {
 
     const dbBots = await this.app.context.bots.BotModel.findAll();
     const dbBot = _.find(dbBots, (bot) => {
-      return bot.dataValues.botId === this.settings.botId;
+      return bot.dataValues.uuid === this.settings.uuid;
     });
 
     await dbBot.update(settingsToUpdate);
@@ -311,8 +309,9 @@ class Bot {
         command = self.addSpeedMultiplier(command);
         command = self.addFeedMultiplier(command);
 
+        // Add an extra G4 P0 to pad the hydra-print buffer
+        // TODO handle the summation of buffers here instead of on the composer side
         if (command.indexOf('G4 P0') !== -1) {
-          console.log('bonus G4!!!');
           self.queue.queueCommands({
             code: command,
           });
@@ -345,7 +344,7 @@ class Bot {
               method: `POST`,
               uri: subscriber,
               body: {
-                botId: self.settings.botId,
+                botUuid: self.settings.uuid,
                 jobUuid: self.currentJob.uuid,
               },
               json: true,
@@ -506,7 +505,7 @@ class Bot {
 
   async park() {
     try {
-      if (this.parkCommands === undefined) {
+      if (typeof this.parkCommands !== `function`) {
         const errorMessage = `Park Commands are not defined`;
         throw errorMessage;
       }
@@ -520,7 +519,7 @@ class Bot {
 
   async unpark(xEntry, dry) {
     try {
-      if (this.unparkCommands === undefined) {
+      if (typeof this.unparkCommands !== `function`) {
         const errorMessage = `Unpark Commands are not defined`;
         throw errorMessage;
       }

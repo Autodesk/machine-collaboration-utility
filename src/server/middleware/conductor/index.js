@@ -108,44 +108,35 @@ class Conductor {
     for (let playerX = 0; playerX < this.app.context.config.conductor.n_players[0]; playerX++) {
       for (let playerY = 0; playerY < this.app.context.config.conductor.n_players[1]; playerY++) {
         // Check if a bot exists with that end point
-        let endpoint;
         const botModel = this.app.context.config.conductor.botModel;
         const botName = `${botModel}-${playerX}-${playerY}`;
-        switch (botModel) {
-          case `http`:
-            endpoint = `http://${botName}.local:9000/v1/bots/solo`;
-            break;
-          case `Virtual`:
-            const sanitizedId = this.app.context.bots.sanitizeStringForRouting(botName);
-            endpoint = `http://localhost:${process.env.PORT}/v1/bots/${sanitizedId}`;
-            break;
-          default:
-            endpoint = `http://${botName}.local:9000/v1/bots/solo`;
-        }
         const bots = this.app.context.bots.getBots();
         let unique = true;
-        for (const bot in bots) {
-          if (bots.hasOwnProperty(bot)) {
-            if (bots[bot].botId === endpoint) {
-              bots[bot].endpoint = endpoint;
-              this.players[this.app.context.bots.sanitizeStringForRouting(botName)] = bots[bot];
-              unique = false;
-              break;
-            }
+        for (const botKey in bots) {
+          if (bots[botKey].settings.name === botName) {
+            unique = false;
+            break;
           }
         }
 
-        // If a bot doesn't exist yet with that endpoint, create it
-        const sanitizedBotId = this.app.context.bots.sanitizeStringForRouting(endpoint);
         if (unique) {
-          const newBot = await this.app.context.bots.createBot(
-            {
-              botId: sanitizedBotId,
-              name: `${botModel}-${playerX}-${playerY}`,
-              model: this.app.context.config.conductor.botModel,
-            }
-          );
-          this.players[sanitizedBotId] = newBot;
+          const newBot = await this.app.context.bots.createBot({
+            name: `${botModel}-${playerX}-${playerY}`,
+            model: this.app.context.config.conductor.botModel,
+          });
+          let endpoint;
+          switch (botModel) {
+            case `http`:
+              endpoint = `http://${botName}.local:9000/v1/bots/solo`;
+              break;
+            case `Virtual`:
+              endpoint = `http://localhost:${process.env.PORT}/v1/bots/${newBot.settings.uuid}`;
+              break;
+            default:
+              endpoint = `http://${botName}.local:9000/v1/bots/solo`;
+          }
+          newBot.setPort(endpoint);
+          this.players[newBot.settings.uuid] = newBot;
         }
       }
     }
@@ -154,26 +145,22 @@ class Conductor {
     // This will be used to keep track of the metajob's progress
 
     // We will also add this conductor as a subscribed endpoint for the players
-    for (const playerKey in this.players) {
-      if (this.players.hasOwnProperty(playerKey)) {
-        const addSubscriberParams = {
-          method: `POST`,
-          uri: `http://localhost:${process.env.PORT}/v1/bots/${playerKey}/addSubscriber`,
-          body: {
-            subscriberEndpoint: `http://localhost:${process.env.PORT}/v1/conductor/update`,
-            // subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/conductor/update`,
-          },
-          json: true,
-        };
-        try {
-          const subscribeReply = await request(addSubscriberParams);
-        } catch (ex) {
-          this.logger.error(`Add subscriber failed`, ex);
-        }
-        // Add a metajobQueue array
-        this.players[playerKey].metajobQueue = [];
-        this.players[playerKey].currentJobIndex = 0;
+    for (const [playerKey, player] of Object.entries(this.players)) {
+      const addSubscriberParams = {
+        method: `POST`,
+        uri: player.port,
+        body: {
+          command: `addSubscriber`,
+          subscriberEndpoint: `http://localhost:${process.env.PORT}/v1/conductor/update`,
+        },
+        json: true,
+      };
+      try {
+        await request(addSubscriberParams);
+      } catch (ex) {
+        this.logger.error(`Add subscriber failed`, ex);
       }
+      this.players[playerKey].metajobQueue = [];
     }
   }
 
@@ -248,13 +235,13 @@ class Conductor {
     return players;
   }
 
-  async handleBotUpdates(botId, jobUuid) {
-    const player = this.players[botId];
+  async handleBotUpdates(botUuid, jobUuid) {
+    const player = this.players[botUuid];
     if (player !== undefined) {
-      this.conductorLogger.info(`${botId}, Compleeeeted ${jobUuid}`);
+      this.conductorLogger.info(`${botUuid}, Compleeeeted ${jobUuid}`);
       //await this.scanForNextJob();
     } else {
-      this.logger.error(`Player ${botId} is undefined`);
+      this.logger.error(`Player ${botUuid} is undefined`);
     }
   }
 
@@ -278,17 +265,23 @@ class Conductor {
           this.metajobCopy = JSON.parse(JSON.stringify(this.metajob));
           await Promise.map(Object.entries(this.metajob), async ([metajobPlayerKey, metajobPlayer]) => {
             // find the bot that corresponds with the metajob player we're currently populating
-            let botId;
+            let botUuid;
             const indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`;
-            for (const playerKey in this.players) {
-              if (this.players.hasOwnProperty(playerKey)) {
-                const player = this.players[playerKey];
-                if (player.settings.botId.indexOf(indexKey) !== -1) {
-                  botId = player.settings.botId;
-                  break;
-                }
+            for (const [playerKey, player] of Object.entries(this.players)) {
+              if (player.settings.name.indexOf(indexKey) !== -1) {
+                botUuid = player.settings.uuid;
+                break;
               }
             }
+            // for (const playerKey in this.players) {
+            //   if (this.players.hasOwnProperty(playerKey)) {
+            //     const player = this.players[playerKey];
+            //     if (player.settings.name.indexOf(indexKey) !== -1) {
+            //       botUuid = player.settings.uuid;
+            //       break;
+            //     }
+            //   }
+            // }
 
             await Promise.map(metajobPlayer.jobs, async(playerJob) => {
               let fileUuid;
@@ -312,14 +305,13 @@ class Conductor {
                 self.logger.error('upload file error', ex);
               }
               fileUuid = uploadFileReply.data[0].uuid;
-
               // create the job
               const jobParams = {
                 method: `POST`,
                 uri: `http://localhost:${process.env.PORT}/v1/jobs`,
                 body: {
-                  botId,
                   uuid: playerJob.uuid,
+                  botUuid,
                   fileUuid,
                 },
                 json: true,
@@ -333,10 +325,10 @@ class Conductor {
               jobUuid = createJobReply.data.uuid;
               // add the job to a list
               // the array order from metajob must be maintained
-              playerJob.botId = botId;
+              playerJob.botUuid = botUuid;
               playerJob.state = this.app.context.jobs.jobList[jobUuid].fsm.current;
             }, { concurrency: 5 });
-            this.players[botId].metajobQueue = metajobPlayer.jobs;
+            this.players[botUuid].metajobQueue = metajobPlayer.jobs;
           }, { concurrency: 5 });
           resolve();
         });
@@ -391,7 +383,7 @@ class Conductor {
           }
 
           // If the current bot is still doing something else, let it go
-          const bot = this.app.context.bots.botList[currentJob.botId];
+          const bot = this.app.context.bots.botList[currentJob.botUuid];
           // go through every precursor to the current job
           if (bot.fsm.current === `parked`) {
             bot.unpark(currentJob.x_entry, currentJob.dry);
@@ -410,7 +402,7 @@ class Conductor {
             }
             // flag noPrecursors if any of the jobs aren't complete yet
             if (job.fsm.current !== `complete`) {
-              this.logger.info(`${currentJob.botId} job ${currentJob.uuid} won't start because job ${job.uuid} is ${job.fsm.current}`);
+              this.logger.info(`${currentJob.botUuid} job ${currentJob.uuid} won't start because job ${job.uuid} is ${job.fsm.current}`);
               noPrecursors = false;
             }
           }
@@ -422,7 +414,7 @@ class Conductor {
               }
               await Promise.delay(100);
               await jobToStart.start();
-              this.conductorLogger.info(`${bot.settings.botId}, Just started ${currentJob.uuid}`);
+              this.conductorLogger.info(`${bot.settings.botUuid}, Just started ${currentJob.uuid}`);
               // If the job starts without any issues
               // remove the first job from the list
               player.metajobQueue.shift();

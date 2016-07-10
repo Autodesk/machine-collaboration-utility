@@ -2,12 +2,11 @@ const Sequelize = require('sequelize');
 
 module.exports = async (app) => {
   // Define the model for a job
-  const Bot = await app.context.db.define('Bot', {
+  const BotModel = await app.context.db.define('Bot', {
     model: Sequelize.STRING,
     name: Sequelize.STRING,
     uuid: Sequelize.STRING,
     // The identifier is either an ip address endpoint or a pnpid
-    botId: Sequelize.STRING,
     jogXSpeed: Sequelize.STRING,
     jogYSpeed: Sequelize.STRING,
     jogZSpeed: Sequelize.STRING,
@@ -21,7 +20,5 @@ module.exports = async (app) => {
     offsetZ: Sequelize.STRING,
   });
 
-  // Update the database tables to contain 'Bot'
-  await app.context.db.sync({force:true});
-  return Bot;
+  return BotModel;
 };
