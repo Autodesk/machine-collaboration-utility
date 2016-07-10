@@ -24,20 +24,54 @@ module.exports = class DefaultBot {
     this.pid = undefined;
     this.baudrate = undefined;
 
-    this.parkCommands = (that) => {
+    this.resumeCommands = (self) => {
       return {
+        preCallback: async () => {
+          await self.fsm.start();
+          await self.queue.resume();
+        },
         code: 'G4 S1',
-        postCallback: () => {
-          that.fsm.parkDone();
+        postCallback: async () => {
+          await self.lr.resume();
+          await self.fsm.startDone();
         },
       };
     };
 
-    this.unparkCommands = (that) => {
+    this.pauseCommands = (self) => {
       return {
         code: 'G4 S1',
-        postCallback: () => {
-          that.fsm.unparkDone();
+        postCallback: async () => {
+          self.queue.pause();
+          await self.fsm.stopDone();
+        },
+      };
+    };
+
+    this.cancelCommands = (self) => {
+      return {
+        code: 'G4 S1',
+        postCallback: async () => {
+          self.queue.pause();
+          await self.fsm.stopDone();
+        },
+      };
+    };
+
+    this.parkCommands = (self) => {
+      return {
+        code: 'G4 S1',
+        postCallback: async () => {
+          await self.fsm.parkDone();
+        },
+      };
+    };
+
+    this.unparkCommands = (self) => {
+      return {
+        code: 'G4 S1',
+        postCallback: async () => {
+          await self.fsm.unparkDone();
         },
       };
     };

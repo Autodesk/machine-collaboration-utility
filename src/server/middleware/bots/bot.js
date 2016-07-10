@@ -116,9 +116,6 @@ class Bot {
       case `http`:
       case `telnet`:
       case `virtual`:
-        // TODO FIX THIS
-        // const hackedPortName = this.settings.botId;
-        // const hackedPortName = `http://Escher2-${this.settings.botId.split('Escher2Conductor-')[1].split('.')[0]}.local:9000/v1/bots/solo`;
         this.setPort(`http://localhost:9000/v1/bots/${this.uuid}`);
         break;
       default:
@@ -385,8 +382,7 @@ class Bot {
     if (this.fsm.current !== `connected`) {
       try {
         await this.fsm.stop();
-        await this.queue.pause();
-        await this.fsm.stopDone();
+        this.queue.queueCommands(this.pauseCommands(this));
       } catch (ex) {
         const errorMessage = `Bot pause error ${ex}`;
         this.logger.error(errorMessage);
@@ -397,10 +393,7 @@ class Bot {
 
   async resumeJob() {
     if (this.fsm.current !== `processingJob`) {
-      await this.fsm.start();
-      await this.queue.resume();
-      await this.lr.resume();
-      await this.fsm.startDone();
+      this.queue.queueCommands(this.resumeCommands(this));
     }
   }
 
@@ -410,7 +403,7 @@ class Bot {
       await this.lr.close();
       this.lr = undefined;
       this.queue.clear();
-      this.queue.queueCommands(this.stopCommands);
+      this.queue.queueCommands(this.stopCommands(this));
       await this.fsm.stopDone();
     }
   }
