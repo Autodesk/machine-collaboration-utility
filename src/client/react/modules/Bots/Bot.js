@@ -2,6 +2,8 @@ import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import request from 'superagent';
 
+import JogPanel from './JogPanel';
+
 export default class Bot extends React.Component {
   constructor(props) {
     super(props);
@@ -10,14 +12,14 @@ export default class Bot extends React.Component {
   }
 
   connect() {
-    request.post(`/v1${this.props.bot.port.split('v1')[1]}`)
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
     .send({ command: `connect` })
     .set('Accept', 'application/json')
     .end();
   }
 
   disconnect() {
-    request.post(`/v1${this.props.bot.port.split('v1')[1]}`)
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
     .send({ command: `disconnect` })
     .set('Accept', 'application/json')
     .end();
@@ -41,6 +43,7 @@ export default class Bot extends React.Component {
         {this.renderConnectButton()}
         <div>State: {this.props.bot.state}</div>
         <div>Port: {this.props.bot.port}</div>
+        <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
       </div>
     );
   }

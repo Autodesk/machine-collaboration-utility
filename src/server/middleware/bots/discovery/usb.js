@@ -22,8 +22,7 @@ class UsbDiscovery {
       await Promise.delay(100);
       SerialPort.list((err, ports) => {
         // Compare every available port against every known port
-        for (let i = 0; i < ports.length; i++) {
-          const port = ports[i];
+        for (const port of ports) {
           // Ignore ports with undefined vid pids
           if (port.vendorId !== undefined && port.productId !== undefined) {
             // If the port isn't on our list of known ports, then we need to add it
@@ -52,6 +51,7 @@ class UsbDiscovery {
                 port.productId !== undefined
               );
             });
+
             // If the listedPort isn't in the serial port's available ports
             // we know that that port was removed
             // Now do all the steps to remove it
@@ -61,12 +61,11 @@ class UsbDiscovery {
               });
               if (removedBot !== undefined) {
                 portsToRemove.push(portKey);
-                await removedBot.unplug();
+                await removedBot.commands.unplug(removedBot);
                 // If we have a generic usb connection and not
                 // a persistent pnpid connection, then delete it
-                const portUniqueIdentifier = self.app.context.bots.sanitizeStringForRouting(removedBot.port);
-                if (self.app.context.bots.botList[portUniqueIdentifier] !== undefined) {
-                  delete self.app.context.bots.botList[portUniqueIdentifier];
+                if (self.app.context.bots.botList[removedBot.settings.uuid] !== undefined) {
+                  delete self.app.context.bots.botList[removedBot.settings.uuid];
                 }
               }
             }
@@ -81,8 +80,7 @@ class UsbDiscovery {
 
     // Scan through all known serial ports and check if any of them are bots
     SerialPort.list((err, ports) => {
-      for (let i = 0; i < ports.length; i++) {
-        const port = ports[i];
+      for (const port of ports) {
         if (port.vendorId !== undefined && port.productId !== undefined) {
           // Add each known serial port to the list
           // Even if we don't want to use a ports, we need to add it to a list of known ports
@@ -100,19 +98,12 @@ class UsbDiscovery {
     const pid = parseInt(port.productId, 16);
 
     for (const botPresetKey in this.botPresetList) {
-      const BotPresetsClass = this.botPresetList[botPresetKey];
+      const botPresets = new this.botPresetList[botPresetKey](this.app);
       if (vid === botPresets.vid && pid === botPresets.pid) {
         // Pass the detected preset to populate new settings
-        const detectedBotPresets = await this.checkForPersistentSettings(port, BotPresetsClass);
-        const botObject = new Bot(this.app, detectedBotPresets);
+        const detectedBotPresets = await this.checkForPersistentSettings(port, botPresets);
+        const botObject = await this.app.context.bots.createBot(detectedBotPresets.settings);
         botObject.setPort(port.comName);
-        let cleanUniqueIdentifier;
-        if (botObject.settings.botId === `default`) {
-          cleanUniqueIdentifier = this.app.context.bots.sanitizeStringForRouting(botObject.port);
-        } else {
-          cleanUniqueIdentifier = this.app.context.bots.sanitizeStringForRouting(botObject.settings.botId);
-        }
-        this.app.context.bots.botList[cleanUniqueIdentifier] = botObject;
         botObject.detect();
       }
     }
@@ -120,7 +111,7 @@ class UsbDiscovery {
 
   // compare the bot's pnpId with all of the bots in our database
   // if a pnpId exists, lost the bot with those settings, otherwise pull from a generic bot
-  async checkForPersistentSettings(port, BotPresetsClass) {
+  async checkForPersistentSettings(port, botPresets) {
     let foundPresets = undefined;
     const availableBots = await this.app.context.bots.BotModel.findAll();
     const savedDbProfile = availableBots.find((bot) => {
@@ -133,7 +124,7 @@ class UsbDiscovery {
     } else {
       // If pnpid or serial number, need to add it to the database
       // else set port to port
-      foundPresets = new BotPresetsClass(this.app);
+      foundPresets = botPresets;
       if (port.pnpId !== undefined) {
         foundPresets.settings.botId = port.pnpId;
       }

@@ -36,8 +36,8 @@ class Bot {
     this.currentJob = undefined;
     this.lr = undefined; // buffered file line reader
     this.currentLine = undefined;
-
     this.subscribers = [];
+    this.commands = {};
 
     // Mixin the presets to the bot object
     // except for the app and logger
@@ -47,7 +47,13 @@ class Bot {
         presetKey !== `app` &&
         presetKey !== `logger`
       ) {
-        this[presetKey] = presets[presetKey];
+        if (presetKey === `commands`) {
+          for (const [commandKey, command] of Object.entries(presets[presetKey])) {
+            this[presetKey][commandKey] = command;
+          }
+        } else {
+          this[presetKey] = presets[presetKey];
+        }
       }
     }
     this.settings.uuid = uuidGenerator.v1();
@@ -229,46 +235,12 @@ class Bot {
    * "done" or "fail" events and corresponding state transitions
    */
   async processCommand(command, params) {
-    switch (command) {
-      // Connect the bot via it's queue's executor
-      case `connect`:
-        this.connect();
-        return this.getBot();
-
-      // Disconnect the bot via it's queue's executor
-      case `disconnect`:
-        this.disconnect();
-        return this.getBot();
-
-      // Disconnect the bot via it's queue's executor
-      case `park`:
-        this.park();
-        return this.getBot();
-
-      // Disconnect the bot via it's queue's executor
-      case `unpark`:
-        this.unpark();
-        return this.getBot();
-
-      case `addSubscriber`:
-        if (params.subscriberEndpoint === undefined) {
-          throw `"subscriberEndpoint" is not defined`;
-        }
-        return await this.addBotSubscriber(params.subscriberEndpoint);
-
-      case `processGcode`:
-        //do something
-        break;
-
-      case `streamGcode`:
-        // do something
-        break;
-
-      // Throw out any bogus command requests
-      default:
-        const errorMessage = `Command "${command}" is not supported.`;
-        throw errorMessage;
+    console.log('processing a command', command, params);
+    if (this.commands[command] === undefined) {
+      throw `Command ${command} not supported.`;
     }
+    this.commands[command](this, params);
+    return this.getBot();
   }
 
   // In order to start processing a job, the job's file is opened and then
@@ -385,7 +357,7 @@ class Bot {
     if (this.fsm.current !== `connected`) {
       try {
         await this.fsm.stop();
-        this.queue.queueCommands(this.pauseCommands(this));
+        this.queue.queueCommands(this.commands.pause(this));
       } catch (ex) {
         const errorMessage = `Bot pause error ${ex}`;
         this.logger.error(errorMessage);
@@ -396,7 +368,7 @@ class Bot {
 
   async resumeJob() {
     if (this.fsm.current !== `processingJob`) {
-      this.queue.queueCommands(this.resumeCommands(this));
+      this.queue.queueCommands(this.commands.resume(this));
     }
   }
 
@@ -406,7 +378,7 @@ class Bot {
       await this.lr.close();
       this.lr = undefined;
       this.queue.clear();
-      this.queue.queueCommands(this.stopCommands(this));
+      this.queue.queueCommands(this.commands.stop(this));
       await this.fsm.stopDone();
     }
   }
@@ -466,66 +438,34 @@ class Bot {
     }
   }
 
-  async unplug() {
-    this.device = undefined;
-    await this.fsm.unplug();
-  }
 
-  async connect() {
-    try {
-      this.fsm.connect();
-      this.queue.queueCommands({
-        open: true,
-        postCallback: () => {
-          this.fsm.connectDone();
-        },
-      });
-    } catch (ex) {
-      this.fsm.connectFail();
-    }
-  }
-
-  async disconnect() {
-    try {
-      this.fsm.disconnect();
-      this.queue.queueCommands({
-        close: true,
-        postCallback: () => {
-          this.fsm.disconnectDone();
-        },
-      });
-    } catch (ex) {
-      this.fsm.disconnectFail();
-    }
-  }
-
-  async park() {
-    try {
-      if (typeof this.parkCommands !== `function`) {
-        const errorMessage = `Park Commands are not defined`;
-        throw errorMessage;
-      }
-      this.fsm.park();
-      this.queue.queueCommands(this.parkCommands(this));
-    } catch (ex) {
-      this.logger.error(ex);
-      this.fsm.parkFail();
-    }
-  }
-
-  async unpark(xEntry, dry) {
-    try {
-      if (typeof this.unparkCommands !== `function`) {
-        const errorMessage = `Unpark Commands are not defined`;
-        throw errorMessage;
-      }
-      this.fsm.unpark();
-      this.queue.queueCommands(this.unparkCommands(this, xEntry, String(dry)));
-    } catch (ex) {
-      this.logger.error(ex);
-      this.fsm.unparkFail();
-    }
-  }
+  // async park() {
+  //   try {
+  //     if (typeof this.parkCommands !== `function`) {
+  //       const errorMessage = `Park Commands are not defined`;
+  //       throw errorMessage;
+  //     }
+  //     this.fsm.park();
+  //     this.queue.queueCommands(this.parkCommands(this));
+  //   } catch (ex) {
+  //     this.logger.error(ex);
+  //     this.fsm.parkFail();
+  //   }
+  // }
+  //
+  // async unpark(xEntry, dry) {
+  //   try {
+  //     if (typeof this.unparkCommands !== `function`) {
+  //       const errorMessage = `Unpark Commands are not defined`;
+  //       throw errorMessage;
+  //     }
+  //     this.fsm.unpark();
+  //     this.queue.queueCommands(this.unparkCommands(this, xEntry, String(dry)));
+  //   } catch (ex) {
+  //     this.logger.error(ex);
+  //     this.fsm.unparkFail();
+  //   }
+  // }
 
   /**
    * expandCode()
@@ -631,18 +571,6 @@ class Bot {
 
   addFeedMultiplier(command) {
     return command;
-  }
-
-  addBotSubscriber(subscriberEndpoint) {
-    let unique = true;
-    for (const subscriber of this.subscribers) {
-      if (subscriber === subscriberEndpoint) {
-        unique = false;
-      }
-    }
-    if (unique) {
-      this.subscribers.push(subscriberEndpoint);
-    }
   }
 }
 

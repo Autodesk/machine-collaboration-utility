@@ -6,7 +6,8 @@ module.exports = class Escher2Conductor extends DefaultBot {
     this.settings.name = `Escher 2 Conductor`;
     this.settings.model = `Escher2Conductor`;
     this.connectionType = `http`;
-    this.parkCommands = (that) => {
+
+    this.commands.park = (that) => {
       return {
         code: 'M114',
         processData: (command, reply) => {
@@ -37,7 +38,7 @@ module.exports = class Escher2Conductor extends DefaultBot {
         },
       };
     };
-    this.unparkCommands = (that, xEntry, dryJob = 'false') => {
+    this.commands.unpark = (that, xEntry, dryJob = 'false') => {
       const commandArray = [
         {
           code: 'M114',
