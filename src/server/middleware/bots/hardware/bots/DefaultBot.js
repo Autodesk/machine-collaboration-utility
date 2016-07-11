@@ -94,21 +94,25 @@ module.exports = class DefaultBot {
     };
 
     this.commands.park = (self, params) => {
-      return {
+      const commandArray = [];
+      commandArray.push({
         code: 'G4 S1',
         postCallback: async () => {
           await self.fsm.parkDone();
         },
-      };
+      });
+      self.queue.queueCommands(commandArray);
     };
 
     this.commands.unpark = (self, params) => {
-      return {
+      const commandArray = [];
+      commandArray.push({
         code: 'G4 S1',
         postCallback: async () => {
           await self.fsm.unparkDone();
         },
-      };
+      });
+      self.queue.queueCommands(commandArray);
     };
 
     this.commands.jog = (self, params) => {
@@ -120,6 +124,9 @@ module.exports = class DefaultBot {
     };
 
     this.commands.addSubscriber = (self, params) => {
+      if (self.subscribers === undefined) {
+        self.subscribers = [];
+      }
       const subscriberEndpoint = params.subscriberEndpoint;
       let unique = true;
       for (const subscriber of self.subscribers) {
@@ -132,5 +139,4 @@ module.exports = class DefaultBot {
       }
     };
   }
-
 };
