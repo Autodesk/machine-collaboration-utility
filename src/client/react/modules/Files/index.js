@@ -1,5 +1,5 @@
 import React from 'react';
-import Modal from 'react-bootstrap-modal';
+import Modal from 'react-bootstrap/lib/Modal';
 import request from 'superagent';
 
 import File from './file';
