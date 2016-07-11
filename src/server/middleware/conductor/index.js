@@ -386,7 +386,11 @@ class Conductor {
           const bot = this.app.context.bots.botList[currentJob.botUuid];
           // go through every precursor to the current job
           if (bot.fsm.current === `parked`) {
-            bot.unpark(currentJob.x_entry, currentJob.dry);
+            const unparkParams = {
+              xEntry: currentJob.x_entry,
+              dryJob: currentJob.dry,
+            };
+            bot.commands.unpark(bot, unparkParams);
             continue;
           }
           if (bot.fsm.current !== `connected`) {
@@ -423,7 +427,8 @@ class Conductor {
             }
           } else {
             // Just sitting there in the ready position. park instead
-            bot.park();
+            console.log('about to park');
+            bot.commands.park(bot);
           }
         } catch (ex) {
           this.logger.error(`Checking player ${playerKey} error:`, ex);
