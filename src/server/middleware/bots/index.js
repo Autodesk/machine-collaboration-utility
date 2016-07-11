@@ -67,7 +67,10 @@ class Bots {
       }
 
       // Start scanning for all bots
-      await this.setupDiscovery();
+      Promise.delay(1000).then(() => {
+        this.setupDiscovery();
+      });
+
       this.logger.info(`Bots instance initialized`);
     } catch (ex) {
       this.logger.error(`Bot initialization error`, ex);
@@ -191,7 +194,7 @@ class Bots {
     for (const dbBot of bots) {
       const dbBotUuid = dbBot.dataValues.uuid;
       if (uuid === dbBotUuid) {
-        dbBot.destroy();
+        await dbBot.destroy();
         delete this.botList[uuid];
         deleted = true;
       }
