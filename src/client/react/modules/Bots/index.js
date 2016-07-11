@@ -3,7 +3,7 @@ import Modal from 'react-bootstrap/lib/Modal';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Radio from 'react-bootstrap/lib/Radio';
 
-import Bot from './bot';
+import Bot from './Bot';
 
 
 export default class Bots extends React.Component {

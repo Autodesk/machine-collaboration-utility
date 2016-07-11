@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-bootstrap/lib/Modal';
 import request from 'superagent';
 
-import File from './file';
+import File from './File';
 
 export default class Files extends React.Component {
   constructor(props) {
