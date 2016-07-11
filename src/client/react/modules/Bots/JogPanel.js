@@ -19,7 +19,7 @@ export default class JogPanel extends React.Component {
   render() {
     return (
       <div style={{ width: `50vh` }}>
-        <svg version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 1040.8 1047.1">
+        <svg version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 1640.8 1047.1">
           <g>
             <g>
               <polygon fill="#3C968D" onClick={this.handleClick} points="110.5,918.3 110.5,130.2 23.5,43.4 23.5,1007.2" value={{axis: 'x', amount: -100}} className="jog"/>
@@ -98,6 +98,22 @@ export default class JogPanel extends React.Component {
             <g>
               <path fill="#383535" d="M563.5,531.6L548,516.1c-0.8-0.8-1.7-1.1-2.7-1.1c-1,0-1.9,0.4-2.7,1.1c-0.8,0.8-1.1,1.7-1.1,2.7v7.7h-23.2v-23.2h7.7c1,0,2-0.4,2.7-1.1c0.8-0.8,1.1-1.7,1.1-2.7c0-1.1-0.4-2-1.1-2.7l-15.5-15.5c-0.8-0.8-1.7-1.1-2.7-1.1c-1,0-2,0.4-2.7,1.1l-15.5,15.5c-0.8,0.8-1.2,1.7-1.2,2.7c0,1,0.4,2,1.2,2.7c0.8,0.8,1.7,1.1,2.7,1.1h7.7v23.2h-23.2v-7.7c0-1-0.4-2-1.1-2.7c-0.8-0.8-1.7-1.1-2.7-1.1c-1,0-1.9,0.4-2.7,1.1l-15.5,15.5c-0.8,0.8-1.1,1.7-1.1,2.7c0,1,0.4,2,1.1,2.7l15.5,15.5c0.8,0.8,1.7,1.1,2.7,1.1c1.1,0,2-0.4,2.7-1.1c0.8-0.8,1.1-1.7,1.1-2.7V542h23.2v23.2H495c-1.1,0-2,0.4-2.7,1.2c-0.8,0.8-1.1,1.7-1.1,2.7c0,1,0.4,2,1.1,2.7l15.5,15.5c0.8,0.8,1.7,1.1,2.7,1.1c1,0,2-0.4,2.7-1.1l15.5-15.5c0.8-0.8,1.1-1.7,1.1-2.7c0-1.1-0.4-2-1.1-2.7c-0.8-0.8-1.7-1.2-2.7-1.2h-7.7V542h23.2v7.7c0,1,0.4,2,1.2,2.7c0.8,0.8,1.7,1.1,2.7,1.1c1,0,2-0.4,2.7-1.1l15.5-15.5c0.8-0.8,1.1-1.7,1.1-2.7C564.6,533.2,564.2,532.3,563.5,531.6z"/>
             </g>
+          </g>
+          <g>
+            <polygon fill="#3C968D" onClick={this.handleClick} points="1117.4,153.5375 1317.4,153.5375 1317.4,29.3 1117.4,29.3" value={{axis: 'z', amount: 10}} className="jog"/>
+            <polygon fill="#59A29A" onClick={this.handleClick} points="1117.4,277.775 1317.4,277.775 1317.4,153.5375 1117.4,153.5375" value={{axis: 'z', amount: 1}} className="jog"/>
+            <polygon fill="#9FC0BD" onClick={this.handleClick} points="1117.4,402.0125 1317.4,402.0125 1317.4,277.775 1117.4,277.775" value={{axis: 'z', amount: 0.1}} className="jog"/>
+            <polygon fill="#9FC0BD" onClick={this.handleClick} points="1117.4,650.4875 1317.4,650.4875 1317.4,774.725 1117.4,774.725" value={{axis: 'z', amount: -0.1}} className="jog"/>
+            <polygon fill="#59A29A" onClick={this.handleClick} points="1117.4,774.725 1317.4,774.725 1317.4,898.9625 1117.4,898.9625" value={{axis: 'z', amount: -1}} className="jog"/>
+            <polygon fill="#3C968D" onClick={this.handleClick} points="1117.4,898.9625 1317.4,898.9625 1317.4,1023.2 1117.4,1023.2" value={{axis: 'z', amount: -10}} className="jog"/>
+          </g>
+          <g>
+            <polygon fill="#3C968D" onClick={this.handleClick} points="1417.4,153.5375 1617.4,153.5375 1617.4,29.3 1417.4,29.3" value={{axis: 'e', amount: -20}} className="jog"/>
+            <polygon fill="#59A29A" onClick={this.handleClick} points="1417.4,277.775 1617.4,277.775 1617.4,153.5375 1417.4,153.5375" value={{axis: 'e', amount: -10}} className="jog"/>
+            <polygon fill="#9FC0BD" onClick={this.handleClick} points="1417.4,402.0125 1617.4,402.0125 1617.4,277.775 1417.4,277.775" value={{axis: 'e', amount: -2}} className="jog"/>
+            <polygon fill="#9FC0BD" onClick={this.handleClick} points="1417.4,650.4875 1617.4,650.4875 1617.4,774.725 1417.4,774.725" value={{axis: 'e', amount: 2}} className="jog"/>
+            <polygon fill="#59A29A" onClick={this.handleClick} points="1417.4,774.725 1617.4,774.725 1617.4,898.9625 1417.4,898.9625" value={{axis: 'e', amount: 10}} className="jog"/>
+            <polygon fill="#3C968D" onClick={this.handleClick} points="1417.4,898.9625 1617.4,898.9625 1617.4,1023.2 1417.4,1023.2" value={{axis: 'e', amount: 20}} className="jog"/>
           </g>
         </svg>
       </div>
