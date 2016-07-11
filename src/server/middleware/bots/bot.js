@@ -36,7 +36,6 @@ class Bot {
     this.currentJob = undefined;
     this.lr = undefined; // buffered file line reader
     this.currentLine = undefined;
-    this.subscribers = [];
     this.commands = {};
 
     // Mixin the presets to the bot object
@@ -235,7 +234,6 @@ class Bot {
    * "done" or "fail" events and corresponding state transitions
    */
   async processCommand(command, params) {
-    console.log('processing a command', command, params);
     if (this.commands[command] === undefined) {
       throw `Command ${command} not supported.`;
     }
