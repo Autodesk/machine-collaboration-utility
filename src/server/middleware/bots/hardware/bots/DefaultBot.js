@@ -38,6 +38,7 @@ module.exports = class DefaultBot {
       } catch (ex) {
         self.fsm.connectFail();
       }
+      return self.getBot();
     };
 
     this.commands.disconnect = async (self, params) => {
@@ -52,15 +53,67 @@ module.exports = class DefaultBot {
       } catch (ex) {
         self.fsm.disconnectFail();
       }
+      return self.getBot();
     };
 
     this.commands.unplug = async (self, params) => {
       self.device = undefined;
       await self.fsm.unplug();
+      return self.getBot();
+    };
+
+    this.commands.processGcode = async (self, params) => {
+      return await new Promise((resolve, reject) => {
+        const commandArray = [];
+        const state = self.fsm.current;
+        switch (state) {
+          case `connected`:
+          case `processingJob`:
+          case `processingJobGcode`:
+          case `processingGcode`:
+            let gcode = params.gcode;
+            gcode = self.addOffset(gcode);
+            gcode = self.addSpeedMultiplier(gcode);
+            gcode = self.addFeedMultiplier(gcode);
+            commandArray.push({
+              code: gcode,
+              processData: (command, reply) => {
+                resolve(reply);
+                return true;
+              },
+            });
+            self.queue.queueCommands(commandArray);
+            break;
+          default:
+            break;
+        }
+      });
+    };
+
+    this.commands.streamGcode = async (self, params) => {
+      let gcode = params.gcode;
+      const state = self.fsm.current;
+      switch (state) {
+        case `connected`:
+        case `processingJob`:
+        case `processingJobGcode`:
+        case `processingGcode`:
+          if (self.queue.mQueue.length < 32) {
+            gcode = self.addOffset(gcode);
+            gcode = self.addSpeedMultiplier(gcode);
+            gcode = self.addFeedMultiplier(gcode);
+            self.queue.queueCommands(gcode);
+            return true;
+          }
+          return false; // `Command Queue is full. Please try again later`;
+        default:
+          return undefined;
+      }
     };
 
     this.commands.resume = (self, params) => {
-      return {
+      const commandArray = [];
+      commandArray.push({
         preCallback: async () => {
           await self.fsm.start();
           await self.queue.resume();
@@ -70,27 +123,35 @@ module.exports = class DefaultBot {
           await self.lr.resume();
           await self.fsm.startDone();
         },
-      };
+      });
+      self.queue.queueCommands(commandArray);
+      return self.getBot();
     };
 
     this.commands.pause = (self, params) => {
-      return {
+      const commandArray = [];
+      commandArray.push({
         code: 'G4 S1',
         postCallback: async () => {
           self.queue.pause();
           await self.fsm.stopDone();
         },
-      };
+      });
+      self.queue.queueCommands(commandArray);
+      return self.getBot();
     };
 
     this.commands.stop = (self, params) => {
-      return {
+      const commandArray = [];
+      commandArray.push({
         code: 'G4 S1',
         postCallback: async () => {
           self.queue.pause();
           await self.fsm.stopDone();
         },
-      };
+      });
+      self.queue.queueCommands(commandArray);
+      return self.getBot();
     };
 
     this.commands.park = (self, params) => {
@@ -102,6 +163,7 @@ module.exports = class DefaultBot {
         },
       });
       self.queue.queueCommands(commandArray);
+      return self.getBot();
     };
 
     this.commands.unpark = (self, params) => {
@@ -113,6 +175,7 @@ module.exports = class DefaultBot {
         },
       });
       self.queue.queueCommands(commandArray);
+      return self.getBot();
     };
 
     this.commands.jog = (self, params) => {
@@ -121,6 +184,7 @@ module.exports = class DefaultBot {
       commandArray.push(`G1 ${params.axis.toUpperCase()}${params.amount}`);
       commandArray.push(`G90`);
       self.queue.queueCommands(commandArray);
+      return self.getBot();
     };
 
     this.commands.addSubscriber = (self, params) => {
@@ -137,6 +201,7 @@ module.exports = class DefaultBot {
       if (unique) {
         self.subscribers.push(subscriberEndpoint);
       }
+      return self.getBot();
     };
   }
 };

@@ -93,8 +93,13 @@ class HttpConnection {
     try {
       const requestParams = {
         method: `POST`,
-        uri: `${this.externalEndpoint}/streamGcode`,
-        body: { gcode: inCommandStr },
+        uri: `${this.externalEndpoint}`,
+        body: {
+          command: `processGcode`,
+          params: {
+            gcode: inCommandStr,
+          },
+        },
         json: true,
       };
 

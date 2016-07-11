@@ -12,7 +12,9 @@
 
 const TelnetConnection = require(`./connection`);
 
-const TelnetCommandExecutor = function (externalEndpoint) {
+const TelnetCommandExecutor = function (app, externalEndpoint) {
+  this.app = app;
+  this.logger = app.context.logger;
   this.externalEndpoint = externalEndpoint;
   this.mConnection = undefined;
   this.mCommandsProcessed = undefined;
@@ -38,6 +40,7 @@ TelnetCommandExecutor.prototype.getCommandsProcessed = function () {
  */
 TelnetCommandExecutor.prototype.open = function (inDoneFunc) {
   this.mConnection = new TelnetConnection(
+    this.app,
     this.externalEndpoint,
     () => { inDoneFunc(true); }
   );

@@ -119,23 +119,25 @@ class Conductor {
           }
         }
 
+        let endpoint;
         if (unique) {
-          const newBot = await this.app.context.bots.createBot({
-            name: `${botModel}-${playerX}-${playerY}`,
-            model: this.app.context.config.conductor.botModel,
-          });
-          let endpoint;
           switch (botModel) {
-            case `http`:
-              endpoint = `http://${botName}.local:9000/v1/bots/solo`;
+            case `Escher2Conductor`:
+              endpoint = `http://${botName.replace(`Conductor`, ``)}.local:9000/v1/bots/solo`;
               break;
-            case `Virtual`:
+            case `virtual`:
               endpoint = `http://localhost:${process.env.PORT}/v1/bots/${newBot.settings.uuid}`;
               break;
             default:
               endpoint = `http://${botName}.local:9000/v1/bots/solo`;
           }
-          newBot.setPort(endpoint);
+          const newBot = await this.app.context.bots.createBot({
+            name: `${botModel}-${playerX}-${playerY}`,
+            model: botModel,
+            endpoint,
+          });
+
+          newBot.setPort(newBot.settings.endpoint);
           this.players[newBot.settings.uuid] = newBot;
         }
       }

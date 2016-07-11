@@ -67,6 +67,7 @@ class KoaApp {
     })
     // add custom middleware here
     .then(async () => {
+
       const files = await new Files(this.app, `/${this.apiVersion}/files`);
       await files.initialize();
 
@@ -76,12 +77,13 @@ class KoaApp {
       const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
       await bots.initialize();
 
+      // Update the database tables
+      await this.app.context.db.sync({ force: true });
+
       if (process.env.CONDUCTING === `true`) {
         const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);
         await conductor.initialize();
       }
-      // Update the database tables
-      await this.app.context.db.sync({ force: true });
 
       // Set up Koa to match any routes to the React App. If a route exists, render it.
       router.get('*', (ctx) => {

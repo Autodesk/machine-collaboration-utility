@@ -21,7 +21,10 @@ const net = require(`net`);
  * Return: N/A
  */
 class TelnetConnection {
-  constructor(externalEndpoint, doneFunction) {
+  constructor(app, externalEndpoint, doneFunction) {
+    this.app = app;
+    this.logger = app.context.logger;
+
     this.externalEndpoint = externalEndpoint;
     this.doneFunction = doneFunction;
 
@@ -30,7 +33,7 @@ class TelnetConnection {
     this.mDataFunc = undefined;
     this.mCloseFunc = undefined;
     this.mErrorFunc = undefined;
-
+    console.log('the external endpoint', this.externalEndpoint);
     this.mPort = net.createConnection({
       port: 23,
       host: this.externalEndpoint,

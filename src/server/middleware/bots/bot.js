@@ -122,52 +122,15 @@ class Bot {
 
     // Set the bot's botId to also be the port, for bots that use an IP address
     switch (this.connectionType) {
-      case `http`:
-      case `telnet`:
       case `virtual`:
         this.setPort(`http://localhost:9000/v1/bots/${this.uuid}`);
         break;
+      case `http`:
+      case `telnet`:
+        this.setPort(presets.settings.endpoint);
+        break;
       default:
         // do nothing
-    }
-  }
-
-  async processGcode(gcode) {
-    let command = gcode;
-    const state = this.fsm.current;
-    switch (state) {
-      case `connected`:
-      case `processingJob`:
-      case `processingJobGcode`:
-      case `processingGcode`:
-        command = this.addOffset(command);
-        command = this.addSpeedMultiplier(command);
-        command = this.addFeedMultiplier(command);
-        this.queue.queueCommands(command);
-        return true;
-      default:
-        return undefined;
-    }
-  }
-
-  async streamGcode(gcode) {
-    let command = gcode;
-    const state = this.fsm.current;
-    switch (state) {
-      case `connected`:
-      case `processingJob`:
-      case `processingJobGcode`:
-      case `processingGcode`:
-        if (this.queue.mQueue.length < 32) {
-          command = this.addOffset(command);
-          command = this.addSpeedMultiplier(command);
-          command = this.addFeedMultiplier(command);
-          this.queue.queueCommands(command);
-          return true;
-        }
-        return false; // `Command Queue is full. Please try again later`;
-      default:
-        return undefined;
     }
   }
 
@@ -237,8 +200,8 @@ class Bot {
     if (this.commands[command] === undefined) {
       throw `Command ${command} not supported.`;
     }
-    this.commands[command](this, params);
-    return this.getBot();
+    const reply = await this.commands[command](this, params);
+    return reply;
   }
 
   // In order to start processing a job, the job's file is opened and then
