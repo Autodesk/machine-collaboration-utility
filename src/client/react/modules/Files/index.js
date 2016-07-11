@@ -9,7 +9,7 @@ export default class Files extends React.Component {
     super(props);
     this.state = {
       showModal: false,
-      botUuid: undefined,
+      botUuid: -1,
     };
     this.handleProcessFile = this.handleProcessFile.bind(this);
     this.close = this.close.bind(this);
@@ -37,7 +37,7 @@ export default class Files extends React.Component {
     const options = Object.entries(this.props.bots).map(([botUuid, bot]) => {
       return <option key={botUuid} value={botUuid}>{bot.settings.name}</option>;
     });
-    options.push(<option key={-1} value={-1}>Conductor</option>);
+    options.unshift(<option key={-1} value={-1}>Conductor</option>);
     return (
       <select name="botList" onChange={this.change} form="newJobForm">
         {options}
