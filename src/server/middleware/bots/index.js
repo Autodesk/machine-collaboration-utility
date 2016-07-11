@@ -258,7 +258,7 @@ class Bots {
   soloBot() {
     let uuid = undefined;
     for (const [botKey, bot] of Object.entries(this.botList)) {
-      if (bot.fsm.current !== `unavailable`) {
+      if (bot.getBot().state !== `unavailable`) {
         uuid = bot.uuid;
         break;
       }
