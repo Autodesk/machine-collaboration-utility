@@ -275,16 +275,6 @@ class Conductor {
                 break;
               }
             }
-            // for (const playerKey in this.players) {
-            //   if (this.players.hasOwnProperty(playerKey)) {
-            //     const player = this.players[playerKey];
-            //     if (player.settings.name.indexOf(indexKey) !== -1) {
-            //       botUuid = player.settings.uuid;
-            //       break;
-            //     }
-            //   }
-            // }
-
             await Promise.map(metajobPlayer.jobs, async(playerJob) => {
               let fileUuid;
               let jobUuid;
@@ -490,7 +480,11 @@ class Conductor {
 
   async connect() {
     this.fsm.connect();
-    this.connectAllPlayers();
+    try {
+      this.connectAllPlayers();
+    } catch (ex) {
+      this.logger.erro('connect failed', ex);
+    }
   }
 
   async disconnect() {
@@ -507,54 +501,10 @@ class Conductor {
  * Utility functions
  ******************************************************************************/
   async connectAllPlayers() {
-   // Check if the players are all connected
-   // If they are not, command them to connect
-   // Keep checking on them until they are all connected
-   const scanInterval = setInterval(async () => {
-     let connected = true;
-     // connect all local players
-     for (const player in this.players) {
-       if (this.players.hasOwnProperty(player)) {
-         const uri = `http://localhost:${process.env.PORT}/v1/bots/${player}`
-         // const uri = this.players[player].port;
-         const requestParams = {
-           method: `GET`,
-           uri,
-           json: true,
-         };
-         let res;
-         try {
-           res = await request(requestParams);
-         } catch (ex) {
-           res = false;
-         }
-         if (res.data && res.data.state && res.data.state === `connected`) {
-           // this bot is connected
-         } else {
-           if (res.data && res.data.state && res.data.state === `ready`) {
-             const connectParams = {
-               method: `POST`,
-               uri,
-               body: {
-                 command: `connect`,
-               },
-               json: true,
-             };
-             try {
-               request(connectParams);
-             } catch (ex) {
-               this.logger.error(`Trying to connect to ${uri}`);
-             }
-           }
-           connected = false;
-         }
-       }
-     }
-     if (connected) {
-       clearInterval(scanInterval);
-       await this.fsm.connectDone();
-     }
-   }, 1000);
+    Object.entries(this.players).forEach(([playerKey, player]) => {
+      this.logger.info('starting to connect', playerKey);
+      player.commands.connect(player);
+    });
   }
 }
 
