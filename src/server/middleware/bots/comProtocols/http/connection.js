@@ -39,18 +39,40 @@ class HttpConnection {
 
     // A hack. Normally we would validate the connection and then call this function
     // once we are validated
-    const requestParams = {
-      method: `POST`,
+    const getRequestParams = {
+      method: `GET`,
       uri: this.externalEndpoint,
-      body: {
-        command: `connect`,
-      },
       json: true,
     };
     try {
-      request(requestParams)
-      .then(() => {
-        doneFunction(this);
+      request(getRequestParams)
+      .then((reply) => {
+        if (reply.data.state === `connected`) {
+          doneFunction(this);
+        } else {
+          const connectRequestParams = {
+            method: `POST`,
+            uri: this.externalEndpoint,
+            body: {
+              command: `connect`,
+            },
+            json: true,
+          };
+          try {
+            request(connectRequestParams)
+            .then(() => {
+              doneFunction(this);
+            })
+            .catch((err) => {
+              this.logger.info(err.error);
+            });
+          } catch (ex) {
+            this.logger.error('Http connection error', ex);
+          }
+        }
+      })
+      .catch((err) => {
+        this.logger.info(err.error);
       });
     } catch (ex) {
       this.logger.error('Http connection error', ex);
@@ -96,9 +118,7 @@ class HttpConnection {
         uri: `${this.externalEndpoint}`,
         body: {
           command: `processGcode`,
-          params: {
-            gcode: inCommandStr,
-          },
+          gcode: inCommandStr,
         },
         json: true,
       };
