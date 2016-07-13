@@ -1,6 +1,6 @@
-const SmoothieBoardConductor = require(`./SmoothieBoardConductor`);
+const SmoothieBoardTelnet = require(`./SmoothieBoardTelnet`);
 
-module.exports = class SmoothieBoard extends SmoothieBoardConductor {
+module.exports = class SmoothieBoard extends SmoothieBoardTelnet {
   constructor(app) {
     super(app);
     this.settings.name = `Smoothie Board`;
