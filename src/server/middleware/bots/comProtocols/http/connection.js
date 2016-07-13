@@ -149,8 +149,36 @@ class HttpConnection {
    * Args:   N/A
    * Return: N/A
    */
-  close() {
-    logger.info(`Clowing http connection`);
+  async close() {
+    const getRequestParams = {
+      method: `GET`,
+      uri: this.externalEndpoint,
+      json: true,
+    };
+    try {
+      const reply = request(getRequestParams)
+
+      // use this line to handle states where disconnect should be idempodent
+      if (false) {
+
+      } else {
+        const disconnectRequestParams = {
+          method: `POST`,
+          uri: this.externalEndpoint,
+          body: {
+            command: `disconnect`,
+          },
+          json: true,
+        };
+        try {
+          await request(disconnectRequestParams);
+        } catch (ex) {
+          this.logger.error('Http connection error', ex);
+        }
+      }
+    } catch (ex) {
+      this.logger.error('Http connection error', ex);
+    }
   }
 }
 

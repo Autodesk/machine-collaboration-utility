@@ -57,10 +57,11 @@ HttpCommandExecutor.prototype.open = function (inDoneFunc) {
  * Return: N/A
  */
 HttpCommandExecutor.prototype.close = function (inDoneFunc) {
-  var that = this;
-  // that.mConnection.close();
-  inDoneFunc(true);
-  that.mCommandsProcessed = undefined;
+  this.mConnection.close()
+  .then(() => {
+    inDoneFunc(true);
+    this.mCommandsProcessed = undefined;
+  });
 };
 
 
