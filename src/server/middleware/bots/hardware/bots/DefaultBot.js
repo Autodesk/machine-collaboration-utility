@@ -203,5 +203,16 @@ module.exports = class DefaultBot {
       }
       return self.getBot();
     };
+    this.commands.update = (self, params) => {
+      const event = params.body.event;
+      const bot = params.body.bot;
+
+      const theEvent = self.fsmEvents.find((fsmEvent) => {
+        return fsmEvent.name === event;
+      });
+
+      self.fsm.current = theEvent.from;
+      self.fsm[theEvent.name]();
+    };
   }
 };
