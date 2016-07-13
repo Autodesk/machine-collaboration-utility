@@ -23,7 +23,9 @@ try {
    * Listen on provided port, on all network interfaces.
    * Port is set per command line, or the config, and falls back on port 9000
    */
-  const port = normalizePort(process.env.PORT || config.port || `9000`);
+
+
+  const port = normalizePort(process.env.PORT || `9000`);
 
   app.server.listen(port);
   server.on(`error`, onError);
