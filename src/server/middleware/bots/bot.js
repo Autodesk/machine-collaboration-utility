@@ -57,6 +57,39 @@ class Bot {
     }
     this.settings.uuid = uuidGenerator.v1();
 
+    this.fsmEvents = [
+      /* eslint-disable no-multi-spaces */
+      { name: 'detect',             from: 'unavailable',        to: 'detecting'          },
+      { name: 'detectFail',         from: 'detecting',          to: 'unavailable'        },
+      { name: 'detectDone',         from: 'detecting',          to: 'ready'              },
+      { name: 'connect',            from: 'ready',              to: 'connecting'         },
+      { name: 'connectFail',        from: 'connecting',         to: 'ready'              },
+      { name: 'connectDone',        from: 'connecting',         to: 'connected'          },
+      { name: 'start',              from: 'connected',          to: 'startingJob'        },
+      { name: 'startFail',          from: 'startingJob',        to: 'connected'          },
+      { name: 'startDone',          from: 'startingJob',        to: 'processingJob'      },
+      { name: 'stop',               from: 'processingJob',      to: 'stopping'           },
+      { name: 'stopDone',           from: 'stopping',           to: 'connected'          },
+      { name: 'stopFail',           from: 'stopping',           to: 'connected'          },
+      { name: 'jobToGcode',         from: 'processingJob',      to: 'processingJobGcode' },
+      { name: 'jobGcodeFail',       from: 'processingJobGcode', to: 'processingJob'      },
+      { name: 'jobGcodeDone',       from: 'processingGcode',    to: 'processingJob'      },
+      { name: 'connectedToGcode',   from: 'connected',          to: 'processingGcode'    },
+      { name: 'connectedGcodeFail', from: 'processingGcode',    to: 'connected'          },
+      { name: 'connectedGcodeDone', from: 'processingGcode',    to: 'connected'          },
+      { name: 'disconnect',         from: 'connected',          to: 'disconnecting'      },
+      { name: 'disconnectFail',     from: 'disconnecting',      to: 'connected'          },
+      { name: 'disconnectDone',     from: 'disconnecting',      to: 'ready'              },
+      { name: 'park',               from: 'connected',          to: 'parking'            },
+      { name: 'parkFail',           from: 'parking',            to: 'connected'          },
+      { name: 'parkDone',           from: 'parking',            to: 'parked'             },
+      { name: 'unpark',             from: 'parked',             to: 'unparking'          },
+      { name: 'unparkFail',         from: 'unparking',          to: 'connected'          },
+      { name: 'unparkDone',         from: 'unparking',          to: 'connected'          },
+      { name: 'unplug',             from: '*',                  to: 'unavailable'        },
+      /* eslint-enable no-multi-spaces */
+    ];
+
     this.fsm = StateMachine.create({
       initial: 'unavailable',
       error: (one, two) => {
@@ -64,38 +97,7 @@ class Bot {
         this.logger.error(errorMessage);
         throw errorMessage;
       },
-      events: [
-        /* eslint-disable no-multi-spaces */
-        { name: 'detect',             from: 'unavailable',        to: 'detecting'          },
-        { name: 'detectFail',         from: 'detecting',          to: 'unavailable'        },
-        { name: 'detectDone',         from: 'detecting',          to: 'ready'              },
-        { name: 'connect',            from: 'ready',              to: 'connecting'         },
-        { name: 'connectFail',        from: 'connecting',         to: 'ready'              },
-        { name: 'connectDone',        from: 'connecting',         to: 'connected'          },
-        { name: 'start',              from: 'connected',          to: 'startingJob'        },
-        { name: 'startFail',          from: 'startingJob',        to: 'connected'          },
-        { name: 'startDone',          from: 'startingJob',        to: 'processingJob'      },
-        { name: 'stop',               from: 'processingJob',      to: 'stopping'           },
-        { name: 'stopDone',           from: 'stopping',           to: 'connected'          },
-        { name: 'stopFail',           from: 'stopping',           to: 'connected'          },
-        { name: 'jobToGcode',         from: 'processingJob',      to: 'processingJobGcode' },
-        { name: 'jobGcodeFail',       from: 'processingJobGcode', to: 'processingJob'      },
-        { name: 'jobGcodeDone',       from: 'processingGcode',    to: 'processingJob'      },
-        { name: 'connectedToGcode',   from: 'connected',          to: 'processingGcode'    },
-        { name: 'connectedGcodeFail', from: 'processingGcode',    to: 'connected'          },
-        { name: 'connectedGcodeDone', from: 'processingGcode',    to: 'connected'          },
-        { name: 'disconnect',         from: 'connected',          to: 'disconnecting'      },
-        { name: 'disconnectFail',     from: 'disconnecting',      to: 'connected'          },
-        { name: 'disconnectDone',     from: 'disconnecting',      to: 'ready'              },
-        { name: 'park',               from: 'connected',          to: 'parking'            },
-        { name: 'parkFail',           from: 'parking',            to: 'connected'          },
-        { name: 'parkDone',           from: 'parking',            to: 'parked'             },
-        { name: 'unpark',             from: 'parked',             to: 'unparking'          },
-        { name: 'unparkFail',         from: 'unparking',          to: 'connected'          },
-        { name: 'unparkDone',         from: 'unparking',          to: 'connected'          },
-        { name: 'unplug',             from: '*',                  to: 'unavailable'        },
-        /* eslint-enable no-multi-spaces */
-      ],
+      events: this.fsmEvents,
       callbacks: {
         onenterstate: (event, from, to) => {
           this.logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
@@ -103,6 +105,27 @@ class Bot {
             this.app.io.emit(`updateBots`, this.app.context.bots.getBots());
           } catch (ex) {
             this.logger.error(`Update bot socket error`, ex);
+          }
+          if (Array.isArray(this.subscribers)) {
+            Promise.map(this.subscribers, async (subscriber) => {
+              const requestParams = {
+                method: `POST`,
+                uri: subscriber,
+                body: {
+                  command: `update`,
+                  body: {
+                    event,
+                    bot: this.getBot(),
+                  },
+                },
+                json: true,
+              };
+              try {
+                await request(requestParams);
+              } catch (ex) {
+                this.logger.error(`Failed to update bot at endpoint "${subscriber}": ${ex}`);
+              }
+            }, { concurrency: 5 });
           }
         },
       },
@@ -128,6 +151,28 @@ class Bot {
       case `http`:
       case `telnet`:
         this.setPort(presets.settings.endpoint);
+        break;
+      default:
+        // do nothing
+    }
+
+    switch (this.connectionType) {
+      case `http`:
+        // add a subscriber
+        const requestParams = {
+          method: `POST`,
+          uri: this.port,
+          body: {
+            command: `addSubscriber`,
+            subscriberEndpoint: `http://localhost:${process.env.PORT}/v1/bots/${this.settings.uuid}`,
+          },
+          json: true,
+        };
+        try {
+          request(requestParams);
+        } catch (ex) {
+          this.logger.error(`Failed to subscribe to bot endpoint ${this.port}`);
+        }
         break;
       default:
         // do nothing
