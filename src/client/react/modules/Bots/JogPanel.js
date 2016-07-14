@@ -1,19 +1,11 @@
 import React from 'react';
 import request from 'superagent';
 
+import Polygon from './Polygon';
+
 export default class JogPanel extends React.Component {
   constructor(props) {
     super(props);
-    this.handleClick = this.handleClick.bind(this);
-  }
-
-  handleClick(event) {
-    request.post(this.props.endpoint)
-    .send({ command: `jog` })
-    .send({ axis: event.target.value.axis })
-    .send({ amount: event.target.value.amount })
-    .set('Accept', 'application/json')
-    .end();
   }
 
   render() {
@@ -22,29 +14,29 @@ export default class JogPanel extends React.Component {
         <svg version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 1640.8 1047.1">
           <g>
             <g>
-              <polygon fill="#3C968D" onClick={this.handleClick} points="110.5,918.3 110.5,130.2 23.5,43.4 23.5,1007.2" value={{axis: 'x', amount: -100}} className="jog"/>
-              <polygon fill="#3C968D" onClick={this.handleClick} points="37.7,29.3 124.9,116.3 912.6,116.3 1001.3,29.3" value={{axis: 'y', amount: 100}} className="jog"/>
-              <polygon fill="#3C968D" onClick={this.handleClick} points="914.6,934.3 122.9,934.3 35.7,1023.2 1003.4,1023.2" value={{axis: 'y', amount: -100}} className="jog"/>
-              <polygon fill="#3C968D" onClick={this.handleClick} points="928.5,919.9 1017.4,1009 1017.4,41.6 928.5,128.6" value={{axis: 'x', amount: 100}} className="jog"/>
+              <Polygon fillColor="#3C968D" endpoint={this.props.endpoint} points="110.5,918.3 110.5,130.2 23.5,43.4 23.5,1007.2" axis={'x'} amount={-100}/>
+              <Polygon fillColor="#3C968D" endpoint={this.props.endpoint} points="37.7,29.3 124.9,116.3 912.6,116.3 1001.3,29.3" axis={'y'} amount={100}/>
+              <Polygon fillColor="#3C968D" endpoint={this.props.endpoint} points="914.6,934.3 122.9,934.3 35.7,1023.2 1003.4,1023.2" axis={'y'} amount={-100}/>
+              <Polygon fillColor="#3C968D" endpoint={this.props.endpoint} points="928.5,919.9 1017.4,1009 1017.4,41.6 928.5,128.6" axis={'x'} amount={100}/>
               <path fill="#3C968D" d="M869,187.4"/>
             </g>
             <g>
-              <polygon fill="#59A29A" onClick={this.handleClick} points="124.9,116.3 212.1,206.1 825.4,206.1 912.6,116.3" value={{axis: 'y', amount: 10}} className="jog"/>
-              <polygon fill="#59A29A" onClick={this.handleClick} points="201.3,830.1 201.3,223.6 110.5,130.2 110.5,918.3" value={{axis: 'x', amount: -10}} className="jog"/>
-              <polygon fill="#59A29A" onClick={this.handleClick} points="837.8,831.7 928.5,919.9 928.5,128.6 837.8,222" value={{axis: 'x', amount: 10}} className="jog"/>
-              <polygon fill="#59A29A" onClick={this.handleClick} points="820.2,842.5 217.3,842.5 122.9,934.3 914.6,934.3" value={{axis: 'y', amount: -10}} className="jog"/>
+              <Polygon fillColor="#59A29A" endpoint={this.props.endpoint} points="124.9,116.3 212.1,206.1 825.4,206.1 912.6,116.3" axis={'y'} amount={10}/>
+              <Polygon fillColor="#59A29A" endpoint={this.props.endpoint} points="201.3,830.1 201.3,223.6 110.5,130.2 110.5,918.3" axis={'x'} amount={-10}/>
+              <Polygon fillColor="#59A29A" endpoint={this.props.endpoint} points="837.8,831.7 928.5,919.9 928.5,128.6 837.8,222" axis={'x'} amount={10}/>
+              <Polygon fillColor="#59A29A" endpoint={this.props.endpoint} points="820.2,842.5 217.3,842.5 122.9,934.3 914.6,934.3" axis={'y'} amount={-10}/>
             </g>
             <g>
-              <polygon fill="#72ACA4" onClick={this.handleClick} points="212.1,206.1 306.1,298.2 733.1,298.2 825.4,206.1" value={{axis: 'y', amount: 1}} className="jog"/>
-              <polygon fill="#72ACA4" onClick={this.handleClick} points="295.5,735.8 295.5,315.9 201.3,223.6 201.3,830.1" value={{axis: 'x', amount: -1}} className="jog"/>
-              <polygon fill="#72ACA4" onClick={this.handleClick} points="745.6,737.6 837.8,831.7 837.8,222 745.6,314" value={{axis: 'x', amount: 1}} className="jog"/>
-              <polygon fill="#72ACA4" onClick={this.handleClick} points="727.9,748.3 311.3,748.3 217.3,842.5 820.2,842.5" value={{axis: 'y', amount: -1}} className="jog"/>
+              <Polygon fillColor="#72ACA4" endpoint={this.props.endpoint} points="212.1,206.1 306.1,298.2 733.1,298.2 825.4,206.1" axis={'y'} amount={1}/>
+              <Polygon fillColor="#72ACA4" endpoint={this.props.endpoint} points="295.5,735.8 295.5,315.9 201.3,223.6 201.3,830.1" axis={'x'} amount={-1}/>
+              <Polygon fillColor="#72ACA4" endpoint={this.props.endpoint} points="745.6,737.6 837.8,831.7 837.8,222 745.6,314" axis={'x'} amount={1}/>
+              <Polygon fillColor="#72ACA4" endpoint={this.props.endpoint} points="727.9,748.3 311.3,748.3 217.3,842.5 820.2,842.5" axis={'y'} amount={-1}/>
             </g>
             <g>
-              <polygon fill="#9FC0BD" onClick={this.handleClick} points="389.8,410.2 295.5,315.9 295.5,735.8 389.8,641.5" value={{axis: 'x', amount: -0.1}} className="jog"/>
-              <polygon fill="#9FC0BD" onClick={this.handleClick} points="306.1,298.2 416.6,408.6 622.7,408.6 733.1,298.2" value={{axis: 'y', amount: 0.1}} className="jog"/>
-              <polygon fill="#9FC0BD" onClick={this.handleClick} points="633,653.4 402,653.4 311.3,748.3 727.9,748.3" value={{axis: 'y', amount: -0.1}} className="jog"/>
-              <polygon fill="#9FC0BD" onClick={this.handleClick} points="634.6,626.7 745.6,737.6 745.6,314 634.6,425" value={{axis: 'x', amount: 0.1}} className="jog"/>
+              <Polygon fillColor="#9FC0BD" endpoint={this.props.endpoint} points="389.8,410.2 295.5,315.9 295.5,735.8 389.8,641.5" axis={'x'} amount={-0.1}/>
+              <Polygon fillColor="#9FC0BD" endpoint={this.props.endpoint} points="306.1,298.2 416.6,408.6 622.7,408.6 733.1,298.2" axis={'y'} amount={0.1}/>
+              <Polygon fillColor="#9FC0BD" endpoint={this.props.endpoint} points="633,653.4 402,653.4 311.3,748.3 727.9,748.3" axis={'y'} amount={-0.1}/>
+              <Polygon fillColor="#9FC0BD" endpoint={this.props.endpoint} points="634.6,626.7 745.6,737.6 745.6,314 634.6,425" axis={'x'} amount={0.1}/>
             </g>
           </g>
           <g>
@@ -100,20 +92,20 @@ export default class JogPanel extends React.Component {
             </g>
           </g>
           <g>
-            <polygon fill="#3C968D" onClick={this.handleClick} points="1117.4,153.5375 1317.4,153.5375 1317.4,29.3 1117.4,29.3" value={{axis: 'z', amount: 10}} className="jog"/>
-            <polygon fill="#59A29A" onClick={this.handleClick} points="1117.4,277.775 1317.4,277.775 1317.4,153.5375 1117.4,153.5375" value={{axis: 'z', amount: 1}} className="jog"/>
-            <polygon fill="#9FC0BD" onClick={this.handleClick} points="1117.4,402.0125 1317.4,402.0125 1317.4,277.775 1117.4,277.775" value={{axis: 'z', amount: 0.1}} className="jog"/>
-            <polygon fill="#9FC0BD" onClick={this.handleClick} points="1117.4,650.4875 1317.4,650.4875 1317.4,774.725 1117.4,774.725" value={{axis: 'z', amount: -0.1}} className="jog"/>
-            <polygon fill="#59A29A" onClick={this.handleClick} points="1117.4,774.725 1317.4,774.725 1317.4,898.9625 1117.4,898.9625" value={{axis: 'z', amount: -1}} className="jog"/>
-            <polygon fill="#3C968D" onClick={this.handleClick} points="1117.4,898.9625 1317.4,898.9625 1317.4,1023.2 1117.4,1023.2" value={{axis: 'z', amount: -10}} className="jog"/>
+            <Polygon fillColor="#3C968D" endpoint={this.props.endpoint} points="1117.4,153.5375 1317.4,153.5375 1317.4,29.3 1117.4,29.3" axis={'z'} amount={10}/>
+            <Polygon fillColor="#59A29A" endpoint={this.props.endpoint} points="1117.4,277.775 1317.4,277.775 1317.4,153.5375 1117.4,153.5375" axis={'z'} amount={1}/>
+            <Polygon fillColor="#9FC0BD" endpoint={this.props.endpoint} points="1117.4,402.0125 1317.4,402.0125 1317.4,277.775 1117.4,277.775" axis={'z'} amount={0.1}/>
+            <Polygon fillColor="#9FC0BD" endpoint={this.props.endpoint} points="1117.4,650.4875 1317.4,650.4875 1317.4,774.725 1117.4,774.725" axis={'z'} amount={-0.1}/>
+            <Polygon fillColor="#59A29A" endpoint={this.props.endpoint} points="1117.4,774.725 1317.4,774.725 1317.4,898.9625 1117.4,898.9625" axis={'z'} amount={-1}/>
+            <Polygon fillColor="#3C968D" endpoint={this.props.endpoint} points="1117.4,898.9625 1317.4,898.9625 1317.4,1023.2 1117.4,1023.2" axis={'z'} amount={-10}/>
           </g>
           <g>
-            <polygon fill="#3C968D" onClick={this.handleClick} points="1417.4,153.5375 1617.4,153.5375 1617.4,29.3 1417.4,29.3" value={{axis: 'e', amount: -20}} className="jog"/>
-            <polygon fill="#59A29A" onClick={this.handleClick} points="1417.4,277.775 1617.4,277.775 1617.4,153.5375 1417.4,153.5375" value={{axis: 'e', amount: -10}} className="jog"/>
-            <polygon fill="#9FC0BD" onClick={this.handleClick} points="1417.4,402.0125 1617.4,402.0125 1617.4,277.775 1417.4,277.775" value={{axis: 'e', amount: -2}} className="jog"/>
-            <polygon fill="#9FC0BD" onClick={this.handleClick} points="1417.4,650.4875 1617.4,650.4875 1617.4,774.725 1417.4,774.725" value={{axis: 'e', amount: 2}} className="jog"/>
-            <polygon fill="#59A29A" onClick={this.handleClick} points="1417.4,774.725 1617.4,774.725 1617.4,898.9625 1417.4,898.9625" value={{axis: 'e', amount: 10}} className="jog"/>
-            <polygon fill="#3C968D" onClick={this.handleClick} points="1417.4,898.9625 1617.4,898.9625 1617.4,1023.2 1417.4,1023.2" value={{axis: 'e', amount: 20}} className="jog"/>
+            <Polygon fillColor="#3C968D" endpoint={this.props.endpoint} points="1417.4,153.5375 1617.4,153.5375 1617.4,29.3 1417.4,29.3" axis={'e'} amount={-20}/>
+            <Polygon fillColor="#59A29A" endpoint={this.props.endpoint} points="1417.4,277.775 1617.4,277.775 1617.4,153.5375 1417.4,153.5375" axis={'e'} amount={-10}/>
+            <Polygon fillColor="#9FC0BD" endpoint={this.props.endpoint} points="1417.4,402.0125 1617.4,402.0125 1617.4,277.775 1417.4,277.775" axis={'e'} amount={-2}/>
+            <Polygon fillColor="#9FC0BD" endpoint={this.props.endpoint} points="1417.4,650.4875 1617.4,650.4875 1617.4,774.725 1417.4,774.725" axis={'e'} amount={2}/>
+            <Polygon fillColor="#59A29A" endpoint={this.props.endpoint} points="1417.4,774.725 1617.4,774.725 1617.4,898.9625 1417.4,898.9625" axis={'e'} amount={10}/>
+            <Polygon fillColor="#3C968D" endpoint={this.props.endpoint} points="1417.4,898.9625 1617.4,898.9625 1617.4,1023.2 1417.4,1023.2" axis={'e'} amount={20}/>
           </g>
         </svg>
       </div>
