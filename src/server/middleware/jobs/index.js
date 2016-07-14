@@ -39,12 +39,12 @@ class Jobs {
       // load all existing jobs from the database
       const jobs = await this.JobModel.findAll();
       for (const job of jobs) {
-        const botId = job.dataValues.botId;
+        const botUuid = job.dataValues.botUuid;
         const jobUuid = job.dataValues.uuid;
         const state = job.dataValues.state;
         const id = job.dataValues.id;
         const fileUuid = job.dataValues.fileUuid;
-        const jobObject = new Job(this.app, botId, fileUuid, jobUuid, state, id);
+        const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid, state, id);
         await jobObject.initialize();
         jobObject.percentComplete = job.dataValues.percentComplete;
         jobObject.started = job.dataValues.started;
