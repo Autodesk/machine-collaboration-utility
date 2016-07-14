@@ -7,7 +7,6 @@ const unzip = require(`unzip2`);
 const fs = require(`fs`);
 const winston = require(`winston`);
 const path = require(`path`);
-const ip = require(`ip`);
 
 const conductorRoutes = require(`./routes`);
 
@@ -96,6 +95,7 @@ class Conductor {
     try {
       await this.setupRouter();
       await this.setupConductorArms();
+      await Promise.delay(5000);
       await this.connect();
       this.logger.info(`Conductor instance initialized`);
     } catch (ex) {
@@ -148,23 +148,23 @@ class Conductor {
     // This will be used to keep track of the metajob's progress
 
     // We will also add this conductor as a subscribed endpoint for the players
-    for (const [playerKey, player] of Object.entries(this.players)) {
-      const addSubscriberParams = {
-        method: `POST`,
-        uri: player.port,
-        body: {
-          command: `addSubscriber`,
-          subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/conductor/update`,
-        },
-        json: true,
-      };
-      try {
-        await request(addSubscriberParams);
-      } catch (ex) {
-        this.logger.error(`Add subscriber failed`, ex);
-      }
-      this.players[playerKey].metajobQueue = [];
-    }
+    // for (const [playerKey, player] of Object.entries(this.players)) {
+    //   const addSubscriberParams = {
+    //     method: `POST`,
+    //     uri: player.port,
+    //     body: {
+    //       command: `addSubscriber`,
+    //       subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/conductor/update`,
+    //     },
+    //     json: true,
+    //   };
+    //   try {
+    //     await request(addSubscriberParams);
+    //   } catch (ex) {
+    //     this.logger.error(`Add subscriber failed`, ex);
+    //   }
+    //   this.players[playerKey].metajobQueue = [];
+    // }
   }
 
   /**
@@ -506,6 +506,8 @@ class Conductor {
       this.logger.info('starting to connect', playerKey);
       player.commands.connect(player);
     });
+    //TODO actually check this
+    this.fsm.connectDone();
   }
 }
 

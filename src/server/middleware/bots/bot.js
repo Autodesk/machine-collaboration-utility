@@ -124,25 +124,13 @@ class Bot {
               try {
                 await request(requestParams);
               } catch (ex) {
-                this.logger.error(`Failed to update bot at endpoint "${subscriber}": ${ex}`);
+                this.logger.error(`Failed to update endpoint "${subscriber}": ${ex}`);
               }
             }, { concurrency: 5 });
           }
         },
       },
     });
-
-    switch (this.connectionType) {
-      // In case there is no detection method required, detect the device and
-      // move directly to a "ready" state
-      case `http`:
-      case `telnet`:
-      case `virtual`:
-        this.detect();
-        break;
-      default:
-        // Do nothing
-    }
 
     // Set the bot's botId to also be the port, for bots that use an IP address
     switch (this.connectionType) {
@@ -158,6 +146,8 @@ class Bot {
     }
 
     switch (this.connectionType) {
+      // In case there is no detection method required, detect the device and
+      // move directly to a "ready" state
       case `http`:
         // add a subscriber
         const requestParams = {
@@ -169,14 +159,20 @@ class Bot {
           },
           json: true,
         };
-        try {
-          request(requestParams);
-        } catch (ex) {
-          this.logger.error(`Failed to subscribe to bot endpoint ${this.port}`);
-        }
+        request(requestParams)
+        .then((reply) => {
+          this.detect();
+        })
+        .catch((err) => {
+          this.logger.error(`Failed to subscribe to bot endpoint ${this.port}. ${err}`);
+        });
+        break;
+      case `telnet`:
+      case `virtual`:
+        this.detect();
         break;
       default:
-        // do nothing
+        // Do nothing
     }
   }
 
@@ -318,24 +314,6 @@ class Bot {
           await self.fsm.stopDone();
           await self.currentJob.fsm.runningDone();
           await self.currentJob.stopwatch.stop();
-          if (Array.isArray(self.subscribers)) {
-            await Promise.map(self.subscribers, async (subscriber) => {
-              const requestParams = {
-                method: `POST`,
-                uri: subscriber,
-                body: {
-                  botUuid: self.settings.uuid,
-                  jobUuid: self.currentJob.uuid,
-                },
-                json: true,
-              };
-              try {
-                await request(requestParams);
-              } catch (ex) {
-                self.logger.error('Bot subscriber error', ex);
-              }
-            }, { concurrency: 5 });
-          }
         },
       });
     });
