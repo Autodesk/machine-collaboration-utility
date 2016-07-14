@@ -78,7 +78,7 @@ class KoaApp {
       await bots.initialize();
 
       // Update the database tables
-      // await this.app.context.db.sync({ force: true });
+      await this.app.context.db.sync({ force: true });
 
       if (process.env.CONDUCTING === `true`) {
         const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);

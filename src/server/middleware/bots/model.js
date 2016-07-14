@@ -19,6 +19,7 @@ module.exports = async (app) => {
     offsetX: Sequelize.STRING,
     offsetY: Sequelize.STRING,
     offsetZ: Sequelize.STRING,
+    conductorArm: Sequelize.STRING,
   });
 
   return BotModel;

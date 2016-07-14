@@ -95,7 +95,7 @@ class Conductor {
     try {
       await this.setupRouter();
       await this.setupConductorArms();
-      await Promise.delay(5000);
+      await Promise.delay(1000);
       await this.connect();
       this.logger.info(`Conductor instance initialized`);
     } catch (ex) {
@@ -132,17 +132,22 @@ class Conductor {
             default:
               endpoint = `http://${botName}.local:9000/v1/bots/solo`;
           }
-          const newBot = await this.app.context.bots.createBot({
+          const newBot = await this.app.context.bots.createPersistentBot({
             name: `${botModel}-${playerX}-${playerY}`,
             model: botModel,
             endpoint,
+            conductorArm: `true`,
           });
-
           newBot.setPort(newBot.settings.endpoint);
-          this.players[newBot.settings.uuid] = newBot;
         }
       }
     }
+    Object.entries(this.app.context.bots.botList).forEach(([botKey, bot]) => {
+      if (bot.settings.conductorArm === `true`) {
+        this.players[botKey] = bot;
+        this.players[botKey].metajobQueue = [];
+      }
+    });
 
     // Now that all of the players are added, give them an extra property 'metajobQueue'
     // This will be used to keep track of the metajob's progress
@@ -163,7 +168,6 @@ class Conductor {
     //   } catch (ex) {
     //     this.logger.error(`Add subscriber failed`, ex);
     //   }
-    //   this.players[playerKey].metajobQueue = [];
     // }
   }
 
@@ -269,9 +273,9 @@ class Conductor {
           await Promise.map(Object.entries(this.metajob), async ([metajobPlayerKey, metajobPlayer]) => {
             // find the bot that corresponds with the metajob player we're currently populating
             let botUuid;
-            const indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`;
+            let indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`
             for (const [playerKey, player] of Object.entries(this.players)) {
-              if (player.settings.name.indexOf(indexKey) !== -1) {
+              if (player.settings.name.indexOf(indexKey) !== -1 && player.settings.conductorArm === `true`) {
                 botUuid = player.settings.uuid;
                 break;
               }
@@ -315,6 +319,7 @@ class Conductor {
               } catch (ex) {
                 self.logger.error('create job error', ex);
               }
+              console.log('createjobreply', createJobReply);
               jobUuid = createJobReply.data.uuid;
               // add the job to a list
               // the array order from metajob must be maintained

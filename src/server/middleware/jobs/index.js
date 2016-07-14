@@ -69,7 +69,6 @@ class Jobs {
 
     this.jobList[dbJob.dataValues.uuid] = jobObject;
     this.logger.info('jobEvent', jobJson);
-    // this.app.io.emit('jobEvent', jobJson);
     return jobObject;
   }
 

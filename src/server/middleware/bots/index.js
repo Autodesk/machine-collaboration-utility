@@ -141,15 +141,6 @@ class Bots {
   }
 
   async createBot(inputSettings = {}) {
-    // If the only bot object is a "Default Bot"
-    // remove it once the other bot is successfully added
-    let defaultBotFlag = false;
-    // TODO check this logic, need to find bot by its name or by its uuid
-    const defaultBot = this.findBotByName(`Default`);
-    if (Object.entries(this.botList).length === 1 && defaultBot !== undefined) {
-      defaultBotFlag = true;
-    }
-
     // Load presets based on the model
     // If no model is passed, or if the model does not exist use the default presets
     const botPresets = (
@@ -165,10 +156,13 @@ class Bots {
     // Add the bot to the list
     this.botList[newBot.settings.uuid] = newBot;
 
-    // Delete the default bot, if you successfully add the first "non default" bot
-    if (defaultBotFlag) {
+    // The Default bot is only a placeholder
+    // As soon as there are bots in the botList, remove default bot
+    const defaultBot = this.findBotByName(`Default`);
+    if (defaultBot !== undefined && inputSettings.model !== `DefaultBot`) {
       delete this.botList[defaultBot.settings.uuid];
     }
+    this.app.io.emit(`updateBots`, this.getBots());
     return newBot;
   }
 
@@ -205,6 +199,7 @@ class Bots {
     if (Object.entries(this.botList).length === 0) {
       this.createBot();
     }
+    this.app.io.emit(`updateBots`, this.getBots());
     return `Bot "${uuid}" successfully deleted`;
   }
 

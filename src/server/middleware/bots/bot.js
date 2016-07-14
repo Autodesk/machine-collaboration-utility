@@ -222,7 +222,8 @@ class Bot {
       }
     }
 
-    return this.settings;
+    this.app.io.emit(`updateBots`, this.app.context.bots.getBots());
+    return this.getBot();
   }
 
   /*
