@@ -317,22 +317,24 @@ class Bot {
           await self.fsm.stopDone();
           await self.currentJob.fsm.runningDone();
           await self.currentJob.stopwatch.stop();
-          await Promise.map(self.subscribers, async (subscriber) => {
-            const requestParams = {
-              method: `POST`,
-              uri: subscriber,
-              body: {
-                botUuid: self.settings.uuid,
-                jobUuid: self.currentJob.uuid,
-              },
-              json: true,
-            };
-            try {
-              await request(requestParams);
-            } catch (ex) {
-              self.logger.error('Bot subscriber error', ex);
-            }
-          }, { concurrency: 5 });
+          if (Array.isArray(self.subscribers)) {
+            await Promise.map(self.subscribers, async (subscriber) => {
+              const requestParams = {
+                method: `POST`,
+                uri: subscriber,
+                body: {
+                  botUuid: self.settings.uuid,
+                  jobUuid: self.currentJob.uuid,
+                },
+                json: true,
+              };
+              try {
+                await request(requestParams);
+              } catch (ex) {
+                self.logger.error('Bot subscriber error', ex);
+              }
+            }, { concurrency: 5 });
+          }
         },
       });
     });
