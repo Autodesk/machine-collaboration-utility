@@ -7,6 +7,7 @@ const unzip = require(`unzip2`);
 const fs = require(`fs`);
 const winston = require(`winston`);
 const path = require(`path`);
+const ip = require(`ip`);
 
 const conductorRoutes = require(`./routes`);
 
@@ -153,7 +154,7 @@ class Conductor {
         uri: player.port,
         body: {
           command: `addSubscriber`,
-          subscriberEndpoint: `http://localhost:${process.env.PORT}/v1/conductor/update`,
+          subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/conductor/update`,
         },
         json: true,
       };

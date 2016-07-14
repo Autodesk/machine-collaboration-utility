@@ -5,6 +5,7 @@ const fs = require(`fs`);
 const _ = require(`underscore`);
 const request = require(`request-promise`);
 const uuidGenerator = require(`node-uuid`);
+const ip = require(`ip`);
 
 const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
 const HttpExecutor = require(`./comProtocols/http/executor`);
@@ -164,7 +165,7 @@ class Bot {
           uri: this.port,
           body: {
             command: `addSubscriber`,
-            subscriberEndpoint: `http://localhost:${process.env.PORT}/v1/bots/${this.settings.uuid}`,
+            subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/bots/${this.settings.uuid}`,
           },
           json: true,
         };
@@ -445,35 +446,6 @@ class Bot {
       await this.fsm.detectFail();
     }
   }
-
-
-  // async park() {
-  //   try {
-  //     if (typeof this.parkCommands !== `function`) {
-  //       const errorMessage = `Park Commands are not defined`;
-  //       throw errorMessage;
-  //     }
-  //     this.fsm.park();
-  //     this.queue.queueCommands(this.parkCommands(this));
-  //   } catch (ex) {
-  //     this.logger.error(ex);
-  //     this.fsm.parkFail();
-  //   }
-  // }
-  //
-  // async unpark(xEntry, dry) {
-  //   try {
-  //     if (typeof this.unparkCommands !== `function`) {
-  //       const errorMessage = `Unpark Commands are not defined`;
-  //       throw errorMessage;
-  //     }
-  //     this.fsm.unpark();
-  //     this.queue.queueCommands(this.unparkCommands(this, xEntry, String(dry)));
-  //   } catch (ex) {
-  //     this.logger.error(ex);
-  //     this.fsm.unparkFail();
-  //   }
-  // }
 
   /**
    * expandCode()
