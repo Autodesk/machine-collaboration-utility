@@ -2,6 +2,7 @@ import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import Modal from 'react-bootstrap/lib/Modal';
 import request from 'superagent';
+import { Link } from 'react-router';
 
 import JogPanel from './JogPanel';
 
@@ -24,6 +25,7 @@ export default class Bot extends React.Component {
   deleteBot() {
     request.delete(`/v1/bots/${this.props.bot.settings.uuid}`)
     .end(() => {
+
       // re route to homepage
     });
     this.closeModal();
@@ -64,7 +66,7 @@ export default class Bot extends React.Component {
         update = update.send(paramJson);
       }
     }
-    update = update.set('Accept', 'application/json')
+    update = update.set('Accept', 'application/json');
     try {
       update.end();
       this.closeModal();
@@ -103,10 +105,10 @@ export default class Bot extends React.Component {
                  return;
                }
               default:
-                return (<div>
-                  <label key={settingKey} htmlFor={settingKey}>{settingKey}</label>
-                    <input type="textarea" name={settingKey} defaultValue={setting}/>
-                  </div>);
+                return (<div key={settingKey}>
+                  <label key={`${settingKey}label`} htmlFor={settingKey}>{settingKey}</label>
+                  <input key={`${settingKey}input`} type="textarea" name={settingKey} defaultValue={setting}/>
+                </div>);
             }
           })}
           <Button bsStyle="primary" type="submit">Update Bot</Button>
@@ -116,7 +118,7 @@ export default class Bot extends React.Component {
       <br/>
       <br/>
       <br/>
-      <Button bsStyle="danger" onClick={this.deleteBot}>Delete Bot</Button>
+      <Button bsStle="danger" onClick={this.deleteBot}>Delete Bot</Button>
     </Modal>);
   }
 

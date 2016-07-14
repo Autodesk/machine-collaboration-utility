@@ -20,14 +20,12 @@ export default class Bots extends React.Component {
 
     this.state = {
       showModal: false,
-      selectedPreset: this.props.botPresets[`DefaultBot`],
-      // Default to the first bot in the list
+      selectedPreset: Object.entries(props.botPresets)[0][1],
       selectedBot: Object.entries(props.bots)[0][0],
     };
   }
 
   updateText(event) {
-    console.log('event', event.target, event.target.name);
     const newPreset = Object.assign({}, this.state.selectedPreset);
     newPreset.setting[event.target.name] = event.target.value;
     this.setState({ selectedPreset: newPreset });
@@ -75,6 +73,9 @@ export default class Bots extends React.Component {
 
   createPresetList() {
     const options = Object.entries(this.props.botPresets).map(([botPresetKey, botPreset]) => {
+      if (botPresetKey === `DefaultBot`) {
+        return;
+      }
       return <option key={botPresetKey} value={botPresetKey}>{botPreset.settings.name}</option>;
     });
     return (
