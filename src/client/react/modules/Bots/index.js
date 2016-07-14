@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from 'react-bootstrap/lib/Modal';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Radio from 'react-bootstrap/lib/Radio';
+import request from 'superagent';
 
 import Bot from './Bot';
 
@@ -9,14 +10,27 @@ import Bot from './Bot';
 export default class Bots extends React.Component {
   constructor(props) {
     super(props);
+
     this.toggleModal = this.toggleModal.bind(this);
-    this.close = this.close.bind(this);
+    this.addBot = this.addBot.bind(this);
+    this.closeModal = this.closeModal.bind(this);
+    this.updateSelectedPreset = this.updateSelectedPreset.bind(this);
     this.handleSelectBot = this.handleSelectBot.bind(this);
+    this.updateText = this.updateText.bind(this);
+
     this.state = {
       showModal: false,
+      selectedPreset: this.props.botPresets[`DefaultBot`],
       // Default to the first bot in the list
       selectedBot: Object.entries(props.bots)[0][0],
     };
+  }
+
+  updateText(event) {
+    console.log('event', event.target, event.target.name);
+    const newPreset = Object.assign({}, this.state.selectedPreset);
+    newPreset.setting[event.target.name] = event.target.value;
+    this.setState({ selectedPreset: newPreset });
   }
 
   handleSelectBot(event) {
@@ -35,7 +49,7 @@ export default class Bots extends React.Component {
     });
   }
 
-  close() {
+  closeModal() {
     this.setState({ showModal: false });
   }
 
@@ -55,23 +69,120 @@ export default class Bots extends React.Component {
     );
   }
 
+  updateSelectedPreset(event) {
+    this.setState({ selectedPreset: this.props.botPresets[event.target.value] });
+  }
+
+  createPresetList() {
+    const options = Object.entries(this.props.botPresets).map(([botPresetKey, botPreset]) => {
+      return <option key={botPresetKey} value={botPresetKey}>{botPreset.settings.name}</option>;
+    });
+    return (
+      <select onChange={this.updateSelectedPreset} name="botList" form="newBotForm">
+        {options}
+      </select>
+    );
+  }
+
+  renderEndpoint(connectionType) {
+    switch (connectionType) {
+      case 'http':
+      case 'telnet':
+      case 'virtual':
+        return (<div>
+          <label htmlFor={'endpoint'}>Endpoint</label>
+          <input onChange={this.updateText} type="textarea" name={'endpoint'} defaultValue={'http://127.0.0.1'} />
+          <br/>
+        </div>);
+      default:
+        <input type="hidden" name={'endpoint'} value={undefined} />
+        break;
+    }
+  }
+
+  createNewBotForm() {
+    return(<div>
+
+      <input type="hidden" name={'model'} value={this.state.selectedPreset.settings.model} />
+
+      <label htmlFor={'name'}>Name</label>
+      <input onChange={this.updateText} type="textarea" name={'name'} value={this.state.selectedPreset.settings.name} />
+      <br/>
+
+      {this.renderEndpoint(this.state.selectedPreset.connectionType)}
+
+      <label htmlFor={'jogXSpeed'}>Jog Speed X</label>
+      <input onChange={this.updateText} type="textarea" name={'jogXSpeed'} value={this.state.selectedPreset.settings.jogXSpeed} />
+      <br/>
+
+      <label htmlFor={'jogYSpeed'}>Jog Speed Y</label>
+      <input onChange={this.updateText} type="textarea" name={'jogYSpeed'} value={this.state.selectedPreset.settings.jogYSpeed} />
+      <br/>
+
+      <label htmlFor={'jogZSpeed'}>Jog Speed Z</label>
+      <input onChange={this.updateText} type="textarea" name={'jogZSpeed'} value={this.state.selectedPreset.settings.jogZSpeed} />
+      <br/>
+
+      <label htmlFor={'jogESpeed'}>Jog Speed E</label>
+      <input onChange={this.updateText} type="textarea" name={'jogESpeed'} value={this.state.selectedPreset.settings.jogESpeed} />
+      <br/>
+
+      <label htmlFor={'tempE'}>Default Extruder Temp</label>
+      <input onChange={this.updateText} type="textarea" name={'tempE'} value={this.state.selectedPreset.settings.tempE} />
+      <br/>
+
+      <label htmlFor={'tempB'}>Default Bed Temp</label>
+      <input onChange={this.updateText} type="textarea" name={'tempB'} value={this.state.selectedPreset.settings.tempB} />
+      <br/>
+
+      <input type="hidden" name={'speedRatio'} value={this.state.selectedPreset.settings.speedRatio} />
+      <input type="hidden" name={'eRatio'} value={this.state.selectedPreset.settings.eRatio} />
+      <input type="hidden" name={'offsetX'} value={this.state.selectedPreset.settings.offsetX} />
+      <input type="hidden" name={'offsetY'} value={this.state.selectedPreset.settings.offsetY} />
+      <input type="hidden" name={'offsetZ'} value={this.state.selectedPreset.settings.offsetZ} />
+
+    </div>);
+  }
+
+  addBot(event) {
+    this.closeModal();
+    event.preventDefault();
+
+    request.post(`/v1/bots`)
+    .send({ name: event.target.name.value })
+    .send({ model: event.target.model.value })
+    .send({ jogXSpeed: event.target.jogXSpeed.value })
+    .send({ jogYSpeed: event.target.jogYSpeed.value })
+    .send({ jogZSpeed: event.target.jogZSpeed.value })
+    .send({ jogESpeed: event.target.jogESpeed.value })
+    .send({ tempE: event.target.tempE.value })
+    .send({ tempB: event.target.tempB.value })
+    .send({ speedRatio: event.target.speedRatio.value })
+    .send({ eRatio: event.target.eRatio.value })
+    .send({ offsetX: event.target.offsetX.value })
+    .send({ offsetY: event.target.offsetY.value })
+    .send({ offsetZ: event.target.offsetZ.value })
+    .set('Accept', 'application/json')
+    .end();
+  }
+
   render() {
     return (<div>
       <button onClick={this.toggleModal}>Create Bot</button>
-      <Modal show={this.state.showModal} onHide={this.close}>
+      <Modal show={this.state.showModal} onHide={this.closeModal}>
         <Modal.Header closeButton>
           <Modal.Title>Create Bot</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <h4>Fill out all of your details here</h4>
-          <p>Great job</p>
+          {this.createPresetList()}
+          <form onSubmit={this.addBot}>
+            {this.createNewBotForm()}
+            <input type="submit" value="Create Bot"/>
+          </form>
         </Modal.Body>
-        <Modal.Footer>
-          <button onClick={this.close}>Close</button>
-        </Modal.Footer>
       </Modal>
       {this.renderBotList()}
-      <Bot bot={this.props.bots[this.state.selectedBot]}/>
+      <Bot botPresets={this.props.botPresets} bot={this.props.bots[this.state.selectedBot]}/>
     </div>);
   }
 }

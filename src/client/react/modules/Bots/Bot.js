@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
+import Modal from 'react-bootstrap/lib/Modal';
 import request from 'superagent';
 
 import JogPanel from './JogPanel';
@@ -7,8 +8,25 @@ import JogPanel from './JogPanel';
 export default class Bot extends React.Component {
   constructor(props) {
     super(props);
+
     this.connect = this.connect.bind(this);
     this.disconnect = this.disconnect.bind(this);
+    this.toggleModal = this.toggleModal.bind(this);
+    this.closeModal = this.closeModal.bind(this);
+    this.updateBot = this.updateBot.bind(this);
+    this.deleteBot = this.deleteBot.bind(this);
+
+    this.state = {
+      showModal: false,
+    };
+  }
+
+  deleteBot() {
+    request.delete(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .end(() => {
+      // re route to homepage
+    });
+    this.closeModal();
   }
 
   connect() {
@@ -32,8 +50,74 @@ export default class Bot extends React.Component {
       case `connected`:
         return <Button onClick={this.disconnect}>Disconnect!</Button>;
       default:
-        return <Button>Nope!</Button>;
+        return <Button disabled>Nope!</Button>;
     }
+  }
+
+  updateBot(event) {
+    event.preventDefault();
+    let update = request.put(`/v1/bots/${this.props.bot.settings.uuid}`)
+    for (const [settingKey, setting] of Object.entries(this.props.bot.settings)) {
+      const paramJson = {};
+      if (event.target[settingKey] !== undefined) {
+        paramJson[settingKey] = event.target[settingKey].value;
+        update = update.send(paramJson);
+      }
+    }
+    update = update.set('Accept', 'application/json')
+    try {
+      update.end();
+      this.closeModal();
+    } catch (ex) {
+      console.log('update error', ex);
+    }
+  }
+
+  toggleModal() {
+    this.setState({
+      showModal: !this.state.showModal,
+    });
+  }
+
+  closeModal() {
+    this.setState({ showModal: false });
+  }
+
+  renderModal() {
+    return (<Modal show={this.state.showModal} onHide={this.closeModal}>
+      <Modal.Header closeButton>
+        <Modal.Title>Edit Bot</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <form onSubmit={this.updateBot}>
+          {Object.entries(this.props.bot.settings).map(([settingKey, setting]) => {
+            switch (settingKey) {
+              case `createdAt`:
+              case `updatedAt`:
+              case `uuid`:
+              case `id`:
+              case `model`:
+                return;
+              case `endpoint`:
+               if (this.props.botPresets[this.props.bot.settings.model].connectionType === `serial`) {
+                 return;
+               }
+              default:
+                return (<div>
+                  <label key={settingKey} htmlFor={settingKey}>{settingKey}</label>
+                    <input type="textarea" name={settingKey} defaultValue={setting}/>
+                  </div>);
+            }
+          })}
+          <Button bsStyle="primary" type="submit">Update Bot</Button>
+        </form>
+      </Modal.Body>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <Button bsStyle="danger" onClick={this.deleteBot}>Delete Bot</Button>
+    </Modal>);
   }
 
   render() {
@@ -44,6 +128,8 @@ export default class Bot extends React.Component {
         <div>State: {this.props.bot.state}</div>
         <div>Port: {this.props.bot.port}</div>
         <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
+        <Button onClick={this.toggleModal}>Edit Bot</Button>
+        {this.renderModal()}
       </div>
     );
   }

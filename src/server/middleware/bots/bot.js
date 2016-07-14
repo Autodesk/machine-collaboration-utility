@@ -56,7 +56,8 @@ class Bot {
         }
       }
     }
-    this.settings.uuid = uuidGenerator.v1();
+
+    this.settings.uuid = presets.settings.uuid === undefined ? uuidGenerator.v1(): presets.settings.uuid;
 
     this.fsmEvents = [
       /* eslint-disable no-multi-spaces */
