@@ -125,8 +125,9 @@ class HttpConnection {
 
     let stream = false;
     switch (true) {
-      case inCommandStr.includes(`G1`):
       case inCommandStr.includes(`G0`):
+      case inCommandStr.includes(`G1`):
+      case inCommandStr.includes(`G4`):
         stream = true;
         break;
       default:
@@ -136,6 +137,7 @@ class HttpConnection {
     if (inCommandStr !== command) {
       this.logger.info(`Changed "${inCommandStr}" to "${command}"`);
     }
+
     var error = undefined;
     var commandSent = false;
 
@@ -149,9 +151,13 @@ class HttpConnection {
         },
         json: true,
       };
-
       try {
-        const reply = await request(requestParams)
+        const reply = await request(requestParams);
+        if (String(reply.data) === `false`) {
+          setTimeout(() => {
+            this.send(inCommandStr);
+          }, 1000);
+        }
         if (_.isFunction(this.mDataFunc)) {
           this.mDataFunc(reply);
         }
