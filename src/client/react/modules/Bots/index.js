@@ -183,7 +183,9 @@ export default class Bots extends React.Component {
         </Modal.Body>
       </Modal>
       {this.renderBotList()}
-      <Bot botPresets={this.props.botPresets} bot={this.props.bots[this.state.selectedBot]}/>
+      {
+        this.state.selectedBot === undefined ? '' : <Bot botPresets={this.props.botPresets} bot={this.props.bots[this.state.selectedBot]}/>
+      }
     </div>);
   }
 }
