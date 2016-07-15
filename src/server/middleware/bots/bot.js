@@ -297,15 +297,14 @@ class Bot {
         }
         self.queue.queueCommands({
           code: command,
-          postCallback: () => {
+          postCallback: async () => {
+            if (self.currentJob.fsm.current === `running`) {
+              await self.lr.resume();
+            }
             self.currentLine += 1;
             self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
           },
         });
-        this.logger.info(`${this.settings.name} queueing "${command}"`);
-        if (self.currentJob.fsm.current === `running`) {
-          await self.lr.resume();
-        }
       }
     });
 
@@ -470,7 +469,7 @@ class Bot {
     if (reply.status !== 200) {
       ok = false;
     }
-    if (reply.data === false) {
+    if (String(reply.data) === `false`) {
       ok = false;
     }
     return ok;
