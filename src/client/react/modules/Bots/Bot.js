@@ -71,7 +71,7 @@ export default class Bot extends React.Component {
       update.end();
       this.closeModal();
     } catch (ex) {
-      console.log('update error', ex);
+      console.log(`Update error`, ex);
     }
   }
 
@@ -118,7 +118,7 @@ export default class Bot extends React.Component {
       <br/>
       <br/>
       <br/>
-      <Button bsStle="danger" onClick={this.deleteBot}>Delete Bot</Button>
+      <Button bsStyle="danger" onClick={this.deleteBot}>Delete Bot</Button>
     </Modal>);
   }
 
