@@ -34,7 +34,6 @@ export default class App extends React.Component {
 
   onDrop(files) {
     const req = request.post('/v1/files');
-    req.set('conductor', 'true');
     files.forEach((file) => {
       req.attach(file.name, file);
     });
