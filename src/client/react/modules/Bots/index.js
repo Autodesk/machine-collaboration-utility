@@ -20,8 +20,8 @@ export default class Bots extends React.Component {
 
     this.state = {
       showModal: false,
+      selectedBot: Object.entries(props.bots).length > 0 ? Object.entries(props.bots)[0][0]: undefined,
       selectedPreset: Object.entries(props.botPresets)[0][1],
-      selectedBot: Object.entries(props.bots)[0][0],
     };
   }
 
