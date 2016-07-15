@@ -67,6 +67,7 @@ var SerialConnection = function(
     this.mHeartbeat.interval(SerialConnection.HEART_BEAT_INTERVAL);
     this.mHeartbeat.add(_.bind(this.heartbeat, this));
     this.mHeartbeat.start();
+    this.returnString = '';
 
     // Open our port and register our stub handers
     this.mPort.open(function(error) {
@@ -76,10 +77,10 @@ var SerialConnection = function(
         } else {
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
-              if (data.includes(`ok`)) {
-                if (_.isFunction(that.mDataFunc)) {
-                  that.mDataFunc(data);
-                }
+              this.returnString += data;
+              if (_.isFunction(that.mDataFunc)) {
+                that.mDataFunc(String(this.returnString));
+                this.returnString = '';
               }
               that.logger.info('botReply', data);
               // that.io.emit('botReply', data);
