@@ -16,10 +16,17 @@ export default class Bot extends React.Component {
     this.closeModal = this.closeModal.bind(this);
     this.updateBot = this.updateBot.bind(this);
     this.deleteBot = this.deleteBot.bind(this);
+    this.detect = this.detect.bind(this);
 
     this.state = {
       showModal: false,
     };
+  }
+
+  detect() {
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `checkSubscription` })
+    .end();
   }
 
   deleteBot() {
@@ -47,6 +54,8 @@ export default class Bot extends React.Component {
 
   renderConnectButton() {
     switch (this.props.bot.state) {
+      case `unavailable`:
+        return <Button onClick={this.detect}>Detect</Button>;
       case `ready`:
         return <Button onClick={this.connect}>Connect!</Button>;
       case `connected`:
