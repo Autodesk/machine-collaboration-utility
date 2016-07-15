@@ -25,8 +25,11 @@ module.exports = class HydraPrintBot extends DefaultBot {
                   resolve(reply.data);
                   return true;
                 }
-                resolve(reply.data.replace(`\r`, ``));
-                return true;
+                if (typeof reply === `string`) {
+                  resolve(reply.data.replace(`\r`, ``));
+                  return true;
+                }
+                this.logger.error(`Strange reply`, typeof reply, reply);
               },
             });
             self.queue.queueCommands(commandArray);
