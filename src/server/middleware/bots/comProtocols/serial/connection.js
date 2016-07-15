@@ -71,9 +71,9 @@ var SerialConnection = function(
 
     // Open our port and register our stub handers
     this.mPort.open(function(error) {
-        // logger.info('Serial port opened');
+        logger.info('Serial port opened');
         if (error) {
-            // logger.warn('Failed to open com port:', inComName, error);
+            logger.warn('Failed to open com port:', inComName, error);
         } else {
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
@@ -83,8 +83,7 @@ var SerialConnection = function(
                   that.mDataFunc(String(this.returnString));
                   this.returnString = '';
                 }
-                that.logger.info('botReply', data);
-                // that.io.emit('botReply', data);
+                that.io.emit('botReply', data);
               }
             });
 
