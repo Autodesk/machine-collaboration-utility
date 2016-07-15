@@ -42,9 +42,7 @@ var SerialConnection = function(
   inConnectedFunc
 ) {
     this.app = app;
-    this.io = app.io;
     this.logger = app.context.logger;
-    var that = this;
     var portParams = { baudrate : inBaud,
                        parser: SerialPort.parsers.readline('\n') };
 
@@ -70,38 +68,38 @@ var SerialConnection = function(
     this.returnString = '';
 
     // Open our port and register our stub handers
-    this.mPort.open(function(error) {
-        this.logger.info('Serial port opened');
-        if (error) {
-            this.logger.warn('Failed to open com port:', inComName, error);
-        } else {
-            that.mPort.on('data', function (inData) {
-              const data = inData.toString();
-              this.returnString += data;
-              if (data.includes('ok')) {
-                if (_.isFunction(that.mDataFunc)) {
-                  that.mDataFunc(String(this.returnString));
-                  this.returnString = '';
-                }
-                that.io.emit('botReply', data);
+    this.mPort.open((error) => {
+      this.logger.info('Serial port opened');
+      if (error) {
+        this.logger.warn('Failed to open com port:', inComName, error);
+      } else {
+        this.mPort.on('data', (inData) => {
+          const data = inData.toString();
+          this.returnString += data;
+          if (data.includes('ok')) {
+            if (_.isFunction(this.mDataFunc)) {
+              this.mDataFunc(String(this.returnString));
+              this.returnString = '';
+            }
+            this.app.io.emit('botReply', data);
               }
             });
 
-            that.mPort.on('close', function () {
-                    if (_.isFunction(that.mCloseFunc)) {
-                        that.mCloseFunc();
+            this.mPort.on('close', () => {
+                    if (_.isFunction(this.mCloseFunc)) {
+                        this.mCloseFunc();
                     }
                 });
 
-            that.mPort.on('error', function () {
-                    if (_.isFunction(that.mErrorFunc)) {
-                        that.mErrorFunc(arguments);
+            this.mPort.on('error', () => {
+                    if (_.isFunction(this.mErrorFunc)) {
+                        this.mErrorFunc(arguments);
                     }
                 });
 
             // Some printers start spewing data on open, some require a prime
-            if (that.mOpenPrimeStr && (that.mOpenPrimeStr !== '')) {
-                that.mPort.write(that.mOpenPrimeStr + '\n');
+            if (this.mOpenPrimeStr && (this.mOpenPrimeStr !== '')) {
+                this.mPort.write(this.mOpenPrimeStr + '\n');
             }
         }
     });
@@ -118,17 +116,17 @@ var SerialConnection = function(
  * Set the user configurable functions to call when we receive data,
  * close the port or have an error on the port.
  */
-SerialConnection.prototype.setDataFunc = function (inDataFunc) {
+SerialConnection.prototype.setDataFunc = (inDataFunc) => {
     if (this.mState === SerialConnection.State.CONNECTED) {
         this.mDataFunc = inDataFunc;
     } else {
         this.logger.error('Cannot set a custom data function until we have connected');
     }
 };
-SerialConnection.prototype.setCloseFunc = function (inCloseFunc) {
+SerialConnection.prototype.setCloseFunc = (inCloseFunc) => {
     this.mCloseFunc = inCloseFunc;
 };
-SerialConnection.prototype.setErrorFunc = function (inErrorFunc) {
+SerialConnection.prototype.setErrorFunc = (inErrorFunc) => {
     this.mErrorFunc = inErrorFunc;
 };
 
@@ -140,7 +138,7 @@ SerialConnection.prototype.setErrorFunc = function (inErrorFunc) {
  * Args:   inCommandStr - string to send
  * Return: N/A
  */
-SerialConnection.prototype.send = function (inCommandStr) {
+SerialConnection.prototype.send = (inCommandStr) => {
     var error = undefined;
     var commandSent = false;
 
@@ -167,8 +165,8 @@ SerialConnection.prototype.send = function (inCommandStr) {
  * Args:   N/A
  * Return: N/A
  */
-SerialConnection.prototype.close = function () {
-    this.mPort.close(function(err) {
+SerialConnection.prototype.close = () => {
+    this.mPort.close((err) => {
         this.logger.info('Serialport is now closed');
         if (err) {
             this.logger.error('Failed closing the port', err);
@@ -204,7 +202,7 @@ SerialConnection.State = {
  * In the event this fires while we are expecting start or the M115 response
  * we can't consider this a functioning response and should not clean up.
  */
-SerialConnection.prototype.heartbeat = function () {
+SerialConnection.prototype.heartbeat = () => {
     switch (this.mState) {
     case SerialConnection.State.DATA_RECEIVED:
         // This is the common case after opening, we've received data and
@@ -255,7 +253,7 @@ SerialConnection.prototype.heartbeat = function () {
 
     // Cleanup the heartbeat and close our port
     this.mHeartbeat.clear();
-    this.mPort.close(function(err) {
+    this.mPort.close((err) => {
         this.logger.info('Serial port closed');
         if (err) {
             this.logger.error('Failed closing the port', err);
@@ -270,7 +268,7 @@ SerialConnection.prototype.heartbeat = function () {
  * Special case handler to parse off data received after opening, until we
  * achieve a steady state.
  */
-SerialConnection.prototype.receiveOpenResponse = function (inData) {
+SerialConnection.prototype.receiveOpenResponse = (inData) => {
     var dataStr = inData.toString('utf8');
     // Allow our creator to parse this data
     if (_.isFunction(this.mInitDataFunc)) {
