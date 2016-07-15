@@ -7,15 +7,16 @@ module.exports = class Escher2Conductor extends HydraPrintBot {
     this.settings.model = `Escher2Conductor`;
     this.connectionType = `http`;
 
-    this.commands.park = (that) => {
-      return {
+    this.commands.park = (that, params) => {
+      that.fsm.park();
+      that.queue.queueCommands({
         code: 'M114',
         processData: (command, reply) => {
           const commandArray = [];
 
           const preParkLocation = {
-            X: Number(reply.split('X:')[1].split('Y:')[0]),
-            Z: Number(reply.split('Z:')[1].split('E:')[0]),
+            X: Number(reply.data.split('X:')[1].split('Y:')[0]),
+            Z: Number(reply.data.split('Z:')[1].split('E:')[0]),
           };
 
           that.logger.info('preParkLocation ', preParkLocation);
@@ -36,9 +37,15 @@ module.exports = class Escher2Conductor extends HydraPrintBot {
 
           return true;
         },
-      };
+      });
+      return that.getBot();
     };
-    this.commands.unpark = (that, xEntry, dryJob = 'false') => {
+
+    this.commands.unpark = (that, params) => {
+      that.fsm.unpark();
+
+      const xEntry = params.xEntry;
+      const dryJob = params.dryJob === undefined ? `false` : params.dryJob;
       const commandArray = [
         {
           code: 'M114',
@@ -62,7 +69,7 @@ module.exports = class Escher2Conductor extends HydraPrintBot {
               purgeArray.push('G1 E4 F1800');
               purgeArray.push('G1 Y27 F3600');
             }
-            commandArray.push({
+            purgeArray.push({
               postCallback: () => {
                 that.fsm.unparkDone();
               },
@@ -72,7 +79,8 @@ module.exports = class Escher2Conductor extends HydraPrintBot {
           },
         },
       ];
-      return commandArray;
+      that.queue.queueCommands(commandArray);
+      return that.getBot();
     };
   }
 };

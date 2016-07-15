@@ -324,9 +324,9 @@ class Conductor {
               // the array order from metajob must be maintained
               playerJob.botUuid = botUuid;
               playerJob.state = this.app.context.jobs.jobList[jobUuid].fsm.current;
-            }, { concurrency: 5 });
+            }, { concurrency: 16 });
             this.players[botUuid].metajobQueue = metajobPlayer.jobs;
-          }, { concurrency: 5 });
+          }, { concurrency: 16 });
           resolve();
         });
       });

@@ -112,12 +112,11 @@ module.exports = class DefaultBot {
       }
     };
 
-    this.commands.resume = (self, params) => {
+    this.commands.resume = async (self, params) => {
       const commandArray = [];
       commandArray.push({
         preCallback: async () => {
           await self.fsm.start();
-          await self.queue.resume();
         },
         code: 'G4 S1',
         postCallback: async () => {
@@ -126,12 +125,16 @@ module.exports = class DefaultBot {
         },
       });
       self.queue.queueCommands(commandArray);
+      await self.queue.resume();
       return self.getBot();
     };
 
     this.commands.pause = (self, params) => {
       const commandArray = [];
       commandArray.push({
+        preCallback: async () => {
+          await self.fsm.stop();
+        },
         code: 'G4 S1',
         postCallback: async () => {
           self.queue.pause();

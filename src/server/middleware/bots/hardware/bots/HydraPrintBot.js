@@ -25,7 +25,7 @@ module.exports = class HydraPrintBot extends DefaultBot {
                   resolve(reply.data);
                   return true;
                 }
-                if (typeof reply === `string`) {
+                if (typeof reply.data === `string`) {
                   resolve(reply.data.replace(`\r`, ``));
                   return true;
                 }
