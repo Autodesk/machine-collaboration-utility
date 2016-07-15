@@ -319,7 +319,6 @@ class Conductor {
               } catch (ex) {
                 self.logger.error('create job error', ex);
               }
-              console.log('createjobreply', createJobReply);
               jobUuid = createJobReply.data.uuid;
               // add the job to a list
               // the array order from metajob must be maintained

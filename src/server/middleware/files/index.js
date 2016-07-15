@@ -114,15 +114,6 @@ class Files {
   }
 
   getFiles() {
-    if (String(process.env.CONDUCTING) === `true`) {
-      const trimmedFileList = {}
-      Object.entries(this.fileList).forEach(([fileKey, file]) => {
-        if (file.name.indexOf(`.zip`) !== -1) {
-          trimmedFileList[fileKey] = file;
-        }
-      });
-      return trimmedFileList;
-    }
     return this.fileList;
   }
 

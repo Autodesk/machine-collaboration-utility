@@ -5,8 +5,9 @@ module.exports = class DefaultBot {
     this.connectionType = undefined;
 
     this.settings = {
-      name: `Default`,
       model: `DefaultBot`,
+      name: `Default`,
+      endpoint: false,
       jogXSpeed: `1000`,
       jogYSpeed: `2000`,
       jogZSpeed: `1000`,
@@ -78,7 +79,7 @@ module.exports = class DefaultBot {
             commandArray.push({
               code: gcode,
               processData: (command, reply) => {
-                resolve(reply);
+                resolve(reply.replace(`\r`, ``));
                 return true;
               },
             });
@@ -213,6 +214,10 @@ module.exports = class DefaultBot {
 
       self.fsm.current = theEvent.from;
       self.fsm[theEvent.name]();
+    };
+
+    this.commands.checkSubscription = (self, params) => {
+      self.subscribe();
     };
   }
 };

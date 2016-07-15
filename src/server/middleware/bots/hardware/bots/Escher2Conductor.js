@@ -1,6 +1,6 @@
-const DefaultBot = require(`./DefaultBot`);
+const HydraPrintBot = require(`./HydraPrintBot`);
 
-module.exports = class Escher2Conductor extends DefaultBot {
+module.exports = class Escher2Conductor extends HydraPrintBot {
   constructor(app) {
     super(app);
     this.settings.name = `Escher 2 Conductor`;

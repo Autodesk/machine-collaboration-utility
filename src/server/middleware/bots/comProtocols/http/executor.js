@@ -75,13 +75,13 @@ HttpCommandExecutor.prototype.close = function (inDoneFunc) {
  *         inDataFunc - function to call with response data
  *         inDoneFunc - function to call if the command will have no response
  */
-HttpCommandExecutor.prototype.execute = function (
+HttpCommandExecutor.prototype.execute = async function (
   inRawCode,
   inDataFunc,
   inDoneFunc
 ) {
   this.mConnection.setDataFunc(inDataFunc);
-  this.mConnection.send(inRawCode);
+  await this.mConnection.send(inRawCode);
   this.mCommandsProcessed++;
 };
 

@@ -145,7 +145,22 @@ class Bot {
       default:
         // do nothing
     }
+    this.subscribe();
+  }
 
+  /*
+   * get a json friendly description of the Bot
+   */
+  getBot() {
+    return {
+      state: this.fsm.current,
+      port: this.port,
+      settings: this.settings,
+      subscribers: this.subscribers,
+    };
+  }
+
+  async subscribe() {
     switch (this.connectionType) {
       // In case there is no detection method required, detect the device and
       // move directly to a "ready" state
@@ -160,13 +175,12 @@ class Bot {
           },
           json: true,
         };
-        request(requestParams)
-        .then((reply) => {
+        try {
+          await request(requestParams);
           this.detect();
-        })
-        .catch((err) => {
-          this.logger.error(`Failed to subscribe to bot endpoint ${this.port}. ${err}`);
-        });
+        } catch (ex) {
+          this.logger.error(`Failed to subscribe to bot endpoint ${this.port}. ${ex}`);
+        }
         break;
       case `telnet`:
       case `virtual`:
@@ -175,18 +189,6 @@ class Bot {
       default:
         // Do nothing
     }
-  }
-
-  /*
-   * get a json friendly description of the Bot
-   */
-  getBot() {
-    return {
-      state: this.fsm.current,
-      port: this.port,
-      settings: this.settings,
-      subscribers: this.subscribers,
-    };
   }
 
   async updateBot(newSettings) {
@@ -300,6 +302,7 @@ class Bot {
             self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
           },
         });
+        this.logger.info(`${this.settings.name} queueing "${command}"`);
         if (self.currentJob.fsm.current === `running`) {
           await self.lr.resume();
         }
@@ -457,12 +460,20 @@ class Bot {
    * validateHttpReply()
    *
    * Confirms if a reply contains 'ok' as its last line.  Parses out DOS newlines.
+   * If the bot is streaming, it will reply with "true" instead of the actual text
    *
    * Args:   reply - The reply from a bot after sending a command
    * Return: true if the last line was 'ok'
    */
   validateHttpReply(command, reply) {
-    return reply.status === 200;
+    let ok = true;
+    if (reply.status !== 200) {
+      ok = false;
+    }
+    if (reply.data === false) {
+      ok = false;
+    }
+    return ok;
   }
 
   /**

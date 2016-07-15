@@ -51,11 +51,6 @@ class Bots {
       // Set up the bot database model
       this.BotModel = await botModel(this.app);
 
-      // If there are not bots saved yet, create one
-      // This first bot object is where we will save settings for
-      // generic usb bots that cannot be made persistent
-      await this.createBot();
-
       const botsDbArray = await this.BotModel.findAll();
       // Load all bots from the database and add them to the 'bots' object
       for (const dbBot of botsDbArray) {
@@ -156,12 +151,6 @@ class Bots {
     // Add the bot to the list
     this.botList[newBot.settings.uuid] = newBot;
 
-    // The Default bot is only a placeholder
-    // As soon as there are bots in the botList, remove default bot
-    const defaultBot = this.findBotByName(`Default`);
-    if (defaultBot !== undefined && inputSettings.model !== `DefaultBot`) {
-      delete this.botList[defaultBot.settings.uuid];
-    }
     this.app.io.emit(`updateBots`, this.getBots());
     return newBot;
   }
@@ -195,9 +184,6 @@ class Bots {
     }
     if (!deleted) {
       throw `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`;
-    }
-    if (Object.entries(this.botList).length === 0) {
-      this.createBot();
     }
     this.app.io.emit(`updateBots`, this.getBots());
     return `Bot "${uuid}" successfully deleted`;

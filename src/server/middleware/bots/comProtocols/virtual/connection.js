@@ -87,7 +87,7 @@ VirtualConnection.prototype.send = async function (inCommandStr) {
         reply = `ok`;
         break;
       default:
-        console.log(`command not supported`);
+        this.logger.error(`command not supported`);
     }
     this.nBufferedCommands--;
     this.mDataFunc(reply);

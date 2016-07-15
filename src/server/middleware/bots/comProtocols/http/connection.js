@@ -108,7 +108,34 @@ class HttpConnection {
    * Args:   inCommandStr - string to send
    * Return: N/A
    */
-  send(inCommandStr) {
+  async send(inCommandStr) {
+    let command;
+    switch (inCommandStr) {
+      case `M104 S0\n`:
+      case `M140 S0\n`:
+        command = `G4 P0\n`;
+        break;
+      case `M109 S0 T0\n`:
+      case `M109 S0\n`:
+        command = `M104 S0\n`;
+        break;
+      default:
+        command = inCommandStr;
+    }
+
+    let stream = false;
+    switch (true) {
+      case inCommandStr.includes(`G1`):
+      case inCommandStr.includes(`G0`):
+        stream = true;
+        break;
+      default:
+        break;
+    }
+
+    if (inCommandStr !== command) {
+      this.logger.info(`Changed "${inCommandStr}" to "${command}"`);
+    }
     var error = undefined;
     var commandSent = false;
 
@@ -117,25 +144,24 @@ class HttpConnection {
         method: `POST`,
         uri: `${this.externalEndpoint}`,
         body: {
-          command: `processGcode`,
-          gcode: inCommandStr,
+          command: stream ? `streamGcode` : `processGcode`,
+          gcode: command,
         },
         json: true,
       };
 
-      request(requestParams)
-      .then((reply) => {
+      try {
+        const reply = await request(requestParams)
         if (_.isFunction(this.mDataFunc)) {
           this.mDataFunc(reply);
         }
         commandSent = true;
-      })
-      .catch((err) => {
-        this.logger.info(err.error);
+      } catch (ex) {
+        this.logger.info(ex);
         setTimeout(() => {
           this.send(inCommandStr);
         }, 1000);
-      });
+      }
     } catch (ex) {
       this.logger.error('Send command fail', ex);
     }
