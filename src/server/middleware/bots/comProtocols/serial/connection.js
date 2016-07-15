@@ -71,9 +71,9 @@ var SerialConnection = function(
 
     // Open our port and register our stub handers
     this.mPort.open(function(error) {
-        logger.info('Serial port opened');
+        this.logger.info('Serial port opened');
         if (error) {
-            logger.warn('Failed to open com port:', inComName, error);
+            this.logger.warn('Failed to open com port:', inComName, error);
         } else {
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
@@ -122,7 +122,7 @@ SerialConnection.prototype.setDataFunc = function (inDataFunc) {
     if (this.mState === SerialConnection.State.CONNECTED) {
         this.mDataFunc = inDataFunc;
     } else {
-        // logger.error('Cannot set a custom data function until we have connected');
+        this.logger.error('Cannot set a custom data function until we have connected');
     }
 };
 SerialConnection.prototype.setCloseFunc = function (inCloseFunc) {
@@ -155,7 +155,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
     }
 
     if (!commandSent) {
-        // logger.error('Cannot send commands if not connected:', this.mState, error);
+        this.logger.error('Cannot send commands if not connected:', this.mState, error);
     }
 };
 
@@ -169,9 +169,9 @@ SerialConnection.prototype.send = function (inCommandStr) {
  */
 SerialConnection.prototype.close = function () {
     this.mPort.close(function(err) {
-        // logger.info('Serialport is now closed');
+        this.logger.info('Serialport is now closed');
         if (err) {
-            // logger.error('Failed closing the port', err);
+            this.logger.error('Failed closing the port', err);
         }
     });
 };
@@ -217,7 +217,7 @@ SerialConnection.prototype.heartbeat = function () {
         // We were expecting data from the open, but it finally stopped.
         // Issue the M115
         this.mPort.write('M115\n'); // can't use 'send()' until connected
-        // logger.info('Wrote M115 to serialport');
+        this.logger.info('Wrote M115 to serialport');
         this.mState = SerialConnection.State.M115_SENT;
         this.mWait = SerialConnection.WAIT_COUNT; // refresh our wait count
         return;
@@ -245,20 +245,20 @@ SerialConnection.prototype.heartbeat = function () {
             return; // retry the M115 again
         }
 
-        // logger.warn('Failed to receive responses opening or after M115, ignoring port:', this.mPort.fd);
+        this.logger.warn('Failed to receive responses opening or after M115, ignoring port:', this.mPort.fd);
         break; // no love.  Fall through to cleanup and give up on this port
 
     default:
-        // logger.error('This indicates a broken serialDiscovery SerialConnection state engine');
+        this.logger.error('This indicates a broken serialDiscovery SerialConnection state engine');
         break;
     }
 
     // Cleanup the heartbeat and close our port
     this.mHeartbeat.clear();
     this.mPort.close(function(err) {
-        // logger.info('Serial port closed');
+        this.logger.info('Serial port closed');
         if (err) {
-            // logger.error('Failed closing the port', err);
+            this.logger.error('Failed closing the port', err);
         }
     });
 };
