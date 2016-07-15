@@ -33,24 +33,24 @@ class Jobs {
   async initialize() {
     try {
       await this.setupRouter();
-      // initial setup of the db
-      this.JobModel = await jobModel(this.app);
+      // // initial setup of the db
+      // this.JobModel = await jobModel(this.app);
 
-      // load all existing jobs from the database
-      const jobs = await this.JobModel.findAll();
-      for (const job of jobs) {
-        const botUuid = job.dataValues.botUuid;
-        const jobUuid = job.dataValues.uuid;
-        const state = job.dataValues.state;
-        const id = job.dataValues.id;
-        const fileUuid = job.dataValues.fileUuid;
-        const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid, state, id);
-        await jobObject.initialize();
-        jobObject.percentComplete = job.dataValues.percentComplete;
-        jobObject.started = job.dataValues.started;
-        jobObject.elapsed = job.dataValues.elapsed;
-        this.jobList[jobUuid] = jobObject;
-      }
+      // // load all existing jobs from the database
+      // const jobs = await this.JobModel.findAll();
+      // for (const job of jobs) {
+      //   const botUuid = job.dataValues.botUuid;
+      //   const jobUuid = job.dataValues.uuid;
+      //   const state = job.dataValues.state;
+      //   const id = job.dataValues.id;
+      //   const fileUuid = job.dataValues.fileUuid;
+      //   const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid, state, id);
+      //   await jobObject.initialize();
+      //   jobObject.percentComplete = job.dataValues.percentComplete;
+      //   jobObject.started = job.dataValues.started;
+      //   jobObject.elapsed = job.dataValues.elapsed;
+      //   this.jobList[jobUuid] = jobObject;
+      // }
 
       this.logger.info(`Jobs instance initialized`);
     } catch (ex) {
@@ -61,11 +61,11 @@ class Jobs {
   async createPersistentJob(botUuid, fileUuid, jobUuid) {
     const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid);
     await jobObject.initialize();
-    const jobJson = jobObject.getJob();
-    const dbJob = await this.JobModel.create(jobJson);
-
-    // Hack, the job's id cannot be known until it is added to the database
-    jobObject.id = dbJob.dataValues.id;
+    // const jobJson = jobObject.getJob();
+    // const dbJob = await this.JobModel.create(jobJson);
+    //
+    // // Hack, the job's id cannot be known until it is added to the database
+    // jobObject.id = dbJob.dataValues.id;
 
     this.jobList[dbJob.dataValues.uuid] = jobObject;
     this.logger.info('jobEvent', jobJson);
@@ -109,9 +109,9 @@ class Jobs {
 
   async deleteJob(jobUuid) {
     const theJob = this.jobList[jobUuid];
-    const dbJob = await this.JobModel.findById(theJob.id);
-    // this.app.io.emit('deleteJob', theJobJson);
-    await dbJob.destroy();
+    // const dbJob = await this.JobModel.findById(theJob.id);
+    // // this.app.io.emit('deleteJob', theJobJson);
+    // await dbJob.destroy();
     delete this.jobList[jobUuid];
     this.logger.info(`Job ${jobUuid} deleted`);
     try {

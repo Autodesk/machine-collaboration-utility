@@ -68,8 +68,8 @@ class KoaApp {
     // add custom middleware here
     .then(async () => {
 
-      // Just wipe the database each time until we can smooth things out
-      this.app.context.wipeDb = true;
+      // // Just wipe the database each time until we can smooth things out
+      // this.app.context.db.sync({ force: true });
 
       const files = await new Files(this.app, `/${this.apiVersion}/files`);
       await files.initialize();
@@ -84,7 +84,6 @@ class KoaApp {
         const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);
         await conductor.initialize();
       }
-      // this.app.context.db.sync({ force: this.app.context.wipeDb });
 
       // Set up Koa to match any routes to the React App. If a route exists, render it.
       router.get('*', (ctx) => {
