@@ -78,12 +78,14 @@ var SerialConnection = function(
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
               this.returnString += data;
-              if (_.isFunction(that.mDataFunc)) {
-                that.mDataFunc(String(this.returnString));
-                this.returnString = '';
+              if (data.includes('ok')) {
+                if (_.isFunction(that.mDataFunc)) {
+                  that.mDataFunc(String(this.returnString));
+                  this.returnString = '';
+                }
+                that.logger.info('botReply', data);
+                // that.io.emit('botReply', data);
               }
-              that.logger.info('botReply', data);
-              // that.io.emit('botReply', data);
             });
 
             that.mPort.on('close', function () {
