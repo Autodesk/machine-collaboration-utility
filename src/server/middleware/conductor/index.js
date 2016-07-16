@@ -358,78 +358,88 @@ class Conductor {
   }
 
   async scanForNextJob() {
-    for (const playerKey in this.players) {
-      if (this.players.hasOwnProperty(playerKey)) {
-        try {
-          const player = this.players[playerKey];
-          // check each player's first job. Queue it up.
-          let noPrecursors = true;
-          if (player.metajobQueue.length <= 0) {
-            continue;
-          }
-
-          const currentJob = player.metajobQueue[0];
-          if (currentJob === undefined ) {
-            throw `First job in metajobQueue is undefined`;
-          }
-          // If the current job is still processing, let it go
-          const jobObject = this.app.context.jobs.jobList[currentJob.uuid];
-          if (this.app.context.jobs.jobList[currentJob.uuid].fsm.current !== `ready`) {
-            this.logger.info(`1 Not starting a new job from state ${this.app.context.jobs.jobList[currentJob.uuid].fsm.current}`);
-            continue;
-          }
-
-          // If the current bot is still doing something else, let it go
-          const bot = this.app.context.bots.botList[currentJob.botUuid];
-          // go through every precursor to the current job
-          if (bot.fsm.current === `parked`) {
-            const unparkParams = {
-              xEntry: currentJob.x_entry,
-              dryJob: currentJob.dry,
-            };
-            bot.commands.unpark(bot, unparkParams);
-            continue;
-          }
-          if (bot.fsm.current !== `connected`) {
-            this.logger.info(`1 Not starting a new job when bot is in state ${bot.fsm.current}`);
-            continue;
-          }
-
-          for (let i = 0; i < currentJob.precursors.length; i++) {
-            const precursor = currentJob.precursors[i];
-            const job = this.app.context.jobs.jobList[precursor];
-            if (job === undefined) {
-              throw `Error, the job ${precursor} is undefined`;
-            }
-            // flag noPrecursors if any of the jobs aren't complete yet
-            if (job.fsm.current !== `complete`) {
-              this.logger.info(`${currentJob.botUuid} job ${currentJob.uuid} won't start because job ${job.uuid} is ${job.fsm.current}`);
-              noPrecursors = false;
-            }
-          }
-          if (noPrecursors) {
-            try {
-              const jobToStart = this.app.context.jobs.jobList[currentJob.uuid];
-              if (jobToStart === undefined) {
-                throw `job ${currentJob.uuid} is undefined`;
-              }
-              await Promise.delay(100);
-              await jobToStart.start();
-              this.conductorLogger.info(`${bot.settings.botUuid}, Just started ${currentJob.uuid}`);
-              // If the job starts without any issues
-              // remove the first job from the list
-              player.metajobQueue.shift();
-            } catch (ex) {
-              this.logger.error(`Job start fail`, ex);
-            }
-          } else {
-            // Just sitting there in the ready position. park instead
-            console.log('about to park');
-            bot.commands.park(bot);
-          }
-        } catch (ex) {
-          this.logger.error(`Checking player ${playerKey} error:`, ex);
+    for (const [playerKey, player] of Object.entries(this.players)) {
+      try {
+        // check each player's first job. Queue it up.
+        let noPrecursors = true;
+        if (player.metajobQueue.length <= 0) {
+          continue;
         }
+
+        const currentJob = player.metajobQueue[0];
+        if (currentJob === undefined ) {
+          throw `First job in metajobQueue is undefined`;
+        }
+
+
+        // If the current job is still processing, let it go
+        const jobObject = this.app.context.jobs.jobList[currentJob.uuid];
+
+        if (jobObject.fsm.current === `complete`) {
+          player.metajobQueue.shift();
+          continue;
+        }
+
+        if (jobObject.fsm.current !== `ready`) {
+          this.logger.info(`Not starting a new job from state ${this.app.context.jobs.jobList[currentJob.uuid].fsm.current}`);
+          continue;
+        }
+
+        // go through every precursor to the current job
+        for (const precursor of currentJob.precursors) {
+          const job = this.app.context.jobs.jobList[precursor];
+          if (job === undefined) {
+            throw `Error, the job ${precursor} is undefined`;
+          }
+          // flag noPrecursors if any of the jobs aren't complete yet
+          if (job.fsm.current !== `complete`) {
+            this.logger.info(`${currentJob.botUuid} job ${currentJob.uuid} won't start because job ${job.uuid} is ${job.fsm.current}`);
+            noPrecursors = false;
+          }
+        }
+        if (noPrecursors) {
+          try {
+            if (player.fsm.current === `parked`) {
+              const unparkParams = {
+                xEntry: currentJob.x_entry,
+                dryJob: currentJob.dry,
+              };
+              player.commands.unpark(player, unparkParams);
+              continue;
+            }
+            if (player.fsm.current !== `connected`) {
+              // i.e. paused, parking or unparking
+              this.logger.info(`Not starting a new job when bot is in state ${player.fsm.current}`);
+              continue;
+            }
+            const jobToStart = this.app.context.jobs.jobList[currentJob.uuid];
+            if (jobToStart === undefined) {
+              throw `job ${currentJob.uuid} is undefined`;
+            }
+            await Promise.delay(100);
+            await jobToStart.start();
+            this.conductorLogger.info(`${player.settings.botUuid}, Just started ${currentJob.uuid}`);
+            // If the job starts without any issues
+            // remove the first job from the list
+            player.metajobQueue.shift();
+          } catch (ex) {
+            this.logger.error(`Job start fail`, ex);
+          }
+        } else {
+          if (
+            player.fsm.current === `parked` ||
+            player.fsm.current === `parking` ||
+            player.fsm.current === `unparking` ||
+            player.fsm.current === `startingJob` ||
+            player.fsm.current === `stopping`
+          ) {
+            continue;
+          }
+          // Just sitting there in the ready position. park instead
+          player.commands.park(player);
+        }
+      } catch (ex) {
+        this.logger.error(`Checking player ${playerKey} error:`, ex);
       }
     }
     this.checkIfDoneConducting();
