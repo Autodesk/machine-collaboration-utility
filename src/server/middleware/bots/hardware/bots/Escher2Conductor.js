@@ -45,7 +45,7 @@ module.exports = class Escher2Conductor extends HydraPrintBot {
       that.fsm.unpark();
 
       const xEntry = params.xEntry;
-      const dryJob = params.dryJob === undefined ? `false` : params.dryJob;
+      const dryJob = params.dryJob === undefined ? `false` : String(params.dryJob);
       const commandArray = [
         {
           code: 'M114',
