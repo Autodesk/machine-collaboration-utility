@@ -372,9 +372,9 @@ class Conductor {
         }
 
 
-        // If the current job is still processing, let it go
         const jobObject = this.app.context.jobs.jobList[currentJob.uuid];
 
+        // If the current job is still processing, let it go
         if (jobObject.fsm.current === `complete`) {
           player.metajobQueue.shift();
           continue;
@@ -399,6 +399,18 @@ class Conductor {
         }
         if (noPrecursors) {
           try {
+            if (
+              player.currentJob &&
+              (
+                player.currentJob.fsm.current === `paused` ||
+                player.currentJob.fsm.current === `pausing` ||
+                player.currentJob.fsm.current === `resuming` ||
+                player.currentJob.fsm.current === `running` ||
+                player.currentJob.fsm.current === `canceling`
+              )
+            ) {
+              continue;
+            }
             if (player.fsm.current === `parked`) {
               const unparkParams = {
                 xEntry: currentJob.x_entry,

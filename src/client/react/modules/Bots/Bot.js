@@ -18,6 +18,10 @@ export default class Bot extends React.Component {
     this.deleteBot = this.deleteBot.bind(this);
     this.detect = this.detect.bind(this);
 
+    this.pauseJob = this.pauseJob.bind(this);
+    this.resumeJob = this.resumeJob.bind(this);
+    this.cancelJob = this.cancelJob.bind(this);
+
     this.state = {
       showModal: false,
     };
@@ -31,6 +35,36 @@ export default class Bot extends React.Component {
 
   deleteBot() {
     request.delete(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .end(() => {
+
+      // re route to homepage
+    });
+    this.closeModal();
+  }
+
+  pauseJob() {
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `pause` })
+    .end(() => {
+
+      // re route to homepage
+    });
+    this.closeModal();
+  }
+
+  resumeJob() {
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `resume` })
+    .end(() => {
+
+      // re route to homepage
+    });
+    this.closeModal();
+  }
+
+  cancelJob() {
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `cancel` })
     .end(() => {
 
       // re route to homepage
@@ -140,6 +174,9 @@ export default class Bot extends React.Component {
         <div>Port: {this.props.bot.port}</div>
         <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
         <Button onClick={this.toggleModal}>Edit Bot</Button>
+        <Button onClick={this.pauseJob}>Pause</Button>
+        <Button onClick={this.resumeJob}>Resume</Button>
+        <Button onClick={this.cancelJob}>Cancel</Button>
         {this.renderModal()}
       </div>
     );

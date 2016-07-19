@@ -318,6 +318,7 @@ class Bot {
       await self.lr.close();
       self.queue.queueCommands({
         postCallback: async() => {
+          console.log(`!!!!!!!!!!!!!!!!!!!!${self.settings.name} 100% NOW!!!!!!!!!!!!!!!!!!!!`);
           self.currentJob.percentComplete = 100;
           await self.fsm.stop();
           await self.fsm.stopDone();

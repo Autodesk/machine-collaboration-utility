@@ -240,10 +240,12 @@ module.exports = class DefaultBot {
     };
 
     this.commands.pause = (self, params) => {
-      console.log('my queue', self.queue.mQueue);
       self.fsm.stop();
       const commandArray = [];
       commandArray.push({
+        preCallback: () => {
+          console.log(`!!!!!!!!!!!!!!!!!!!!${self.settings.name.toUpperCase()} PAUSING NOW!!!!!!!!!!!!!!!!!!!!`);
+        },
         code: 'G4 P0',
         postCallback: () => {
           self.queue.pause();
