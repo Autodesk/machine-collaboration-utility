@@ -5,6 +5,23 @@ require(`dotenv`).config();
 // Mixin process.env variables with a .env file
 
 require(`babel-polyfill`);
+const winston = require(`winston`);
+const path = require(`path`);
+
+
+const filename = path.join(__dirname, `../../catchall.log`);
+const logger = new (winston.Logger)({
+  level: `debug`,
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename }),
+  ],
+});
+
+process.on(`uncaughtException`, (err) => {
+  logger.error(`Caught exception: ${err}`);
+});
+
 
 try {
   const http = require(`http`);
