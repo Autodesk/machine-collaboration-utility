@@ -23,7 +23,7 @@ class Job {
       throw `"botUuid" is not defined`;
     }
 
-    const cancelable = ['running', 'paused'];
+    const cancelable = [`running`, `paused`, `starting`, `pausing`, `resuming`];
     this.uuid = this.uuid !== undefined ? this.uuid : uuidGenerator.v1();
     const fsmSettings = {
       uuid: this.uuid,
@@ -58,7 +58,7 @@ class Job {
           if (from !== `none`) {
             if (event.indexOf('Done') !== -1) {
               try {
-                // As soon as an event successfully transistions, update it in the database
+                // // As soon as an event successfully transistions, update it in the database
                 // const dbJob = await self.JobModel.findById(self.id);
                 // await Promise.delay(0); // For some reason this can't happen in the same tick
                 // await dbJob.updateAttributes({
@@ -86,32 +86,33 @@ class Job {
     this.elapsed = undefined;
     this.percentComplete = 0;
 
+    // Emit job updates once a second
     this.stopwatch.onTime((time) => {
       this.logger.info('jobEvent', this.getJob());
       // this.app.io.emit('jobEvent', this.jobToJson(jobObject));
     });
   }
 
-  processCommand(command) {
+  async processCommand(command) {
     // populate this variable with the job (or the error)
     // immediately after the command is triggered
     let commandReply;
     switch (command) {
       case `start`:
         // TODO provide feedback if bot is unavailable, before starting the job
-        this.start();
+        await this.start();
         commandReply = this.getJob();
         break;
       case `pause`:
-        this.pause();
+        await this.pause();
         commandReply = this.getJob();
         break;
       case `resume`:
-        this.resume();
+        await this.resume();
         commandReply = this.getJob();
         break;
       case `cancel`:
-        this.cancel();
+        await this.cancel();
         commandReply = this.getJob();
         break;
       default:
@@ -143,25 +144,15 @@ class Job {
    * Start processing a job
    */
   async start() {
+    this.fsm.start();
+    const bot = this.conductorOrBot(this.botUuid);
     try {
-      await this.fsm.start();
-
-      /// TODO fix this conductor logic
-      // Register conductor as a botUuid of -1
-      if (Number(this.botUuid) === -1) {
-        await this.app.context.conductor.startJob(this);
-      } else {
-        try {
-          await this.app.context.bots.botList[this.botUuid].startJob(this);
-        } catch (ex) {
-          console.log('ooooh', ex);
-        }
-      }
+      await bot.startJob(this);
       this.started = new Date().getTime();
       await this.stopwatch.start();
-      await this.fsm.startDone();
+      this.fsm.startDone();
     } catch (ex) {
-      await this.fsm.startFail();
+      this.fsm.startFail();
       const errorMessage = `Job start failure ${ex}`;
       this.logger.error(errorMessage);
     }
@@ -170,15 +161,14 @@ class Job {
   /*
    * Pause processing a job
    */
-  async pause() {
+  async pause(params) {
+    if (this.fsm.current === `paused`) {
+      return;
+    }
+    this.fsm.pause();
+    const bot = this.conductorOrBot(this.botUuid);
     try {
-      await this.fsm.pause();
-      // Register conductor as a botUuid of -1
-      if (Number(this.botUuid) === -1) {
-        await this.app.context.conductor.pauseJob(this);
-      } else {
-        await this.app.context.bots.botList[this.botUuid].pauseJob();
-      }
+      await bot.commands.pause(bot, params);
       await this.stopwatch.stop();
       await this.fsm.pauseDone();
     } catch (ex) {
@@ -191,15 +181,14 @@ class Job {
   /*
    * Resume processing a job
    */
-  async resume() {
+  async resume(params) {
+    if (this.fsm.current === `running`) {
+      return;
+    }
+    this.fsm.resume();
+    const bot = this.conductorOrBot(this.botUuid);
     try {
-      this.fsm.resume();
-      // Register conductor as a botUuid of -1
-      if (Number(this.botUuid) === -1) {
-        await this.app.context.conductor.resumeJob(this);
-      } else {
-        await this.app.context.bots.botList[this.botUuid].resumeJob(this);
-      }
+      await bot.commands.resume(bot, params);
       await this.stopwatch.start();
       this.fsm.resumeDone();
     } catch (ex) {
@@ -212,15 +201,11 @@ class Job {
   /*
    * Stop processing a job
    */
-  async cancel() {
+  async cancel(params) {
+    this.fsm.cancel();
+    const bot = this.conductorOrBot(this.botUuid);
     try {
-      await this.fsm.cancel();
-      // Register conductor as a botUuid of -1
-      if (Number(this.botUuid) === -1) {
-        await this.app.context.conductor.stopJob(this);
-      } else {
-        await this.app.context.bots.botList[this.botUuid].stopJob(this);
-      }
+      await bot.commands.cancel(bot, params);
       await this.stopwatch.stop();
       await this.fsm.cancelDone();
     } catch (ex) {
@@ -228,6 +213,20 @@ class Job {
       this.logger.error(errorMessage);
       await this.fsm.cancelFail();
     }
+  }
+
+  // Register conductor as a botUuid of -1
+  conductorOrBot(botUuid) {
+    let bot = undefined;
+    if (Number(botUuid) === -1) {
+      bot = this.app.context.conductor;
+    } else {
+      bot = this.app.context.bots.botList[botUuid];
+    }
+    if (bot === undefined) {
+      throw `Bot is undefined`;
+    }
+    return bot;
   }
 }
 

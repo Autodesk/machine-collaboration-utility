@@ -158,8 +158,6 @@ const deleteJob = (self) => {
  */
 const processJobCommand = (self) => {
   const requestDescription = `Process Job Command`;
-
-// TODO kick off print of the file via the app.context.gcodeClient.startJob(some variable)
   self.router.post(`${self.routeEndpoint}/:uuid/`, async (ctx) => {
     try {
       // Find the job
@@ -178,7 +176,7 @@ const processJobCommand = (self) => {
       // Then process the command for the job
       const command = ctx.request.body.command;
       if (command === undefined) {
-        const errorMessage = `command is undefined`;
+        const errorMessage = `"command" is undefined`;
         throw errorMessage;
       }
 

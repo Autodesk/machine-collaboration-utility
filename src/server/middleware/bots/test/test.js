@@ -185,27 +185,9 @@ module.exports = function botsTests() {
           json: true,
         };
         const startJobReply = await request(requestParams);
-        should(startJobReply.data.state).equal(`starting`);
+        should(startJobReply.data.state).equal(`running`);
         should(startJobReply.status).equal(200);
         should(startJobReply.query).equal(`Process Job Command`);
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    });
-
-    it('should be running a job', async function (done) {
-      try {
-        await Promise.delay(config.virtualDelay); // wait for bot job to start
-        const requestParams = {
-          method: `GET`,
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          json: true,
-        };
-        const getStatusReply = await request(requestParams);
-        should(getStatusReply.data.state).equal(`running`);
-        should(getStatusReply.status).equal(200);
-        should(getStatusReply.query).equal(`Get Job`);
         done();
       } catch (ex) {
         logger.error(ex);
@@ -221,27 +203,9 @@ module.exports = function botsTests() {
           json: true,
         };
         const jobPauseReply = await request(requestParams);
-        should(jobPauseReply.data.state).equal(`pausing`);
+        should(jobPauseReply.data.state).equal(`paused`);
         should(jobPauseReply.status).equal(200);
         should(jobPauseReply.query).equal(`Process Job Command`);
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    });
-
-    it('should become paused', async function (done) {
-      try {
-        await Promise.delay(config.virtualDelay * 2); // Wait for bot to pause
-        const requestParams = {
-          method: `GET`,
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          json: true,
-        };
-        const getStatusReply = await request(requestParams);
-        should(getStatusReply.data.state).equal(`paused`);
-        should(getStatusReply.status).equal(200);
-        should(getStatusReply.query).equal(`Get Job`);
         done();
       } catch (ex) {
         logger.error(ex);
@@ -275,27 +239,9 @@ module.exports = function botsTests() {
           json: true,
         };
         const jobResumeReply = await request(requestParams);
-        should(jobResumeReply.data.state).equal(`resuming`);
+        should(jobResumeReply.data.state).equal(`running`);
         should(jobResumeReply.status).equal(200);
         should(jobResumeReply.query).equal(`Process Job Command`);
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    });
-
-    it('should become resumed', async function (done) {
-      try {
-        await Promise.delay(config.virtualDelay * 2); // Wait for bot to resume
-        const requestParams = {
-          method: `GET`,
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          json: true,
-        };
-        const getStatusReply = await request(requestParams);
-        should(getStatusReply.data.state).equal(`running`);
-        should(getStatusReply.status).equal(200);
-        should(getStatusReply.query).equal(`Get Job`);
         done();
       } catch (ex) {
         logger.error(ex);
@@ -331,27 +277,9 @@ module.exports = function botsTests() {
           json: true,
         };
         const jobCancelReply = await request(requestParams);
-        should(jobCancelReply.data.state).equal(`canceling`);
+        should(jobCancelReply.data.state).equal(`canceled`);
         should(jobCancelReply.status).equal(200);
         should(jobCancelReply.query).equal(`Process Job Command`);
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    });
-
-    it('should become cancelled', async function (done) {
-      try {
-        await Promise.delay(config.virtualDelay * 2); // Wait for bot to resume
-        const requestParams = {
-          method: `GET`,
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          json: true,
-        };
-        const getStatusReply = await request(requestParams);
-        should(getStatusReply.data.state).equal(`canceled`);
-        should(getStatusReply.status).equal(200);
-        should(getStatusReply.query).equal(`Get Job`);
         done();
       } catch (ex) {
         logger.error(ex);
@@ -366,7 +294,6 @@ module.exports = function botsTests() {
           json: true,
         };
         const destroyBotReply = await request(requestParams);
-
         should(destroyBotReply.status).equal(200);
         should(destroyBotReply.query).equal(`Delete Bot`);
         should(destroyBotReply.data).equal(`Bot "${botUuid}" successfully deleted`);

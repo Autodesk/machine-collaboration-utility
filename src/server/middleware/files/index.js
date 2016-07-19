@@ -94,7 +94,7 @@ class Files {
    * Allow the option for the user to set their own uuid for the file
    */
   async createFileObject(file, userUuid) {
-    const uuid = userUuid ? userUuid : await uuidGenerator.v1();
+    const uuid = userUuid !== undefined ? userUuid : await uuidGenerator.v1();
     const name = file.name;
     const fileStats = await fs.stat(file.path);
     const dateChanged = fileStats.ctime;

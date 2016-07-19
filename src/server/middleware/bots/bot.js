@@ -136,7 +136,7 @@ class Bot {
     // Set the bot's botId to also be the port, for bots that use an IP address
     switch (this.connectionType) {
       case `virtual`:
-        this.setPort(`http://localhost:9000/v1/bots/${this.uuid}`);
+        this.setPort(`http://localhost:9000/v1/bots/${this.settings.uuid}`);
         break;
       case `http`:
       case `telnet`:
@@ -144,6 +144,7 @@ class Bot {
         break;
       default:
         // do nothing
+        break;
     }
     this.subscribe();
   }
@@ -246,8 +247,12 @@ class Bot {
     if (this.commands[command] === undefined) {
       throw `Command ${command} not supported.`;
     }
-    const reply = await this.commands[command](this, params);
-    return reply;
+    try {
+      const reply = await this.commands[command](this, params);
+      return reply;
+    } catch (ex) {
+      return ex;
+    }
   }
 
   // In order to start processing a job, the job's file is opened and then
@@ -256,7 +261,7 @@ class Bot {
     const self = this;
 
     self.currentJob = job;
-    await self.fsm.start();
+    self.fsm.start();
     const filesApp = self.app.context.files;
     const theFile = filesApp.getFile(job.fileUuid);
     const filePath = filesApp.getFilePath(theFile);
@@ -342,36 +347,6 @@ class Bot {
     await fsPromise;
     await self.lr.resume();
     await self.fsm.startDone();
-  }
-
-  async pauseJob() {
-    if (this.fsm.current !== `connected`) {
-      try {
-        await this.fsm.stop();
-        this.queue.queueCommands(this.commands.pause(this));
-      } catch (ex) {
-        const errorMessage = `Bot pause error ${ex}`;
-        this.logger.error(errorMessage);
-        await this.fsm.stopFail();
-      }
-    }
-  }
-
-  async resumeJob() {
-    if (this.fsm.current !== `processingJob`) {
-      this.queue.queueCommands(this.commands.resume(this));
-    }
-  }
-
-  async stopJob() {
-    if (this.fsm.current !== `connected`) {
-      await this.fsm.stop();
-      await this.lr.close();
-      this.lr = undefined;
-      this.queue.clear();
-      this.queue.queueCommands(this.commands.stop(this));
-      await this.fsm.stopDone();
-    }
   }
 
   // Set up the appropriate command executor and validator for a given connection type
