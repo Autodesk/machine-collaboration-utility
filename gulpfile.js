@@ -7,7 +7,6 @@ const mocha = require(`gulp-mocha`);
 const sass = require(`gulp-sass`);
 const webpack = require(`gulp-webpack`);
 const shell = require(`gulp-shell`);
-const exec = require(`child_process`).exec;
 
 const src = {
   server: `src/server/**/*.js`,
