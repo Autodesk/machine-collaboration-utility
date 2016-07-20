@@ -57,13 +57,12 @@ module.exports = class Marlin extends DefaultBot {
     };
 
     this.commands.processGcode = async (self, params) => {
-      let gcode = params.gcode;
+      const gcode = params.gcode;
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }
       const commandArray = [];
 
-      const state = self.fsm.current;
       return await new Promise((resolve, reject) => {
         commandArray.push(self.commands.gcodeInitialState(self, params));
         commandArray.push({
@@ -83,7 +82,7 @@ module.exports = class Marlin extends DefaultBot {
       if (self.queue.mQueue.length >= 32) {
         return false;
       }
-      let gcode = params.gcode;
+      const gcode = params.gcode;
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }
@@ -123,12 +122,12 @@ module.exports = class Marlin extends DefaultBot {
       let command = ``;
       switch (self.fsm.current) {
         case `connected`:
-        case `processingGcode`:
-          command = {
-            preCallback: () => {
-              self.fsm.connectedToGcode();
-            },
-          };
+        // case `processingGcode`:
+        //   command = {
+        //     preCallback: () => {
+        //       self.fsm.connectedToGcode();
+        //     },
+        //   };
           break;
         case `processingJob`:
         case `processingJobGcode`:
@@ -155,12 +154,12 @@ module.exports = class Marlin extends DefaultBot {
       let command = ``;
       switch (self.fsm.current) {
         case `connected`:
-        case `processingGcode`:
-          command = {
-            preCallback: () => {
-              self.fsm.connectedGcodeDone();
-            },
-          };
+        // case `processingGcode`:
+        //   command = {
+        //     preCallback: () => {
+        //       self.fsm.connectedGcodeDone();
+        //     },
+        //   };
           break;
         case `processingJob`:
         case `processingJobGcode`:

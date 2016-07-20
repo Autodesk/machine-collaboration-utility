@@ -24,36 +24,14 @@ module.exports = class HydraPrintBot extends DefaultBot {
     };
 
     this.commands.processGcode = async (self, params) => {
-      let gcode = params.gcode;
+      const gcode = params.gcode;
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }
       const commandArray = [];
 
-      const state = self.fsm.current;
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedToGcode();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobToGcode();
-            },
-          });
-          break;
-        case `parked`:
-          break;
-        default:
-          throw `"processGcode" not possible from state "${state}`;
-      }
       return await new Promise((resolve, reject) => {
+        commandArray.push(self.commands.gcodeInitialState(self, params));
         commandArray.push({
           code: gcode,
           processData: (command, reply) => {
@@ -61,28 +39,8 @@ module.exports = class HydraPrintBot extends DefaultBot {
             return true;
           },
         });
-        switch (state) {
-          case `connected`:
-          case `processingGcode`:
-            commandArray.push({
-              preCallback: () => {
-                self.fsm.connectedGcodeDone();
-              },
-            });
-            break;
-          case `processingJob`:
-          case `processingJobGcode`:
-            commandArray.push({
-              preCallback: () => {
-                self.fsm.jobGcodeDone();
-              },
-            });
-            break;
-          case `parked`:
-            break;
-          default:
-            break;
-        }
+        commandArray.push(self.commands.gcodeFinalState(self, params));
+
         self.queue.queueCommands(commandArray);
       });
     };
@@ -91,63 +49,15 @@ module.exports = class HydraPrintBot extends DefaultBot {
       if (self.queue.mQueue.length >= 32) {
         return false;
       }
-      let gcode = params.gcode;
+      const gcode = params.gcode;
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }
       const commandArray = [];
-
-      const state = self.fsm.current;
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedToGcode();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobToGcode();
-            },
-          });
-          break;
-        case `parked`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.parkToGcode();
-            },
-          });
-          break;
-        default:
-          throw `"streamGcode" not possible from state "${state}`;
-      }
+      commandArray.push(self.commands.gcodeInitialState(self, params));
       commandArray.push(gcode);
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedGcodeDone();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobGcodeDone();
-            },
-          });
-          break;
-        case `parked`:
-          break;
-        default:
-          break;
-      }
+      commandArray.push(self.commands.gcodeFinalState(self, params));
+
       self.queue.queueCommands(commandArray);
       return true;
     };
@@ -184,12 +94,12 @@ module.exports = class HydraPrintBot extends DefaultBot {
       let command = ``;
       switch (self.fsm.current) {
         case `connected`:
-        case `processingGcode`:
-          command = {
-            preCallback: () => {
-              self.fsm.connectedToGcode();
-            },
-          };
+        // case `processingGcode`:
+        //   command = {
+        //     preCallback: () => {
+        //       self.fsm.connectedToGcode();
+        //     },
+        //   };
           break;
         case `processingJob`:
         case `processingJobGcode`:
@@ -216,12 +126,12 @@ module.exports = class HydraPrintBot extends DefaultBot {
       let command = ``;
       switch (self.fsm.current) {
         case `connected`:
-        case `processingGcode`:
-          command = {
-            preCallback: () => {
-              self.fsm.connectedGcodeDone();
-            },
-          };
+        // case `processingGcode`:
+        //   command = {
+        //     preCallback: () => {
+        //       self.fsm.connectedGcodeDone();
+        //     },
+        //   };
           break;
         case `processingJob`:
         case `processingJobGcode`:

@@ -79,9 +79,9 @@ class Bot {
       { name: 'parkToGcode',        from: 'parked',              to: 'processingParkGcode' },
       { name: 'parkGcodeFail',      from: 'processingParkGcode', to: 'parked'              },
       { name: 'parkGcodeDone',      from: 'processingParkGcode', to: 'parked'              },
-      { name: 'connectedToGcode',   from: 'connected',           to: 'processingGcode'     },
-      { name: 'connectedGcodeFail', from: 'processingGcode',     to: 'connected'           },
-      { name: 'connectedGcodeDone', from: 'processingGcode',     to: 'connected'           },
+      // { name: 'connectedToGcode',   from: 'connected',           to: 'processingGcode'     },
+      // { name: 'connectedGcodeFail', from: 'processingGcode',     to: 'connected'           },
+      // { name: 'connectedGcodeDone', from: 'processingGcode',     to: 'connected'           },
       { name: 'disconnect',         from: 'connected',           to: 'disconnecting'       },
       { name: 'disconnectFail',     from: 'disconnecting',       to: 'connected'           },
       { name: 'disconnectDone',     from: 'disconnecting',       to: 'ready'               },
@@ -376,7 +376,7 @@ class Bot {
             this.app,
             this.port
           );
-          validator = this.validateHttpReply;
+          validator = this.validateHydraprintReply;
           break;
         case `virtual`:
           executor = new VirtualExecutor(this.app);
@@ -443,7 +443,7 @@ class Bot {
    * Args:   reply - The reply from a bot after sending a command
    * Return: true if the last line was 'ok'
    */
-  validateHttpReply(command, reply) {
+  validateHydraprintReply(command, reply) {
     let ok = true;
     if (reply.status !== 200) {
       ok = false;

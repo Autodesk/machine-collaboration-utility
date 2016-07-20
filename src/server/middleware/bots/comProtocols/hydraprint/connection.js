@@ -159,7 +159,7 @@ class HttpConnection {
           }, 1000);
         }
         if (_.isFunction(this.mDataFunc)) {
-          this.mDataFunc(reply.data);
+          this.mDataFunc(reply);
         }
         commandSent = true;
       } catch (ex) {
