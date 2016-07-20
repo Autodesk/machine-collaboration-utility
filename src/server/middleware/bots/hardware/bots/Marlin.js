@@ -64,29 +64,8 @@ module.exports = class Marlin extends DefaultBot {
       const commandArray = [];
 
       const state = self.fsm.current;
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedToGcode();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobToGcode();
-            },
-          });
-          break;
-        case `parked`:
-          break;
-        default:
-          throw `"processGcode" not possible from state "${state}`;
-      }
       return await new Promise((resolve, reject) => {
+        commandArray.push(self.commands.gcodeInitialState(self, params));
         commandArray.push({
           code: gcode,
           processData: (command, reply) => {
@@ -94,28 +73,8 @@ module.exports = class Marlin extends DefaultBot {
             return true;
           },
         });
-        switch (state) {
-          case `connected`:
-          case `processingGcode`:
-            commandArray.push({
-              preCallback: () => {
-                self.fsm.connectedGcodeDone();
-              },
-            });
-            break;
-          case `processingJob`:
-          case `processingJobGcode`:
-            commandArray.push({
-              preCallback: () => {
-                self.fsm.jobGcodeDone();
-              },
-            });
-            break;
-          case `parked`:
-            break;
-          default:
-            break;
-        }
+        commandArray.push(self.commands.gcodeFinalState(self, params));
+
         self.queue.queueCommands(commandArray);
       });
     };
@@ -129,64 +88,17 @@ module.exports = class Marlin extends DefaultBot {
         throw `"gcode" is undefined`;
       }
       const commandArray = [];
-
-      const state = self.fsm.current;
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedToGcode();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobToGcode();
-            },
-          });
-          break;
-        case `parked`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.parkToGcode();
-            },
-          });
-          break;
-        default:
-          throw `"streamGcode" not possible from state "${state}`;
-      }
+      commandArray.push(self.commands.gcodeInitialState(self, params));
       commandArray.push(gcode);
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedGcodeDone();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobGcodeDone();
-            },
-          });
-          break;
-        case `parked`:
-          break;
-        default:
-          break;
-      }
+      commandArray.push(self.commands.gcodeFinalState(self, params));
+
       self.queue.queueCommands(commandArray);
       return true;
     };
 
     this.commands.jog = (self, params) => {
       const commandArray = [];
+      commandArray.push(self.commands.gcodeInitialState(self, params));
       commandArray.push({
         code: `M114`,
         processData: (command, reply) => {
@@ -198,12 +110,77 @@ module.exports = class Marlin extends DefaultBot {
           const newPosition = currentLocation[params.axis] + params.amount;
           const jogSpeed = self.settings[`jog${params.axis.toUpperCase()}Speed`];
           const jogGcode = `G1 ${params.axis.toUpperCase()}${newPosition} F${jogSpeed}`;
-          self.queue.prependCommands(jogGcode)
+          self.queue.prependCommands(jogGcode);
           return true;
         },
       });
+      commandArray.push(self.commands.gcodeFinalState(self, params));
       self.queue.queueCommands(commandArray);
       return self.getBot();
+    };
+
+    this.commands.gcodeInitialState = (self, params) => {
+      let command = ``;
+      switch (self.fsm.current) {
+        case `connected`:
+        case `processingGcode`:
+          command = {
+            preCallback: () => {
+              self.fsm.connectedToGcode();
+            },
+          };
+          break;
+        case `processingJob`:
+        case `processingJobGcode`:
+          command = {
+            preCallback: () => {
+              self.fsm.jobToGcode();
+            },
+          };
+          break;
+        case `parked`:
+          command = {
+            preCallback: () => {
+              self.fsm.parkToGcode();
+            },
+          };
+          break;
+        default:
+          throw `"processGcode" not possible from state "${state}`;
+      }
+      return command;
+    };
+
+    this.commands.gcodeFinalState = (self, params) => {
+      let command = ``;
+      switch (self.fsm.current) {
+        case `connected`:
+        case `processingGcode`:
+          command = {
+            preCallback: () => {
+              self.fsm.connectedGcodeDone();
+            },
+          };
+          break;
+        case `processingJob`:
+        case `processingJobGcode`:
+          command = {
+            preCallback: () => {
+              self.fsm.jobGcodeDone();
+            },
+          };
+          break;
+        case `processingParkGcode`:
+          command = {
+            preCallback: () => {
+              self.fsm.parkGcodeDone();
+            },
+          };
+          break;
+        default:
+          break;
+      }
+      return command;
     };
   }
 };
