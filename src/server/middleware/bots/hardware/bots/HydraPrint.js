@@ -94,12 +94,6 @@ module.exports = class HydraPrintBot extends DefaultBot {
       let command = ``;
       switch (self.fsm.current) {
         case `connected`:
-        // case `processingGcode`:
-        //   command = {
-        //     preCallback: () => {
-        //       self.fsm.connectedToGcode();
-        //     },
-        //   };
           break;
         case `processingJob`:
         case `processingJobGcode`:
@@ -126,12 +120,6 @@ module.exports = class HydraPrintBot extends DefaultBot {
       let command = ``;
       switch (self.fsm.current) {
         case `connected`:
-        // case `processingGcode`:
-        //   command = {
-        //     preCallback: () => {
-        //       self.fsm.connectedGcodeDone();
-        //     },
-        //   };
           break;
         case `processingJob`:
         case `processingJobGcode`:
