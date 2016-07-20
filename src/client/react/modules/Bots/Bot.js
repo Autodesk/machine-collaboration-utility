@@ -21,6 +21,8 @@ export default class Bot extends React.Component {
     this.pauseJob = this.pauseJob.bind(this);
     this.resumeJob = this.resumeJob.bind(this);
     this.cancelJob = this.cancelJob.bind(this);
+    this.processGcode = this.processGcode.bind(this);
+    this.choir = this.choir.bind(this);
 
     this.state = {
       showModal: false,
@@ -35,41 +37,47 @@ export default class Bot extends React.Component {
 
   deleteBot() {
     request.delete(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .end(() => {
-
-      // re route to homepage
-    });
+    .end();
     this.closeModal();
   }
 
   pauseJob() {
     request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
     .send({ command: `pause` })
-    .end(() => {
-
-      // re route to homepage
-    });
+    .end();
     this.closeModal();
   }
 
   resumeJob() {
     request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
     .send({ command: `resume` })
-    .end(() => {
-
-      // re route to homepage
-    });
+    .end();
     this.closeModal();
   }
 
   cancelJob() {
     request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
     .send({ command: `cancel` })
-    .end(() => {
-
-      // re route to homepage
-    });
+    .end();
     this.closeModal();
+  }
+
+  processGcode(event) {
+    event.preventDefault();
+    const gcode = event.target.gcode.value;
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `processGcode` })
+    .send({ gcode })
+    .end();
+  }
+
+  choir(event) {
+    event.preventDefault();
+    const gcode = event.target.gcode.value;
+    request.post(`/v1/conductor/`)
+    .send({ command: `choir` })
+    .send({ gcode })
+    .end();
   }
 
   connect() {
@@ -177,6 +185,22 @@ export default class Bot extends React.Component {
         <Button onClick={this.pauseJob}>Pause</Button>
         <Button onClick={this.resumeJob}>Resume</Button>
         <Button onClick={this.cancelJob}>Cancel</Button>
+        <br/>
+        <br/>
+        <form onSubmit={this.processGcode}>
+          <h3>Jog Bot</h3>
+          <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
+        </form>
+        <br/>
+        <br/>
+        { this.props.conducting ?
+          (<form onSubmit={this.choir}>
+            <h3>Jog alll the bots</h3>
+            <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
+          </form>) : ``
+        }
+        <br/>
+        <br/>
         {this.renderModal()}
       </div>
     );

@@ -100,6 +100,7 @@ class KoaApp {
               jobs: jobs.getJobs(),
               bots: bots.getBots(),
               botPresets: bots.getBotPresets(),
+              conducting: (String(process.env.CONDUCTING) === `true`),
             };
             _.extend(props.params, serverProps);
             const appHtml = renderToString(<RouterContext {...props}/>);

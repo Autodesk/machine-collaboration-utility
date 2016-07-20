@@ -8,7 +8,7 @@ const uuidGenerator = require(`node-uuid`);
 const ip = require(`ip`);
 
 const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
-const HttpExecutor = require(`./comProtocols/http/executor`);
+const HydraprintExecutor = require(`./comProtocols/hydraprint/executor`);
 const TelnetExecutor = require(`./comProtocols/telnet/executor`);
 const VirtualExecutor = require(`./comProtocols/virtual/executor`);
 const CommandQueue = require(`./commandQueue`);
@@ -61,34 +61,37 @@ class Bot {
 
     this.fsmEvents = [
       /* eslint-disable no-multi-spaces */
-      { name: 'detect',             from: 'unavailable',        to: 'detecting'          },
-      { name: 'detectFail',         from: 'detecting',          to: 'unavailable'        },
-      { name: 'detectDone',         from: 'detecting',          to: 'ready'              },
-      { name: 'connect',            from: 'ready',              to: 'connecting'         },
-      { name: 'connectFail',        from: 'connecting',         to: 'ready'              },
-      { name: 'connectDone',        from: 'connecting',         to: 'connected'          },
-      { name: 'start',              from: 'connected',          to: 'startingJob'        },
-      { name: 'startFail',          from: 'startingJob',        to: 'connected'          },
-      { name: 'startDone',          from: 'startingJob',        to: 'processingJob'      },
-      { name: 'stop',               from: 'processingJob',      to: 'stopping'           },
-      { name: 'stopDone',           from: 'stopping',           to: 'connected'          },
-      { name: 'stopFail',           from: 'stopping',           to: 'connected'          },
-      { name: 'jobToGcode',         from: 'processingJob',      to: 'processingJobGcode' },
-      { name: 'jobGcodeFail',       from: 'processingJobGcode', to: 'processingJob'      },
-      { name: 'jobGcodeDone',       from: 'processingGcode',    to: 'processingJob'      },
-      { name: 'connectedToGcode',   from: 'connected',          to: 'processingGcode'    },
-      { name: 'connectedGcodeFail', from: 'processingGcode',    to: 'connected'          },
-      { name: 'connectedGcodeDone', from: 'processingGcode',    to: 'connected'          },
-      { name: 'disconnect',         from: 'connected',          to: 'disconnecting'      },
-      { name: 'disconnectFail',     from: 'disconnecting',      to: 'connected'          },
-      { name: 'disconnectDone',     from: 'disconnecting',      to: 'ready'              },
-      { name: 'park',               from: 'connected',          to: 'parking'            },
-      { name: 'parkFail',           from: 'parking',            to: 'connected'          },
-      { name: 'parkDone',           from: 'parking',            to: 'parked'             },
-      { name: 'unpark',             from: 'parked',             to: 'unparking'          },
-      { name: 'unparkFail',         from: 'unparking',          to: 'connected'          },
-      { name: 'unparkDone',         from: 'unparking',          to: 'connected'          },
-      { name: 'unplug',             from: '*',                  to: 'unavailable'        },
+      { name: 'detect',             from: 'unavailable',         to: 'detecting'           },
+      { name: 'detectFail',         from: 'detecting',           to: 'unavailable'         },
+      { name: 'detectDone',         from: 'detecting',           to: 'ready'               },
+      { name: 'connect',            from: 'ready',               to: 'connecting'          },
+      { name: 'connectFail',        from: 'connecting',          to: 'ready'               },
+      { name: 'connectDone',        from: 'connecting',          to: 'connected'           },
+      { name: 'start',              from: 'connected',           to: 'startingJob'         },
+      { name: 'startFail',          from: 'startingJob',         to: 'connected'           },
+      { name: 'startDone',          from: 'startingJob',         to: 'processingJob'       },
+      { name: 'stop',               from: 'processingJob',       to: 'stopping'            },
+      { name: 'stopDone',           from: 'stopping',            to: 'connected'           },
+      { name: 'stopFail',           from: 'stopping',            to: 'connected'           },
+      { name: 'jobToGcode',         from: 'processingJob',       to: 'processingJobGcode'  },
+      { name: 'jobGcodeFail',       from: 'processingJobGcode',  to: 'processingJob'       },
+      { name: 'jobGcodeDone',       from: 'processingGcode',     to: 'processingJob'       },
+      { name: 'parkToGcode',        from: 'parked',              to: 'processingParkGcode' },
+      { name: 'parkGcodeFail',      from: 'processingParkGcode', to: 'parked'              },
+      { name: 'parkGcodeDone',      from: 'processingParkGcode', to: 'parked'              },
+      { name: 'connectedToGcode',   from: 'connected',           to: 'processingGcode'     },
+      { name: 'connectedGcodeFail', from: 'processingGcode',     to: 'connected'           },
+      { name: 'connectedGcodeDone', from: 'processingGcode',     to: 'connected'           },
+      { name: 'disconnect',         from: 'connected',           to: 'disconnecting'       },
+      { name: 'disconnectFail',     from: 'disconnecting',       to: 'connected'           },
+      { name: 'disconnectDone',     from: 'disconnecting',       to: 'ready'               },
+      { name: 'park',               from: 'connected',           to: 'parking'             },
+      { name: 'parkFail',           from: 'parking',             to: 'connected'           },
+      { name: 'parkDone',           from: 'parking',             to: 'parked'              },
+      { name: 'unpark',             from: 'parked',              to: 'unparking'           },
+      { name: 'unparkFail',         from: 'unparking',           to: 'connected'           },
+      { name: 'unparkDone',         from: 'unparking',           to: 'connected'           },
+      { name: 'unplug',             from: '*',                   to: 'unavailable'         },
       /* eslint-enable no-multi-spaces */
     ];
 
@@ -138,7 +141,7 @@ class Bot {
       case `virtual`:
         this.setPort(`http://localhost:9000/v1/bots/${this.settings.uuid}`);
         break;
-      case `http`:
+      case `hydraprint`:
       case `telnet`:
         this.setPort(presets.settings.endpoint);
         break;
@@ -165,7 +168,7 @@ class Bot {
     switch (this.connectionType) {
       // In case there is no detection method required, detect the device and
       // move directly to a "ready" state
-      case `http`:
+      case `hydraprint`:
         // add a subscriber
         const requestParams = {
           method: `POST`,
@@ -368,8 +371,8 @@ class Bot {
           );
           validator = this.validateSerialReply;
           break;
-        case `http`:
-          executor = new HttpExecutor(
+        case `hydraprint`:
+          executor = new HydraprintExecutor(
             this.app,
             this.port
           );

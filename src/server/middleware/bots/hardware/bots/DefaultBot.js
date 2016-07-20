@@ -21,13 +21,11 @@ module.exports = class DefaultBot {
       offsetZ: `0`,
     };
 
-    this.vid = undefined;
-    this.pid = undefined;
-    this.baudrate = undefined;
+    this.fileTypes = [];
 
     this.commands = {};
 
-// Job pass through commands. These allow the bot to be a gateway for job commands
+    // Job pass through commands. These allow the bot to be a gateway for job commands
     this.commands.pauseJob = async (self, params) => {
       if (self.currentJob === undefined) {
         throw `Bot ${self.settings.name} is not currently processing a job`;
@@ -51,8 +49,39 @@ module.exports = class DefaultBot {
       await self.currentJob.cancel(params);
       return self.getBot();
     };
-// End of Job pass through commands
+    // End of Job pass through commands
 
+    this.commands.updateRoutine = (self, params) => {
+      if (self.fsm.current === `connected`) {
+        const commandArray = [];
+        commandArray.push({
+          code: `G4 P10`,
+          processData: (command, reply) => {
+            return true;
+          },
+        });
+        self.queue.queueCommands(commandArray);
+      }
+    };
+
+    this.commands.updateBot = (self, params) => {
+      const update = params.update;
+      if (update === undefined) {
+        throw `"update" is not defined`;
+      }
+      if (update) {
+        if (self.updateInterval === undefined) {
+          self.updateInterval = setInterval(() => {
+            self.commands.updateRoutine(self);
+          }, 1000);
+        }
+        return `Bot update routine is on`;
+      }
+      if (self.updateInterval !== undefined) {
+        clearInterval(self.updateInterval);
+      }
+      return `Bot update routine is off`;
+    };
 
     // NOTE a try / catch on queueing commands will not actually fix an error
     // TODO attach an error handler to the about-to-be-queued command
@@ -91,136 +120,6 @@ module.exports = class DefaultBot {
       return self.getBot();
     };
 
-    this.commands.processGcode = async (self, params) => {
-      let gcode = params.gcode;
-      if (gcode === undefined) {
-        throw `"gcode" is undefined`;
-      }
-      const commandArray = [];
-
-      const state = self.fsm.current;
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedToGcode();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobToGcode();
-            },
-          });
-          break;
-        case `parked`:
-          break;
-        default:
-          throw `"processGcode" not possible from state "${state}`;
-      }
-      return await new Promise((resolve, reject) => {
-        gcode = self.addOffset(gcode);
-        gcode = self.addSpeedMultiplier(gcode);
-        gcode = self.addFeedMultiplier(gcode);
-        commandArray.push({
-          code: gcode,
-          processData: (command, reply) => {
-            resolve(reply.replace(`\r`, ``));
-            return true;
-          },
-        });
-        switch (state) {
-          case `connected`:
-          case `processingGcode`:
-            commandArray.push({
-              preCallback: () => {
-                self.fsm.connectedGcodeDone();
-              },
-            });
-            break;
-          case `processingJob`:
-          case `processingJobGcode`:
-            commandArray.push({
-              preCallback: () => {
-                self.fsm.jobGcodeDone();
-              },
-            });
-            break;
-          case `parked`:
-            break;
-          default:
-            break;
-        }
-        self.queue.queueCommands(commandArray);
-      });
-    };
-
-    this.commands.streamGcode = (self, params) => {
-      if (self.queue.mQueue.length >= 32) {
-        return false;
-      }
-      let gcode = params.gcode;
-      if (gcode === undefined) {
-        throw `"gcode" is undefined`;
-      }
-      const commandArray = [];
-
-      const state = self.fsm.current;
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedToGcode();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobToGcode();
-            },
-          });
-          break;
-        case `parked`:
-          break;
-        default:
-          throw `"streamGcode" not possible from state "${state}`;
-      }
-      gcode = self.addOffset(gcode);
-      gcode = self.addSpeedMultiplier(gcode);
-      gcode = self.addFeedMultiplier(gcode);
-      commandArray.push(gcode);
-      switch (state) {
-        case `connected`:
-        case `processingGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.connectedGcodeDone();
-            },
-          });
-          break;
-        case `processingJob`:
-        case `processingJobGcode`:
-          commandArray.push({
-            preCallback: () => {
-              self.fsm.jobGcodeDone();
-            },
-          });
-          break;
-        case `parked`:
-          break;
-        default:
-          break;
-      }
-      self.queue.queueCommands(commandArray);
-      return true;
-    };
-
     this.commands.resume = (self, params) => {
       if (self.fsm.current === `parked`) {
         self.commands.unpark(self);
@@ -228,8 +127,7 @@ module.exports = class DefaultBot {
       self.fsm.start();
       const commandArray = [];
       commandArray.push({
-        code: 'G4 P0',
-        postCallback: async () => {
+        postCallback: () => {
           self.lr.resume();
           self.fsm.startDone();
         },
@@ -243,10 +141,6 @@ module.exports = class DefaultBot {
       self.fsm.stop();
       const commandArray = [];
       commandArray.push({
-        preCallback: () => {
-          console.log(`!!!!!!!!!!!!!!!!!!!!${self.settings.name.toUpperCase()} PAUSING NOW!!!!!!!!!!!!!!!!!!!!`);
-        },
-        code: 'G4 P0',
         postCallback: () => {
           self.queue.pause();
           self.fsm.stopDone();
@@ -260,7 +154,6 @@ module.exports = class DefaultBot {
       self.fsm.stop();
       const commandArray = [];
       commandArray.push({
-        code: 'G4 S1',
         postCallback: () => {
           self.queue.pause();
           self.fsm.stopDone();
@@ -275,7 +168,6 @@ module.exports = class DefaultBot {
       try {
         const commandArray = [];
         commandArray.push({
-          code: 'G4 S1',
           postCallback: async () => {
             await self.fsm.parkDone();
           },
@@ -292,7 +184,6 @@ module.exports = class DefaultBot {
       try {
         const commandArray = [];
         commandArray.push({
-          code: 'G4 S1',
           postCallback: async () => {
             await self.fsm.unparkDone();
           },
@@ -301,15 +192,6 @@ module.exports = class DefaultBot {
       } catch (ex) {
         self.fsm.unparkFail();
       }
-      return self.getBot();
-    };
-
-    this.commands.jog = (self, params) => {
-      const commandArray = [];
-      commandArray.push(`G91`);
-      commandArray.push(`G1 ${params.axis.toUpperCase()}${params.amount}`);
-      commandArray.push(`G90`);
-      self.queue.queueCommands(commandArray);
       return self.getBot();
     };
 

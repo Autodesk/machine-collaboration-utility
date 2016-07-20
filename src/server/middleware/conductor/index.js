@@ -208,7 +208,7 @@ class Conductor {
    * transitional state, followed by either "done" or "fail" events and
    * corresponding state transitions
    */
-  async processCommand(command) {
+  async processCommand(command, params) {
     switch (command) {
       // Connect each bot
       case `connect`:
@@ -221,12 +221,20 @@ class Conductor {
         return this.getConductor();
 
       // Throw out any bogus command requests
+      case `choir`:
+        this.choir(params);
+        break;
       default:
         const errorMessage = `Command "${command}" is not supported.`;
         throw errorMessage;
     }
   }
 
+  choir(params) {
+    Object.entries(this.players).forEach(([playerKey, player]) => {
+      player.commands.processGcode(player, params);
+    });
+  }
   /*
    *  Get a json friendly description of the available players
    */
@@ -273,7 +281,8 @@ class Conductor {
           await Promise.map(Object.entries(this.metajob), async ([metajobPlayerKey, metajobPlayer]) => {
             // find the bot that corresponds with the metajob player we're currently populating
             let botUuid;
-            let indexKey = `${metajobPlayer.location[0]}-${metajobPlayer.location[1]}`
+            let indexKey = `${metajobPlayer.layout_location_x - 1}-${metajobPlayer.layout_location_y - 1}`;
+            console.log('index key!', indexKey);
             for (const [playerKey, player] of Object.entries(this.players)) {
               if (player.settings.name.indexOf(indexKey) !== -1 && player.settings.conductorArm === `true`) {
                 botUuid = player.settings.uuid;

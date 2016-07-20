@@ -73,8 +73,12 @@ export default class Bots extends React.Component {
 
   createPresetList() {
     const options = Object.entries(this.props.botPresets).map(([botPresetKey, botPreset]) => {
-      if (botPresetKey === `DefaultBot`) {
-        return;
+      switch (botPreset.connectionType) {
+        case undefined:
+        case `serial`:
+          return;
+        default:
+          break;
       }
       return <option key={botPresetKey} value={botPresetKey}>{botPreset.settings.name}</option>;
     });
@@ -87,7 +91,7 @@ export default class Bots extends React.Component {
 
   renderEndpoint(connectionType) {
     switch (connectionType) {
-      case 'http':
+      case 'hydraprint':
       case 'telnet':
       case 'virtual':
         return (<div>
@@ -184,7 +188,7 @@ export default class Bots extends React.Component {
       </Modal>
       {this.renderBotList()}
       {
-        this.state.selectedBot === undefined ? '' : <Bot botPresets={this.props.botPresets} bot={this.props.bots[this.state.selectedBot]}/>
+        this.state.selectedBot === undefined ? '' : <Bot conducting={this.props.conducting} botPresets={this.props.botPresets} bot={this.props.bots[this.state.selectedBot]}/>
       }
     </div>);
   }

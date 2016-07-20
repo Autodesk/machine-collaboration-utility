@@ -27,7 +27,15 @@ const processConductorCommand = (self) => {
     try {
       const command = ctx.request.body.command;
       if (command) {
-        const reply = await self.processCommand(command);
+
+        const params = {};
+        for (const [paramKey, param] of Object.entries(ctx.request.body)) {
+          if (paramKey !== `command`) {
+            params[paramKey] = param;
+          }
+        }
+
+        const reply = await self.processCommand(command, params);
         ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, reply);
       } else {

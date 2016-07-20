@@ -198,7 +198,6 @@ const processBotCommand = (self) => {
           params[paramKey] = param;
         }
       }
-
       const commandReply = await bot.processCommand(command, params);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, commandReply);
