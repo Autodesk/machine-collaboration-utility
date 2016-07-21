@@ -113,7 +113,7 @@ class UsbDiscovery {
     let foundPresets = undefined;
     const availableBots = await this.app.context.bots.BotModel.findAll();
     const savedDbProfile = availableBots.find((bot) => {
-      return port.pnpId && bot.dataValues.botId === port.pnpId;
+      return port.pnpId && bot.dataValues.endpoint === port.pnpId;
     });
 
     if (savedDbProfile !== undefined) {
@@ -124,7 +124,7 @@ class UsbDiscovery {
       // else set port to port
       foundPresets = botPresets;
       if (port.pnpId !== undefined) {
-        foundPresets.settings.botId = port.pnpId;
+        foundPresets.settings.endpoint = port.pnpId;
       }
     }
     return foundPresets;
