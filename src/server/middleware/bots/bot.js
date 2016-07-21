@@ -133,7 +133,7 @@ class Bot {
       },
     });
 
-    // Set the bot's botId to also be the port, for bots that use an IP address
+    // Set the bot's uuid to the port, for bots that use an IP address
     switch (this.connectionType) {
       case `virtual`:
         this.setPort(`http://localhost:9000/v1/bots/${this.settings.uuid}`);

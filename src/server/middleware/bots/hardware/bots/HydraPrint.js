@@ -35,7 +35,11 @@ module.exports = class HydraPrintBot extends DefaultBot {
         commandArray.push({
           code: gcode,
           processData: (command, reply) => {
-            resolve(reply.replace(`\r`, ``));
+            if (typeof reply.data === `boolean`) {
+              resolve(reply.data);
+            } else {
+              resolve(reply.data.replace(`\r`, ``));
+            }
             return true;
           },
         });
