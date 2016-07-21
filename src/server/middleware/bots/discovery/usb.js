@@ -41,32 +41,30 @@ class UsbDiscovery {
       const portsToRemove = [];
       SerialPort.list(async (err, ports) => {
         // Go through every known port
-        for (const portKey in self.ports) {
-          if (self.ports.hasOwnProperty(portKey)) {
-            const listedPort = self.ports[portKey];
-            const foundPort = ports.find((port) => {
-              return (
-                port.comName === listedPort.comName &&
-                port.vendorId !== undefined &&
-                port.productId !== undefined
-              );
-            });
+        for (const [portKey, listedPort] of Object.entries(self.ports)) {
+          const foundPort = ports.find((port) => {
+            return (
+              port.comName === listedPort.comName &&
+              port.vendorId !== undefined &&
+              port.productId !== undefined
+            );
+          });
 
-            // If the listedPort isn't in the serial port's available ports
-            // we know that that port was removed
-            // Now do all the steps to remove it
-            if (foundPort === undefined) {
-              const removedBot = _.find(self.app.context.bots.botList, (bot) => {
-                return bot.port === listedPort.comName;
-              });
-              if (removedBot !== undefined) {
-                portsToRemove.push(portKey);
-                await removedBot.commands.unplug(removedBot);
-                // If we have a generic usb connection and not
-                // a persistent pnpid connection, then delete it
-                if (self.app.context.bots.botList[removedBot.settings.uuid] !== undefined) {
-                  delete self.app.context.bots.botList[removedBot.settings.uuid];
-                }
+          // If the listedPort isn't in the serial port's available ports
+          // we know that that port was removed
+          // Now do all the steps to remove it
+          if (foundPort === undefined) {
+            const removedBot = _.find(self.app.context.bots.botList, (bot) => {
+              return bot.port === listedPort.comName;
+            });
+            if (removedBot !== undefined) {
+              portsToRemove.push(portKey);
+              await removedBot.commands.unplug(removedBot);
+              // If we have a generic usb connection and not
+              // a persistent pnpid connection, then delete it
+              if (self.app.context.bots.botList[removedBot.settings.uuid] !== undefined) {
+                delete self.app.context.bots.botList[removedBot.settings.uuid];
+                self.app.io.emit(`updateBots`, self.app.context.bots.getBots());
               }
             }
           }
