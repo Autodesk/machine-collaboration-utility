@@ -10,7 +10,6 @@ import Bot from './Bot';
 export default class Bots extends React.Component {
   constructor(props) {
     super(props);
-
     this.toggleModal = this.toggleModal.bind(this);
     this.addBot = this.addBot.bind(this);
     this.closeModal = this.closeModal.bind(this);
@@ -27,7 +26,7 @@ export default class Bots extends React.Component {
 
   updateText(event) {
     const newPreset = Object.assign({}, this.state.selectedPreset);
-    newPreset.setting[event.target.name] = event.target.value;
+    newPreset.settings[event.target.name] = event.target.value;
     this.setState({ selectedPreset: newPreset });
   }
 
@@ -54,7 +53,7 @@ export default class Bots extends React.Component {
   renderBotList() {
     let defaultSet = false;
     const botRadioList = Object.entries(this.props.bots).map(([botUuid, bot]) => {
-      const radioElement = <Radio inline key={botUuid} name="botList" defaultValue={botUuid} defaultChecked={!defaultSet}>{bot.settings.name}</Radio>;
+      const radioElement = <Radio inline key={botUuid} name="botList" defaultValue={botUuid} checked={this.state.selectedBot === botUuid}>{bot.settings.name}</Radio>;
       if (!defaultSet) {
         defaultSet = true;
       }
@@ -172,13 +171,24 @@ export default class Bots extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      selectedBot: Object.entries(nextProps.bots).length > 0 ?
-        Object.entries(nextProps.bots)[0][0] : undefined,
-    });
+    let newBotState = this.state.selectedBot;
+    if (Object.entries(nextProps.bots).length <= 0) {
+      newBotState = undefined;
+    } else {
+      if (nextProps.bots[this.state.selectedBot] === undefined) {
+        newBotState = Object.entries(nextProps.bots).length > 0 ?
+          Object.entries(nextProps.bots)[0][0] : undefined;
+      }
+    }
+    if (this.state.selectedBot !== newBotState) {
+      this.setState({ selectedBot: newBotState });
+    }
   }
 
   render() {
+    const selectedBot = this.props.bots[this.state.selectedBot];
+    const currentJob = selectedBot.currentJob === undefined ? undefined : this.props.jobs[selectedBot.currentJob];
+
     return (<div>
       <button onClick={this.toggleModal}>Create Bot</button>
       <Modal show={this.state.showModal} onHide={this.closeModal}>
@@ -195,7 +205,7 @@ export default class Bots extends React.Component {
       </Modal>
       {this.renderBotList()}
       {
-        this.state.selectedBot === undefined ? '' : <Bot conducting={this.props.conducting} botPresets={this.props.botPresets} bot={this.props.bots[this.state.selectedBot]}/>
+        this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>
       }
     </div>);
   }

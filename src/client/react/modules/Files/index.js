@@ -7,9 +7,13 @@ import File from './File';
 export default class Files extends React.Component {
   constructor(props) {
     super(props);
+
+    // grab the first bot that is available to process a job
+    let initialBotUuid = undefined;
+
     this.state = {
       showModal: false,
-      botUuid: -1,
+      botUuid: this.getActiveBotUuid(props),
     };
     this.handleProcessFile = this.handleProcessFile.bind(this);
     this.close = this.close.bind(this);
@@ -33,16 +37,58 @@ export default class Files extends React.Component {
     this.setState({ botUuid: event.target.value });
   }
 
-  createBotList() {
-    const options = Object.entries(this.props.bots).map(([botUuid, bot]) => {
-      return <option key={botUuid} value={botUuid}>{bot.settings.name}</option>;
+  componentWillReceiveProps(newProps) {
+    this.setState({
+      botUuid: this.getActiveBotUuid(newProps),
     });
-    options.unshift(<option key={-1} value={-1}>Conductor</option>);
+  }
+
+  getActiveBotUuid(props) {
+    if (props.conducting) {
+      return -1;
+    }
+    for (const [botUuid, bot] of Object.entries(this.props.bots)) {
+      // Only allow jobs to be stared on a bot in the state "connected"
+      if (bot.state !== `connected`) {
+        continue;
+      }
+      return botUuid;
+    }
+    return undefined;
+  }
+
+  createBotList() {
+    const options = [];
+    if (this.props.conducting) {
+      options.unshift(<option key={-1} value={-1}>Conductor</option>);
+    }
+    Object.entries(this.props.bots).map(([botUuid, bot]) => {
+      // Only allow jobs to be stared on a bot in the state "connected"
+      if (bot.state !== `connected`) {
+        return;
+      }
+      options.push(<option key={botUuid} value={botUuid}>{bot.settings.name}</option>);
+    });
     return (
       <select name="botList" onChange={this.change} form="newJobForm">
         {options}
       </select>
     );
+  }
+
+  startJob() {
+    // Create a job
+    const requestParams = {
+      fileUuid: this.state.fileUuid,
+      botUuid: this.state.botUuid,
+      startJob: true,
+    };
+
+    request.post(`/v1/jobs`)
+    .send(requestParams)
+    .set('Accept', 'application/json')
+    .end();
+    this.close();
   }
 
   renderModal() {
@@ -62,21 +108,6 @@ export default class Files extends React.Component {
       </Modal.Footer>
     </Modal>
     );
-  }
-
-  startJob() {
-    // Create a job
-    const requestParams = {
-      fileUuid: this.state.fileUuid,
-      botUuid: this.state.botUuid,
-      startJob: true,
-    };
-
-    request.post(`/v1/jobs`)
-    .send(requestParams)
-    .set('Accept', 'application/json')
-    .end();
-    this.close();
   }
 
   render() {

@@ -74,7 +74,7 @@ class Job {
               }
             }
             self.logger.info(`jobEvent`, self.getJob());
-            // self.app.io.emit(`jobEvent`, `derp`);
+            self.app.io.emit(`updateJobs`, self.app.context.jobs.getJobs());
           }
         },
       },
@@ -89,7 +89,7 @@ class Job {
     // Emit job updates once a second
     this.stopwatch.onTime((time) => {
       this.logger.info('jobEvent', this.getJob());
-      // this.app.io.emit('jobEvent', this.jobToJson(jobObject));
+      this.app.io.emit(`updateJobs`, self.app.context.jobs.getJobs());
     });
   }
 

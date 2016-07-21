@@ -173,16 +173,39 @@ export default class Bot extends React.Component {
     </Modal>);
   }
 
+  renderJobButtons() {
+    const buttons = [];
+    if (this.props.currentJob === undefined) {
+      buttons.push(<Button disabled>Nope</Button>);
+      buttons.push(<Button bsStyle="danger" disabled>Nope</Button>);
+    } else {
+      switch (this.props.currentJob.state) {
+        case `running`:
+          buttons.push(<Button onClick={this.pauseJob}>Pause</Button>);
+          buttons.push(<Button bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
+          break;
+        case `paused`:
+          buttons.push(<Button onClick={this.resumeJob}>Resume</Button>);
+          buttons.push(<Button bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
+          break;
+        default:
+          buttons.push(<Button disabled>Nope</Button>);
+          buttons.push(<Button bsStyle="danger" disabled>Nope</Button>);
+          break;
+      }
+    }
+    return buttons;
+  }
+
   render() {
     return (
       <div>
         <h3>{this.props.bot.settings.name}</h3>
         {this.renderConnectButton()}
-        <Button onClick={this.pauseJob}>Pause</Button>
-        <Button onClick={this.resumeJob}>Resume</Button>
-        <Button onClick={this.cancelJob}>Cancel</Button>
+        {this.renderJobButtons()}
         <div>State: {this.props.bot.state}</div>
         <div>Port: {this.props.bot.port}</div>
+        <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
         <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
         <Button onClick={this.toggleModal}>Edit Bot</Button>
         <br/>
