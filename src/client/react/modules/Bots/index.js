@@ -171,6 +171,13 @@ export default class Bots extends React.Component {
     .end();
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      selectedBot: Object.entries(nextProps.bots).length > 0 ?
+        Object.entries(nextProps.bots)[0][0] : undefined,
+    });
+  }
+
   render() {
     return (<div>
       <button onClick={this.toggleModal}>Create Bot</button>
