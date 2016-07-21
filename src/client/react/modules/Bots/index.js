@@ -186,8 +186,15 @@ export default class Bots extends React.Component {
   }
 
   render() {
-    const selectedBot = this.props.bots[this.state.selectedBot];
-    const currentJob = selectedBot.currentJob === undefined ? undefined : this.props.jobs[selectedBot.currentJob];
+    let selectedBot;
+    let currentJob;
+    if (this.state.selectedBot === undefined) {
+      selectedBot = undefined;
+      currentJob = undefined;
+    } else {
+      selectedBot = this.props.bots[this.state.selectedBot];
+      currentJob = selectedBot.currentJob === undefined ? undefined : this.props.jobs[selectedBot.currentJob];
+    }
 
     return (<div>
       <button onClick={this.toggleModal}>Create Bot</button>
