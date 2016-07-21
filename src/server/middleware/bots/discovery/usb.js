@@ -99,8 +99,13 @@ class UsbDiscovery {
       const botPresets = new this.botPresetList[botPresetKey](this.app);
       if (vid === botPresets.vid && pid === botPresets.pid) {
         // Pass the detected preset to populate new settings
-        const detectedBotPresets = await this.checkForPersistentSettings(port, botPresets);
-        const botObject = await this.app.context.bots.createBot(detectedBotPresets.settings);
+        const persistentCheck = await this.checkForPersistentSettings(port, botPresets);
+        let botObject;
+        if (persistentCheck.original) {
+          botObject = await this.app.context.bots.createPersistentBot(persistentCheck.foundPresets.settings);
+        } else {
+          botObject = await this.app.context.bots.createBot(persistentCheck.foundPresets.settings);
+        }
         botObject.setPort(port.comName);
         botObject.detect();
       }
@@ -111,23 +116,24 @@ class UsbDiscovery {
   // if a pnpId exists, lost the bot with those settings, otherwise pull from a generic bot
   async checkForPersistentSettings(port, botPresets) {
     let foundPresets = undefined;
+    let original = false;
     const availableBots = await this.app.context.bots.BotModel.findAll();
     const savedDbProfile = availableBots.find((bot) => {
       return port.pnpId && bot.dataValues.endpoint === port.pnpId;
     });
 
     if (savedDbProfile !== undefined) {
-      const savedProfile = this.app.context.bots.parseDbBotSettings(savedDbProfile);
-      foundPresets = await this.app.context.bots.createBot(savedProfile);
+      foundPresets = await this.app.context.bots.createBot(savedDbProfile.dataValues);
     } else {
       // If pnpid or serial number, need to add it to the database
       // else set port to port
       foundPresets = botPresets;
       if (port.pnpId !== undefined) {
         foundPresets.settings.endpoint = port.pnpId;
+        original = true;
       }
     }
-    return foundPresets;
+    return { foundPresets, original };
   }
 }
 

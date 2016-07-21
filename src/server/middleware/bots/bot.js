@@ -219,14 +219,16 @@ class Bot {
       return bot.dataValues.uuid === this.settings.uuid;
     });
 
-    await dbBot.update(settingsToUpdate);
-    for (const newSetting in settingsToUpdate) {
-      if (settingsToUpdate.hasOwnProperty(newSetting) && this.settings.hasOwnProperty(newSetting)) {
-        this.settings[newSetting] = settingsToUpdate[newSetting];
+    if (dbBot !== undefined) {
+      await dbBot.update(settingsToUpdate);
+      for (const newSetting in settingsToUpdate) {
+        if (settingsToUpdate.hasOwnProperty(newSetting) && this.settings.hasOwnProperty(newSetting)) {
+          this.settings[newSetting] = settingsToUpdate[newSetting];
+        }
       }
-    }
 
-    this.app.io.emit(`updateBots`, this.app.context.bots.getBots());
+      this.app.io.emit(`updateBots`, this.app.context.bots.getBots());
+    }
     return this.getBot();
   }
 
