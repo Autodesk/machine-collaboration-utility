@@ -178,13 +178,13 @@ export default class Bot extends React.Component {
       <div>
         <h3>{this.props.bot.settings.name}</h3>
         {this.renderConnectButton()}
+        <Button onClick={this.pauseJob}>Pause</Button>
+        <Button onClick={this.resumeJob}>Resume</Button>
+        <Button onClick={this.cancelJob}>Cancel</Button>
         <div>State: {this.props.bot.state}</div>
         <div>Port: {this.props.bot.port}</div>
         <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
         <Button onClick={this.toggleModal}>Edit Bot</Button>
-        <Button onClick={this.pauseJob}>Pause</Button>
-        <Button onClick={this.resumeJob}>Resume</Button>
-        <Button onClick={this.cancelJob}>Cancel</Button>
         <br/>
         <br/>
         <form onSubmit={this.processGcode}>
