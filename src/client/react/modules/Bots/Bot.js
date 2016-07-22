@@ -152,9 +152,9 @@ export default class Bot extends React.Component {
               case `model`:
                 return;
               case `endpoint`:
-               if (this.props.botPresets[this.props.bot.settings.model].connectionType === `serial`) {
-                 return;
-               }
+                if (this.props.botPresets[this.props.bot.settings.model].connectionType === `serial`) {
+                  return;
+                }
               default:
                 return (<div key={settingKey}>
                   <label key={`${settingKey}label`} htmlFor={settingKey}>{settingKey}</label>

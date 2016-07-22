@@ -123,8 +123,8 @@ class Conductor {
         let endpoint;
         if (unique) {
           switch (botModel) {
-            case `Escher2Conductor`:
-              endpoint = `http://${botName.replace(`Conductor`, ``)}.local:9000/v1/bots/solo`;
+            case `Escher2HydraPrint`:
+              endpoint = `http://${botName.toLowerCase().replace(`hydraprint`, ``)}.local:9000/v1/bots/solo`;
               break;
             case `virtual`:
               endpoint = `http://localhost:${process.env.PORT}/v1/bots/${newBot.settings.uuid}`;

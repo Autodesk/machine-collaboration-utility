@@ -4,7 +4,7 @@ module.exports = {
   testLogFileName: `hydra-print-test.log`,
   virtualDelay: 1000,
   conductor: {
-    botModel: `Escher2Conductor`,
+    botModel: `Escher2HydraPrint`,
     // botModel: `Virtual`,
     n_players: [5, 1],
   },
