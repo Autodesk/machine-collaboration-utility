@@ -32,12 +32,12 @@ const uploadFile = (self) => {
               await Promise.map(
                 files[theFile],
                 async (file) => {
-                  uploadedFiles.push(await self.createFileObject(file));
+                  uploadedFiles.push(await self.createFile(file));
                 },
                 { concurrency: 5 }
               );
             } else {
-              uploadedFiles.push(await self.createFileObject(files[theFile]));
+              uploadedFiles.push(await self.createFile(files[theFile]));
             }
           },
           { concurrency: 5 }
@@ -61,23 +61,13 @@ const deleteFile = (self) => {
   self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
       const fileUuid = ctx.request.body.uuid;
-      const file = self.fileList[fileUuid];
       if (fileUuid === undefined) {
         const errorMessage = `"uuid" of file is not provided`;
         throw errorMessage;
       }
-      if (file === undefined) {
-        const errorMessage = `File ${fileUuid} not found`;
-        throw errorMessage;
-      }
       const reply = await self.deleteFile(fileUuid);
-      if (reply !== false) {
-        ctx.status = 200;
-        ctx.body = new Response(ctx, requestDescription, reply);
-      } else {
-        const errorMessage = `File does not exist`;
-        throw errorMessage;
-      }
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
@@ -152,9 +142,8 @@ const downloadFile = (self) => {
         throw errorMessage;
       }
       const fileName = file.name;
-      const filePath = self.getFilePath(file);
       ctx.res.setHeader(`Content-disposition`, `attachment; filename=${fileName}`);
-      ctx.body = fs.createReadStream(filePath);
+      ctx.body = fs.createReadStream(file.filePath);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);

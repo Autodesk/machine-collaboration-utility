@@ -265,24 +265,22 @@ class Conductor {
 
     const filesApp = self.app.context.files;
     const theFile = filesApp.getFile(job.fileUuid);
-    const filePath = filesApp.getFilePath(theFile);
 
     try {
       await new Promise(async (resolve, reject) => {
         // Open and unzip the file
-        await fs.createReadStream(filePath)
-        .pipe(unzip.Extract({ path: filePath.split(`.`)[0] }))
+        await fs.createReadStream(theFile.filePath)
+        .pipe(unzip.Extract({ path: theFile.filePath.split(`.`)[0] }))
         // As soon as the file is done being unzipped
         .on(`close`, async () => {
           // Read the metajob.json file inside of the unzipped folder
-          this.metajob = require(filePath.split(`.`)[0] + `/metajob.json`);
+          this.metajob = require(theFile.filePath.split(`.`)[0] + `/metajob.json`);
           // Convert the list of players into an array so that we can map the array
           this.metajobCopy = JSON.parse(JSON.stringify(this.metajob));
           await Promise.map(Object.entries(this.metajob), async ([metajobPlayerKey, metajobPlayer]) => {
             // find the bot that corresponds with the metajob player we're currently populating
             let botUuid;
             let indexKey = `${metajobPlayer.layout_location_x - 1}-${metajobPlayer.layout_location_y - 1}`;
-            console.log('index key!', indexKey);
             for (const [playerKey, player] of Object.entries(this.players)) {
               if (player.settings.name.indexOf(indexKey) !== -1 && player.settings.conductorArm === `true`) {
                 botUuid = player.settings.uuid;
@@ -292,25 +290,34 @@ class Conductor {
             await Promise.map(metajobPlayer.jobs, async(playerJob) => {
               let fileUuid;
               let jobUuid;
-              // upload the file
-              const jobFilePath = filePath.split(`.`)[0] + '/' + playerJob.filename;
-              const fileStream = await fs.createReadStream(jobFilePath);
-              const formData = { file: fileStream };
-              const fileUrl = `http://localhost:${process.env.PORT}/v1/files`;
 
-              const fileUploadParams = {
-                method: `POST`,
-                uri: fileUrl,
-                formData,
-                json: true,
-              };
-              let uploadFileReply;
-              try {
-                uploadFileReply = await request(fileUploadParams);
-              } catch (ex) {
-                self.logger.error('upload file error', ex);
-              }
-              fileUuid = uploadFileReply.data[0].uuid;
+              // create a file with a custom path and uuid
+              const jobFilePath = theFile.filePath.split(`.`)[0] + '/' + playerJob.filename;
+              fileUuid = playerJob.uuid;
+              this.app.context.files.createFile(undefined, jobFilePath, fileUuid);
+
+              // upload the file
+              // const jobFilePath = filePath.split(`.`)[0] + '/' + playerJob.filename;
+              // const fileStream = await fs.createReadStream(jobFilePath);
+              // const formData = { file: fileStream };
+              // const fileUrl = `http://localhost:${process.env.PORT}/v1/files`;
+              //
+              // const fileUploadParams = {
+              //   method: `POST`,
+              //   uri: fileUrl,
+              //   formData,
+              //   json: true,
+              // };
+              // let uploadFileReply;
+              // try {
+              //   uploadFileReply = await request(fileUploadParams);
+              // } catch (ex) {
+              //   self.logger.error('upload file error', ex);
+              // }
+              // fileUuid = uploadFileReply.data[0].uuid;
+
+
+
               // create the job
               const jobParams = {
                 method: `POST`,
@@ -329,6 +336,7 @@ class Conductor {
                 self.logger.error('create job error', ex);
               }
               jobUuid = createJobReply.data.uuid;
+
               // add the job to a list
               // the array order from metajob must be maintained
               playerJob.botUuid = botUuid;
@@ -369,6 +377,10 @@ class Conductor {
   async scanForNextJob() {
     for (const [playerKey, player] of Object.entries(this.players)) {
       try {
+        if (player.fsm.current === `processingJob`) {
+          continue;
+        }
+
         // check each player's first job. Queue it up.
         let noPrecursors = true;
         if (player.metajobQueue.length <= 0) {

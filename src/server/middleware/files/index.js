@@ -60,12 +60,16 @@ class Files {
     walk.walkSync(self.uploadDir, async (basedir, filename) => {
       const uuid = filename.split('_')[filename.split('_').length - 1].split('.')[0];
       const name = filename.split('_' + uuid)[0] + '.' + filename.split('.')[1];
-      const fileStats = await fs.stat(`${basedir}/${filename}`);
+      const filePath = `${basedir}/${filename}`;
+      const fileStats = await fs.stat(filePath);
       const dateChanged = fileStats.ctime;
+
       const fileObject = {
         uuid,
         name,
         dateChanged,
+        conductorFile: false,
+        filePath,
       };
       self.fileList[uuid] = fileObject;
     });
@@ -92,29 +96,55 @@ class Files {
    * Create the file object
    * Add a unique uuid or allow it to be set by the user
    * Allow the option for the user to set their own uuid for the file
+   *
+   * File object has a file name
+   * File path
+   * uuid
+   *
    */
-  async createFileObject(file, userUuid) {
-    const uuid = userUuid !== undefined ? userUuid : await uuidGenerator.v1();
-    const name = file.name;
-    const fileStats = await fs.stat(file.path);
-    const dateChanged = fileStats.ctime;
-    const fileObject = { uuid, name, dateChanged };
+  async createFile(file, userPath, userUuid) {
+    let fileObject;
+    if (userPath === undefined) {
+      const uuid = await uuidGenerator.v1();
+      const name = file.name;
+      const fileStats = await fs.stat(file.path);
+      const dateChanged = fileStats.ctime;
+      const conductorFile = false;
+      const filePath = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
+      fileObject = { uuid, name, dateChanged, conductorFile, filePath };
 
-    // Rename the file from it's random name to the file's name plus the uuid
-    const filenameWithUuid = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
-    await fs.rename(file.path, filenameWithUuid);
-    this.fileList[uuid] = fileObject;
-    // this.logger.info(`filesUpdated`, this.fileList);
-    this.app.io.emit(`updateFiles`, this.getFiles());
+      // Rename the file from it's random name to the file's name plus the uuid
+      const nameArray = name.split(`.`);
+      const fileName = nameArray[0];
+      const fileExt = nameArray[1];
+      const filenameWithUuid = `${this.uploadDir}/${fileName}_${uuid}.${fileExt}`;
+      await fs.rename(file.path, filenameWithUuid);
+      this.fileList[uuid] = fileObject;
+      this.app.io.emit(`updateFiles`, this.getFiles());
+    } else {
+      if (userUuid === undefined) {
+        throw `userUuid must be defined`;
+      }
+      const fileStats = await fs.stat(userPath);
+      const uuid = userUuid;
+      const name = userPath.split('\\').pop().split('/').pop();
+      const dateChanged = fileStats.ctime;
+      const conductorFile = true;
+      fileObject = { uuid, name, dateChanged, conductorFile, filePath: userPath };
+      this.fileList[uuid] = fileObject;
+    }
+
     return fileObject;
   }
 
-  getFilePath(fileObject) {
-    return this.uploadDir + `/` + fileObject.name.split(`.`)[0] + `_` + fileObject.uuid + `.` + fileObject.name.split(`.`)[1];
-  }
-
   getFiles() {
-    return this.fileList;
+    const fileList = {};
+    Object.entries(this.fileList).forEach(([fileKey, file]) => {
+      if (!file.conductorFile) {
+        fileList[fileKey] = file;
+      }
+    });
+    return fileList;
   }
 
   getFile(fileUuid) {
@@ -123,12 +153,11 @@ class Files {
 
   async deleteFile(fileUuid) {
     const file = this.fileList[fileUuid];
-    const filePath = this.getFilePath(file);
-    const fileExists = await fs.exists(filePath);
+    const fileExists = await fs.exists(file.filePath);
     if (fileExists) {
       // Delete the file
-      await fs.unlink(filePath);
-      this.logger.info('Just deleted file', filePath);
+      await fs.unlink(file.filePath);
+      this.logger.info('Just deleted file', file.filePath);
       // this.app.io.emit('deleteFile', file);
       // Remove the file object from the 'files' array
       delete this.fileList[fileUuid];

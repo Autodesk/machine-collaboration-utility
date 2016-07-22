@@ -267,11 +267,10 @@ class Bot {
     self.fsm.start();
     const filesApp = self.app.context.files;
     const theFile = filesApp.getFile(job.fileUuid);
-    const filePath = filesApp.getFilePath(theFile);
 
     // open the file
     // start reading line by line...
-    self.lr = new LineByLineReader(filePath);
+    self.lr = new LineByLineReader(theFile.filePath);
     self.currentLine = 0;
     await self.lr.pause(); // redundant
 
@@ -317,7 +316,7 @@ class Bot {
     });
 
     self.lr.on('end', async () => {
-      self.logger.info('completed reading file,', filePath, 'is closed now.');
+      self.logger.info('completed reading file,', theFile.filePath, 'is closed now.');
       await self.lr.close();
       self.queue.queueCommands({
         postCallback: async() => {
@@ -334,7 +333,7 @@ class Bot {
     // Get the number of lines in the file
     let numLines = 0;
     const fsPromise = new Promise((resolve, reject) => {
-      fs.createReadStream(filePath)
+      fs.createReadStream(theFile.filePath)
       .on('data', function readStreamOnData(chunk) {
         numLines += chunk
         .toString('utf8')
