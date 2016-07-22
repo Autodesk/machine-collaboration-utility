@@ -1,6 +1,6 @@
 const Marlin = require(`./Marlin`);
 
-module.exports = class SmoothieBoard extends Marlin {
+module.exports = class Escher2Serial extends Marlin {
   constructor(app) {
     super(app);
     this.settings.name = `Escher 2 Serial`;

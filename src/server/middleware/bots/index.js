@@ -160,15 +160,6 @@ class Bots {
     if (bot === undefined) {
       throw `Bot "${uuid}" is undefined`;
     }
-    switch (bot.connectionType) {
-      case `usb`:
-        const errorMessage = `Cannot delete bot of type ${bot.connectionType}`;
-        this.logger.error(errorMessage);
-        throw errorMessage;
-      default:
-        // do nothing
-        break;
-    }
 
     // Sweep through all of the bots in the database
     // Make sure the bot is in the database. If it is, delete it
