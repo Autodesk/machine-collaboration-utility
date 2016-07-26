@@ -196,24 +196,26 @@ export default class Bots extends React.Component {
       currentJob = selectedBot.currentJob === undefined ? undefined : this.props.jobs[selectedBot.currentJob];
     }
 
-    return (<div>
-      <button onClick={this.toggleModal}>Create Bot</button>
-      <Modal show={this.state.showModal} onHide={this.closeModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create Bot</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {this.createPresetList()}
-          <form onSubmit={this.addBot}>
-            {this.createNewBotForm()}
-            <input type="submit" value="Create Bot"/>
-          </form>
-        </Modal.Body>
-      </Modal>
-      {this.renderBotList()}
-      {
-        this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>
-      }
-    </div>);
+    return (
+      <div>
+        <button style={{margin: "10px"}} onClick={this.toggleModal}>Create Bot</button>
+        {this.renderBotList()}
+        {
+          this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>
+        }
+        <Modal show={this.state.showModal} onHide={this.closeModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Create Bot</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {this.createPresetList()}
+            <form onSubmit={this.addBot}>
+              {this.createNewBotForm()}
+              <input type="submit" value="Create Bot"/>
+            </form>
+          </Modal.Body>
+        </Modal>
+      </div>
+    );
   }
 }

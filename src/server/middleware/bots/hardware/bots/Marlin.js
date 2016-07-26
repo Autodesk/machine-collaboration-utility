@@ -4,10 +4,6 @@ module.exports = class Marlin extends DefaultBot {
   constructor(app) {
     super(app);
     this.connectionType = `serial`;
-    this.status = {
-      position: {},
-      sensors: {},
-    };
 
     this.settings = {
       model: `Marlin`,
@@ -38,17 +34,18 @@ module.exports = class Marlin extends DefaultBot {
         commandArray.push({
           code: `M114`,
           processData: (command, reply) => {
-            self.status.position.x = reply.data.split('X:')[1].split(' ')[0];
-            self.status.position.y = reply.data.split('Y:')[1].split(' ')[0];
-            self.status.position.z = reply.data.split('Z:')[1].split(' ')[0];
-            self.status.position.e = reply.data.split('E:')[1].split(' ')[0];
+            self.status.position.x = reply.split('X:')[1].split(' ')[0];
+            self.status.position.y = reply.split('Y:')[1].split(' ')[0];
+            self.status.position.z = reply.split('Z:')[1].split(' ')[0];
+            self.status.position.e = reply.split('E:')[1].split(' ')[0];
             return true;
           },
         });
         commandArray.push({
           code: `M105`,
           processData: (command, reply) => {
-            self.status.sensors.t0 = reply.data.split('T0:')[1].split(' ')[0];
+            self.status.sensors.t0 = reply.split('T:')[1].split(' ')[0];
+            self.app.io.emit(`updateBots`, self.app.context.bots.getBots());
             return true;
           },
         });

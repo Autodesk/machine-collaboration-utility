@@ -38,6 +38,7 @@ class Bot {
     this.lr = undefined; // buffered file line reader
     this.currentLine = undefined;
     this.commands = {};
+    this.status = {};
 
     // Mixin the presets to the bot object
     // except for the app and logger
@@ -155,6 +156,7 @@ class Bot {
   getBot() {
     return {
       state: this.fsm.current,
+      status: this.status,
       port: this.port,
       settings: this.settings,
       subscribers: this.subscribers,
@@ -213,7 +215,9 @@ class Bot {
         }
       }
     }
-
+    if (settingsToUpdate.endpoint !== undefined) {
+      this.setPort(settingsToUpdate.endpoint);
+    }
     const dbBots = await this.app.context.bots.BotModel.findAll();
     const dbBot = _.find(dbBots, (bot) => {
       return bot.dataValues.uuid === this.settings.uuid;

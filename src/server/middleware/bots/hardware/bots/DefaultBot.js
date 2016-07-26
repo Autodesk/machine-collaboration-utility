@@ -3,6 +3,10 @@ module.exports = class DefaultBot {
     this.app = app;
     this.logger = app.context.logger;
     this.connectionType = undefined;
+    this.status = {
+      position: {},
+      sensors: {},
+    };
 
     this.settings = {
       model: `DefaultBot`,
@@ -64,7 +68,7 @@ module.exports = class DefaultBot {
       }
     };
 
-    this.commands.updateBot = (self, params) => {
+    this.commands.toggleUpdater = (self, params) => {
       const update = params.update;
       if (update === undefined) {
         throw `"update" is not defined`;
@@ -91,6 +95,7 @@ module.exports = class DefaultBot {
         self.queue.queueCommands({
           open: true,
           postCallback: () => {
+            self.commands.toggleUpdater(self, { update: true });
             self.fsm.connectDone();
           },
         });

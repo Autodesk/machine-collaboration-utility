@@ -22,6 +22,13 @@ export default class Bot extends React.Component {
     this.resumeJob = this.resumeJob.bind(this);
     this.cancelJob = this.cancelJob.bind(this);
     this.processGcode = this.processGcode.bind(this);
+    this.setTemp = this.setTemp.bind(this);
+
+    this.homeX = this.homeX.bind(this);
+    this.homeY = this.homeY.bind(this);
+    this.homeZ = this.homeZ.bind(this);
+    this.homeAll = this.homeAll.bind(this);
+
     this.choir = this.choir.bind(this);
 
     this.state = {
@@ -71,6 +78,47 @@ export default class Bot extends React.Component {
     .end();
   }
 
+  setTemp(event) {
+    event.preventDefault();
+    const temp = event.target.temp.value;
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `processGcode` })
+    .send({ gcode: `M104 S${temp}` })
+    .end();
+  }
+
+  homeX(event) {
+    event.preventDefault();
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `processGcode` })
+    .send({ gcode: `G28 X` })
+    .end();
+  }
+
+  homeY(event) {
+    event.preventDefault();
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `processGcode` })
+    .send({ gcode: `G28 Y` })
+    .end();
+  }
+
+  homeZ(event) {
+    event.preventDefault();
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `processGcode` })
+    .send({ gcode: `G28 Z` })
+    .end();
+  }
+
+  homeAll(event) {
+    event.preventDefault();
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send({ command: `processGcode` })
+    .send({ gcode: `G28` })
+    .end();
+  }
+
   choir(event) {
     event.preventDefault();
     const gcode = event.target.gcode.value;
@@ -97,13 +145,13 @@ export default class Bot extends React.Component {
   renderConnectButton() {
     switch (this.props.bot.state) {
       case `unavailable`:
-        return <Button onClick={this.detect}>Detect</Button>;
+        return <Button style={{margin: "10px"}} onClick={this.detect}>Detect</Button>;
       case `ready`:
-        return <Button onClick={this.connect}>Connect!</Button>;
+        return <Button bsStyle="success" style={{margin: "10px"}} onClick={this.connect}>Connect</Button>;
       case `connected`:
-        return <Button onClick={this.disconnect}>Disconnect!</Button>;
+        return <Button bsStyle="danger" style={{margin: "10px"}} onClick={this.disconnect}>Disconnect</Button>;
       default:
-        return <Button disabled>Nope!</Button>;
+        return <Button style={{margin: "10px"}} disabled>Nope!</Button>;
     }
   }
 
@@ -176,54 +224,99 @@ export default class Bot extends React.Component {
   renderJobButtons() {
     const buttons = [];
     if (this.props.currentJob === undefined) {
-      buttons.push(<Button disabled>Nope</Button>);
-      buttons.push(<Button bsStyle="danger" disabled>Nope</Button>);
+      buttons.push(<Button style={{margin: "10px"}} disabled>Nope</Button>);
+      buttons.push(<Button style={{margin: "10px"}} bsStyle="danger" disabled>Nope</Button>);
     } else {
       switch (this.props.currentJob.state) {
         case `running`:
-          buttons.push(<Button onClick={this.pauseJob}>Pause</Button>);
-          buttons.push(<Button bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
+          buttons.push(<Button style={{margin: "10px"}} onClick={this.pauseJob}>Pause</Button>);
+          buttons.push(<Button style={{margin: "10px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
           break;
         case `paused`:
-          buttons.push(<Button onClick={this.resumeJob}>Resume</Button>);
-          buttons.push(<Button bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
+          buttons.push(<Button style={{margin: "10px"}} onClick={this.resumeJob}>Resume</Button>);
+          buttons.push(<Button style={{margin: "10px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
           break;
         default:
-          buttons.push(<Button disabled>Nope</Button>);
-          buttons.push(<Button bsStyle="danger" disabled>Nope</Button>);
+          buttons.push(<Button style={{margin: "10px"}} disabled>Nope</Button>);
+          buttons.push(<Button style={{margin: "10px"}} bsStyle="danger" disabled>Nope</Button>);
           break;
       }
     }
     return buttons;
   }
 
+  checkDisabled() {
+    let disabled = false;
+    switch (this.props.bot.state) {
+      case `detecting`:
+      case `ready`:
+      case `startingJob`:
+      case `stopping`:
+      case `parking`:
+      case `unparking`:
+      case `unavailable`:
+      case `connecting`:
+        disabled = true;
+        break;
+      default:
+        break;
+    }
+    return disabled;
+  }
+
   render() {
     return (
       <div>
-        <h3>{this.props.bot.settings.name}</h3>
-        {this.renderConnectButton()}
-        {this.renderJobButtons()}
-        <div>State: {this.props.bot.state}</div>
-        <div>Port: {this.props.bot.port}</div>
-        <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
-        <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
-        <Button onClick={this.toggleModal}>Edit Bot</Button>
-        <br/>
-        <br/>
-        <form onSubmit={this.processGcode}>
-          <h3>Jog Bot</h3>
-          <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
-        </form>
-        <br/>
-        <br/>
-        { this.props.conducting ?
-          (<form onSubmit={this.choir}>
-            <h3>Jog alll the bots</h3>
-            <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
-          </form>) : ``
-        }
-        <br/>
-        <br/>
+        <div className="row">
+          <div className="col-md-12">
+            {this.renderConnectButton()}
+            <Button style={{margin: "10px"}} onClick={this.toggleModal}>Edit Bot</Button>
+            {this.renderJobButtons()}
+            <br/>
+            <br/>
+            <div>State: {this.props.bot.state}  Port: {this.props.bot.port}</div>
+            <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
+            <div>Temp:{this.props.bot.status.sensors.t0 ? this.props.bot.status.sensors.t0 : '?'}</div>
+            <div>
+              X:{`${this.props.bot.status.position.x} `}
+              Y:{`${this.props.bot.status.position.y} `}
+              Z:{`${this.props.bot.status.position.z} `}
+              E:{`${this.props.bot.status.position.e} `}
+            </div>
+            <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
+            <Button onClick={this.homeX} disabled={this.checkDisabled()}>Home X</Button>
+            <Button onClick={this.homeY} disabled={this.checkDisabled()}>Home Y</Button>
+            <Button onClick={this.homeZ} disabled={this.checkDisabled()}>Home Z</Button>
+            <Button onClick={this.homeAll} disabled={this.checkDisabled()}>Home All Axes</Button>
+            <br/>
+            <br/>
+            <div className="clearfix">
+              <div style={{ float: 'left', margin: '0px 10px 10px 10px' }}>
+                <form onSubmit={this.processGcode}>
+                  <input type="textarea" name="gcode" disabled={this.checkDisabled()}></input>
+                <br/>
+                  <input type="submit" value="Send Gcode" disabled={this.checkDisabled()}></input>
+                </form>
+              </div>
+              <div style={{ float: 'left', margin: '0px 10px 10px 10px' }}>
+                <form onSubmit={this.setTemp}>
+                  <input type="textarea" name="temp" disabled={this.checkDisabled()}></input>
+                <br/>
+                  <input type="submit" value="Set Extruder Temp" disabled={this.checkDisabled()}></input>
+                </form>
+              </div>
+            </div>
+            <br/>
+            { this.props.conducting ?
+              (<form onSubmit={this.choir}>
+                <h3>Jog alll the bots</h3>
+                <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
+                <br/>
+                <input type="submit" value="Send Gcode to all bots"></input>
+              </form>) : ``
+            }
+          </div>
+        </div>
         {this.renderModal()}
       </div>
     );

@@ -10,7 +10,7 @@ export default class JogPanel extends React.Component {
 
   render() {
     return (
-      <div style={{ width: `50vh` }}>
+      <div style={{ maxWidth: `70vh`, height: `auto` }}>
         <svg version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 1640.8 1047.1">
           <g>
             <g>
