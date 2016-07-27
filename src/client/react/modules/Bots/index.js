@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from 'react-bootstrap/lib/Modal';
 import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Radio from 'react-bootstrap/lib/Radio';
+import Button from 'react-bootstrap/lib/Button';
 import request from 'superagent';
 
 import Bot from './Bot';
@@ -198,7 +199,7 @@ export default class Bots extends React.Component {
 
     return (
       <div>
-        <button style={{margin: "10px"}} onClick={this.toggleModal}>Create Bot</button>
+        <Button style={{margin: "10px"}} onClick={this.toggleModal}>Create Bot</Button>
         {this.renderBotList()}
         {
           this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>

@@ -145,13 +145,13 @@ export default class Bot extends React.Component {
   renderConnectButton() {
     switch (this.props.bot.state) {
       case `unavailable`:
-        return <Button style={{margin: "10px"}} onClick={this.detect}>Detect</Button>;
+        return <Button style={{margin: "5px"}} onClick={this.detect}>Detect</Button>;
       case `ready`:
-        return <Button bsStyle="success" style={{margin: "10px"}} onClick={this.connect}>Connect</Button>;
+        return <Button bsStyle="success" style={{margin: "5px"}} onClick={this.connect}>Connect</Button>;
       case `connected`:
-        return <Button bsStyle="danger" style={{margin: "10px"}} onClick={this.disconnect}>Disconnect</Button>;
+        return <Button bsStyle="danger" style={{margin: "5px"}} onClick={this.disconnect}>Disconnect</Button>;
       default:
-        return <Button style={{margin: "10px"}} disabled>Nope!</Button>;
+        return <Button style={{margin: "5px"}} disabled>Nope!</Button>;
     }
   }
 
@@ -224,21 +224,21 @@ export default class Bot extends React.Component {
   renderJobButtons() {
     const buttons = [];
     if (this.props.currentJob === undefined) {
-      buttons.push(<Button style={{margin: "10px"}} disabled>Nope</Button>);
-      buttons.push(<Button style={{margin: "10px"}} bsStyle="danger" disabled>Nope</Button>);
+      buttons.push(<Button style={{margin: "5px"}} disabled>Nope</Button>);
+      buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" disabled>Nope</Button>);
     } else {
       switch (this.props.currentJob.state) {
         case `running`:
-          buttons.push(<Button style={{margin: "10px"}} onClick={this.pauseJob}>Pause</Button>);
-          buttons.push(<Button style={{margin: "10px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
+          buttons.push(<Button style={{margin: "5px"}} onClick={this.pauseJob}>Pause</Button>);
+          buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
           break;
         case `paused`:
-          buttons.push(<Button style={{margin: "10px"}} onClick={this.resumeJob}>Resume</Button>);
-          buttons.push(<Button style={{margin: "10px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
+          buttons.push(<Button style={{margin: "5px"}} onClick={this.resumeJob}>Resume</Button>);
+          buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
           break;
         default:
-          buttons.push(<Button style={{margin: "10px"}} disabled>Nope</Button>);
-          buttons.push(<Button style={{margin: "10px"}} bsStyle="danger" disabled>Nope</Button>);
+          buttons.push(<Button style={{margin: "5px"}} disabled>Nope</Button>);
+          buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" disabled>Nope</Button>);
           break;
       }
     }
@@ -270,10 +270,37 @@ export default class Bot extends React.Component {
         <div className="row">
           <div className="col-md-12">
             {this.renderConnectButton()}
-            <Button style={{margin: "10px"}} onClick={this.toggleModal}>Edit Bot</Button>
+            <Button style={{margin: "5px"}} onClick={this.toggleModal}>Edit Bot</Button>
             {this.renderJobButtons()}
-            <br/>
-            <br/>
+            <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
+            <Button onClick={this.homeX} disabled={this.checkDisabled()}>Home X</Button>
+            <Button onClick={this.homeY} disabled={this.checkDisabled()}>Home Y</Button>
+            <Button onClick={this.homeZ} disabled={this.checkDisabled()}>Home Z</Button>
+            <Button onClick={this.homeAll} disabled={this.checkDisabled()}>Home Axes</Button>
+            <div className="clearfix">
+              <div style={{ float: 'left', margin: '0px 5px 5px 5px' }}>
+                <form onSubmit={this.processGcode}>
+                  <input type="textarea" name="gcode" disabled={this.checkDisabled()}></input>
+                <br/>
+                  <input type="submit" value="Send Gcode" disabled={this.checkDisabled()}></input>
+                </form>
+              </div>
+              <div style={{ float: 'left', margin: '0px 5px 5px 5px' }}>
+                <form onSubmit={this.setTemp}>
+                  <input type="textarea" name="temp" disabled={this.checkDisabled()}></input>
+                <br/>
+                  <input type="submit" value="Set Extruder Temp" disabled={this.checkDisabled()}></input>
+                </form>
+              </div>
+            </div>
+            { this.props.conducting ?
+              (<form onSubmit={this.choir}>
+                <h3>Jog alll the bots</h3>
+                <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
+                <br/>
+                <input type="submit" value="Send Gcode to all bots"></input>
+              </form>) : ``
+            }
             <div>State: {this.props.bot.state}  Port: {this.props.bot.port}</div>
             <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
             <div>Temp:{this.props.bot.status.sensors.t0 ? this.props.bot.status.sensors.t0 : '?'}</div>
@@ -283,38 +310,6 @@ export default class Bot extends React.Component {
               Z:{`${this.props.bot.status.position.z} `}
               E:{`${this.props.bot.status.position.e} `}
             </div>
-            <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
-            <Button onClick={this.homeX} disabled={this.checkDisabled()}>Home X</Button>
-            <Button onClick={this.homeY} disabled={this.checkDisabled()}>Home Y</Button>
-            <Button onClick={this.homeZ} disabled={this.checkDisabled()}>Home Z</Button>
-            <Button onClick={this.homeAll} disabled={this.checkDisabled()}>Home All Axes</Button>
-            <br/>
-            <br/>
-            <div className="clearfix">
-              <div style={{ float: 'left', margin: '0px 10px 10px 10px' }}>
-                <form onSubmit={this.processGcode}>
-                  <input type="textarea" name="gcode" disabled={this.checkDisabled()}></input>
-                <br/>
-                  <input type="submit" value="Send Gcode" disabled={this.checkDisabled()}></input>
-                </form>
-              </div>
-              <div style={{ float: 'left', margin: '0px 10px 10px 10px' }}>
-                <form onSubmit={this.setTemp}>
-                  <input type="textarea" name="temp" disabled={this.checkDisabled()}></input>
-                <br/>
-                  <input type="submit" value="Set Extruder Temp" disabled={this.checkDisabled()}></input>
-                </form>
-              </div>
-            </div>
-            <br/>
-            { this.props.conducting ?
-              (<form onSubmit={this.choir}>
-                <h3>Jog alll the bots</h3>
-                <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
-                <br/>
-                <input type="submit" value="Send Gcode to all bots"></input>
-              </form>) : ``
-            }
           </div>
         </div>
         {this.renderModal()}
