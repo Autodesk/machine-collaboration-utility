@@ -69,6 +69,11 @@ class Jobs {
 
     this.jobList[jobObject.uuid] = jobObject;
     this.logger.info('jobEvent', jobJson);
+    this.app.io.emit(`jobEvent`, {
+      uuid: jobObject.uuid,
+      event: `new`,
+      data: jobObject.getJob(),
+    });
     return jobObject;
   }
 
@@ -110,12 +115,15 @@ class Jobs {
   async deleteJob(jobUuid) {
     const theJob = this.jobList[jobUuid];
     // const dbJob = await this.JobModel.findById(theJob.id);
-    // // this.app.io.emit('deleteJob', theJobJson);
     // await dbJob.destroy();
     delete this.jobList[jobUuid];
     this.logger.info(`Job ${jobUuid} deleted`);
     try {
-      this.app.io.emit('updateJobs', this.jobList);
+      this.app.io.emit('jobEvent', {
+        uuid: jobUuid,
+        event: `delete`,
+        data: null,
+      });
     } catch (ex) {
       this.logger.error(`Socket error`, ex);
     }

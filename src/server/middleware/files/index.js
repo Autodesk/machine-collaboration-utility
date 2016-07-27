@@ -120,7 +120,11 @@ class Files {
       const filenameWithUuid = `${this.uploadDir}/${fileName}_${uuid}.${fileExt}`;
       await fs.rename(file.path, filenameWithUuid);
       this.fileList[uuid] = fileObject;
-      this.app.io.emit(`updateFiles`, this.getFiles());
+      this.app.io.emit(`fileEvent`, {
+        uuid,
+        event: `new`,
+        data: fileObject,
+      });
     } else {
       if (userUuid === undefined) {
         throw `userUuid must be defined`;
@@ -158,10 +162,13 @@ class Files {
       // Delete the file
       await fs.unlink(file.filePath);
       this.logger.info('Just deleted file', file.filePath);
-      // this.app.io.emit('deleteFile', file);
       // Remove the file object from the 'files' array
       delete this.fileList[fileUuid];
-      this.app.io.emit(`updateFiles`, this.getFiles());
+      this.app.io.emit(`fileEvent`, {
+        uuid: fileUuid,
+        event: `delete`,
+        data: null,
+      });
       return `File ${fileUuid} deleted`;
     }
     return false;

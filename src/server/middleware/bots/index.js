@@ -151,7 +151,11 @@ class Bots {
     // Add the bot to the list
     this.botList[newBot.settings.uuid] = newBot;
 
-    this.app.io.emit(`updateBots`, this.getBots());
+    this.app.io.emit(`botEvent`, {
+      uuid: newBot.settings.uuid,
+      event: `new`,
+      data: newBot.getBot(),
+    });
     return newBot;
   }
 
@@ -176,7 +180,11 @@ class Bots {
     if (!deleted) {
       throw `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`;
     }
-    this.app.io.emit(`updateBots`, this.getBots());
+    this.app.io.emit(`botEvent`, {
+      uuid,
+      event: `delete`,
+      data: null,
+    });
     return `Bot "${uuid}" successfully deleted`;
   }
 

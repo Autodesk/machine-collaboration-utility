@@ -105,7 +105,11 @@ class Bot {
         onenterstate: (event, from, to) => {
           this.logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
           try {
-            this.app.io.emit(`updateBots`, this.app.context.bots.getBots());
+            this.app.io.emit(`botEvent`, {
+              uuid: this.settings.uuid,
+              event: `update`,
+              data: this.getBot(),
+            });
           } catch (ex) {
             this.logger.error(`Update bot socket error`, ex);
           }
@@ -155,7 +159,7 @@ class Bot {
    */
   getBot() {
     return {
-      state: this.fsm.current,
+      state: (this.fsm !== undefined && this.fsm.current !== undefined) ? this.fsm.current : `unavailable`,
       status: this.status,
       port: this.port,
       settings: this.settings,
@@ -231,7 +235,11 @@ class Bot {
         }
       }
 
-      this.app.io.emit(`updateBots`, this.app.context.bots.getBots());
+      this.app.io.emit(`botEvent`, {
+        uuid: this.settings.uuid,
+        event: `update`,
+        data: this.getBot(),
+      });
     }
     return this.getBot();
   }

@@ -19,7 +19,11 @@ module.exports = class SmoothieBoardHydraPrint extends HydraPrint {
       self.status.position.z = reply.data.status.position.z;
       self.status.position.e = reply.data.status.position.e;
       self.status.sensors.t0 = reply.data.status.sensors.t0;
-      self.app.io.emit(`updateBots`, self.app.context.bots.getBots());
+      self.app.io.emit(`botEvent`, {
+        uuid: self.settings.uuid,
+        event: `update`,
+        data: self.getBot(),
+      });
     };
   }
 };

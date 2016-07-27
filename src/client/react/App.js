@@ -20,14 +20,54 @@ export default class App extends React.Component {
     // Don't notice socket event on the server side
     if (require('is-browser')) {
       this.socket = io();
-      this.socket.on('updateBots', (bots) => {
-        this.setState({ bots });
+      this.socket.on('botEvent', (bot) => {
+        const newBots = this.state.bots;
+        switch (bot.event) {
+          case `new`:
+            newBots[bot.uuid] = bot.data;
+            this.setState({ bots: newBots });
+            break;
+          case `update`:
+            newBots[bot.uuid] = bot.data;
+            this.setState({ bots: newBots });
+            break;
+          case `delete`:
+            delete newBots[bot.uuid];
+            this.setState({ bots: newBots });
+            break;
+          default:
+            break;
+        }
       });
-      this.socket.on('updateFiles', (files) => {
-        this.setState({ files });
+      this.socket.on('fileEvent', (file) => {
+        const newFiles = this.state.files;
+        switch (file.event) {
+          case `new`:
+            newFiles[file.uuid] = file.data;
+            this.setState({ files: newFiles });
+            break;
+          case `delete`:
+            delete newFiles[file.uuid];
+            this.setState({ files: newFiles });
+            break;
+          default:
+            break;
+        }
       });
-      this.socket.on('updateJobs', (jobs) => {
-        this.setState({ jobs });
+      this.socket.on('jobEvent', (job) => {
+        const newJobs = this.state.jobs;
+        switch (job.event) {
+          case `new`:
+            newJobs[job.uuid] = job.data;
+            this.setState({ jobs: newJobs });
+            break;
+          case `delete`:
+            delete newJobs[job.uuid];
+            this.setState({ jobs: newJobs });
+            break;
+          default:
+            break;
+        }
       });
     }
   }

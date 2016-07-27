@@ -74,7 +74,11 @@ class Job {
               }
             }
             self.logger.info(`jobEvent`, self.getJob());
-            self.app.io.emit(`updateJobs`, self.app.context.jobs.getJobs());
+            self.app.io.emit(`jobEvent`, {
+              uuid: self.uuid,
+              event: `update`,
+              data: self.getJob(),
+            });
           }
         },
       },
@@ -86,10 +90,14 @@ class Job {
     this.elapsed = undefined;
     this.percentComplete = 0;
 
-    // Emit job updates once a second
+    // job updates once a second
     this.stopwatch.onTime((time) => {
       this.logger.info('jobEvent', this.getJob());
-      this.app.io.emit(`updateJobs`, self.app.context.jobs.getJobs());
+      this.app.io.emit(`jobEvent`, {
+        uuid: this.uuid,
+        event: `update`,
+        data: this.getJob(),
+      });
     });
   }
 

@@ -64,7 +64,11 @@ class UsbDiscovery {
               // a persistent pnpid connection, then delete it
               if (self.app.context.bots.botList[removedBot.settings.uuid] !== undefined) {
                 delete self.app.context.bots.botList[removedBot.settings.uuid];
-                self.app.io.emit(`updateBots`, self.app.context.bots.getBots());
+                self.app.io.emit(`botEvent`, {
+                  uuid: removedBot.settings.uuid,
+                  event: `delete`,
+                  data: null,
+                });
               }
             }
           }

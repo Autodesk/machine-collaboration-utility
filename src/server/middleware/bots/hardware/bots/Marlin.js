@@ -45,7 +45,11 @@ module.exports = class Marlin extends DefaultBot {
           code: `M105`,
           processData: (command, reply) => {
             self.status.sensors.t0 = reply.split('T:')[1].split(' ')[0];
-            self.app.io.emit(`updateBots`, self.app.context.bots.getBots());
+            self.app.io.emit(`botEvent`, {
+              uuid: self.settings.uuid,
+              event: `update`,
+              data: self.getBot(),
+            });
             return true;
           },
         });
