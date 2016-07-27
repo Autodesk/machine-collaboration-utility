@@ -59,6 +59,9 @@ class Files {
     const self = this;
     walk.walkSync(self.uploadDir, async (basedir, filename) => {
       const uuid = filename.split('_')[filename.split('_').length - 1].split('.')[0];
+      if (uuid.length !== 36) {
+        return;
+      }
       const name = filename.split('_' + uuid)[0] + '.' + filename.split('.')[1];
       const filePath = `${basedir}/${filename}`;
       const fileStats = await fs.stat(filePath);
