@@ -52,21 +52,19 @@ PORT=9000
 sudo -iu postgres psql -c "\password postgres"
 ```
 
+## Installing Raspberry Pi usb driver libraries
+```
+sudo apt-get install build-essential libudev-dev
+```
 
 ## Running the app
 #### Run tests  
 ```
 npm test
 ```
-#### Run the Individual GCode Client (aka Bot or Player) instance  
+#### Run the server
 ```
-npm run bot
-```
-
-#### Run the Conductor
-```
-npm run conductor
+npm start
 ```
 
 All API documentation can be found at localhost:9000/docs
-### Note, this Gcode bot manager is currently built to only support one usb connection.

@@ -104,8 +104,13 @@ module.exports = class Marlin extends DefaultBot {
           currentLocation.z = Number(reply.split('Z:')[1].split(' ')[0]);
           currentLocation.e = Number(reply.split('E:')[1].split(' ')[0]);
           const newPosition = currentLocation[params.axis] + params.amount;
-          const jogSpeed = self.settings[`jog${params.axis.toUpperCase()}Speed`];
-          const jogGcode = `G1 ${params.axis.toUpperCase()}${newPosition} F${jogSpeed}`;
+          let feedRate;
+          if (params.feedRate) {
+            feedRate = params.feedRate
+          } else {
+            feedRate = self.settings[`jog${params.axis.toUpperCase()}Speed`];
+          }
+          const jogGcode = `G1 ${params.axis.toUpperCase()}${newPosition} F${feedRate}`;
           self.queue.prependCommands(jogGcode);
           return true;
         },

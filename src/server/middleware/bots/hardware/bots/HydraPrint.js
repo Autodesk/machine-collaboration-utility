@@ -71,6 +71,7 @@ module.exports = class HydraPrintBot extends DefaultBot {
       commandArray.push(self.commands.gcodeInitialState(self, params));
       commandArray.push({
         postCallback: async () => {
+          const feedRate = self.settings[`jog${params.axis.toUpperCase()}Speed`];
           const requestParams = {
             method: `POST`,
             uri: self.port,
@@ -78,6 +79,7 @@ module.exports = class HydraPrintBot extends DefaultBot {
               command: `jog`,
               axis: params.axis,
               amount: params.amount,
+              feedRate,
             },
             json: true,
           };
