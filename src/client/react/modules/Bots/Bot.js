@@ -293,14 +293,6 @@ export default class Bot extends React.Component {
                 </form>
               </div>
             </div>
-            { this.props.conducting ?
-              (<form onSubmit={this.choir}>
-                <h3>Jog alll the bots</h3>
-                <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
-                <br/>
-                <input type="submit" value="Send Gcode to all bots"></input>
-              </form>) : ``
-            }
             <div>State: {this.props.bot.state}  Port: {this.props.bot.port}</div>
             <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
             <div>Temp:{this.props.bot.status.sensors.t0 ? this.props.bot.status.sensors.t0 : '?'}</div>
@@ -310,6 +302,14 @@ export default class Bot extends React.Component {
               Z:{`${this.props.bot.status.position.z} `}
               E:{`${this.props.bot.status.position.e} `}
             </div>
+            { this.props.conducting ?
+              (<form onSubmit={this.choir}>
+                <h3>Jog alll the bots</h3>
+                <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
+                <br/>
+                <input type="submit" value="Send Gcode to all bots"></input>
+              </form>) : ``
+            }
           </div>
         </div>
         {this.renderModal()}
