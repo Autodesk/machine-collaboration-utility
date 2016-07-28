@@ -24,9 +24,6 @@ export default class App extends React.Component {
         const newBots = this.state.bots;
         switch (bot.event) {
           case `new`:
-            newBots[bot.uuid] = bot.data;
-            this.setState({ bots: newBots });
-            break;
           case `update`:
             newBots[bot.uuid] = bot.data;
             this.setState({ bots: newBots });
@@ -58,6 +55,7 @@ export default class App extends React.Component {
         const newJobs = this.state.jobs;
         switch (job.event) {
           case `new`:
+          case `update`:
             newJobs[job.uuid] = job.data;
             this.setState({ jobs: newJobs });
             break;
