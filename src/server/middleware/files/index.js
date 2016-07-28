@@ -62,6 +62,10 @@ class Files {
       if (uuid.length !== 36) {
         return;
       }
+      const fileExtension = filename.split(`.`)[1];
+      if (fileExtension === undefined) {
+        return;
+      }
       const name = filename.split('_' + uuid)[0] + '.' + filename.split('.')[1];
       const filePath = `${basedir}/${filename}`;
       const fileStats = await fs.stat(filePath);
