@@ -106,8 +106,8 @@ class Conductor {
   // If the database doesn't yet have printers for the endpoints, create them
   async setupConductorArms() {
     // Sweet through every player
-    for (let playerX = 0; playerX < this.app.context.config.conductor.n_players[0]; playerX++) {
-      for (let playerY = 0; playerY < this.app.context.config.conductor.n_players[1]; playerY++) {
+    for (let playerX = 1; playerX <= this.app.context.config.conductor.n_players[0]; playerX++) {
+      for (let playerY = 1; playerY <= this.app.context.config.conductor.n_players[1]; playerY++) {
         // Check if a bot exists with that end point
         const botModel = this.app.context.config.conductor.botModel;
         const botName = `${botModel}-${playerX}-${playerY}`;
@@ -280,7 +280,7 @@ class Conductor {
           await Promise.map(Object.entries(this.metajob), async ([metajobPlayerKey, metajobPlayer]) => {
             // find the bot that corresponds with the metajob player we're currently populating
             let botUuid;
-            let indexKey = `${metajobPlayer.layout_location_x - 1}-${metajobPlayer.layout_location_y - 1}`;
+            let indexKey = `${metajobPlayer.layout_location_x}-${metajobPlayer.layout_location_y}`;
             for (const [playerKey, player] of Object.entries(this.players)) {
               if (player.settings.name.indexOf(indexKey) !== -1 && player.settings.conductorArm === `true`) {
                 botUuid = player.settings.uuid;
@@ -295,28 +295,6 @@ class Conductor {
               const jobFilePath = theFile.filePath.split(`.`)[0] + '/' + playerJob.filename;
               fileUuid = playerJob.uuid;
               this.app.context.files.createFile(undefined, jobFilePath, fileUuid);
-
-              // upload the file
-              // const jobFilePath = filePath.split(`.`)[0] + '/' + playerJob.filename;
-              // const fileStream = await fs.createReadStream(jobFilePath);
-              // const formData = { file: fileStream };
-              // const fileUrl = `http://localhost:${process.env.PORT}/v1/files`;
-              //
-              // const fileUploadParams = {
-              //   method: `POST`,
-              //   uri: fileUrl,
-              //   formData,
-              //   json: true,
-              // };
-              // let uploadFileReply;
-              // try {
-              //   uploadFileReply = await request(fileUploadParams);
-              // } catch (ex) {
-              //   self.logger.error('upload file error', ex);
-              // }
-              // fileUuid = uploadFileReply.data[0].uuid;
-
-
 
               // create the job
               const jobParams = {
