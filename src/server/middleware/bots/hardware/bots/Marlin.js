@@ -103,9 +103,9 @@ module.exports = class Marlin extends DefaultBot {
         code: `M114`,
         processData: (command, reply) => {
           const currentLocation = {};
-          currentLocation.x = Number(reply.split('X:')[1].split(' ')[0]);
-          currentLocation.y = Number(reply.split('Y:')[1].split(' ')[0]);
-          currentLocation.z = Number(reply.split('Z:')[1].split(' ')[0]);
+          currentLocation.x = Number(reply.split('X:')[1].split('Y')[0]);
+          currentLocation.y = Number(reply.split('Y:')[1].split('Z')[0]);
+          currentLocation.z = Number(reply.split('Z:')[1].split('E')[0]);
           currentLocation.e = Number(reply.split('E:')[1].split(' ')[0]);
           const newPosition = currentLocation[params.axis] + params.amount;
           let feedRate;
