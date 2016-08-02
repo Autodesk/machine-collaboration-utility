@@ -1,8 +1,6 @@
 import React from 'react';
 import request from 'superagent';
 
-import Polygon from './Polygon';
-
 export default class JogPanel extends React.Component {
   constructor(props) {
     super(props);
