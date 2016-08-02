@@ -119,7 +119,7 @@ class Bot {
                 method: `POST`,
                 uri: subscriber,
                 body: {
-                  command: `update`,
+                  command: `updateState`,
                   body: {
                     event,
                     bot: this.getBot(),

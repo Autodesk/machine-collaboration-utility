@@ -217,7 +217,7 @@ module.exports = class DefaultBot {
       return self.getBot();
     };
 
-    this.commands.update = (self, params) => {
+    this.commands.updateState = (self, params) => {
       const event = params.body.event;
       const bot = params.body.bot;
 
