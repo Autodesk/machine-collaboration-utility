@@ -1,7 +1,5 @@
 const Promise = require(`bluebird`);
-const LineByLineReader = Promise.promisifyAll(require(`line-by-line`));
 const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
-const fs = require(`fs`);
 const _ = require(`underscore`);
 const request = require(`request-promise`);
 const uuidGenerator = require(`node-uuid`);
@@ -192,6 +190,7 @@ class Bot {
         break;
       case `telnet`:
       case `virtual`:
+      case `conductor`:
         this.detect();
         break;
       default:
@@ -270,100 +269,6 @@ class Bot {
     }
   }
 
-  // In order to start processing a job, the job's file is opened and then
-  // processed one line at a time
-  async startJob(job) {
-    const self = this;
-
-    self.currentJob = job;
-    self.fsm.start();
-    const filesApp = self.app.context.files;
-    const theFile = filesApp.getFile(job.fileUuid);
-
-    // open the file
-    // start reading line by line...
-    self.lr = new LineByLineReader(theFile.filePath);
-    self.currentLine = 0;
-    await self.lr.pause(); // redundant
-
-    self.lr.on('error', (err) => {
-      self.logger.error('line reader error:', err);
-    });
-
-    // As the buffer reads each line, process it
-    self.lr.on('line', async (line) => {
-      // pause the line reader immediately
-      // we will resume it as soon as the line is done processing
-      await self.lr.pause();
-      // We only care about the info prior to the first semicolon
-      // NOTE This code is assuming we are processing GCODE
-      // In case of adding support for multiple contrl formats, this is a good place to start
-      let command = line.split(';')[0];
-      if (command.length <= 0) {
-        // If the line is blank, move on to the next line
-        await self.lr.resume();
-      } else {
-        command = self.addOffset(command);
-        command = self.addSpeedMultiplier(command);
-        command = self.addFeedMultiplier(command);
-
-        // Add an extra G4 P0 to pad the hydra-print buffer
-        // TODO handle the summation of buffers here instead of on the composer side
-        if (command.indexOf('G4 P0') !== -1) {
-          self.queue.queueCommands({
-            code: command,
-          });
-        }
-        self.queue.queueCommands({
-          code: command,
-          postCallback: async () => {
-            if (self.currentJob.fsm.current === `running`) {
-              await self.lr.resume();
-            }
-            self.currentLine += 1;
-            self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
-          },
-        });
-      }
-    });
-
-    self.lr.on('end', async () => {
-      self.logger.info('completed reading file,', theFile.filePath, 'is closed now.');
-      await self.lr.close();
-      self.queue.queueCommands({
-        postCallback: async() => {
-          console.log(`!!!!!!!!!!!!!!!!!!!!${self.settings.name} 100% NOW!!!!!!!!!!!!!!!!!!!!`);
-          self.currentJob.percentComplete = 100;
-          await self.fsm.stop();
-          await self.fsm.stopDone();
-          await self.currentJob.fsm.runningDone();
-          await self.currentJob.stopwatch.stop();
-        },
-      });
-    });
-
-    // Get the number of lines in the file
-    let numLines = 0;
-    const fsPromise = new Promise((resolve, reject) => {
-      fs.createReadStream(theFile.filePath)
-      .on('data', function readStreamOnData(chunk) {
-        numLines += chunk
-        .toString('utf8')
-        .split(/\r\n|[\n\r\u0085\u2028\u2029]/g)
-        .length - 1;
-      })
-      .on('end', () => {  // done
-        self.numLines = numLines;
-        self.logger.info(`Bot will process file with ${self.numLines} lines.`);
-        resolve();
-      });
-    });
-
-    await fsPromise;
-    await self.lr.resume();
-    await self.fsm.startDone();
-  }
-
   // Set up the appropriate command executor and validator for a given connection type
   async detect() {
     await this.fsm.detect();
@@ -390,6 +295,7 @@ class Bot {
           validator = this.validateHydraprintReply;
           break;
         case `virtual`:
+        case `conductor`:
           executor = new VirtualExecutor(this.app);
           validator = this.validateSerialReply;
           break;

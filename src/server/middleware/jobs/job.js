@@ -153,9 +153,9 @@ class Job {
    */
   async start() {
     this.fsm.start();
-    const bot = this.conductorOrBot(this.botUuid);
+    const bot = this.app.context.bots.botList[this.botUuid];
     try {
-      await bot.startJob(this);
+      await bot.commands.startJob(bot, { job: this });
       this.started = new Date().getTime();
       await this.stopwatch.start();
       this.fsm.startDone();
@@ -174,7 +174,7 @@ class Job {
       return;
     }
     this.fsm.pause();
-    const bot = this.conductorOrBot(this.botUuid);
+    const bot = this.app.context.bots.botList[this.botUuid];
     try {
       await bot.commands.pause(bot, params);
       await this.stopwatch.stop();
@@ -194,7 +194,7 @@ class Job {
       return;
     }
     this.fsm.resume();
-    const bot = this.conductorOrBot(this.botUuid);
+    const bot = this.app.context.bots.botList[this.botUuid];
     try {
       await bot.commands.resume(bot, params);
       await this.stopwatch.start();
@@ -211,7 +211,7 @@ class Job {
    */
   async cancel(params) {
     this.fsm.cancel();
-    const bot = this.conductorOrBot(this.botUuid);
+    const bot = this.app.context.bots.botList[this.botUuid];
     try {
       await bot.commands.cancel(bot, params);
       await this.stopwatch.stop();
@@ -221,20 +221,6 @@ class Job {
       this.logger.error(errorMessage);
       await this.fsm.cancelFail();
     }
-  }
-
-  // Register conductor as a botUuid of -1
-  conductorOrBot(botUuid) {
-    let bot = undefined;
-    if (Number(botUuid) === -1) {
-      bot = this.app.context.conductor;
-    } else {
-      bot = this.app.context.bots.botList[botUuid];
-    }
-    if (bot === undefined) {
-      throw `Bot is undefined`;
-    }
-    return bot;
   }
 }
 
