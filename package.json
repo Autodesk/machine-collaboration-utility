@@ -20,6 +20,7 @@
     "ip": "^1.1.0",
     "is-browser": "^2.0.1",
     "javascript-state-machine": "^2.3.5",
+    "json-stringify-safe": "^5.0.1",
     "koa": "^2.0.0-alpha.3",
     "koa-body": "^1.4.0",
     "koa-bodyparser": "^2.0.1",
