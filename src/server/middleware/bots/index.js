@@ -110,14 +110,14 @@ class Bots {
   }
 
   async loadBotPresets() {
-    const botPresets = await fs.readdir(path.join(__dirname, './hardware/bots'));
+    const botPresets = await fs.readdir(path.join(__dirname, './settings/bots'));
     await Promise.map(botPresets, (botPreset) => {
       // Scan through all of the bot presets.
       // Make sure to ignore the source map files
       // TODO refactor in case helper files are necessary in the 'hardware' folder
       if (botPreset.indexOf(`.map`) === -1) {
         const presetType = botPreset.split(`.`)[0];
-        const presetPath = path.join(__dirname, `./hardware/bots/${botPreset}`);
+        const presetPath = path.join(__dirname, `./settings/bots/${botPreset}`);
         const BotPresetClass = require(presetPath);
         this.botPresetList[presetType] = BotPresetClass;
       }
