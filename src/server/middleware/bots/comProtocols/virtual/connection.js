@@ -83,7 +83,7 @@ VirtualConnection.prototype.send = async function (inCommandStr) {
         reply = `ok`;
         break;
       case 'G1':
-        await Promise.delay(100);
+        await Promise.delay(5);
         reply = `ok`;
         break;
       default:
