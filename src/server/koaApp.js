@@ -10,6 +10,7 @@ const path = require(`path`);
 const Sequelize = require(`sequelize`);
 const router = require(`koa-router`)();
 const _ = require(`underscore`);
+const stringify = require(`json-stringify-safe`);
 
 const React = require(`react`);
 const renderToString = require(`react-dom/server`).renderToString;
@@ -22,7 +23,6 @@ const routes = require(`./react/routes`);
 const Files = require(`./middleware/files`);
 const Jobs = require(`./middleware/jobs`);
 const Bots = require(`./middleware/bots`);
-const Conductor = require(`./middleware/conductor`);
 
 class KoaApp {
   constructor(config) {
@@ -71,6 +71,9 @@ class KoaApp {
       // // Just wipe the database each time until we can smooth things out
       // this.app.context.db.sync({ force: true });
 
+      // Don't send socket events when starting a conductor job
+      this.app.context.fullSocket = false;
+
       const files = await new Files(this.app, `/${this.apiVersion}/files`);
       await files.initialize();
 
@@ -79,11 +82,6 @@ class KoaApp {
 
       const bots = new Bots(this.app, `/${this.apiVersion}/bots`);
       await bots.initialize();
-
-      if (process.env.CONDUCTING === `true`) {
-        const conductor = new Conductor(this.app, `/${this.apiVersion}/conductor`);
-        await conductor.initialize();
-      }
 
       // Set up Koa to match any routes to the React App. If a route exists, render it.
       router.get('*', (ctx) => {
@@ -136,7 +134,7 @@ class KoaApp {
 <link rel=stylesheet href=/styles.css>
 <div id=app><div>${appHtml}</div></div>
 <script src="/vendorJs/jquery.min.js"></script>
-<script>var APP_VAR=${this.safeStringify(jsVariables)}</script>
+<script>var APP_VAR=${stringify(jsVariables)}</script>
 <script src="/vendorJs/bootstrap.min.js"></script>
 <script src="/vendorJs/socket.io.js"></script>
 <script src="/bundle.js"></script>
@@ -144,10 +142,6 @@ class KoaApp {
 `;
   }
 
-  // A utility function to safely escape JSON for embedding in a <script> tag
-  safeStringify(obj) {
-    return JSON.stringify(obj).replace(/<\/script/g, '<\\/script').replace(/<!--/g, '<\\!--')
-  }
 }
 
 module.exports = KoaApp;
