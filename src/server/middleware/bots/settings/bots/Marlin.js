@@ -1,4 +1,6 @@
 const DefaultBot = require(`./DefaultBot`);
+const bsync = require(`asyncawait/async`);
+const bwait = require(`asyncawait/await`);
 
 module.exports = class Marlin extends DefaultBot {
   constructor(app) {
@@ -57,14 +59,14 @@ module.exports = class Marlin extends DefaultBot {
       }
     };
 
-    this.commands.processGcode = async (self, params) => {
+    this.commands.processGcode = bsync((self, params) => {
       const gcode = params.gcode;
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }
       const commandArray = [];
 
-      return await new Promise((resolve, reject) => {
+      return bwait(new Promise((resolve, reject) => {
         commandArray.push(self.commands.gcodeInitialState(self, params));
         commandArray.push({
           code: gcode,
@@ -76,8 +78,8 @@ module.exports = class Marlin extends DefaultBot {
         commandArray.push(self.commands.gcodeFinalState(self, params));
 
         self.queue.queueCommands(commandArray);
-      });
-    };
+      }));
+    });
 
     this.commands.streamGcode = (self, params) => {
       if (self.queue.mQueue.length >= 32) {

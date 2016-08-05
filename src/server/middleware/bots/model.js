@@ -1,8 +1,10 @@
 const Sequelize = require('sequelize');
+const bsync = require(`asyncawait/async`);
+const bwait = require(`asyncawait/await`);
 
-module.exports = async (app) => {
+module.exports = bsync((app) => {
   // Define the model for a job
-  const BotModel = await app.context.db.define('Bot', {
+  const BotModel = bwait(app.context.db.define('Bot', {
     model: Sequelize.STRING,
     name: Sequelize.STRING,
     uuid: Sequelize.STRING,
@@ -20,7 +22,7 @@ module.exports = async (app) => {
     offsetY: Sequelize.STRING,
     offsetZ: Sequelize.STRING,
     conductorArm: Sequelize.STRING,
-  });
+  }));
 
   return BotModel;
-};
+});

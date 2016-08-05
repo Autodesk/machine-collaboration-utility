@@ -8,6 +8,8 @@
  ******************************************************************************/
 const _ = require('underscore');
 const Promise = require(`bluebird`);
+const bsync = require(`asyncawait/async`);
+const bwait = require(`asyncawait/await`);
 let logger;
 
 /**
@@ -49,13 +51,13 @@ var VirtualConnection = function(app, connectedFunc) {
  * Set the user configurable functions to call when we receive data,
  * close the port or have an error on the port.
  */
-VirtualConnection.prototype.setDataFunc = function (inDataFunc) {
+VirtualConnection.prototype.setDataFunc = function setDataFunc(inDataFunc) {
   this.mDataFunc = inDataFunc;
 };
-VirtualConnection.prototype.setCloseFunc = function (inCloseFunc) {
+VirtualConnection.prototype.setCloseFunc = function setCloseFunc(inCloseFunc) {
   this.mCloseFunc = inCloseFunc;
 };
-VirtualConnection.prototype.setErrorFunc = function (inErrorFunc) {
+VirtualConnection.prototype.setErrorFunc = function setErrorFunc(inErrorFunc) {
   this.mErrorFunc = inErrorFunc;
 };
 
@@ -67,23 +69,23 @@ VirtualConnection.prototype.setErrorFunc = function (inErrorFunc) {
  * Args:   inCommandStr - string to send
  * Return: N/A
  */
-VirtualConnection.prototype.send = async function (inCommandStr) {
+VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
   if (_.isFunction(this.mDataFunc)) {
     const commandPrefix = inCommandStr.split(` `).shift();
     let reply = `ok`;
     if (this.nBufferedCommands >= this.bufferSize) {
-      await this.waitForBufferToClear();
+      bwait(this.waitForBufferToClear());
     }
     this.nBufferedCommands++;
     switch (commandPrefix) {
       case 'G4':
         if (inCommandStr.indexOf(`G4 P`) !== -1) {
-          await Promise.delay(parseInt(inCommandStr.split(`G4 P`).pop().split(`\n`).shift(), 10));
+          bwait(Promise.delay(parseInt(inCommandStr.split(`G4 P`).pop().split(`\n`).shift(), 10)));
         }
         reply = `ok`;
         break;
       case 'G1':
-        await Promise.delay(5);
+        bwait(Promise.delay(5));
         reply = `ok`;
         break;
       default:
@@ -93,7 +95,7 @@ VirtualConnection.prototype.send = async function (inCommandStr) {
     this.mDataFunc(reply);
     // this.app.io.emit('botReply', reply);
   }
-};
+});
 
 /**
  * close()
@@ -103,17 +105,17 @@ VirtualConnection.prototype.send = async function (inCommandStr) {
  * Args:   N/A
  * Return: N/A
  */
-VirtualConnection.prototype.close = function () {
+VirtualConnection.prototype.close = function close() {
   if (_.isFunction(this.mCloseFunc)) {
     this.mCloseFunc();
   }
 };
 
-VirtualConnection.prototype.waitForBufferToClear = async function () {
-  await Promise.delay(100);
+VirtualConnection.prototype.waitForBufferToClear = bsync(function waitForBufferToClear() {
+  bwait(Promise.delay(100));
   if (this.nBufferedCommands >= this.bufferSize) {
-    await this.waitForBufferToClear();
+    bwait(this.waitForBufferToClear());
   }
-};
+});
 
 module.exports = VirtualConnection;

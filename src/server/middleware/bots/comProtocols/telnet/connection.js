@@ -76,7 +76,7 @@ class TelnetConnection {
    * Args:   inCommandStr - string to send
    * Return: N/A
    */
-  async send(inCommandStr) {
+  send(inCommandStr) {
     try {
       this.mPort.write(inCommandStr);
       this.mDataFunc('ok');

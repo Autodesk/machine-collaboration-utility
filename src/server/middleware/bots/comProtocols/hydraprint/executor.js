@@ -12,6 +12,8 @@
  */
 
 var HttpConnection = require('./connection');
+const bsync = require(`asyncawait/async`);
+const bwait = require(`asyncawait/await`);
 
 var HttpCommandExecutor = function (app, externalEndpoint) {
   this.app = app;
@@ -75,14 +77,14 @@ HttpCommandExecutor.prototype.close = function (inDoneFunc) {
  *         inDataFunc - function to call with response data
  *         inDoneFunc - function to call if the command will have no response
  */
-HttpCommandExecutor.prototype.execute = async function (
+HttpCommandExecutor.prototype.execute = bsync(function execute(
   inRawCode,
   inDataFunc,
   inDoneFunc
 ) {
   this.mConnection.setDataFunc(inDataFunc);
-  await this.mConnection.send(inRawCode);
+  bwait(this.mConnection.send(inRawCode));
   this.mCommandsProcessed++;
-};
+});
 
 module.exports = HttpCommandExecutor;

@@ -1,12 +1,15 @@
 const Response = require(`../helpers/response`);
 const Promise = require(`bluebird`);
+const _ = require(`underscore`);
+const bsync = require(`asyncawait/async`);
+const bwait = require(`asyncawait/await`);
 
 /**
  * Handle all logic at this endpoint for reading all of the jobs
  */
 const getJobs = (self) => {
   const requestDescription = `Get Jobs`;
-  self.router.get(`${self.routeEndpoint}/`, async (ctx) => {
+  self.router.get(`${self.routeEndpoint}/`, bsync((ctx) => {
     try {
       const response = self.getJobs();
       ctx.status = 200;
@@ -16,7 +19,7 @@ const getJobs = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  });
+  }));
 };
 
 /**
@@ -24,15 +27,15 @@ const getJobs = (self) => {
  */
 const deleteAllJobs = (self) => {
   const requestDescription = `Delete All Jobs`;
-  self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
+  self.router.delete(`${self.routeEndpoint}/all/`, bsync((ctx) => {
     try {
-      await Promise.map(
-        Object.entries(self.jobList),
-        async ([jobKey, job]) => {
-          await self.deleteJob(jobKey);
-        },
+      bwait(Promise.map(
+        _.pairs(self.jobList),
+        bsync(([jobKey, job]) => {
+          bwait(self.deleteJob(jobKey));
+        }),
         { concurrency: 5 }
-      );
+      ));
       const status = `All jobs deleted`;
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, status);
@@ -41,7 +44,7 @@ const deleteAllJobs = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  });
+  }));
 };
 
 /**
@@ -50,7 +53,7 @@ const deleteAllJobs = (self) => {
 const createJob = (self) => {
   const requestDescription = `Create Job`;
 
-  self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
+  self.router.post(`${self.routeEndpoint}/`, bsync((ctx) => {
     try {
       // custom UUID can be passed, but it's not necessary
       const uuid = ctx.request.body.uuid;
@@ -75,15 +78,15 @@ const createJob = (self) => {
       // If you pass a uuid, you are deleting the existing job
       if (self.jobList[uuid] !== undefined) {
         // Delete the job from the database and the jobs object
-        await self.deleteJob(uuid);
+        bwait(self.deleteJob(uuid));
       }
 
       // Create and save the job object
-      const jobObject = await self.createPersistentJob(botUuid, fileUuid, uuid);
+      const jobObject = bwait(self.createPersistentJob(botUuid, fileUuid, uuid));
 
       const startJob = String(ctx.request.body.startJob) === `true`;
       if (startJob) {
-        await jobObject.start();
+        bwait(jobObject.start());
       }
 
       const jobJson = jobObject.getJob();
@@ -95,7 +98,7 @@ const createJob = (self) => {
       ctx.body = new Response(ctx, requestDescription, errorMessage);
       self.logger.error(errorMessage);
     }
-  });
+  }));
 };
 
 /**
@@ -103,7 +106,7 @@ const createJob = (self) => {
  */
 const getJob = (self) => {
   const requestDescription = `Get Job`;
-  self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
+  self.router.get(`${self.routeEndpoint}/:uuid`, bsync((ctx) => {
     try {
       const jobUuid = ctx.params.uuid;
       if (jobUuid === undefined) {
@@ -125,7 +128,7 @@ const getJob = (self) => {
       ctx.body = new Response(ctx, requestDescription, errorMessage);
       self.logger.error(errorMessage);
     }
-  });
+  }));
 };
 
 /**
@@ -133,7 +136,7 @@ const getJob = (self) => {
  */
 const deleteJob = (self) => {
   const requestDescription = `Delete Job`;
-  self.router.delete(self.routeEndpoint, async (ctx) => {
+  self.router.delete(self.routeEndpoint, bsync((ctx) => {
     try {
       const jobUuid = ctx.request.body.uuid;
       if (jobUuid === undefined) {
@@ -141,7 +144,7 @@ const deleteJob = (self) => {
         throw errorMessage;
       }
 
-      const deleteStatus = await self.deleteJob(jobUuid);
+      const deleteStatus = bwait(self.deleteJob(jobUuid));
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, deleteStatus);
     } catch (ex) {
@@ -149,7 +152,7 @@ const deleteJob = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  });
+  }));
 };
 
 
@@ -158,7 +161,7 @@ const deleteJob = (self) => {
  */
 const processJobCommand = (self) => {
   const requestDescription = `Process Job Command`;
-  self.router.post(`${self.routeEndpoint}/:uuid/`, async (ctx) => {
+  self.router.post(`${self.routeEndpoint}/:uuid/`, bsync((ctx) => {
     try {
       // Find the job
       const jobUuid = ctx.params.uuid;
@@ -180,7 +183,7 @@ const processJobCommand = (self) => {
         throw errorMessage;
       }
 
-      const reply = await job.processCommand(command);
+      const reply = bwait(job.processCommand(command));
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
@@ -188,7 +191,7 @@ const processJobCommand = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  });
+  }));
 };
 
 const jobsRoutes = (self) => {

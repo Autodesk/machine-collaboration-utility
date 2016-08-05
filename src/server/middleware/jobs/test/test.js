@@ -5,6 +5,8 @@ const fs = require(`fs-promise`);
 const path = require(`path`);
 const winston = require('winston');
 const config = require(`../../../config`);
+const bsync = require(`asyncawait/async`);
+const bwait = require(`asyncawait/await`);
 
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);
@@ -23,7 +25,7 @@ module.exports = function jobsTests() {
   let fileUuid;
 
   describe('Jobs unit test', function () {
-    it('should create a virtual printer to execute jobs on', async function (done) {
+    it('should create a virtual printer to execute jobs on', bsync(function (done) {
       const requestParams = {
         method: `POST`,
         uri: `http://localhost:9000/v1/bots/`,
@@ -32,17 +34,17 @@ module.exports = function jobsTests() {
         },
         json: true,
       };
-      const initializeBotReply = await request(requestParams);
+      const initializeBotReply = bwait(request(requestParams));
       botUuid = initializeBotReply.data.settings.uuid;
       should(initializeBotReply.status).equal(201);
       should(initializeBotReply.query).equal(`Create Bot`);
       done();
-    });
+    }));
 
-    it('should upload a file for a job to process', async function (done) {
+    it('should upload a file for a job to process', bsync(function (done) {
       // Upload a file
       const testFilePath = path.join(__dirname, `blah.txt`);
-      const fileStream = await fs.createReadStream(testFilePath);
+      const fileStream = bwait(fs.createReadStream(testFilePath));
       const formData = { file: fileStream };
       const fileUploadParams = {
         method: `POST`,
@@ -50,12 +52,12 @@ module.exports = function jobsTests() {
         formData,
         json: true,
       };
-      const getFilesReply = await request(fileUploadParams);
+      const getFilesReply = bwait(request(fileUploadParams));
       fileUuid = getFilesReply.data[0].uuid;
       done();
-    });
+    }));
 
-    it('should create a job', async function (done) {
+    it('should create a job', bsync(function (done) {
       try {
         const requestParams = {
           body: {
@@ -66,7 +68,7 @@ module.exports = function jobsTests() {
           uri: `http://localhost:9000/v1/jobs/`,
           json: true,
         };
-        const jobCreateReply = await request(requestParams);
+        const jobCreateReply = bwait(request(requestParams));
         job = jobCreateReply.data;
         should(!!job.uuid);
         should(!!job.state);
@@ -76,29 +78,29 @@ module.exports = function jobsTests() {
       } catch (ex) {
         logger.error(ex);
       }
-    });
+    }));
 
-    it('should have a job state of "ready"', async function (done) {
+    it('should have a job state of "ready"', bsync(function (done) {
       const requestParams = {
         method: `GET`,
         uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
-      const getJobReply = await request(requestParams);
+      const getJobReply = bwait(request(requestParams));
       job = getJobReply.data;
       should(job.state === `ready`);
       should(getJobReply.status).equal(200);
       should(getJobReply.query).equal(`Get Job`);
       done();
-    });
+    }));
 
-    it('should retreive an array of existing jobs', async function (done) {
+    it('should retreive an array of existing jobs', bsync(function (done) {
       const requestParams = {
         method: `GET`,
         uri: `http://localhost:9000/v1/jobs/`,
         json: true,
       };
-      const getJobsReply = await request(requestParams);
+      const getJobsReply = bwait(request(requestParams));
       const jobs = getJobsReply.data;
       should(jobs.constructor).equal(Object);
       should(getJobsReply.status).equal(200);
@@ -106,9 +108,9 @@ module.exports = function jobsTests() {
 
       nJobs = Object.keys(jobs).length;
       done();
-    });
+    }));
 
-    it('should delete a job', async function (done) {
+    it('should delete a job', bsync(function (done) {
       const requestParams = {
         method: `DELETE`,
         uri: `http://localhost:9000/v1/jobs/`,
@@ -117,11 +119,11 @@ module.exports = function jobsTests() {
         },
         json: true,
       };
-      const deleteJobReply = await request(requestParams);
+      const deleteJobReply = bwait(request(requestParams));
       should(deleteJobReply.data.indexOf('deleted') !== -1).equal(true);
       should(deleteJobReply.status).equal(200);
       should(deleteJobReply.query).equal(`Delete Job`);
       done();
-    });
+    }));
   });
 };

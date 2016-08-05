@@ -7,6 +7,12 @@ require(`dotenv`).config();
 require(`babel-polyfill`);
 const winston = require(`winston`);
 const path = require(`path`);
+const bsync = require(`asyncawait/async`);
+const bwait = require(`asyncawait/await`);
+const http = require(`http`);
+
+const config = require(`./config`);
+const koaApp = require(`./koaApp`);
 
 
 const filename = path.join(__dirname, `../../catchall.log`);
@@ -24,30 +30,26 @@ process.on(`uncaughtException`, (err) => {
 
 
 try {
-  const http = require(`http`);
+  bsync(() => {
+    // Create a new app object and set it up
+    console.log('before');
+    const app = bwait(koaApp(config));
+    console.log('after');
+    const server = http.createServer(app.callback());
 
-  const config = require(`./config`);
-  const KoaApp = require(`./koaApp`);
-
-  // Create a new app object and set it up
-  const koaApp = new KoaApp(config);
-  koaApp.initialize();
-
-  const app = koaApp.app; // Messy, but the app is actually in the koaApp object
-  const server = http.createServer(app.callback());
-
-  /**
-   * Listen on provided port, on all network interfaces.
-   * Port is set per command line, or the config, and falls back on port 9000
-   */
+    /**
+     * Listen on provided port, on all network interfaces.
+     * Port is set per command line, or the config, and falls back on port 9000
+     */
 
 
-  const port = normalizePort(process.env.PORT || `9000`);
+    const port = normalizePort(process.env.PORT || `9000`);
 
-  app.server.listen(port);
-  server.on(`error`, onError);
-  server.on(`listening`, onListening);
-  app.context.logger.info(`Server initialized`);
+    app.server.listen(port);
+    server.on(`error`, onError);
+    server.on(`listening`, onListening);
+    app.context.logger.info(`Server initialized`);
+  })();
 } catch (ex) {
   app.context.logger.error(`Catchall Server Error Handler`, ex);
 }
