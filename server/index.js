@@ -1,10 +1,5 @@
 require(`source-map-support`).install();
-// Enable sourcemaps for debugging es7
-
 require(`dotenv`).config();
-// Mixin process.env variables with a .env file
-
-require(`babel-polyfill`);
 const winston = require(`winston`);
 const path = require(`path`);
 const bsync = require(`asyncawait/async`);

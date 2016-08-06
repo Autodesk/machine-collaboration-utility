@@ -100,8 +100,8 @@ UsbDiscovery.prototype.detectPort = bsync(function detectPort(port) {
   const vid = parseInt(port.vendorId, 16);
   const pid = parseInt(port.productId, 16);
 
-  for (const botPresetKey in this.botPresetList) {
-    const botPresets = new this.botPresetList[botPresetKey](this.app);
+  for (const botPresetKey in this.botPresetList.classes) {
+    const botPresets = new this.botPresetList.classes[botPresetKey](this.app);
     if (vid === botPresets.vid && pid === botPresets.pid) {
       // Pass the detected preset to populate new settings
       const persistentCheck = bwait(this.checkForPersistentSettings(port, botPresets));

@@ -9,28 +9,38 @@ const webpack = require(`gulp-webpack`);
 const shell = require(`gulp-shell`);
 
 const src = {
-  server: `server/**/*.js`,
-  reactClient: `client/react/index.js`,
+  reactClient: `./client/react/index.js`,
   reactServer: `client/react/**/*.js`,
   scss: `client/scss/styles.scss`,
   scssWatch: `client/scss/**/*.scss`,
+  fonts: `./client/fonts/**/*.*`,
+  images: `./client/images/**/*.*`,
+  vendorJs: `./client/vendorJs/**/*.*`,
 };
 
 const dest = {
-  reactClient: `server/clientAssets/`,
-  reactServer: `server/react`,
-  css: `server/clientAssets`,
+  css: `./dist/clientAssets`,
+  fonts: `./dist/clientAssets/fonts`,
+  images: `./dist/clientAssets/images`,
+  react: `dist/react`,
+  vendorJs: `./dist/clientAssets/vendorJs`,
 };
 
 gulp.task(`build`, [
+  `build-files`,
   `build-scss`,
-  `build-js`,
-]);
-
-gulp.task(`build-js`, [
   `build-react-client`,
   `build-react-server`,
 ]);
+
+gulp.task(`build-files`, () => {
+  gulp.src(src.images)
+  .pipe(gulp.dest(dest.images));
+  gulp.src(src.fonts)
+  .pipe(gulp.dest(dest.fonts));
+  gulp.src(src.vendorJs)
+  .pipe(gulp.dest(dest.vendorJs));
+});
 
 gulp.task(`build-scss`, () => {
   return gulp.src(src.scss)
@@ -76,12 +86,12 @@ gulp.task(
 );
 
 gulp.task('build-react-client', () => {
-  return gulp.src('./client/react/index.js')
+  return gulp.src(src.reactClient)
     .pipe(webpack({
-      entry: ['babel-polyfill', './client/react/index.js'],
+      entry: ['babel-polyfill', src.reactClient],
 
       output: {
-        path: '/server/clientAssets',
+        path: `/${dest.css}`,
         filename: 'bundle.js',
         publicPath: '/',
       },
@@ -102,7 +112,7 @@ gulp.task('build-react-client', () => {
         ],
       },
     }))
-    .pipe(gulp.dest('server/clientAssets'));
+    .pipe(gulp.dest(dest.css));
 });
 
 gulp.task(`build-react-server`, () => {
@@ -114,7 +124,7 @@ gulp.task(`build-react-server`, () => {
     })
   )
   .pipe(sourcemaps.write(`.`))
-  .pipe(gulp.dest(dest.reactServer));
+  .pipe(gulp.dest(dest.react));
 });
 
 gulp.task(`test`, [`default`], () => {

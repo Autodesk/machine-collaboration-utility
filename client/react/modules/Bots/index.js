@@ -4,9 +4,9 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Radio from 'react-bootstrap/lib/Radio';
 import Button from 'react-bootstrap/lib/Button';
 import request from 'superagent';
+import _ from 'underscore';
 
 import Bot from './Bot';
-
 
 export default class Bots extends React.Component {
   constructor(props) {
@@ -20,8 +20,8 @@ export default class Bots extends React.Component {
 
     this.state = {
       showModal: false,
-      selectedBot: Object.entries(props.bots).length > 0 ? Object.entries(props.bots)[0][0]: undefined,
-      selectedPreset: Object.entries(props.botPresets)[0][1],
+      selectedBot: _.pairs(props.bots).length > 0 ? _.pairs(props.bots)[0][0]: undefined,
+      selectedPreset: _.pairs(props.botPresets)[0][1],
     };
   }
 
@@ -53,7 +53,7 @@ export default class Bots extends React.Component {
 
   renderBotList() {
     let defaultSet = false;
-    const botRadioList = Object.entries(this.props.bots).map(([botUuid, bot]) => {
+    const botRadioList = _.pairs(this.props.bots).map(([botUuid, bot]) => {
       const radioElement = <Radio inline key={botUuid} name="botList" defaultValue={botUuid} checked={this.state.selectedBot === botUuid}>{bot.settings.name}</Radio>;
       if (!defaultSet) {
         defaultSet = true;
@@ -72,7 +72,7 @@ export default class Bots extends React.Component {
   }
 
   createPresetList() {
-    const options = Object.entries(this.props.botPresets).map(([botPresetKey, botPreset]) => {
+    const options = _.pairs(this.props.botPresets).map(([botPresetKey, botPreset]) => {
       switch (botPreset.connectionType) {
         case undefined:
         case `serial`:
@@ -173,12 +173,12 @@ export default class Bots extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     let newBotState = this.state.selectedBot;
-    if (Object.entries(nextProps.bots).length <= 0) {
+    if (_.pairs(nextProps.bots).length <= 0) {
       newBotState = undefined;
     } else {
       if (nextProps.bots[this.state.selectedBot] === undefined) {
-        newBotState = Object.entries(nextProps.bots).length > 0 ?
-          Object.entries(nextProps.bots)[0][0] : undefined;
+        newBotState = _.pairs(nextProps.bots).length > 0 ?
+          _.pairs(nextProps.bots)[0][0] : undefined;
       }
     }
     if (this.state.selectedBot !== newBotState) {

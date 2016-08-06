@@ -3,6 +3,7 @@ import Button from 'react-bootstrap/lib/Button';
 import Modal from 'react-bootstrap/lib/Modal';
 import request from 'superagent';
 import { Link } from 'react-router';
+import _ from 'underscore';
 
 import JogPanel from './JogPanel';
 
@@ -158,7 +159,7 @@ export default class Bot extends React.Component {
   updateBot(event) {
     event.preventDefault();
     let update = request.put(`/v1/bots/${this.props.bot.settings.uuid}`)
-    for (const [settingKey, setting] of Object.entries(this.props.bot.settings)) {
+    for (const [settingKey, setting] of _.pairs(this.props.bot.settings)) {
       const paramJson = {};
       if (event.target[settingKey] !== undefined) {
         paramJson[settingKey] = event.target[settingKey].value;
@@ -191,7 +192,7 @@ export default class Bot extends React.Component {
       </Modal.Header>
       <Modal.Body>
         <form onSubmit={this.updateBot}>
-          {Object.entries(this.props.bot.settings).map(([settingKey, setting]) => {
+          {_.pairs(this.props.bot.settings).map(([settingKey, setting]) => {
             switch (settingKey) {
               case `createdAt`:
               case `updatedAt`:

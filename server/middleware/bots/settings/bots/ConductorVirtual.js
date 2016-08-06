@@ -44,15 +44,10 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
   this.fileTypes = ['.esh'];
 
-  this.jobs = new Jobs(this.app, `/${this.apiVersion}/bots/${this.settings.uuid}/jobs`);
-  this.jobs.initialize();
-
-
-  this.setupConductorArms();
-
   this.commands.connect = (self) => {
     self.fsm.connect();
     try {
+      this.setupConductorArms();
       _.pairs(self.players).forEach(([playerKey, player]) => {
         self.logger.info('starting to connect', playerKey);
         player.commands.connect(player);

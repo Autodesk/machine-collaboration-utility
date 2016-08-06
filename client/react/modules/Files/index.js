@@ -1,6 +1,7 @@
 import React from 'react';
 import Modal from 'react-bootstrap/lib/Modal';
 import request from 'superagent';
+import _ from 'underscore';
 
 import File from './File';
 
@@ -47,7 +48,7 @@ export default class Files extends React.Component {
     if (props.conducting) {
       return -1;
     }
-    for (const [botUuid, bot] of Object.entries(this.props.bots)) {
+    for (const [botUuid, bot] of _.pairs(this.props.bots)) {
       // Only allow jobs to be stared on a bot in the state "connected"
       if (bot.state !== `connected`) {
         continue;
@@ -62,7 +63,7 @@ export default class Files extends React.Component {
     if (this.props.conducting) {
       options.unshift(<option key={-1} value={-1}>Conductor</option>);
     }
-    Object.entries(this.props.bots).map(([botUuid, bot]) => {
+    _.pairs(this.props.bots).map(([botUuid, bot]) => {
       // Only allow jobs to be stared on a bot in the state "connected"
       if (bot.state !== `connected`) {
         return;
@@ -111,7 +112,7 @@ export default class Files extends React.Component {
   }
 
   render() {
-    const files = Object.entries(this.props.files).map(([fileKey, file]) => {
+    const files = _.pairs(this.props.files).map(([fileKey, file]) => {
       return <File key={file.uuid} file={file} handleProcessFile={this.handleProcessFile}/>;
     });
     return (<div>

@@ -13,6 +13,7 @@ const _ = require(`underscore`);
 const stringify = require(`json-stringify-safe`);
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
+const Promise = require(`bluebird`);
 
 const React = require(`react`);
 const renderToString = require(`react-dom/server`).renderToString;
@@ -20,7 +21,7 @@ const match = require(`react-router`).match;
 const RouterContext = require(`react-router`).RouterContext;
 
 // NOTE THIS FILE IS COPIED IN BY GULP FROM CLIENT/JS
-const routes = require(`./react/routes`);
+const routes = require(`../dist/react/routes`);
 
 const Files = require(`./middleware/files`);
 const Jobs = require(`./middleware/jobs`);
@@ -43,7 +44,7 @@ function renderPage(appHtml, jsVariables = {}) {
 `;
 }
 
-module.exports = bsync(function(config) {
+module.exports = bsync((config) => {
   // Setup logger
   const filename = path.join(__dirname, `../../${config.logFileName}`);
   const logger = new (winston.Logger)({
@@ -62,7 +63,7 @@ module.exports = bsync(function(config) {
   app.use(convert(cors()));
   app.use(convert(bodyparser()));
   app.use(convert(json()));
-  app.use(convert(serve(path.join(__dirname, `./clientAssets`))));
+  app.use(convert(serve(path.join(__dirname, `../dist/clientAssets`))));
 
   // attach socket middleware
   const io = new IO();
@@ -72,7 +73,7 @@ module.exports = bsync(function(config) {
   const sequelize = new Sequelize(`postgres://${process.env.username}:${process.env.password}@localhost:5432/${process.env.dbname}`);
 
   // check database connection
-  const err = bwait(sequelize.authenticate())
+  const err = bwait(sequelize.authenticate());
 
   if (err) {
     const errorMessage = `Unable to connect to the database: ${err}`;
@@ -93,18 +94,21 @@ module.exports = bsync(function(config) {
   const jobs = new Jobs(app, `/${config.apiVersion}/jobs`);
   bwait(jobs.initialize());
 
-  const bots = bwait(new Bots(app, `/${config.apiVersion}/bots`));
+  const bots = new Bots(app, `/${config.apiVersion}/bots`);
   bwait(bots.initialize());
 
   // Set up Koa to match any routes to the React App. If a route exists, render it.
   router.get('*', (ctx) => {
-    match({ routes, location: ctx.req.url }, (err, redirect, props) => {
-      if (err) {
+    match({ routes, location: ctx.req.url }, (error, redirect, props) => {
+      if (error) {
         logger.error(`Server routing error: ${err}`);
         ctx.status = 500;
         ctx.body = err.message;
       } else if (redirect) {
         ctx.redirect(redirect.pathname + redirect.search);
+        // Don't render anything if you are requesting an api url aka anything near "/v1"
+      } else if (ctx.req.headers && ctx.req.headers.referer && ctx.req.headers.referer.indexOf(`/v1`) !== -1) {
+        //
       } else if (props) {
         const serverProps = {
           files: files.getFiles(),
@@ -116,13 +120,7 @@ module.exports = bsync(function(config) {
         const appHtml = renderToString(React.createElement(RouterContext, props));
         ctx.body = renderPage(appHtml, serverProps);
       } else {
-        // Redirect to an error page if making a bad api query
-        if (ctx.req.url.indexOf(`/v1`) !== -1) {
-          ctx.body = `404`;
-        // Otherwise just redirect them to the homepage
-        } else {
-          ctx.redirect('/');
-        }
+        ctx.redirect('/');
       }
     });
   });
@@ -132,8 +130,8 @@ module.exports = bsync(function(config) {
   app.context.logger.info(`Hydra-Print has been initialized successfully.`);
 
   // on 'error' is last in the koa middleware stack, should this be moved?
-  app.on(`error`, (err, ctx) => {
-    app.context.logger.error(`server error`, err, ctx);
+  app.on(`error`, (error, ctx) => {
+    app.context.logger.error(`server error`, error, ctx);
   });
 
   return app;
