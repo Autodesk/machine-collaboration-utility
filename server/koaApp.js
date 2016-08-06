@@ -62,7 +62,7 @@ module.exports = bsync(function(config) {
   app.use(convert(cors()));
   app.use(convert(bodyparser()));
   app.use(convert(json()));
-  app.use(convert(serve(path.join(__dirname, `../client`))));
+  app.use(convert(serve(path.join(__dirname, `./clientAssets`))));
 
   // attach socket middleware
   const io = new IO();
@@ -113,7 +113,7 @@ module.exports = bsync(function(config) {
           botPresets: bots.getBotPresets(),
         };
         _.extend(props.params, serverProps);
-        const appHtml = renderToString(<RouterContext {...props}/>);
+        const appHtml = renderToString(React.createElement(RouterContext, props));
         ctx.body = renderPage(appHtml, serverProps);
       } else {
         // Redirect to an error page if making a bad api query

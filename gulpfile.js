@@ -9,25 +9,17 @@ const webpack = require(`gulp-webpack`);
 const shell = require(`gulp-shell`);
 
 const src = {
-  server: `src/server/**/*.js`,
-  serverFiles: [
-    `src/**/*.*`,
-    `!src/server/**/*.js`,
-    `!src/client/react/**/*.*`,
-    `!src/client/scss/**/*.*`,
-  ],
-  reactClient: `src/client/react/index.js`,
-  reactServer: `src/client/react/**/*.js`,
-  scss: `src/client/scss/styles.scss`,
-  scssWatch: `src/client/scss/**/*.scss`,
+  server: `server/**/*.js`,
+  reactClient: `client/react/index.js`,
+  reactServer: `client/react/**/*.js`,
+  scss: `client/scss/styles.scss`,
+  scssWatch: `client/scss/**/*.scss`,
 };
 
 const dest = {
-  server: `dist/server`,
-  serverFiles: `dist`,
-  reactClient: `dist/client/`,
-  reactServer: `dist/server/react`,
-  css: `dist/client`,
+  reactClient: `server/clientAssets/`,
+  reactServer: `server/react`,
+  css: `server/clientAssets`,
 };
 
 gulp.task(`build`, [
@@ -36,8 +28,6 @@ gulp.task(`build`, [
 ]);
 
 gulp.task(`build-js`, [
-  `build-server`,
-  `build-server-files`,
   `build-react-client`,
   `build-react-server`,
 ]);
@@ -59,27 +49,9 @@ gulp.task(`build-scss`, () => {
   .pipe(gulp.dest(dest.css));
 });
 
-gulp.task(`build-server-files`, () => {
-  return gulp.src(src.serverFiles)
-  .pipe(gulp.dest(dest.serverFiles));
-});
-
 gulp.task(`watch`, [`build`], () => {
-  gulp.watch([src.server], [`build-server`]);
   gulp.watch([src.scssWatch], [`build-scss`]);
   gulp.watch([src.reactServer], [`build-react-client`, `build-react-server`]);
-});
-
-gulp.task(`build-server`, () => {
-  return gulp.src(src.server)
-  .pipe(sourcemaps.init())
-  .pipe(
-    babel({
-      presets: [`es2017`, `react`],
-    })
-  )
-  .pipe(sourcemaps.write(`.`))
-  .pipe(gulp.dest(dest.server));
 });
 
 // Complete every task before starting nodemon
@@ -92,9 +64,8 @@ gulp.task(
   () => {
     return nodemon(
       {
-        script: 'dist/server/index.js',
+        script: 'server/index.js',
         ignore: [
-          'dist/server/middleware/files/',
         ],
       }
     )
@@ -105,12 +76,12 @@ gulp.task(
 );
 
 gulp.task('build-react-client', () => {
-  return gulp.src('./src/client/react/index.js')
+  return gulp.src('./client/react/index.js')
     .pipe(webpack({
-      entry: ['babel-polyfill', './src/client/react/index.js'],
+      entry: ['babel-polyfill', './client/react/index.js'],
 
       output: {
-        path: '/dist/client',
+        path: '/server/clientAssets',
         filename: 'bundle.js',
         publicPath: '/',
       },
@@ -131,7 +102,7 @@ gulp.task('build-react-client', () => {
         ],
       },
     }))
-    .pipe(gulp.dest('dist/client'));
+    .pipe(gulp.dest('server/clientAssets'));
 });
 
 gulp.task(`build-react-server`, () => {
