@@ -31,7 +31,7 @@ const Bots = function Bots(app, routeEndpoint) {
 
   // Initialize list of bots and bot presets to be empty objects
   this.botPresetList = {};
-
+  this.botSettingList = {};
   this.botList = {};
 };
 
@@ -108,25 +108,14 @@ Bots.prototype.setupDiscovery = bsync(function setupDiscovery() {
 });
 
 Bots.prototype.loadBotPresets = bsync(function loadBotPresets() {
-  const botPresets = bwait(fs.readdir(path.join(__dirname, './settings/bots')));
+  const settingsPath = path.join(__dirname, `../../../settings`);
+  const botPresets = bwait(fs.readdir(path.join(settingsPath, './bots')));
   for (const botPresetFile of botPresets) {
     const presetType = botPresetFile.split(`.`)[0];
-    const presetPath = path.join(__dirname, `./settings/bots/${botPresetFile}`);
+    const presetPath = path.join(__dirname, `../../../settings/bots/${botPresetFile}`);
     const BotPresetClass = require(presetPath);
-    this.botPresetList[presetType] = {};
-    this.botPresetList[presetType].Class = BotPresetClass;
-    this.botPresetList[presetType].presets = {};
-    const presetObject = new BotPresetClass(this.app);
-    for (const [presetKey, preset] of _.pairs(presetObject)) {
-      if (
-        typeof preset !== `function` &&
-        presetKey !== `app` &&
-        presetKey !== `logger` &&
-        presetKey !== `commands`
-      ) {
-        this.botPresetList[presetType].presets[presetKey] = preset;
-      }
-    }
+    this.botPresetList[presetType] = BotPresetClass;
+    this.botSettingList[presetType] = new BotPresetClass(this.app);
   }
   this.logger.info('done loading presets');
 });
@@ -147,14 +136,12 @@ Bots.prototype.createBot = function createBot(inputSettings = {}) {
   // If no model is passed, or if the model does not exist use the default presets
   const botPresets = (
     inputSettings.model === undefined ||
-    this.botPresetList[inputSettings.model] === undefined ||
-    this.botPresetList[inputSettings.model].Class === undefined
+    this.botPresetList[inputSettings.model] === undefined
   ) ?
-  new this.botPresetList[`DefaultBot`].Class(this.app) :
-  new this.botPresetList[inputSettings.model].Class(this.app);
+  this.botPresetList[`DefaultBot`] :
+  this.botPresetList[inputSettings.model];
   // Mixin all input settings into the bot object
-  _.extend(botPresets.settings, inputSettings);
-  const newBot = new Bot(this.app, botPresets);
+  const newBot = new Bot(this.app, botPresets, inputSettings);
 
   // Add the bot to the list
   this.botList[newBot.settings.uuid] = newBot;
@@ -218,11 +205,7 @@ Bots.prototype.getBot = function(uuid) {
 };
 
 Bots.prototype.getBotPresets = function() {
-  const botPresetSettings = {};
-  for (const [presetKey, preset] of _.pairs(this.botPresetList)) {
-    botPresetSettings[presetKey] = preset.presets;
-  }
-  return botPresetSettings;
+  return this.botSettingList;
 };
 
 Bots.prototype.findBotByName = function(name) {

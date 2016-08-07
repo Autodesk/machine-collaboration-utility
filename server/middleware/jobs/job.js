@@ -155,7 +155,7 @@ Job.prototype.start = bsync(function start() {
   this.fsm.start();
   const bot = this.app.context.bots.botList[this.botUuid];
   try {
-    bwait(bot.commands.startJob(bot, { job: this }));
+    bwait(bot.processCommand(`startJob`, { job: this }));
     this.started = new Date().getTime();
     bwait(this.stopwatch.start());
     this.fsm.startDone();

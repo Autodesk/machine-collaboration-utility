@@ -13,7 +13,6 @@ const _ = require(`underscore`);
 const stringify = require(`json-stringify-safe`);
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
-const Promise = require(`bluebird`);
 
 const React = require(`react`);
 const renderToString = require(`react-dom/server`).renderToString;
@@ -46,7 +45,7 @@ function renderPage(appHtml, jsVariables = {}) {
 
 module.exports = bsync((config) => {
   // Setup logger
-  const filename = path.join(__dirname, `../../${config.logFileName}`);
+  const filename = path.join(__dirname, `../${config.logFileName}`);
   const logger = new (winston.Logger)({
     level: `debug`,
     transports: [
@@ -56,6 +55,12 @@ module.exports = bsync((config) => {
   });
 
   const app = new Koa();
+
+  // on 'error' is first in the koa middleware stack, should this be moved?
+  app.on(`error`, (error, ctx) => {
+    app.context.logger.error(`server error`, error, ctx);
+  });
+
   app.context.config = config;
   app.context.logger = logger;
 
@@ -97,42 +102,45 @@ module.exports = bsync((config) => {
   const bots = new Bots(app, `/${config.apiVersion}/bots`);
   bwait(bots.initialize());
 
+  // app.context.db.sync({ force: true });
+
   // Set up Koa to match any routes to the React App. If a route exists, render it.
   router.get('*', (ctx) => {
-    match({ routes, location: ctx.req.url }, (error, redirect, props) => {
-      if (error) {
-        logger.error(`Server routing error: ${err}`);
-        ctx.status = 500;
-        ctx.body = err.message;
-      } else if (redirect) {
-        ctx.redirect(redirect.pathname + redirect.search);
-        // Don't render anything if you are requesting an api url aka anything near "/v1"
-      } else if (ctx.req.headers && ctx.req.headers.referer && ctx.req.headers.referer.indexOf(`/v1`) !== -1) {
-        //
-      } else if (props) {
-        const serverProps = {
-          files: files.getFiles(),
-          jobs: jobs.getJobs(),
-          bots: bots.getBots(),
-          botPresets: bots.getBotPresets(),
-        };
-        _.extend(props.params, serverProps);
-        const appHtml = renderToString(React.createElement(RouterContext, props));
-        ctx.body = renderPage(appHtml, serverProps);
-      } else {
-        ctx.redirect('/');
-      }
-    });
+    try {
+      match({ routes, location: ctx.req.url }, (error, redirect, props) => {
+        if (error) {
+          logger.error(`Server routing error: ${err}`);
+          ctx.status = 500;
+          ctx.body = err.message;
+        } else if (redirect) {
+          ctx.redirect(redirect.pathname + redirect.search);
+          // Don't render anything if you are requesting an api url aka anything near "/v1"
+        } else if (ctx.req.headers && ctx.req.headers.referer && ctx.req.headers.referer.indexOf(`/v1`) !== -1) {
+          //
+        } else if (props) {
+          const serverProps = {
+            files: files.getFiles(),
+            jobs: jobs.getJobs(),
+            bots: bots.getBots(),
+            botPresets: bots.getBotPresets(),
+          };
+          _.extend(props.params, serverProps);
+          const appHtml = renderToString(React.createElement(RouterContext, props));
+          ctx.body = renderPage(appHtml, serverProps);
+        } else {
+          ctx.redirect('/');
+        }
+      });
+    } catch (ex) {
+      app.context.logger.error(ex);
+      ctx.body = `Server Error`;
+      ctx.status = 500;
+    }
   });
 
   app.use(router.routes(), router.allowedMethods());
 
   app.context.logger.info(`Hydra-Print has been initialized successfully.`);
-
-  // on 'error' is last in the koa middleware stack, should this be moved?
-  app.on(`error`, (error, ctx) => {
-    app.context.logger.error(`server error`, error, ctx);
-  });
 
   return app;
 });

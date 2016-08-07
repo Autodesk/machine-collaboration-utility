@@ -21,7 +21,8 @@ module.exports = bsync((app) => {
     offsetX: Sequelize.STRING,
     offsetY: Sequelize.STRING,
     offsetZ: Sequelize.STRING,
-    conductorArm: Sequelize.STRING,
+    conductorX: Sequelize.STRING,
+    conductorY: Sequelize.STRING,
   }));
 
   return BotModel;

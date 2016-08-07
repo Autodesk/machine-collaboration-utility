@@ -7,17 +7,17 @@ const bwait = require(`asyncawait/await`);
 const DefaultBot = function DefaultBot(app) {
   this.app = app;
   this.logger = app.context.logger;
-  this.connectionType = undefined;
-  this.status = {
-    position: {},
-    sensors: {},
+
+  this.info = {
+    connectionType: undefined,
+    fileTypes: [],
   };
 
   this.settings = {
     model: `DefaultBot`,
     name: `Default`,
     endpoint: false,
-    jogXSpeed: `1000`,
+    jogXSpeed: `2000`,
     jogYSpeed: `2000`,
     jogZSpeed: `1000`,
     jogESpeed: `120`,
@@ -30,13 +30,11 @@ const DefaultBot = function DefaultBot(app) {
     offsetZ: `0`,
   };
 
-  this.fileTypes = [];
-
   this.commands = {};
 
   // In order to start processing a job, the job's file is opened and then
   // processed one line at a time
-  this.commands.startJob = bsync((self, params) => {
+  this.commands.startJob = bsync(function startJob(self, params) {
     const job = params.job;
     self.currentJob = job;
     self.fsm.start();
@@ -126,8 +124,8 @@ const DefaultBot = function DefaultBot(app) {
     self.fsm.startDone();
   });
 
-  // Job pass through commands. These allow the bot to be a gateway for job commands
-  this.commands.pauseJob = bsync((self, params) => {
+    // Job pass through commands. These allow the bot to be a gateway for job commands
+  this.commands.pauseJob = bsync(function pauseJob(self, params) {
     if (self.currentJob === undefined) {
       throw `Bot ${self.settings.name} is not currently processing a job`;
     }
@@ -135,7 +133,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   });
 
-  this.commands.resumeJob = bsync((self, params) => {
+  this.commands.resumeJob = bsync(function resumeJob(self, params) {
     if (self.currentJob === undefined) {
       throw `Bot ${self.settings.name} is not currently processing a job`;
     }
@@ -143,7 +141,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   });
 
-  this.commands.cancelJob = bsync((self, params) => {
+  this.commands.cancelJob = bsync(function cancelJob(self, params) {
     if (self.currentJob === undefined) {
       throw `Bot ${self.settings.name} is not currently processing a job`;
     }
@@ -152,7 +150,7 @@ const DefaultBot = function DefaultBot(app) {
   });
   // End of Job pass through commands
 
-  this.commands.updateRoutine = (self, params) => {
+  this.commands.updateRoutine = function updateRoutine(self, params) {
     if (self.fsm.current === `connected`) {
       const commandArray = [];
       commandArray.push({
@@ -165,7 +163,7 @@ const DefaultBot = function DefaultBot(app) {
     }
   };
 
-  this.commands.toggleUpdater = (self, params) => {
+  this.commands.toggleUpdater = function toggleUpdater(self, params) {
     const update = params.update;
     if (update === undefined) {
       throw `"update" is not defined`;
@@ -186,7 +184,7 @@ const DefaultBot = function DefaultBot(app) {
 
   // NOTE a try / catch on queueing commands will not actually fix an error
   // TODO attach an error handler to the about-to-be-queued command
-  this.commands.connect = (self, params) => {
+  this.commands.connect = function connect(self, params) {
     self.fsm.connect();
     try {
       self.queue.queueCommands({
@@ -202,7 +200,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.disconnect = (self, params) => {
+  this.commands.disconnect = function disconnect(self, params) {
     self.fsm.disconnect();
     try {
       self.queue.queueCommands({
@@ -217,12 +215,12 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.unplug = (self, params) => {
+  this.commands.unplug = function unplug(self, params) {
     self.fsm.unplug();
     return self.getBot();
   };
 
-  this.commands.resume = (self, params) => {
+  this.commands.resume = function resume(self, params) {
     if (self.fsm.current === `parked`) {
       self.commands.unpark(self);
     }
@@ -239,7 +237,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.pause = (self, params) => {
+  this.commands.pause = function pause(self, params) {
     self.fsm.stop();
     const commandArray = [];
     commandArray.push({
@@ -252,7 +250,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.cancel = (self, params) => {
+  this.commands.cancel = function cancel(self, params) {
     self.fsm.stop();
     const commandArray = [];
     commandArray.push({
@@ -265,7 +263,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.park = (self, params) => {
+  this.commands.park = function park(self, params) {
     self.fsm.park();
     try {
       const commandArray = [];
@@ -282,7 +280,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.unpark = (self, params) => {
+  this.commands.unpark = function unpark(self, params) {
     self.fsm.unpark();
     try {
       const commandArray = [];
@@ -299,7 +297,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.addSubscriber = (self, params) => {
+  this.commands.addSubscriber = function addSubscriber(self, params) {
     if (self.subscribers === undefined) {
       self.subscribers = [];
     }
@@ -316,7 +314,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.updateState = (self, params) => {
+  this.commands.updateState = function updateState(self, params) {
     const event = params.body.event;
     const bot = params.body.bot;
 
@@ -328,7 +326,7 @@ const DefaultBot = function DefaultBot(app) {
     self.fsm[theEvent.name]();
   };
 
-  this.commands.checkSubscription = (self, params) => {
+  this.commands.checkSubscription = function checkSubscription(self, params) {
     self.subscribe();
   };
 };

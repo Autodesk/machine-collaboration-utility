@@ -79,6 +79,7 @@ gulp.task(
       {
         script: 'server/index.js',
         ignore: [
+          `./uploads`
         ],
       }
     )
@@ -89,7 +90,6 @@ gulp.task(
 );
 
 gulp.task('build-react-client', () => {
-  console.log('eeeh?', process.env.NODE_ENV === `production`);
   return gulp.src(src.reactClient)
     .pipe(webpack({
       entry: ['babel-polyfill', src.reactClient],

@@ -201,7 +201,7 @@ export default class Bot extends React.Component {
               case `model`:
                 return;
               case `endpoint`:
-                if (this.props.botPresets[this.props.bot.settings.model].connectionType === `serial`) {
+                if (this.props.botPresets[this.props.bot.settings.model].info.connectionType === `serial`) {
                   return;
                 }
               default:
@@ -296,12 +296,12 @@ export default class Bot extends React.Component {
             </div>
             <div>State: {this.props.bot.state}  Port: {this.props.bot.port}</div>
             <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
-            <div>Temp:{this.props.bot.status.sensors.t0 ? this.props.bot.status.sensors.t0 : '?'}</div>
+            <div>Temp:{this.props.bot.status.sensors ? this.props.bot.status.sensors.t0 : '?'}</div>
             <div>
-              X:{`${this.props.bot.status.position.x} `}
-              Y:{`${this.props.bot.status.position.y} `}
-              Z:{`${this.props.bot.status.position.z} `}
-              E:{`${this.props.bot.status.position.e} `}
+              X:{`${this.props.bot.status.position ? this.props.bot.status.position.x : `?`} `}
+              Y:{`${this.props.bot.status.position ? this.props.bot.status.position.y : `?`} `}
+              Z:{`${this.props.bot.status.position ? this.props.bot.status.position.z : `?`} `}
+              E:{`${this.props.bot.status.position ? this.props.bot.status.position.e : `?`} `}
             </div>
             { this.props.conducting ?
               (<form onSubmit={this.choir}>

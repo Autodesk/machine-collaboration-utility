@@ -10,7 +10,7 @@ const config = require(`./config`);
 const koaApp = require(`./koaApp`);
 
 
-const filename = path.join(__dirname, `../../catchall.log`);
+const filename = path.join(__dirname, `../catchall.log`);
 const logger = new (winston.Logger)({
   level: `debug`,
   transports: [
@@ -18,6 +18,8 @@ const logger = new (winston.Logger)({
     new (winston.transports.File)({ filename }),
   ],
 });
+
+logger.info('started logging');
 
 process.on(`uncaughtException`, (err) => {
   logger.error(`Caught exception: ${err}`);
@@ -27,9 +29,7 @@ process.on(`uncaughtException`, (err) => {
 try {
   bsync(() => {
     // Create a new app object and set it up
-    console.log('before');
     const app = bwait(koaApp(config));
-    console.log('after');
     const server = http.createServer(app.callback());
 
     /**

@@ -25,37 +25,28 @@ const CommandQueue = require(`./commandQueue`);
  * @param {string} settings - The settings, as retreived from the database.
  *
  */
-const Bot = function(app, presets) {
-  this.app = app;
-  this.config = app.context.config;
-  this.logger = app.context.logger;
+const Bot = function Bot(app, BotClass, inputSettings = {}) {
+  BotClass.call(this, app);
+  _.extend(this.settings, inputSettings);
 
   this.queue = undefined;
   this.currentJob = undefined;
   this.lr = undefined; // buffered file line reader
   this.currentLine = undefined;
-  this.commands = {};
-  this.status = {};
 
-  // Mixin the presets to the bot object
-  // except for the app and logger
-  for (const presetKey in presets) {
-    if (
-      presets.hasOwnProperty(presetKey) &&
-      presetKey !== `app` &&
-      presetKey !== `logger`
-    ) {
-      if (presetKey === `commands`) {
-        for (const [commandKey, command] of _.pairs(presets[presetKey])) {
-          this[presetKey][commandKey] = command;
-        }
-      } else {
-        this[presetKey] = presets[presetKey];
-      }
-    }
-  }
+  this.status = {
+    sensors: {
+      t0: undefined,
+    },
+    position: {
+      x: undefined,
+      y: undefined,
+      z: undefined,
+      e: undefined,
+    },
+  };
 
-  this.settings.uuid = presets.settings.uuid === undefined ? uuidGenerator.v1(): presets.settings.uuid;
+  this.settings.uuid = this.settings.uuid === undefined ? uuidGenerator.v1(): this.settings.uuid;
 
   this.fsmEvents = [
     /* eslint-disable no-multi-spaces */
@@ -136,13 +127,13 @@ const Bot = function(app, presets) {
   });
 
   // Set the bot's uuid to the port, for bots that use an IP address
-  switch (this.connectionType) {
+  switch (this.info.connectionType) {
     case `virtual`:
       this.setPort(`http://localhost:9000/v1/bots/${this.settings.uuid}`);
       break;
     case `hydraprint`:
     case `telnet`:
-      this.setPort(presets.settings.endpoint);
+      this.setPort(this.settings.endpoint);
       break;
     default:
       // do nothing
@@ -166,7 +157,7 @@ Bot.prototype.getBot = function getBot() {
 };
 
 Bot.prototype.subscribe = bsync(function subscribe() {
-  switch (this.connectionType) {
+  switch (this.info.connectionType) {
     // In case there is no detection method required, detect the device and
     // move directly to a "ready" state
     case `hydraprint`:
@@ -257,13 +248,15 @@ Bot.prototype.setPort = function(port) {
  * "done" or "fail" events and corresponding state transitions
  */
 Bot.prototype.processCommand = bsync(function processCommand(command, params) {
-  if (this.commands[command] === undefined) {
+  if (typeof this.commands[command] !== `function`) {
     throw `Command ${command} not supported.`;
   }
   try {
+    // const reply = bwait(this.prototype[command](this, params));
     const reply = bwait(this.commands[command](this, params));
     return reply;
   } catch (ex) {
+    console.log('nope', ex);
     return ex;
   }
 });
@@ -275,7 +268,7 @@ Bot.prototype.detect = function detect() {
     let executor;
     let validator;
     // Set up the validator and executor
-    switch (this.connectionType) {
+    switch (this.info.connectionType) {
       case `serial`:
         const openPrime = 'M501';
         executor = new SerialCommandExecutor(
@@ -306,7 +299,7 @@ Bot.prototype.detect = function detect() {
         validator = this.validateSerialReply;
         break;
       default:
-        const errorMessage = `connectionType "${this.connectionType}" is not supported.`;
+        const errorMessage = `connectionType "${this.info.connectionType}" is not supported.`;
         throw errorMessage;
     }
 

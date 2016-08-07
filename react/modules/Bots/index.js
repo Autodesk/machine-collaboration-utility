@@ -73,7 +73,7 @@ export default class Bots extends React.Component {
 
   createPresetList() {
     const options = _.pairs(this.props.botPresets).map(([botPresetKey, botPreset]) => {
-      switch (botPreset.connectionType) {
+      switch (botPreset.info.connectionType) {
         case undefined:
         case `serial`:
           return;
@@ -114,7 +114,7 @@ export default class Bots extends React.Component {
       <input onChange={this.updateText} type="textarea" name={'name'} value={this.state.selectedPreset.settings.name} />
       <br/>
 
-      {this.renderEndpoint(this.state.selectedPreset.connectionType)}
+      {this.renderEndpoint(this.state.selectedPreset.info.connectionType)}
 
       <label htmlFor={'jogXSpeed'}>Jog Speed X</label>
       <input onChange={this.updateText} type="textarea" name={'jogXSpeed'} value={this.state.selectedPreset.settings.jogXSpeed} />
