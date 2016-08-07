@@ -1,5 +1,5 @@
 const Promise = require(`bluebird`);
-const StateMachine = Promise.promisifyAll(require(`javascript-state-machine`));
+const StateMachine = require(`javascript-state-machine`);
 const _ = require(`underscore`);
 const request = require(`request-promise`);
 const uuidGenerator = require(`node-uuid`);

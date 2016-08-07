@@ -1,12 +1,11 @@
 const Promise = require(`bluebird`);
 const uuidGenerator = require(`node-uuid`);
-const StateMachine = require(`./stateMachine`);
+const StateMachine = require(`javascript-state-machine`);
 const Stopwatch = require(`timer-stopwatch`);
-const jobModel = require(`./model`);
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
 
-const Job = function(app, botUuid, fileUuid, jobUuid, initialState, id) {
+const Job = function Job(app, botUuid, fileUuid, jobUuid, initialState, id) {
   this.app = app;
   this.logger = this.app.context.logger;
   this.botUuid = botUuid;
@@ -17,6 +16,7 @@ const Job = function(app, botUuid, fileUuid, jobUuid, initialState, id) {
 };
 
 Job.prototype.initialize = bsync(function initialize() {
+  debugger;
   const self = this;
 
   // this.JobModel = await jobModel(this.app);
@@ -27,11 +27,10 @@ Job.prototype.initialize = bsync(function initialize() {
   const cancelable = [`running`, `paused`, `starting`, `pausing`, `resuming`];
   this.uuid = this.uuid !== undefined ? this.uuid : uuidGenerator.v1();
   const fsmSettings = {
-    uuid: this.uuid,
-    initial: this.initialState === undefined ? 'ready' : this.initialState,
+    initial: self.initialState === undefined ? 'ready' : self.initialState,
     error: (eventName, from, to, args, errorCode, errorMessage) => {
-      const fsmError = `Invalid job ${this.uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
-      this.logger.error(fsmError);
+      const fsmError = `Invalid job ${self.uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
+      self.logger.error(fsmError);
       throw fsmError;
     },
     events: [
@@ -85,14 +84,14 @@ Job.prototype.initialize = bsync(function initialize() {
     },
   };
 
-  this.fsm = bwait(StateMachine.create(fsmSettings));
+  this.fsm = StateMachine.create(fsmSettings);
   this.stopwatch = new Stopwatch(false, { refreshRateMS: 1000 });
   this.started = undefined;
   this.elapsed = undefined;
   this.percentComplete = 0;
 
   // job updates once a second
-  this.stopwatch.onTime((time) => {
+  this.stopwatch.onTime(() => {
     this.logger.info('jobEvent', this.getJob());
     this.app.io.emit(`jobEvent`, {
       uuid: this.uuid,
@@ -134,7 +133,7 @@ Job.prototype.processCommand = bsync(function processCommand(command) {
 /**
  * Turn a job object into a REST reply friendly object
  */
-Job.prototype.getJob = function() {
+Job.prototype.getJob = function getJob() {
   const state = this.fsm.current ? this.fsm.current : `ready`;
   const started = !!this.started ? this.started : null;
   const elapsed = !!this.started ? this.stopwatch.ms || this.elapsed : null;
@@ -152,7 +151,7 @@ Job.prototype.getJob = function() {
 /*
  * Start processing a job
  */
-Job.prototype.start = bsync(function() {
+Job.prototype.start = bsync(function start() {
   this.fsm.start();
   const bot = this.app.context.bots.botList[this.botUuid];
   try {

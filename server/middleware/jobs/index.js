@@ -1,14 +1,9 @@
 const router = require(`koa-router`)();
-const uuidGenerator = require(`node-uuid`);
-const Promise = require(`bluebird`);
-const StateMachine = Promise.promisifyAll(require(`./stateMachine`));
-const Stopwatch = Promise.promisifyAll(require('timer-stopwatch'));
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
 const _ = require(`underscore`);
 
 const jobsRouter = require(`./routes`);
-const jobModel = require(`./model`);
 const Job = require(`./job`);
 
 /**

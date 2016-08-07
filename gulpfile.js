@@ -1,3 +1,5 @@
+require(`dotenv`).config();
+
 const gulp = require(`gulp`);
 const sourcemaps = require(`gulp-sourcemaps`);
 const babel = require(`gulp-babel`);
@@ -6,11 +8,12 @@ const autoprefixer = require(`gulp-autoprefixer`);
 const mocha = require(`gulp-mocha`);
 const sass = require(`gulp-sass`);
 const webpack = require(`gulp-webpack`);
+const webpackPlugins = require(`webpack`);
 const shell = require(`gulp-shell`);
 
 const src = {
-  reactClient: `./client/react/index.js`,
-  reactServer: `client/react/**/*.js`,
+  reactClient: `./react/index.js`,
+  reactServer: `react/**/*.js`,
   scss: `client/scss/styles.scss`,
   scssWatch: `client/scss/**/*.scss`,
   fonts: `./client/fonts/**/*.*`,
@@ -86,28 +89,24 @@ gulp.task(
 );
 
 gulp.task('build-react-client', () => {
+  console.log('eeeh?', process.env.NODE_ENV === `production`);
   return gulp.src(src.reactClient)
     .pipe(webpack({
       entry: ['babel-polyfill', src.reactClient],
-
       output: {
         path: `/${dest.css}`,
         filename: 'bundle.js',
         publicPath: '/',
       },
-
-      plugins: process.env.NODE_ENV === 'production' ? [
-        new webpack.optimize.DedupePlugin(),
-        new webpack.optimize.OccurrenceOrderPlugin(),
-        new webpack.optimize.UglifyJsPlugin(),
-      ] : [],
-
       module: {
         loaders: [
           {
             test: /\.js$/,
             exclude: /node_modules/,
-            loader: 'babel-loader?presets[]=es2017&presets[]=react',
+            loader: 'babel',
+            query: {
+              presets: ['es2017', 'react'],
+            },
           },
         ],
       },
@@ -153,5 +152,5 @@ gulp.task(`default`, [
 
 gulp.task('debug', [`build`], () => {
   return gulp.src('')
-  .pipe(shell(['node_modules/node-inspector/bin/node-debug.js dist/server/index.js']));
+  .pipe(shell(['node_modules/node-inspector/bin/node-debug.js server/index.js']));
 });

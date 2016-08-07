@@ -22,7 +22,7 @@ const Files = function(app, routeEndpoint) {
   this.logger = app.context.logger;
   this.routeEndpoint = routeEndpoint;
   this.router = router;
-  this.uploadDir = path.join(__dirname, `./uploads`);
+  this.uploadDir = path.join(__dirname, `../../../uploads`);
   this.fileList = {};
 }
 
