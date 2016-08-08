@@ -100,19 +100,20 @@ UsbDiscovery.prototype.detectPort = bsync(function detectPort(port) {
   const vid = parseInt(port.vendorId, 16);
   const pid = parseInt(port.productId, 16);
 
-  for (const botPresetKey in this.botPresetList.classes) {
-    const botPresets = new this.botPresetList.classes[botPresetKey](this.app);
-    if (vid === botPresets.vid && pid === botPresets.pid) {
-      // Pass the detected preset to populate new settings
-      const persistentCheck = bwait(this.checkForPersistentSettings(port, botPresets));
-      let botObject;
-      if (persistentCheck.original) {
-        botObject = bwait(this.app.context.bots.createPersistentBot(persistentCheck.foundPresets.settings));
-      } else {
-        botObject = bwait(this.app.context.bots.createBot(persistentCheck.foundPresets.settings));
+  for (const [botPresetKey, botPresets] of _.pairs(this.app.context.bots.botSettingList)) {
+    if (botPresets.info.connectionType === `serial`) {
+      if (vid === botPresets.info.vid && pid === botPresets.info.pid) {
+        // Pass the detected preset to populate new settings
+        const persistentCheck = bwait(this.checkForPersistentSettings(port, botPresets));
+        let botObject;
+        if (persistentCheck.original) {
+          botObject = bwait(this.app.context.bots.createPersistentBot(persistentCheck.foundPresets.settings));
+        } else {
+          botObject = bwait(this.app.context.bots.createBot(persistentCheck.foundPresets.settings));
+        }
+        botObject.setPort(port.comName);
+        botObject.detect();
       }
-      botObject.setPort(port.comName);
-      botObject.detect();
     }
   }
 });
