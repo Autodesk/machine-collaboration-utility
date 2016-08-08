@@ -266,12 +266,12 @@ export default class Bot extends React.Component {
   }
 
   render() {
-    // <Button style={{margin: "5px"}} onClick={this.toggleModal}>Edit Bot</Button>
     return (
       <div>
         <div className="row">
           <div className="col-md-12">
             {this.renderConnectButton()}
+            <Button style={{margin: "5px"}} onClick={this.toggleModal}>Edit Bot</Button>
             {this.renderJobButtons()}
             <div>State: {this.props.bot.state}</div>
             <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
