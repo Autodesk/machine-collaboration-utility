@@ -142,6 +142,7 @@ Bots.prototype.createBot = function createBot(inputSettings = {}) {
   this.botPresetList[inputSettings.model];
   // Mixin all input settings into the bot object
   const newBot = new Bot(this.app, botPresets, inputSettings);
+  newBot.commands.initialize(newBot);
 
   // Add the bot to the list
   this.botList[newBot.settings.uuid] = newBot;

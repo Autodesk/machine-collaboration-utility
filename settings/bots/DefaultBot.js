@@ -32,6 +32,8 @@ const DefaultBot = function DefaultBot(app) {
 
   this.commands = {};
 
+  this.commands.initialize = bsync(function initialize() {});
+
   // In order to start processing a job, the job's file is opened and then
   // processed one line at a time
   this.commands.startJob = bsync(function startJob(self, params) {
@@ -217,6 +219,14 @@ const DefaultBot = function DefaultBot(app) {
 
   this.commands.unplug = function unplug(self, params) {
     self.fsm.unplug();
+    if (self.currentJob) {
+      try {
+        self.currentJob.cancel();
+      } catch (ex) {
+        this.logger.error('job cancel error', ex);
+      }
+      self.currentJob = undefined;
+    }
     return self.getBot();
   };
 
