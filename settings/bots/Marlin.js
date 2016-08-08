@@ -1,19 +1,27 @@
-const DefaultBot = require(`./DefaultBot`);
+const _ = require(`underscore`);
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
 
-module.exports = class Marlin extends DefaultBot {
-  constructor(app) {
-    super(app);
-    this.connectionType = `serial`;
+const DefaultBot = require(`./DefaultBot`);
 
-    this.vid = undefined;
-    this.pid = undefined;
-    this.baudrate = undefined;
+const Marlin = function (app) {
+  DefaultBot.call(this, app);
 
-    this.fileTypes = ['.gcode'];
+  _.extend(this.settings, {
+    name: `Marlin`,
+    model: `Marlin`,
+  });
 
-    this.commands.updateRoutine = (self, params) => {
+  _.extend(this.info, {
+    connectionType: `serial`,
+    vid: undefined,
+    pid: undefined,
+    baudrate: undefined,
+    fileTypes: ['.gcode'],
+  });
+
+  _.extend(this.commands, {
+    updateRoutine: (self, params) => {
       if (self.fsm.current === `connected`) {
         const commandArray = [];
         commandArray.push({
@@ -40,9 +48,8 @@ module.exports = class Marlin extends DefaultBot {
         });
         self.queue.queueCommands(commandArray);
       }
-    };
-
-    this.commands.processGcode = bsync((self, params) => {
+    },
+    processGcode: bsync((self, params) => {
       const gcode = params.gcode;
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
@@ -62,9 +69,8 @@ module.exports = class Marlin extends DefaultBot {
 
         self.queue.queueCommands(commandArray);
       }));
-    });
-
-    this.commands.streamGcode = (self, params) => {
+    }),
+    streamGcode: (self, params) => {
       if (self.queue.mQueue.length >= 32) {
         return false;
       }
@@ -79,9 +85,8 @@ module.exports = class Marlin extends DefaultBot {
 
       self.queue.queueCommands(commandArray);
       return true;
-    };
-
-    this.commands.jog = (self, params) => {
+    },
+    jog: (self, params) => {
       const commandArray = [];
       commandArray.push(self.commands.gcodeInitialState(self, params));
       commandArray.push({
@@ -95,7 +100,7 @@ module.exports = class Marlin extends DefaultBot {
           const newPosition = currentLocation[params.axis] + params.amount;
           let feedRate;
           if (params.feedRate) {
-            feedRate = params.feedRate
+            feedRate = params.feedRate;
           } else {
             feedRate = self.settings[`jog${params.axis.toUpperCase()}Speed`];
           }
@@ -107,9 +112,8 @@ module.exports = class Marlin extends DefaultBot {
       commandArray.push(self.commands.gcodeFinalState(self, params));
       self.queue.queueCommands(commandArray);
       return self.getBot();
-    };
-
-    this.commands.gcodeInitialState = (self, params) => {
+    },
+    gcodeInitialState: (self, params) => {
       let command = ``;
       switch (self.fsm.current) {
         case `connected`:
@@ -130,12 +134,11 @@ module.exports = class Marlin extends DefaultBot {
           };
           break;
         default:
-          throw `"processGcode" not possible from state "${state}`;
+          throw `"processGcode" not possible from state "${self.fsm.current}`;
       }
       return command;
-    };
-
-    this.commands.gcodeFinalState = (self, params) => {
+    },
+    gcodeFinalState: (self, params) => {
       let command = ``;
       switch (self.fsm.current) {
         case `connected`:
@@ -159,6 +162,8 @@ module.exports = class Marlin extends DefaultBot {
           break;
       }
       return command;
-    };
-  }
+    },
+  });
 };
+
+module.exports = Marlin;

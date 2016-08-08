@@ -31,11 +31,14 @@ const ConductorVirtual = function ConductorVirtual(app) {
     players: {},
   });
 
-  // const config = app.context.config;
-  // const jobsUrl = `/${config.apiVersion}/bots/${this.settings.uuid}/jobs`;
-  // this.jobs = new Jobs(this.app, jobsUrl);
 
   _.extend(this.commands, {
+    initialize: bsync(function initialize(self) {
+      const config = app.context.config;
+      const jobsUrl = `/${config.apiVersion}/bots/${self.settings.uuid}/jobs`;
+      self.jobs = new Jobs(self.app, jobsUrl);
+      self.jobs.initialize();
+    }),
     connect: function connect(self) {
       self.fsm.connect();
       try {
@@ -274,7 +277,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
       const filesApp = self.app.context.files;
       const theFile = filesApp.getFile(job.fileUuid);
       try {
-        bwait( new Promise(bsync ((resolve, reject) => {
+        bwait(new Promise(bsync((resolve, reject) => {
           // Open and unzip the file
           bwait(fs.createReadStream(theFile.filePath))
           .pipe(unzip.Extract({ path: theFile.filePath.split(`.`)[0] }))
@@ -288,7 +291,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
               self.currentJob.nMetajobs += metajobPlayer.jobs.length;
               // find the bot that corresponds with the metajob player we're currently populating
               let botUuid;
-              // let indexKey = `${metajobPlayer.layout_location_x}-${metajobPlayer.layout_location_y}`;
               for (const [playerKey, player] of _.pairs(self.info.players)) {
                 if (
                   player.settings.conductorX === String(metajobPlayer.layout_location_x) &&
@@ -306,30 +308,32 @@ const ConductorVirtual = function ConductorVirtual(app) {
                 fileUuid = playerJob.uuid;
                 self.app.context.files.createFile(undefined, jobFilePath, fileUuid);
 
-                // create the job
-                const jobParams = {
-                  method: `POST`,
-                  uri: `http://localhost:${process.env.PORT}/v1/jobs`,
-                  body: {
-                    uuid: playerJob.uuid,
-                    botUuid,
-                    fileUuid,
-                  },
-                  json: true,
-                };
-                let createJobReply;
-                try {
-                  createJobReply = bwait(request(jobParams));
-                } catch (ex) {
-                  self.logger.error('create job error', ex);
-                }
+
+                // // create the job
+                // const jobParams = {
+                //   method: `POST`,
+                //   uri: `http://localhost:${process.env.PORT}/v1/jobs`,
+                //   body: {
+                //     uuid: playerJob.uuid,
+                //     botUuid,
+                //     fileUuid,
+                //   },
+                //   json: true,
+                // };
+                //let createJobReply;
+                const createJobReply = self.jobs.createPersistentJob(botUuid, fileUuid, jobUuid);
+                // try {
+                //   createJobReply = bwait(request(jobParams));
+                // } catch (ex) {
+                //   self.logger.error('create job error', ex);
+                // }
                 jobUuid = createJobReply.data.uuid;
 
                 self.nJobs++;
                 // add the job to a list
                 // the array order from metajob must be maintained
                 playerJob.botUuid = botUuid;
-                playerJob.state = self.app.context.jobs.jobList[jobUuid].fsm.current;
+                playerJob.state = self.jobs.jobList[jobUuid].fsm.current;
               }, { concurrency: 4 })));
               self.info.players[botUuid].metajobQueue = metajobPlayer.jobs;
             }, { concurrency: 4 })));
