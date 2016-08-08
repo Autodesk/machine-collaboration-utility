@@ -213,7 +213,11 @@ Job.prototype.cancel = bsync(function cancel(params) {
   this.fsm.cancel();
   const bot = this.app.context.bots.botList[this.botUuid];
   try {
-    bwait(bot.commands.cancel(bot, params));
+    try {
+      bwait(bot.commands.cancel(bot, params));
+    } catch (ex) {
+      this.logger.error(`Bot can't be cancelled`, ex);
+    }
     bwait(this.stopwatch.stop());
     bwait(this.fsm.cancelDone());
   } catch (ex) {
