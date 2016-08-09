@@ -39,22 +39,21 @@ const ConductorVirtual = function ConductorVirtual(app) {
       self.jobs = new Jobs(self.app, jobsUrl);
       self.jobs.initialize();
     }),
-    connect: function connect(self) {
+    connect: bsync(function connect(self) {
       self.fsm.connect();
       try {
-        this.setupConductorArms();
-        _.pairs(self.info.players).forEach(([playerKey, player]) => {
+        bwait(this.setupConductorArms());
+        for(const [playerKey, player] of _.pairs(self.info.players)) {
           self.logger.info('starting to connect', playerKey);
           player.commands.connect(player);
-        });
+        }
         self.commands.toggleUpdater(self, { update: true });
-        // TODO actually check this
         self.fsm.connectDone();
       } catch (ex) {
         self.logger.error(ex);
         self.fsm.connectFail();
       }
-    },
+    }),
     disconnect: function disconnect(self) {
       self.fsm.disconnect();
       try {
@@ -111,8 +110,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
             if (currentJob === undefined ) {
               throw `First job in metajobQueue is undefined`;
             }
-
-            const jobObject = self.app.context.jobs.jobList[currentJob.uuid];
+            const jobObject = self.jobs.jobList[currentJob.uuid];
 
             // If the current job is still processing, let it go
             if (jobObject.fsm.current === `complete`) {
@@ -123,13 +121,13 @@ const ConductorVirtual = function ConductorVirtual(app) {
             }
 
             if (jobObject.fsm.current !== `ready`) {
-              self.logger.info(`Not starting a new job from state ${self.app.context.jobs.jobList[currentJob.uuid].fsm.current}`);
+              self.logger.info(`Not starting a new job from state ${self.jobs.jobList[currentJob.uuid].fsm.current}`);
               continue;
             }
 
             // go through every precursor to the current job
             for (const precursor of currentJob.precursors) {
-              const job = self.app.context.jobs.jobList[precursor];
+              const job = self.jobs.jobList[precursor];
               if (job === undefined) {
                 throw `Error, the job ${precursor} is undefined`;
               }
@@ -166,7 +164,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                   self.logger.info(`Not starting a new job when bot is in state ${player.fsm.current}`);
                   continue;
                 }
-                const jobToStart = self.app.context.jobs.jobList[currentJob.uuid];
+                const jobToStart = self.jobs.jobList[currentJob.uuid];
                 if (jobToStart === undefined) {
                   throw `job ${currentJob.uuid} is undefined`;
                 }
@@ -198,7 +196,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
         let doneConducting = true;
         for (const [playerKey, player] of _.pairs(self.metajobCopy)) {
           for (const job of player.jobs) {
-            if (self.app.context.jobs.jobList[job.uuid].fsm.current !== `complete`) {
+            if (self.jobs.jobList[job.uuid].fsm.current !== `complete`) {
               doneConducting = false;
               break;
             }
@@ -224,9 +222,11 @@ const ConductorVirtual = function ConductorVirtual(app) {
           const bots = this.app.context.bots.getBots();
           let unique = true;
           for (const botKey in bots) {
+            const conductorBot = bots[botKey];
+            console.log('conductor bot', conductorBot, String(playerX), String(playerY));
             if (
-              bots[botKey].settings.conductorX === String(playerX) &&
-              bots[botKey].settings.conductorY === String(playerY)
+              parseInt(bots[botKey].settings.conductorX, 10) === playerX &&
+              parseInt(bots[botKey].settings.conductorY, 10) === playerY
             ) {
               unique = false;
               break;
@@ -308,26 +308,8 @@ const ConductorVirtual = function ConductorVirtual(app) {
                 fileUuid = playerJob.uuid;
                 self.app.context.files.createFile(undefined, jobFilePath, fileUuid);
 
-
-                // // create the job
-                // const jobParams = {
-                //   method: `POST`,
-                //   uri: `http://localhost:${process.env.PORT}/v1/jobs`,
-                //   body: {
-                //     uuid: playerJob.uuid,
-                //     botUuid,
-                //     fileUuid,
-                //   },
-                //   json: true,
-                // };
-                //let createJobReply;
-                const createJobReply = self.jobs.createPersistentJob(botUuid, fileUuid, jobUuid);
-                // try {
-                //   createJobReply = bwait(request(jobParams));
-                // } catch (ex) {
-                //   self.logger.error('create job error', ex);
-                // }
-                jobUuid = createJobReply.data.uuid;
+                const createJobReply = bwait(self.jobs.createPersistentJob(botUuid, fileUuid, playerJob.uuid));
+                jobUuid = createJobReply.uuid;
 
                 self.nJobs++;
                 // add the job to a list

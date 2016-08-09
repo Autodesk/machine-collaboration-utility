@@ -1,12 +1,17 @@
+const _ = require(`underscore`);
+
 const HydraPrint = require(`./HydraPrint`);
 
-module.exports = class SmoothieBoardHydraPrint extends HydraPrint {
-  constructor(app) {
-    super(app);
-    this.settings.name = `Escher 2 HydraPrint`;
-    this.settings.model = `Escher2HydraPrint`;
+const Escher2HydraPrint = function Escher2HydraPrint(app) {
+  HydraPrint.call(this, app);
 
-    this.commands.park = (self, params) => {
+  _.extend(this.settings, {
+    name: `Escher 2 HydraPrint`,
+    model: `Escher2HydraPrint`,
+  });
+
+  _.extend(this.commands, {
+    park: (self, params) => {
       self.fsm.park();
       self.queue.queueCommands({
         code: 'M114',
@@ -38,9 +43,8 @@ module.exports = class SmoothieBoardHydraPrint extends HydraPrint {
         },
       });
       return self.getBot();
-    };
-
-    this.commands.unpark = (self, params) => {
+    },
+    unpark: (self, params) => {
       self.fsm.unpark();
 
       const xEntry = params.xEntry;
@@ -80,6 +84,8 @@ module.exports = class SmoothieBoardHydraPrint extends HydraPrint {
       ];
       self.queue.queueCommands(commandArray);
       return self.getBot();
-    };
-  }
+    },
+  });
 };
+
+module.exports = Escher2HydraPrint;
