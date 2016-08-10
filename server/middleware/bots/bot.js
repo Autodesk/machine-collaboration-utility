@@ -276,7 +276,7 @@ Bot.prototype.detect = function detect() {
         executor = new SerialCommandExecutor(
           this.app,
           this.port,
-          this.baudrate,
+          this.info.baudrate,
           openPrime
         );
         validator = this.validateSerialReply;
