@@ -169,6 +169,7 @@ Bots.prototype.deleteBot = bsync(function deleteBot(uuid) {
     const dbBotUuid = dbBot.dataValues.uuid;
     if (uuid === dbBotUuid) {
       bwait(dbBot.destroy());
+      this.botList[uuid].commands.toggleUpdater(this.botList[uuid], { update: false });
       delete this.botList[uuid];
       deleted = true;
     }

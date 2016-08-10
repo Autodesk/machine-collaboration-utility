@@ -156,6 +156,7 @@ export default class Bots extends React.Component {
     request.post(`/v1/bots`)
     .send({ name: event.target.name.value })
     .send({ model: event.target.model.value })
+    .send({ endpoint: event.target.endpoint.value })
     .send({ jogXSpeed: event.target.jogXSpeed.value })
     .send({ jogYSpeed: event.target.jogYSpeed.value })
     .send({ jogZSpeed: event.target.jogZSpeed.value })
