@@ -223,7 +223,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
           let unique = true;
           for (const botKey in bots) {
             const conductorBot = bots[botKey];
-            console.log('conductor bot', conductorBot, String(playerX), String(playerY));
             if (
               parseInt(bots[botKey].settings.conductorX, 10) === playerX &&
               parseInt(bots[botKey].settings.conductorY, 10) === playerY
@@ -235,15 +234,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
           let endpoint;
           if (unique) {
-            const newBot = bwait(
-              this.app.context.bots.createPersistentBot({
-                name: `${botModel}-${playerX}-${playerY}`,
-                model: botModel,
-                endpoint,
-                conductorX: playerX,
-                conductorY: playerY,
-              })
-            );
             switch (botModel) {
               case `Escher2HydraPrint`:
                 endpoint = `http://${botName.toLowerCase().replace(`hydraprint`, ``)}.local:9000/v1/bots/solo`;
@@ -254,7 +244,15 @@ const ConductorVirtual = function ConductorVirtual(app) {
               default:
                 endpoint = `http://${botName}.local:9000/v1/bots/solo`;
             }
-            newBot.setPort(newBot.settings.endpoint);
+            const newBot = bwait(
+              this.app.context.bots.createPersistentBot({
+                name: `${botModel}-${playerX}-${playerY}`,
+                model: botModel,
+                endpoint,
+                conductorX: playerX,
+                conductorY: playerY,
+              })
+            );
           }
         }
       }
@@ -308,7 +306,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                 fileUuid = playerJob.uuid;
                 self.app.context.files.createFile(undefined, jobFilePath, fileUuid);
 
-                const createJobReply = bwait(self.jobs.createPersistentJob(botUuid, fileUuid, playerJob.uuid));
+                const createJobReply = bwait(self.jobs.createPersistentJob(botUuid, fileUuid, playerJob.uuid, false));
                 jobUuid = createJobReply.uuid;
 
                 self.nJobs++;
