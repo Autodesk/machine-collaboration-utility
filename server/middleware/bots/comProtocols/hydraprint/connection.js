@@ -111,19 +111,6 @@ HttpConnection.prototype.setErrorFunc = function(inErrorFunc) {
  * Return: N/A
  */
 HttpConnection.prototype.send = bsync(function send(inCommandStr) {
-  let command;
-  switch (inCommandStr) {
-    case `M104 S0\n`:
-    case `M140 S0\n`:
-      command = `G4 P0\n`;
-      break;
-    case `M109 S0 T0\n`:
-    case `M109 S0\n`:
-      command = `M104 S0\n`;
-      break;
-    default:
-      command = inCommandStr;
-  }
 
   let stream = false;
   switch (true) {
@@ -136,10 +123,6 @@ HttpConnection.prototype.send = bsync(function send(inCommandStr) {
       break;
   }
 
-  if (inCommandStr !== command) {
-    this.logger.info(`Changed "${inCommandStr}" to "${command}"`);
-  }
-
   var error = undefined;
   var commandSent = false;
 
@@ -149,7 +132,7 @@ HttpConnection.prototype.send = bsync(function send(inCommandStr) {
       uri: `${this.externalEndpoint}`,
       body: {
         command: stream ? `streamGcode` : `processGcode`,
-        gcode: command,
+        gcode: inCommandStr,
       },
       json: true,
     };
