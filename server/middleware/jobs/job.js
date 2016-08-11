@@ -5,7 +5,7 @@ const Stopwatch = require(`timer-stopwatch`);
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
 
-const Job = function Job(app, botUuid, fileUuid, jobUuid, initialState, id) {
+const Job = function Job(app, botUuid, fileUuid, jobUuid, initialState, id, loud = true) {
   this.app = app;
   this.logger = this.app.context.logger;
   this.botUuid = botUuid;
@@ -13,10 +13,10 @@ const Job = function Job(app, botUuid, fileUuid, jobUuid, initialState, id) {
   this.uuid = jobUuid;
   this.initialState = initialState;
   this.id = id;
+  this.loud = loud;
 };
 
 Job.prototype.initialize = bsync(function initialize() {
-  debugger;
   const self = this;
 
   // this.JobModel = await jobModel(this.app);
@@ -54,7 +54,9 @@ Job.prototype.initialize = bsync(function initialize() {
     ],
     callbacks: {
       onenterstate: bsync((event, from, to) => {
-        self.logger.info(`Bot ${self.botUuid} Job ${self.uuid} event ${event}: Transitioning from ${from} to ${to}.`);
+        if (self.loud) {
+          self.logger.info(`Bot ${self.botUuid} Job ${self.uuid} event ${event}: Transitioning from ${from} to ${to}.`);
+        }
         if (from !== `none`) {
           if (event.indexOf('Done') !== -1) {
             try {
@@ -73,12 +75,14 @@ Job.prototype.initialize = bsync(function initialize() {
               self.logger.info(`Job event ${event} for job ${self.uuid} failed to update: ${ex}`);
             }
           }
-          self.logger.info(`jobEvent`, self.getJob());
-          self.app.io.emit(`jobEvent`, {
-            uuid: self.uuid,
-            event: `update`,
-            data: self.getJob(),
-          });
+          if (self.loud) {
+            self.logger.info(`jobEvent`, self.getJob());
+            self.app.io.emit(`jobEvent`, {
+              uuid: self.uuid,
+              event: `update`,
+              data: self.getJob(),
+            });
+          }
         }
       }),
     },
@@ -92,12 +96,14 @@ Job.prototype.initialize = bsync(function initialize() {
 
   // job updates once a second
   this.stopwatch.onTime(() => {
-    this.logger.info('jobEvent', this.getJob());
-    this.app.io.emit(`jobEvent`, {
-      uuid: this.uuid,
-      event: `update`,
-      data: this.getJob(),
-    });
+    if (self.loud) {
+      this.logger.info('jobEvent', this.getJob());
+      this.app.io.emit(`jobEvent`, {
+        uuid: this.uuid,
+        event: `update`,
+        data: this.getJob(),
+      });
+    }
   });
 });
 

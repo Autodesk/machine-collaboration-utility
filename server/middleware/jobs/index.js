@@ -52,8 +52,8 @@ Jobs.prototype.initialize = bsync(function initialize() {
   }
 });
 
-Jobs.prototype.createPersistentJob = bsync(function createPersistentJob(botUuid, fileUuid, jobUuid) {
-  const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid);
+Jobs.prototype.createPersistentJob = bsync(function createPersistentJob(botUuid, fileUuid, jobUuid, loud) {
+  const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid, undefined, undefined, loud);
   bwait(jobObject.initialize());
   const jobJson = jobObject.getJob();
   // const dbJob = await this.JobModel.create(jobJson);
@@ -62,12 +62,14 @@ Jobs.prototype.createPersistentJob = bsync(function createPersistentJob(botUuid,
   // jobObject.id = dbJob.dataValues.id;
 
   this.jobList[jobObject.uuid] = jobObject;
-  this.logger.info('jobEvent', jobJson);
-  this.app.io.emit(`jobEvent`, {
-    uuid: jobObject.uuid,
-    event: `new`,
-    data: jobObject.getJob(),
-  });
+  if (loud) {
+    this.logger.info('jobEvent', jobJson);
+    this.app.io.emit(`jobEvent`, {
+      uuid: jobObject.uuid,
+      event: `new`,
+      data: jobObject.getJob(),
+    });
+  }
   return jobObject;
 });
 
