@@ -268,54 +268,59 @@ export default class Bot extends React.Component {
   render() {
     return (
       <div>
-        <div className="row">
-          <div className="col-md-12">
-            {this.renderConnectButton()}
-            <Button style={{margin: "5px"}} onClick={this.toggleModal}>Edit Bot</Button>
-            {this.renderJobButtons()}
-            <div>State: {this.props.bot.state}</div>
-            <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
-            <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
-            <Button onClick={this.homeX} disabled={this.checkDisabled()}>Home X</Button>
-            <Button onClick={this.homeY} disabled={this.checkDisabled()}>Home Y</Button>
-            <Button onClick={this.homeZ} disabled={this.checkDisabled()}>Home Z</Button>
-            <Button onClick={this.homeAll} disabled={this.checkDisabled()}>Home Axes</Button>
-            <div className="clearfix">
-              <div style={{ float: 'left', margin: '0px 5px 5px 5px' }}>
-                <form onSubmit={this.processGcode}>
-                  <input type="textarea" name="gcode" disabled={this.checkDisabled()}></input>
-                <br/>
-                  <input type="submit" value="Send Gcode" disabled={this.checkDisabled()}></input>
-                </form>
-              </div>
-              <div style={{ float: 'left', margin: '0px 5px 5px 5px' }}>
-                <form onSubmit={this.setTemp}>
-                  <input type="textarea" name="temp" disabled={this.checkDisabled()}></input>
-                <br/>
-                  <input type="submit" value="Set Extruder Temp" disabled={this.checkDisabled()}></input>
-                </form>
-              </div>
-            </div>
-            <div>Port: {this.props.bot.port}</div>
-            <div>Temp:{this.props.bot.status.sensors ? this.props.bot.status.sensors.t0 : '?'}</div>
-            <div>
-              X:{`${this.props.bot.status.position ? this.props.bot.status.position.x : `?`} `}
-              Y:{`${this.props.bot.status.position ? this.props.bot.status.position.y : `?`} `}
-              Z:{`${this.props.bot.status.position ? this.props.bot.status.position.z : `?`} `}
-              E:{`${this.props.bot.status.position ? this.props.bot.status.position.e : `?`} `}
-            </div>
-            { this.props.conducting ?
-              (<form onSubmit={this.choir}>
-                <h3>Jog alll the bots</h3>
-                <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
-                <br/>
-                <input type="submit" value="Send Gcode to all bots"></input>
-              </form>) : ``
-            }
-          </div>
-        </div>
-        {this.renderModal()}
+        {this.props.bot.settings.name}
       </div>
     );
   }
 }
+
+
+/*
+<div className="row">
+  <div className="col-md-12">
+    {this.renderConnectButton()}
+    <Button style={{margin: "5px"}} onClick={this.toggleModal}>Edit Bot</Button>
+    {this.renderJobButtons()}
+    <div>State: {this.props.bot.state}</div>
+    <div>Job State: {this.props.currentJob === undefined ? `Not processing job` : `${this.props.currentJob.state}. ${this.props.currentJob.percentComplete}%` }</div>
+    <JogPanel endpoint={`/v1/bots/${this.props.bot.settings.uuid}`}/>
+    <Button onClick={this.homeX} disabled={this.checkDisabled()}>Home X</Button>
+    <Button onClick={this.homeY} disabled={this.checkDisabled()}>Home Y</Button>
+    <Button onClick={this.homeZ} disabled={this.checkDisabled()}>Home Z</Button>
+    <Button onClick={this.homeAll} disabled={this.checkDisabled()}>Home Axes</Button>
+    <div className="clearfix">
+      <div style={{ float: 'left', margin: '0px 5px 5px 5px' }}>
+        <form onSubmit={this.processGcode}>
+          <input type="textarea" name="gcode" disabled={this.checkDisabled()}></input>
+        <br/>
+          <input type="submit" value="Send Gcode" disabled={this.checkDisabled()}></input>
+        </form>
+      </div>
+      <div style={{ float: 'left', margin: '0px 5px 5px 5px' }}>
+        <form onSubmit={this.setTemp}>
+          <input type="textarea" name="temp" disabled={this.checkDisabled()}></input>
+        <br/>
+          <input type="submit" value="Set Extruder Temp" disabled={this.checkDisabled()}></input>
+        </form>
+      </div>
+    </div>
+    <div>Port: {this.props.bot.port}</div>
+    <div>Temp:{this.props.bot.status.sensors ? this.props.bot.status.sensors.t0 : '?'}</div>
+    <div>
+      X:{`${this.props.bot.status.position ? this.props.bot.status.position.x : `?`} `}
+      Y:{`${this.props.bot.status.position ? this.props.bot.status.position.y : `?`} `}
+      Z:{`${this.props.bot.status.position ? this.props.bot.status.position.z : `?`} `}
+      E:{`${this.props.bot.status.position ? this.props.bot.status.position.e : `?`} `}
+    </div>
+    { this.props.conducting ?
+      (<form onSubmit={this.choir}>
+        <h3>Jog alll the bots</h3>
+        <input type="textarea" name="gcode" placeholder="Enter Gcode Here"></input>
+        <br/>
+        <input type="submit" value="Send Gcode to all bots"></input>
+      </form>) : ``
+    }
+  </div>
+</div>
+{this.renderModal()}
+*/

@@ -60,6 +60,7 @@ export default class Bots extends React.Component {
       }
       return radioElement;
     });
+    botRadioList.push(<Button onClick={this.toggleModal}>Create Bot</Button>);
     return (
       <FormGroup onChange={this.handleSelectBot}>
         {botRadioList}
@@ -197,13 +198,12 @@ export default class Bots extends React.Component {
       currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
     }
 
+    const daBot = this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>;
+
     return (
       <div>
-        <Button style={{margin: "10px"}} onClick={this.toggleModal}>Create Bot</Button>
         {this.renderBotList()}
-        {
-          this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>
-        }
+        {daBot}
         <Modal show={this.state.showModal} onHide={this.closeModal}>
           <Modal.Header closeButton>
             <Modal.Title>Create Bot</Modal.Title>
