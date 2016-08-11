@@ -268,7 +268,35 @@ export default class Bot extends React.Component {
   render() {
     return (
       <div>
-        {this.props.bot.settings.name}
+        <div id="dashboard">
+          <div className="container">
+            <div id="left" className="col-md-6">
+              <div className="area">
+                <p>1</p>
+              </div> {/* END AREA */}
+              <div className="area">
+                <p>2</p>
+              </div>{/* END AREA */}
+              <div className="area">
+                <p>3</p>
+              </div>{/* END AREA */}
+            </div>{/* END LEFT */}
+            <div id="right" className="col-md-6">
+              <div className="area">
+                <p>1</p>
+              </div>{/* END AREA */}
+              <div className="area">
+                <p>2</p>
+              </div>{/* END AREA */}
+              <div className="area">
+                <p>3</p>
+              </div>{/* END AREA */}
+              <div className="area">
+                <p>4</p>
+              </div>{/* END AREA */}
+            </div> {/* END RIGHT */}
+          </div>{/* END CONTAINER */}
+        </div>{/* END DASHBOARD */}
       </div>
     );
   }

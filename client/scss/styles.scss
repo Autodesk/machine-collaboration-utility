@@ -61,6 +61,19 @@ body {
   }
 }
 
+#dashboard{
+  background-color: #ffffff;
+  padding: 15px;
+  .col-md-6{
+    padding: 0;
+  }
+  .area{
+    background-color: #f0efef;
+    padding: 15px;
+    margin: 7px 4px;
+  }
+}
+
 .header {
   background-color: #fff;
   height: 65px;
