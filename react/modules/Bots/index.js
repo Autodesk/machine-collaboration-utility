@@ -100,13 +100,12 @@ export default class Bots extends React.Component {
           <br/>
         </div>);
       default:
-        <input type="hidden" name={'endpoint'} value={undefined} />
-        break;
+        return <input type="hidden" name={'endpoint'} value={undefined} />;
     }
   }
 
   createNewBotForm() {
-    return(<div>
+    return (<div>
 
       <input type="hidden" name={'model'} value={this.state.selectedPreset.settings.model} />
 
@@ -195,7 +194,7 @@ export default class Bots extends React.Component {
       currentJob = undefined;
     } else {
       selectedBot = this.props.bots[this.state.selectedBot];
-      currentJob = selectedBot.currentJob === undefined ? undefined : this.props.jobs[selectedBot.currentJob];
+      currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
     }
 
     return (
