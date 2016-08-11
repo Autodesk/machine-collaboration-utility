@@ -154,7 +154,7 @@ Bot.prototype.getBot = function getBot() {
     port: this.port,
     settings: this.settings,
     subscribers: this.subscribers,
-    currentJob: this.currentJob === undefined ? undefined : this.currentJob.uuid,
+    currentJob: this.currentJob === undefined ? undefined : this.currentJob.getJob(),
   };
 };
 
