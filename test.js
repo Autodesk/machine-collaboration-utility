@@ -15,7 +15,7 @@ const walk = require(`fs-walk`);
 const winston = require('winston');
 
 const tests = [];
-const config = require(`./dist/server/config`);
+const config = require(`./server/config`);
 const npmArgs = JSON.parse(process.env.npm_config_argv);
 
 // Setup logger
@@ -30,7 +30,7 @@ const logger = new (winston.Logger)({
 logger.info(`Test initialized.`);
 
 // Collect the test file from each middleware module
-walk.walkSync('./dist/server', (basedir, filename) => {
+walk.walkSync('./server', (basedir, filename) => {
 
   const testArg = npmArgs.cooked[1] && npmArgs.cooked[1].split('--')[1].toLowerCase();
 
