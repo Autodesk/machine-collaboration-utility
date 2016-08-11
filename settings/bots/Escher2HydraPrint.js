@@ -26,9 +26,9 @@ const Escher2HydraPrint = function Escher2HydraPrint(app) {
           self.logger.info('preParkLocation ', preParkLocation);
 
           if (preParkLocation.Z < 18) {
-            commandArray.push('G1 Y25 Z18 F3600');
+            commandArray.push('G1 Y0 Z18 F3600');
           }
-          commandArray.push('G1 Y2 F3600');
+          commandArray.push('G1 Y-27 F3600');
           commandArray.push('G92 E0');
           commandArray.push('G1 E-10 F1000');
           commandArray.push({
