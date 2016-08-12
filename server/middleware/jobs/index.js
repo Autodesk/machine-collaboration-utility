@@ -5,6 +5,7 @@ const _ = require(`underscore`);
 
 const jobsRouter = require(`./routes`);
 const Job = require(`./job`);
+const jobModel = require(`./model`);
 
 /**
  * A Jobs server class
@@ -27,25 +28,49 @@ const Jobs = function(app, routeEndpoint) {
 Jobs.prototype.initialize = bsync(function initialize() {
   try {
     bwait(this.setupRouter());
-    // // initial setup of the db
-    // this.JobModel = await jobModel(this.app);
+    // initial setup of the db
+    this.JobModel = bwait(jobModel(this.app));
 
-    // // load all existing jobs from the database
-    // const jobs = await this.JobModel.findAll();
-    // for (const job of jobs) {
-    //   const botUuid = job.dataValues.botUuid;
-    //   const jobUuid = job.dataValues.uuid;
-    //   const state = job.dataValues.state;
-    //   const id = job.dataValues.id;
-    //   const fileUuid = job.dataValues.fileUuid;
-    //   const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid, state, id);
-    //   await jobObject.initialize();
-    //   jobObject.percentComplete = job.dataValues.percentComplete;
-    //   jobObject.started = job.dataValues.started;
-    //   jobObject.elapsed = job.dataValues.elapsed;
-    //   this.jobList[jobUuid] = jobObject;
-    // }
-
+    // load all existing jobs from the database
+    let jobs;
+    try {
+      jobs = bwait(this.JobModel.findAll());
+    } catch(ex) {
+      // In case of first boot, or schema changing, sync the database
+      // WARNING this will drop all entries from the table
+      bwait(this.app.context.db.sync({ force: true }));
+      jobs = bwait(this.JobModel.findAll());
+    }
+    for (const job of jobs) {
+      const botUuid = job.dataValues.botUuid;
+      const jobUuid = job.dataValues.uuid;
+      const id = job.dataValues.id;
+      const fileUuid = job.dataValues.fileUuid;
+      let state = job.dataValues.state;
+      switch(state) {
+        case `canceled`:
+          break;
+        default:
+          state = `canceled`;
+      }
+      const jobObject = new Job(this.app, botUuid, fileUuid, jobUuid, state, id);
+      bwait(jobObject.initialize());
+      jobObject.percentComplete = job.dataValues.percentComplete;
+      jobObject.started = job.dataValues.started;
+      jobObject.elapsed = job.dataValues.elapsed;
+      this.jobList[jobUuid] = jobObject;
+    }
+/*
+let botsDbArray;
+try {
+  botsDbArray = bwait(this.BotModel.findAll());
+} catch (ex) {
+  // In case of first boot, or schema changing, sync the database
+  // WARNING this will drop all entries from the table
+  bwait(this.app.context.db.sync({ force: true }));
+  botsDbArray = bwait(this.BotModel.findAll());
+}
+*/
     this.logger.info(`Jobs instance initialized`);
   } catch (ex) {
     this.logger.error(`Jobs initialization error`, ex);

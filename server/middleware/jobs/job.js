@@ -60,16 +60,19 @@ Job.prototype.initialize = bsync(function initialize() {
         if (from !== `none`) {
           if (event.indexOf('Done') !== -1) {
             try {
-              // // As soon as an event successfully transistions, update it in the database
-              // const dbJob = await self.JobModel.findById(self.id);
-              // await Promise.delay(0); // For some reason this can't happen in the same tick
-              // await dbJob.updateAttributes({
-              //   state: self.fsm.current,
-              //   fileUuid: self.fileUuid,
-              //   started: self.started,
-              //   elapsed: self.stopwatch.ms,
-              //   percentComplete: self.percentComplete,
-              // });
+              // As soon as an event successfully transistions, update it in the database
+              if (self.loud) {
+                console.log('updating job');
+                const dbJob = bwait(self.JobModel.findById(self.id));
+                bwait(Promise.delay(0)); // For some reason this can't happen in the same tick
+                bwait(dbJob.updateAttributes({
+                  state: self.fsm.current,
+                  fileUuid: self.fileUuid,
+                  started: self.started,
+                  elapsed: self.stopwatch.ms,
+                  percentComplete: self.percentComplete,
+                }));
+              }
               self.logger.info(`Job event. ${event} for job ${self.uuid} successfully updated to ${self.fsm.current}`);
             } catch (ex) {
               self.logger.info(`Job event ${event} for job ${self.uuid} failed to update: ${ex}`);
