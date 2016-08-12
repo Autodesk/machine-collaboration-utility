@@ -1,6 +1,7 @@
 const Promise = require(`bluebird`);
 const LineByLineReader = Promise.promisifyAll(require(`line-by-line`));
 const fs = require(`fs`);
+const _ = require(`underscore`);
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
 
@@ -100,6 +101,20 @@ const DefaultBot = function DefaultBot(app) {
           bwait(self.fsm.stopDone());
           bwait(self.currentJob.fsm.runningDone());
           bwait(self.currentJob.stopwatch.stop());
+          // Hack to keep conductor job transfer time low
+          for (const [botKey, bot] of _.pairs(self.app.context.bots.botList)) {
+            if (bot.settings.model.toLowerCase().indexOf(`conductor`) !== -1) {
+              bwait(bot.commands.updateRoutine(self));
+              bwait(Promise.delay(10));
+              bwait(bot.commands.updateRoutine(self));
+              bwait(Promise.delay(10));
+              bwait(bot.commands.updateRoutine(self));
+              bwait(Promise.delay(10));
+              bwait(bot.commands.updateRoutine(self));
+              bwait(Promise.delay(10));
+              bwait(bot.commands.updateRoutine(self));
+            }
+          }
         }),
       });
     }));
@@ -336,9 +351,9 @@ const DefaultBot = function DefaultBot(app) {
     self.fsm[theEvent.name]();
   };
 
-  this.commands.checkSubscription = function checkSubscription(self, params) {
-    self.subscribe();
-  };
+  this.commands.checkSubscription = bsync(function checkSubscription(self, params) {
+    bwait(self.subscribe());
+  });
 };
 
 module.exports = DefaultBot;

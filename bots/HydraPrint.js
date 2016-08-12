@@ -56,7 +56,6 @@ const HydraPrint = function(app) {
           },
         });
         commandArray.push(self.commands.gcodeFinalState(self, params));
-
         self.queue.queueCommands(commandArray);
       }));
     }),
@@ -126,7 +125,7 @@ const HydraPrint = function(app) {
           };
           break;
         default:
-          throw `"processGcode" not possible from state "${state}`;
+          throw `"processGcode" not possible from state "${self.fsm.current}`;
       }
       return command;
     },

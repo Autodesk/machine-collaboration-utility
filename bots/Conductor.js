@@ -6,16 +6,17 @@ const Promise = require(`bluebird`);
 const _ = require(`underscore`);
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
+const path = require(`path`);
 
-const Jobs = require(`../../server/middleware/jobs`);
+const Jobs = require(path.join(__dirname, `../server/middleware/jobs`));
 const DefaultBot = require(`./DefaultBot`);
 
 const ConductorVirtual = function ConductorVirtual(app) {
   DefaultBot.call(this, app);
 
   _.extend(this.settings, {
-    model: `ConductorVirtual`,
-    name: `Conductor Virtual`,
+    model: `Conductor`,
+    name: `Conductor`,
   });
 
   _.extend(this.info, {
@@ -45,6 +46,9 @@ const ConductorVirtual = function ConductorVirtual(app) {
         bwait(this.setupConductorArms());
         for(const [playerKey, player] of _.pairs(self.info.players)) {
           self.logger.info('starting to connect', playerKey);
+          if (player.fsm.current === `unavailable`) {
+            bwait(player.commands.checkSubscription(player));
+          }
           player.commands.connect(player);
         }
         self.commands.toggleUpdater(self, { update: true });

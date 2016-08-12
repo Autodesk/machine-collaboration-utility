@@ -49,7 +49,15 @@ Bots.prototype.initialize = bsync(function initialize() {
     // Set up the bot database model
     this.BotModel = bwait(botModel(this.app));
 
-    const botsDbArray = bwait(this.BotModel.findAll());
+    let botsDbArray;
+    try {
+      botsDbArray = bwait(this.BotModel.findAll());
+    } catch (ex) {
+      // In case of first boot, or schema changing, sync the database
+      // WARNING this will drop all entries from the table
+      bwait(this.app.context.db.sync({ force: true }));
+      botsDbArray = bwait(this.BotModel.findAll());
+    }
     // Load all bots from the database and add them to the 'bots' object
     for (const dbBot of botsDbArray) {
       try {
@@ -108,11 +116,11 @@ Bots.prototype.setupDiscovery = bsync(function setupDiscovery() {
 });
 
 Bots.prototype.loadBotPresets = bsync(function loadBotPresets() {
-  const settingsPath = path.join(__dirname, `../../../settings`);
-  const botPresets = bwait(fs.readdir(path.join(settingsPath, './bots')));
+  const botsPresetsPath = path.join(__dirname, `../../../bots`);
+  const botPresets = bwait(fs.readdir(botsPresetsPath));
   for (const botPresetFile of botPresets) {
     const presetType = botPresetFile.split(`.`)[0];
-    const presetPath = path.join(__dirname, `../../../settings/bots/${botPresetFile}`);
+    const presetPath = `${botsPresetsPath}/${botPresetFile}`;
     const BotPresetClass = require(presetPath);
     this.botPresetList[presetType] = BotPresetClass;
     this.botSettingList[presetType] = new BotPresetClass(this.app);

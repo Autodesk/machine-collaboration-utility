@@ -1,13 +1,13 @@
 const _ = require(`underscore`);
 
-const ConductorVirtual = require(`./ConductorVirtual`);
+const Conductor = require(`./Conductor`);
 
-const ConductorEscher2HydraPrint = function (app) {
-  ConductorVirtual.call(this, app);
+const ConductorEscher2 = function (app) {
+  Conductor.call(this, app);
 
   _.extend(this.settings, {
     name: `Conductor Escher2`,
-    model: `ConductorEscher2HydraPrint`,
+    model: `ConductorEscher2`,
   });
 
   _.extend(this.info, {
@@ -19,4 +19,4 @@ const ConductorEscher2HydraPrint = function (app) {
   });
 };
 
-module.exports = ConductorEscher2HydraPrint;
+module.exports = ConductorEscher2;
