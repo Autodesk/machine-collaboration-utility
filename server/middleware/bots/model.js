@@ -1,10 +1,10 @@
+const Promise = require(`bluebird`);
 const Sequelize = require('sequelize');
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
 
 module.exports = bsync((app) => {
-  // Define the model for a job
-  const BotModel = bwait(app.context.db.define('Bot', {
+  const BotModel = app.context.db.define('Bot', {
     model: Sequelize.STRING,
     name: Sequelize.STRING,
     uuid: Sequelize.STRING,
@@ -23,7 +23,7 @@ module.exports = bsync((app) => {
     offsetZ: Sequelize.STRING,
     conductorX: Sequelize.STRING,
     conductorY: Sequelize.STRING,
-  }));
+  });
 
   return BotModel;
 });
