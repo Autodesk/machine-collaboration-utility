@@ -19,7 +19,7 @@ const renderToString = require(`react-dom/server`).renderToString;
 const match = require(`react-router`).match;
 const RouterContext = require(`react-router`).RouterContext;
 
-// NOTE THIS FILE IS COPIED IN BY GULP FROM CLIENT/JS
+// NOTE THIS FILE IS BUILT BY GULP
 const routes = require(`../dist/react/routes`);
 
 const Files = require(`./middleware/files`);
