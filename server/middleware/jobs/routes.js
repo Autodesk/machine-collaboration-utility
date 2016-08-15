@@ -4,9 +4,13 @@ const _ = require(`underscore`);
 const bsync = require(`asyncawait/async`);
 const bwait = require(`asyncawait/await`);
 
-/**
- * Handle all logic at this endpoint for reading all of the jobs
- */
+ /**
+  * getJobs()
+  *
+  * Retreive a dictionary of all the jobs
+  *
+  * @param {object} self - The object representing the context for "Jobs" middleware
+  */
 const getJobs = (self) => {
   const requestDescription = `Get Jobs`;
   self.router.get(`${self.routeEndpoint}/`, bsync((ctx) => {
@@ -22,9 +26,13 @@ const getJobs = (self) => {
   }));
 };
 
-/**
- * Handle all logic at this endpoint for deleting all jobs
- */
+ /**
+  * deleteAllJobs()
+  *
+  * Handle all logic at this endpoint for deleting all jobs from the database
+  *
+  * @param {object} self - The object representing the context for "Jobs" middleware
+  */
 const deleteAllJobs = (self) => {
   const requestDescription = `Delete All Jobs`;
   self.router.delete(`${self.routeEndpoint}/all/`, bsync((ctx) => {
@@ -47,9 +55,13 @@ const deleteAllJobs = (self) => {
   }));
 };
 
-/**
- * Handle all logic at this endpoint for creating a job
- */
+ /**
+  * createJob()
+  *
+  * Handle all logic at this endpoint for creating a job
+  *
+  * @param {object} self - The object representing the context for "Jobs" middleware
+  */
 const createJob = (self) => {
   const requestDescription = `Create Job`;
 
@@ -74,15 +86,8 @@ const createJob = (self) => {
         throw `File not found`;
       }
 
-      // Do not allow for duplicate uuid's.
-      // If you pass a uuid, you are deleting the existing job
-      if (self.jobList[uuid] !== undefined) {
-        // Delete the job from the database and the jobs object
-        bwait(self.deleteJob(uuid));
-      }
-
       // Create and save the job object
-      const jobObject = bwait(self.createPersistentJob(botUuid, fileUuid, uuid));
+      const jobObject = bwait(self.createJob(botUuid, fileUuid, uuid));
 
       const startJob = String(ctx.request.body.startJob) === `true`;
       if (startJob) {
@@ -102,7 +107,11 @@ const createJob = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for reading a single job
+ * getJob()
+ *
+ * Retreive a single job object
+ *
+ * @param {object} self - The object representing the context for "Jobs" middleware
  */
 const getJob = (self) => {
   const requestDescription = `Get Job`;
@@ -132,7 +141,11 @@ const getJob = (self) => {
 };
 
 /**
+ * deleteJob()
+ *
  * Handle all logic at this endpoint for deleting a job
+ *
+ * @param {object} self - The object representing the context for "Jobs" middleware
  */
 const deleteJob = (self) => {
   const requestDescription = `Delete Job`;
@@ -157,7 +170,11 @@ const deleteJob = (self) => {
 
 
 /**
+ * processJobCommand()
+ *
  * Handle all logic at this endpoint for sending commands to a job
+ *
+ * @param {object} self - The object representing the context for "Jobs" middleware
  */
 const processJobCommand = (self) => {
   const requestDescription = `Process Job Command`;
