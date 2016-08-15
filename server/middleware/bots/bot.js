@@ -65,7 +65,7 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
     { name: 'stopFail',           from: 'stopping',            to: 'connected'           },
     { name: 'jobToGcode',         from: 'processingJob',       to: 'processingJobGcode'  },
     { name: 'jobGcodeFail',       from: 'processingJobGcode',  to: 'processingJob'       },
-    { name: 'jobGcodeDone',       from: 'processingGcode',     to: 'processingJob'       },
+    { name: 'jobGcodeDone',       from: 'processingJobGcode',  to: 'processingJob'       },
     { name: 'parkToGcode',        from: 'parked',              to: 'processingParkGcode' },
     { name: 'parkGcodeFail',      from: 'processingParkGcode', to: 'parked'              },
     { name: 'parkGcodeDone',      from: 'processingParkGcode', to: 'parked'              },
@@ -258,7 +258,6 @@ Bot.prototype.processCommand = bsync(function processCommand(command, params) {
     const reply = bwait(this.commands[command](this, params));
     return reply;
   } catch (ex) {
-    console.log('nope', ex);
     return ex;
   }
 });

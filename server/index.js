@@ -10,6 +10,7 @@ const config = require(`./config`);
 const koaApp = require(`./koaApp`);
 
 
+// Set up logging
 const filename = path.join(__dirname, `../catchall.log`);
 const logger = new (winston.Logger)({
   level: `debug`,
@@ -18,7 +19,6 @@ const logger = new (winston.Logger)({
     new (winston.transports.File)({ filename }),
   ],
 });
-
 logger.info('started logging');
 
 process.on(`uncaughtException`, (err) => {
@@ -26,6 +26,7 @@ process.on(`uncaughtException`, (err) => {
 });
 
 
+// Set up the app
 try {
   bsync(() => {
     // Create a new app object and set it up

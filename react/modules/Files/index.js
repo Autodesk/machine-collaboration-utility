@@ -35,7 +35,8 @@ export default class Files extends React.Component {
   }
 
   change(event) {
-    this.setState({ botUuid: event.target.value });
+    const botUuid = event.target.value;
+    this.setState({ botUuid });
   }
 
   componentWillReceiveProps(newProps) {
@@ -45,8 +46,11 @@ export default class Files extends React.Component {
   }
 
   getActiveBotUuid(props) {
-    if (props.conducting) {
-      return -1;
+    // In case the botUuid is already set, just check to make sure that the bot is still connected
+    if (this.state && this.state.botUuid !== undefined) {
+      if (this.props.bots[this.state.botUuid].state === `connected`) {
+        return this.state.botUuid;
+      }
     }
     for (const [botUuid, bot] of _.pairs(this.props.bots)) {
       // Only allow jobs to be stared on a bot in the state "connected"

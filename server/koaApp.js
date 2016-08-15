@@ -19,7 +19,7 @@ const renderToString = require(`react-dom/server`).renderToString;
 const match = require(`react-router`).match;
 const RouterContext = require(`react-router`).RouterContext;
 
-// NOTE THIS FILE IS COPIED IN BY GULP FROM CLIENT/JS
+// NOTE THIS FILE IS BUILT BY GULP
 const routes = require(`../dist/react/routes`);
 
 const Files = require(`./middleware/files`);
@@ -27,10 +27,15 @@ const Jobs = require(`./middleware/jobs`);
 const Bots = require(`./middleware/bots`);
 
 /**
+ * renderPage()
+ *
  * Render a string that will represent the UI
+ * Used by client to render the React app
+ *
  * @param {string} appHtml - The entire React app as rendered by the server
  * @param {object} jsVariables - a copy of the variables passed to the server.
- * Used by client to render the React app
+ *
+ * @returns {string}
  */
 function renderPage(appHtml, jsVariables = {}) {
   return `<!doctype html public="storage">
@@ -49,7 +54,16 @@ function renderPage(appHtml, jsVariables = {}) {
 `;
 }
 
-module.exports = bsync((config) => {
+ /**
+  * koaApp()
+  *
+  * Sets up the application's middleware
+  *
+  * @param {object} config - configuration object, passed from server
+  *
+  * @returns {koa object} - App to be used by the server
+  */
+const koaApp = bsync((config) => {
   // Setup logger
   const filename = path.join(__dirname, `../${config.logFileName}`);
   const logger = new (winston.Logger)({
@@ -99,9 +113,6 @@ module.exports = bsync((config) => {
     app.context.db = sequelize;
   }
 
-  // // Just wipe the database each time until we can smooth things out
-  // app.context.db.sync({ force: true });
-
   // add custom middleware here
   const files = new Files(app, `/${config.apiVersion}/files`);
   try {
@@ -124,8 +135,6 @@ module.exports = bsync((config) => {
     app.context.logger.error(`"Bots" middleware initialization error`, ex);
   }
 
-  // app.context.db.sync({ force: true });
-
   // Set up Koa to match any routes to the React App. If a route exists, render it.
   router.get('*', (ctx) => {
     try {
@@ -136,7 +145,8 @@ module.exports = bsync((config) => {
           ctx.body = err.message;
         } else if (redirect) {
           ctx.redirect(redirect.pathname + redirect.search);
-          // Don't render anything if you are requesting an api url aka anything near "/v1"
+          // Don't render anything if you are requesting an api url
+          // aka anything with a url "/v1"
         } else if (
           ctx.req.headers &&
           ctx.req.headers.referer &&
@@ -166,9 +176,16 @@ module.exports = bsync((config) => {
     }
   });
 
+  // Latch the defined routes to the koa app
   app.use(router.routes(), router.allowedMethods());
+
+  app.on(`error`, (error, ctx) => {
+    app.context.logger.error(`server error`, error, ctx);
+  });
 
   app.context.logger.info(`Hydra-Print has been initialized successfully.`);
 
   return app;
 });
+
+module.exports = koaApp;
