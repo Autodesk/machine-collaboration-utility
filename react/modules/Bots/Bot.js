@@ -5,7 +5,13 @@ import request from 'superagent';
 import { Link } from 'react-router';
 import _ from 'underscore';
 
-import JogPanel from './JogPanel';
+import JogPanel from './BotModules/JogPanel';
+import CurrentJob from './BotModules/CurrentJob';
+import HomeAxes from './BotModules/HomeAxes';
+import PositionFeedback from './BotModules/PositionFeedback';
+import DisableMotors from './BotModules/DisableMotors';
+import JogSpeeds from './BotModules/JogSpeeds';
+import Temp from './BotModules/Temp';
 
 export default class Bot extends React.Component {
   constructor(props) {
@@ -266,34 +272,37 @@ export default class Bot extends React.Component {
   }
 
   render() {
+    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
     return (
       <div>
         <div id="dashboard">
           <div className="container">
             <div id="left" className="col-md-6">
               <div className="area">
-                <p>1</p>
-              </div> {/* END AREA */}
+                <CurrentJob endpoint={endpoint}/>
+              </div>
               <div className="area">
-                <p>2</p>
-              </div>{/* END AREA */}
+                <JogPanel endpoint={endpoint}/>
+              </div>
               <div className="area">
-                <p>3</p>
-              </div>{/* END AREA */}
+                <HomeAxes endpoint={endpoint}/>
+              </div>
             </div>{/* END LEFT */}
             <div id="right" className="col-md-6">
+              <div className="area row">
+                <div className="col-sm-6">
+                  <PositionFeedback endpoint={endpoint}/>
+                </div>
+                <div className="col-sm-6">
+                  <DisableMotors endpoint={endpoint}/>
+                </div>
+              </div>
               <div className="area">
-                <p>1</p>
+                <JogSpeeds endpoint={endpoint}/>
               </div>{/* END AREA */}
               <div className="area">
-                <p>2</p>
-              </div>{/* END AREA */}
-              <div className="area">
-                <p>3</p>
-              </div>{/* END AREA */}
-              <div className="area">
-                <p>4</p>
-              </div>{/* END AREA */}
+                <Temp endpoint={endpoint}/>
+              </div>
             </div> {/* END RIGHT */}
           </div>{/* END CONTAINER */}
         </div>{/* END DASHBOARD */}
