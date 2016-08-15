@@ -8,7 +8,12 @@ const bwait = require(`asyncawait/await`);
 const Response = require(`../helpers/response`);
 
 /**
+ * uploadFile()
+ *
  * Handle all file upload requests for the Conductor + '/upload' endpoint
+ *
+ * @param {Object} self - The "Files" app context
+ *
  */
 const uploadFile = (self) => {
   const requestDescription = 'Upload File';
@@ -56,7 +61,12 @@ const uploadFile = (self) => {
 };
 
 /**
+ * deleteFile()
+ *
  * Handle all logic at this endpoint for deleting a file
+ *
+ * @param {Object} self - The "Files" app context
+ *
  */
 const deleteFile = (self) => {
   const requestDescription = 'Delete File';
@@ -79,7 +89,12 @@ const deleteFile = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for reading all of the tasks
+ * getFiles()
+ *
+ * Handle all logic at this endpoint for retrieving all of the files
+ *
+ * @param {Object} self - The "Files" app context
+ *
  */
 const getFiles = (self) => {
   const requestDescription = 'Get Files';
@@ -96,7 +111,12 @@ const getFiles = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for reading a single task
+ * getFile()
+ *
+ * Handle all logic at this endpoint for retrieving a single file
+ *
+ * @param {Object} self - The "Files" app context
+ *
  */
 const getFile = (self) => {
   const requestDescription = 'Get File';
@@ -125,7 +145,12 @@ const getFile = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for reading a single task
+ * downloadFile()
+ *
+ * Handle all logic at this endpoint for downloading a single file
+ *
+ * @param {Object} self - The "Files" app context
+ *
  */
 const downloadFile = (self) => {
   self.router.get(`${self.routeEndpoint}/:uuid/download`, bsync((ctx) => {
@@ -155,7 +180,12 @@ const downloadFile = (self) => {
 };
 
 /**
- * Handle all logic at this endpoint for deleting all jobs
+ * deleteAllFiles()
+ *
+ * Handle all logic at this endpoint for deleting all files
+ *
+ * @param {Object} self - The "Files" app context
+ *
  */
 const deleteAllFiles = (self) => {
   const requestDescription = `Delete All Files`;
