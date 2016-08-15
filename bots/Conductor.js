@@ -310,7 +310,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                 fileUuid = playerJob.uuid;
                 self.app.context.files.createFile(undefined, jobFilePath, fileUuid);
 
-                const createJobReply = bwait(self.jobs.createPersistentJob(botUuid, fileUuid, playerJob.uuid, false));
+                const createJobReply = bwait(self.jobs.createJob(botUuid, fileUuid, playerJob.uuid, false));
                 jobUuid = createJobReply.uuid;
 
                 self.nJobs++;
