@@ -11,9 +11,18 @@ export default class CurrentJob extends React.Component {
     return (
       <div>
         <h3>Current Job!</h3>
-        <button>Connect</button>
-        <button>Pause/Resume</button>
-        <button>Cancel</button>
+        <div className="row">
+          <div className="col-sm-4">
+            <button>Connect</button>
+          </div>
+          <div className="col-sm-4">
+            <button>Pause/Resume</button>
+          </div>
+          <div className="col-sm-4">
+            <button>Cancel</button>
+          </div>
+        </div>
+        <br/>
         <ProgressBar active now={60} label={`${60}%`} />
       </div>
     );

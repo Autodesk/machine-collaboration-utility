@@ -132,7 +132,7 @@ body {
 .nav-tabs{
   margin-top: 25px;
   >li{
-    width: 50%;
+    width: calc(100% / 3);
     text-align: center;
     &.active{
       >a{

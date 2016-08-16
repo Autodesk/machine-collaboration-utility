@@ -9,7 +9,7 @@ export default class Temp extends React.Component {
   render() {
     return (
       <div className="row">
-        <h3>Position Feedback!</h3>
+        <h3>TEMPERATURE CONTROL</h3>
         <div className="col-sm-3">
           <p>&#x25EF; Extruder</p>
         </div>

@@ -9,7 +9,7 @@ export default class PositionFeedback extends React.Component {
   render() {
     return (
       <div>
-        <h3>Position Feedback!</h3>
+        <h3>POSITIONING</h3>
         <div className="col-sm-4">
           <h5>X-Axis</h5>
           <div>0</div>

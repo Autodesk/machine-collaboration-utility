@@ -45,6 +45,7 @@ export default class JogPanel extends React.Component {
         st7: { fill: `#C0C0C2` },
         st8: { fill: `#010101` },
       }}>
+        <h3>JOG PANEL</h3>
         <svg version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 536 360">
           <g>
             <g>

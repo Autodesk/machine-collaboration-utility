@@ -1,311 +1,50 @@
 import React from 'react';
 import Button from 'react-bootstrap/lib/Button';
 import Modal from 'react-bootstrap/lib/Modal';
+import Tab from 'react-bootstrap/lib/Tab';
+import Tabs from 'react-bootstrap/lib/Tabs';
 import request from 'superagent';
 import { Link } from 'react-router';
 import _ from 'underscore';
 
-import JogPanel from './BotModules/JogPanel';
-import CurrentJob from './BotModules/CurrentJob';
-import HomeAxes from './BotModules/HomeAxes';
-import PositionFeedback from './BotModules/PositionFeedback';
-import DisableMotors from './BotModules/DisableMotors';
-import JogSpeeds from './BotModules/JogSpeeds';
-import Temp from './BotModules/Temp';
+import Dashboard from './Dashboard';
+import Terminal from './Terminal';
+import Settings from './Settings';
 
 export default class Bot extends React.Component {
   constructor(props) {
     super(props);
 
-    this.connect = this.connect.bind(this);
-    this.disconnect = this.disconnect.bind(this);
-    this.toggleModal = this.toggleModal.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.updateBot = this.updateBot.bind(this);
-    this.deleteBot = this.deleteBot.bind(this);
-    this.detect = this.detect.bind(this);
-
-    this.pauseJob = this.pauseJob.bind(this);
-    this.resumeJob = this.resumeJob.bind(this);
-    this.cancelJob = this.cancelJob.bind(this);
-    this.processGcode = this.processGcode.bind(this);
-    this.setTemp = this.setTemp.bind(this);
-
-    this.homeX = this.homeX.bind(this);
-    this.homeY = this.homeY.bind(this);
-    this.homeZ = this.homeZ.bind(this);
-    this.homeAll = this.homeAll.bind(this);
-
-    this.choir = this.choir.bind(this);
+    this.tabSelectEvent = this.tabSelectEvent.bind(this);
 
     this.state = {
       showModal: false,
+      selectedTab: 1,
     };
   }
 
-  detect() {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `checkSubscription` })
-    .end();
-  }
-
-  deleteBot() {
-    request.delete(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .end();
-    this.closeModal();
-  }
-
-  pauseJob() {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `pause` })
-    .end();
-    this.closeModal();
-  }
-
-  resumeJob() {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `resume` })
-    .end();
-    this.closeModal();
-  }
-
-  cancelJob() {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `cancel` })
-    .end();
-    this.closeModal();
-  }
-
-  processGcode(event) {
-    event.preventDefault();
-    const gcode = event.target.gcode.value;
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `processGcode` })
-    .send({ gcode })
-    .end();
-  }
-
-  setTemp(event) {
-    event.preventDefault();
-    const temp = event.target.temp.value;
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `processGcode` })
-    .send({ gcode: `M104 S${temp}` })
-    .end();
-  }
-
-  homeX(event) {
-    event.preventDefault();
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `processGcode` })
-    .send({ gcode: `G28 X` })
-    .end();
-  }
-
-  homeY(event) {
-    event.preventDefault();
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `processGcode` })
-    .send({ gcode: `G28 Y` })
-    .end();
-  }
-
-  homeZ(event) {
-    event.preventDefault();
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `processGcode` })
-    .send({ gcode: `G28 Z` })
-    .end();
-  }
-
-  homeAll(event) {
-    event.preventDefault();
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `processGcode` })
-    .send({ gcode: `G28` })
-    .end();
-  }
-
-  choir(event) {
-    event.preventDefault();
-    const gcode = event.target.gcode.value;
-    request.post(`/v1/conductor/`)
-    .send({ command: `choir` })
-    .send({ gcode })
-    .end();
-  }
-
-  connect() {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `connect` })
-    .set('Accept', 'application/json')
-    .end();
-  }
-
-  disconnect() {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
-    .send({ command: `disconnect` })
-    .set('Accept', 'application/json')
-    .end();
-  }
-
-  renderConnectButton() {
-    switch (this.props.bot.state) {
-      case `unavailable`:
-        return <Button style={{margin: "5px"}} onClick={this.detect}>Detect</Button>;
-      case `ready`:
-        return <Button bsStyle="success" style={{margin: "5px"}} onClick={this.connect}>Connect</Button>;
-      case `connected`:
-        return <Button bsStyle="danger" style={{margin: "5px"}} onClick={this.disconnect}>Disconnect</Button>;
-      default:
-        return <Button style={{margin: "5px"}} disabled>Nope!</Button>;
-    }
-  }
-
-  updateBot(event) {
-    event.preventDefault();
-    let update = request.put(`/v1/bots/${this.props.bot.settings.uuid}`)
-    for (const [settingKey, setting] of _.pairs(this.props.bot.settings)) {
-      const paramJson = {};
-      if (event.target[settingKey] !== undefined) {
-        paramJson[settingKey] = event.target[settingKey].value;
-        update = update.send(paramJson);
-      }
-    }
-    update = update.set('Accept', 'application/json');
-    try {
-      update.end();
-      this.closeModal();
-    } catch (ex) {
-      console.log(`Update error`, ex);
-    }
-  }
-
-  toggleModal() {
+  tabSelectEvent(key) {
     this.setState({
-      showModal: !this.state.showModal,
+      selectedTab: key,
     });
-  }
-
-  closeModal() {
-    this.setState({ showModal: false });
-  }
-
-  renderModal() {
-    return (<Modal show={this.state.showModal} onHide={this.closeModal}>
-      <Modal.Header closeButton>
-        <Modal.Title>Edit Bot</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <form onSubmit={this.updateBot}>
-          {_.pairs(this.props.bot.settings).map(([settingKey, setting]) => {
-            switch (settingKey) {
-              case `createdAt`:
-              case `updatedAt`:
-              case `uuid`:
-              case `id`:
-              case `model`:
-                return;
-              case `endpoint`:
-                if (this.props.botPresets[this.props.bot.settings.model].info.connectionType === `serial`) {
-                  return;
-                }
-              default:
-                return (<div key={settingKey}>
-                  <label key={`${settingKey}label`} htmlFor={settingKey}>{settingKey}</label>
-                  <input key={`${settingKey}input`} type="textarea" name={settingKey} defaultValue={setting}/>
-                </div>);
-            }
-          })}
-          <Button bsStyle="primary" type="submit">Update Bot</Button>
-        </form>
-      </Modal.Body>
-      <br/>
-      <br/>
-      <br/>
-      <br/>
-      <Button bsStyle="danger" onClick={this.deleteBot}>Delete Bot</Button>
-    </Modal>);
-  }
-
-  renderJobButtons() {
-    const buttons = [];
-    if (this.props.currentJob === undefined) {
-      buttons.push(<Button style={{margin: "5px"}} disabled>Nope</Button>);
-      buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" disabled>Nope</Button>);
-    } else {
-      switch (this.props.currentJob.state) {
-        case `running`:
-          buttons.push(<Button style={{margin: "5px"}} onClick={this.pauseJob}>Pause</Button>);
-          buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
-          break;
-        case `paused`:
-          buttons.push(<Button style={{margin: "5px"}} onClick={this.resumeJob}>Resume</Button>);
-          buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
-          break;
-        default:
-          buttons.push(<Button style={{margin: "5px"}} disabled>Nope</Button>);
-          buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" disabled>Nope</Button>);
-          break;
-      }
-    }
-    return buttons;
-  }
-
-  checkDisabled() {
-    let disabled = false;
-    switch (this.props.bot.state) {
-      case `detecting`:
-      case `ready`:
-      case `startingJob`:
-      case `stopping`:
-      case `parking`:
-      case `unparking`:
-      case `unavailable`:
-      case `connecting`:
-        disabled = true;
-        break;
-      default:
-        break;
-    }
-    return disabled;
   }
 
   render() {
     const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
+
     return (
       <div>
-        <div id="dashboard">
-          <div className="container">
-            <div id="left" className="col-md-6">
-              <div className="area">
-                <CurrentJob endpoint={endpoint}/>
-              </div>
-              <div className="area">
-                <JogPanel endpoint={endpoint}/>
-              </div>
-              <div className="area">
-                <HomeAxes endpoint={endpoint}/>
-              </div>
-            </div>{/* END LEFT */}
-            <div id="right" className="col-md-6">
-              <div className="area row">
-                <div className="col-sm-6">
-                  <PositionFeedback endpoint={endpoint}/>
-                </div>
-                <div className="col-sm-6">
-                  <DisableMotors endpoint={endpoint}/>
-                </div>
-              </div>
-              <div className="area">
-                <JogSpeeds endpoint={endpoint}/>
-              </div>{/* END AREA */}
-              <div className="area">
-                <Temp endpoint={endpoint}/>
-              </div>
-            </div> {/* END RIGHT */}
-          </div>{/* END CONTAINER */}
-        </div>{/* END DASHBOARD */}
+        <Tabs activeKey={this.state.selectedTab} onSelect={this.tabSelectEvent}>
+          <Tab eventKey={1} title="Dashboard">
+            <Dashboard endpoint={endpoint}/>
+          </Tab>
+          <Tab eventKey={2} title="Terminal">
+            <Terminal endpoint={endpoint}/>
+          </Tab>
+          <Tab eventKey={3} title="Settings">
+            <Settings bot={this.props.bot}/>
+          </Tab>
+        </Tabs>
       </div>
     );
   }
@@ -360,4 +99,234 @@ export default class Bot extends React.Component {
   </div>
 </div>
 {this.renderModal()}
+*/
+
+/*
+detect() {
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `checkSubscription` })
+  .end();
+}
+
+deleteBot() {
+  request.delete(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .end();
+  this.closeModal();
+}
+
+pauseJob() {
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `pause` })
+  .end();
+  this.closeModal();
+}
+
+resumeJob() {
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `resume` })
+  .end();
+  this.closeModal();
+}
+
+cancelJob() {
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `cancel` })
+  .end();
+  this.closeModal();
+}
+
+processGcode(event) {
+  event.preventDefault();
+  const gcode = event.target.gcode.value;
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `processGcode` })
+  .send({ gcode })
+  .end();
+}
+
+setTemp(event) {
+  event.preventDefault();
+  const temp = event.target.temp.value;
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `processGcode` })
+  .send({ gcode: `M104 S${temp}` })
+  .end();
+}
+
+homeX(event) {
+  event.preventDefault();
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `processGcode` })
+  .send({ gcode: `G28 X` })
+  .end();
+}
+
+homeY(event) {
+  event.preventDefault();
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `processGcode` })
+  .send({ gcode: `G28 Y` })
+  .end();
+}
+
+homeZ(event) {
+  event.preventDefault();
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `processGcode` })
+  .send({ gcode: `G28 Z` })
+  .end();
+}
+
+homeAll(event) {
+  event.preventDefault();
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `processGcode` })
+  .send({ gcode: `G28` })
+  .end();
+}
+
+choir(event) {
+  event.preventDefault();
+  const gcode = event.target.gcode.value;
+  request.post(`/v1/conductor/`)
+  .send({ command: `choir` })
+  .send({ gcode })
+  .end();
+}
+
+connect() {
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `connect` })
+  .set('Accept', 'application/json')
+  .end();
+}
+
+disconnect() {
+  request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+  .send({ command: `disconnect` })
+  .set('Accept', 'application/json')
+  .end();
+}
+
+renderConnectButton() {
+  switch (this.props.bot.state) {
+    case `unavailable`:
+      return <Button style={{margin: "5px"}} onClick={this.detect}>Detect</Button>;
+    case `ready`:
+      return <Button bsStyle="success" style={{margin: "5px"}} onClick={this.connect}>Connect</Button>;
+    case `connected`:
+      return <Button bsStyle="danger" style={{margin: "5px"}} onClick={this.disconnect}>Disconnect</Button>;
+    default:
+      return <Button style={{margin: "5px"}} disabled>Nope!</Button>;
+  }
+}
+
+updateBot(event) {
+  event.preventDefault();
+  let update = request.put(`/v1/bots/${this.props.bot.settings.uuid}`)
+  for (const [settingKey, setting] of _.pairs(this.props.bot.settings)) {
+    const paramJson = {};
+    if (event.target[settingKey] !== undefined) {
+      paramJson[settingKey] = event.target[settingKey].value;
+      update = update.send(paramJson);
+    }
+  }
+  update = update.set('Accept', 'application/json');
+  try {
+    update.end();
+    this.closeModal();
+  } catch (ex) {
+    console.log(`Update error`, ex);
+  }
+}
+
+toggleModal() {
+  this.setState({
+    showModal: !this.state.showModal,
+  });
+}
+
+closeModal() {
+  this.setState({ showModal: false });
+}
+
+renderJobButtons() {
+  const buttons = [];
+  if (this.props.currentJob === undefined) {
+    buttons.push(<Button style={{margin: "5px"}} disabled>Nope</Button>);
+    buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" disabled>Nope</Button>);
+  } else {
+    switch (this.props.currentJob.state) {
+      case `running`:
+        buttons.push(<Button style={{margin: "5px"}} onClick={this.pauseJob}>Pause</Button>);
+        buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
+        break;
+      case `paused`:
+        buttons.push(<Button style={{margin: "5px"}} onClick={this.resumeJob}>Resume</Button>);
+        buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>);
+        break;
+      default:
+        buttons.push(<Button style={{margin: "5px"}} disabled>Nope</Button>);
+        buttons.push(<Button style={{margin: "5px"}} bsStyle="danger" disabled>Nope</Button>);
+        break;
+    }
+  }
+  return buttons;
+}
+
+checkDisabled() {
+  let disabled = false;
+  switch (this.props.bot.state) {
+    case `detecting`:
+    case `ready`:
+    case `startingJob`:
+    case `stopping`:
+    case `parking`:
+    case `unparking`:
+    case `unavailable`:
+    case `connecting`:
+      disabled = true;
+      break;
+    default:
+      break;
+  }
+  return disabled;
+}
+
+renderModal() {
+  return (<Modal show={this.state.showModal} onHide={this.closeModal}>
+    <Modal.Header closeButton>
+      <Modal.Title>Edit Bot</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <form onSubmit={this.updateBot}>
+        {_.pairs(this.props.bot.settings).map(([settingKey, setting]) => {
+          switch (settingKey) {
+            case `createdAt`:
+            case `updatedAt`:
+            case `uuid`:
+            case `id`:
+            case `model`:
+              return;
+            case `endpoint`:
+              if (this.props.botPresets[this.props.bot.settings.model].info.connectionType === `serial`) {
+                return;
+              }
+            default:
+              return (<div key={settingKey}>
+                <label key={`${settingKey}label`} htmlFor={settingKey}>{settingKey}</label>
+                <input key={`${settingKey}input`} type="textarea" name={settingKey} defaultValue={setting}/>
+              </div>);
+          }
+        })}
+        <Button bsStyle="primary" type="submit">Update Bot</Button>
+      </form>
+    </Modal.Body>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <Button bsStyle="danger" onClick={this.deleteBot}>Delete Bot</Button>
+  </Modal>);
+}
 */
