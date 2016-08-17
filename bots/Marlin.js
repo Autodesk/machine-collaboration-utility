@@ -27,9 +27,9 @@ const Marlin = function (app) {
         commandArray.push({
           code: `M114`,
           processData: (command, reply) => {
-            self.status.position.x = reply.split('X:')[1].split(' ')[0];
-            self.status.position.y = reply.split('Y:')[1].split(' ')[0];
-            self.status.position.z = reply.split('Z:')[1].split(' ')[0];
+            self.status.position.x = reply.split('X:')[1].split('Y')[0];
+            self.status.position.y = reply.split('Y:')[1].split('Z')[0];
+            self.status.position.z = reply.split('Z:')[1].split('E')[0];
             self.status.position.e = reply.split('E:')[1].split(' ')[0];
             return true;
           },
@@ -37,7 +37,13 @@ const Marlin = function (app) {
         commandArray.push({
           code: `M105`,
           processData: (command, reply) => {
-            self.status.sensors.t0 = reply.split('T:')[1].split(' ')[0];
+            self.status.sensors.t0 = {
+              temperature: '?',
+              setpoint: '?',
+            };
+            self.status.sensors.t0.temperature = reply.split('T:')[1].split(' ')[0];
+            self.status.sensors.t0.setpoint = reply.split('T:')[1].split('/')[1].split(' ')[0];
+            console.log('emitting event here');
             self.app.io.emit(`botEvent`, {
               uuid: self.settings.uuid,
               event: `update`,
