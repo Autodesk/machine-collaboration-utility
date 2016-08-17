@@ -148,13 +148,14 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
  * get a json friendly description of the Bot
  */
 Bot.prototype.getBot = function getBot() {
+  const currentJob = this.currentJob === undefined ? undefined : this.currentJob.getJob();
   return {
     state: (this.fsm !== undefined && this.fsm.current !== undefined) ? this.fsm.current : `unavailable`,
     status: this.status,
     port: this.port,
     settings: this.settings,
     subscribers: this.subscribers,
-    currentJob: this.currentJob === undefined ? undefined : this.currentJob.getJob(),
+    currentJob,
   };
 };
 
