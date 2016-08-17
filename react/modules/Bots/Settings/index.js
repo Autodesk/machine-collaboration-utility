@@ -1,12 +1,14 @@
 import React from 'react';
 import request from 'superagent';
 import _ from 'underscore';
+import Button from 'react-bootstrap/lib/Button';
 
 export default class Settings extends React.Component {
   constructor(props) {
     super(props);
 
     this.updateBotSettings = this.updateBotSettings.bind(this);
+    this.deleteBot = this.deleteBot.bind(this);
   }
 
   updateBotSettings(event) {
@@ -62,12 +64,18 @@ export default class Settings extends React.Component {
     );
   }
 
+  deleteBot() {
+    request.delete(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .end();
+  }
+
   render() {
     const settingsForm = this.renderSettingsForm();
     return (
       <div>
         <h3>Settings</h3>
         {settingsForm}
+        <Button bsStyle="danger" onClick={this.deleteBot}>Delete Bot</Button>
       </div>
     );
   }
