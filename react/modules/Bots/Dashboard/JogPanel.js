@@ -9,7 +9,6 @@ class Polygon extends React.Component {
 
   handleClick(event) {
     event.preventDefault();
-
     request.post(this.props.endpoint)
     .send({ command: `jog` })
     .send({ axis: this.props.axis })

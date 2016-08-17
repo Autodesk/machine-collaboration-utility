@@ -15,7 +15,8 @@ export default class Dashboard extends React.Component {
   }
 
   render() {
-    const endpoint = this.props.endpoint;
+    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
+
     return (
       <div id="dashboard">
         <div className="container">
@@ -29,18 +30,18 @@ export default class Dashboard extends React.Component {
           </div>{/* END LEFT */}
           <div id="right" className="col-md-6">
             <div className="area">
-              <CurrentJob endpoint={endpoint}/>
+              <CurrentJob bot={this.props.bot}/>
             </div>
             <div className="area row">
               <div className="col-sm-6">
-                <PositionFeedback endpoint={endpoint}/>
+                <PositionFeedback bot={this.props.bot}/>
               </div>
               <div className="col-sm-6">
                 <DisableMotors endpoint={endpoint}/>
               </div>
             </div>
             <div className="area">
-              <Temp endpoint={endpoint}/>
+              <Temp bot={this.props.bot}/>
             </div>
           </div> {/* END RIGHT */}
         </div>{/* END CONTAINER */}
