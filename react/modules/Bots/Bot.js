@@ -30,16 +30,14 @@ export default class Bot extends React.Component {
   }
 
   render() {
-    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
-
     return (
       <div>
         <Tabs activeKey={this.state.selectedTab} onSelect={this.tabSelectEvent}>
           <Tab eventKey={1} title="Dashboard">
-            <Dashboard endpoint={endpoint}/>
+            <Dashboard bot={this.props.bot}/>
           </Tab>
           <Tab eventKey={2} title="Terminal">
-            <Terminal endpoint={endpoint}/>
+            <Terminal bot={this.props.bot}/>
           </Tab>
           <Tab eventKey={3} title="Settings">
             <Settings bot={this.props.bot}/>
