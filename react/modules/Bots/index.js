@@ -60,7 +60,7 @@ export default class Bots extends React.Component {
       }
       return radioElement;
     });
-    botRadioList.push(<Button onClick={this.toggleModal}>Create Bot</Button>);
+    botRadioList.push(<Button key="createBot" onClick={this.toggleModal}>Create Bot</Button>);
     return (
       <FormGroup onChange={this.handleSelectBot}>
         {botRadioList}
