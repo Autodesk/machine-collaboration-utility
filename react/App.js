@@ -53,11 +53,20 @@ export default class App extends React.Component {
       });
       this.socket.on('jobEvent', (job) => {
         const newJobs = this.state.jobs;
+        const newBots = this.state.bots;
         switch (job.event) {
           case `new`:
           case `update`:
             newJobs[job.uuid] = job.data;
-            this.setState({ jobs: newJobs });
+            try {
+              newBots[job.data.botUuid].currentJob = job.data;
+            } catch (ex) {
+              console.log(`Failed to update bots from job event`, ex);
+            }
+            this.setState({
+              jobs: newJobs,
+              bots: newBots,
+            });
             break;
           case `delete`:
             delete newJobs[job.uuid];
