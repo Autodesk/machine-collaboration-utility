@@ -29,6 +29,7 @@ const HydraPrint = function(app) {
       self.status.position.z = reply.data.status.position.z;
       self.status.position.e = reply.data.status.position.e;
       self.status.sensors.t0 = reply.data.status.sensors.t0;
+      self.status.sensors.b0 = reply.data.status.sensors.b0;
       self.app.io.emit(`botEvent`, {
         uuid: self.settings.uuid,
         event: `update`,
