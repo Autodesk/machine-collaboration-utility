@@ -6,8 +6,8 @@ const Printrbot = function (app) {
   Marlin.call(this, app);
 
   _.extend(this.settings, {
-    name: `Printrbot Serial`,
-    model: `Printrbot`,
+    name: `Printrbot Simple Serial`,
+    model: `PrintrbotSimple`,
   });
 
   _.extend(this.info, {
