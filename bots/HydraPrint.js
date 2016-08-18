@@ -76,18 +76,26 @@ const HydraPrint = function(app) {
       return true;
     },
     jog: (self, params) => {
+      const feedRate = self.settings[`jog${params.axis.toUpperCase()}Speed`];
+
+      let amount;
+      if (params.axis.toUpperCase() !== `E`) {
+        amount = Number(params.amount) + Number(self.settings[`offset${params.axis.toUpperCase()}`]);
+      } else {
+        amount = Number(params.amount);
+      }
+
       const commandArray = [];
       commandArray.push(self.commands.gcodeInitialState(self, params));
       commandArray.push({
         postCallback: bsync(() => {
-          const feedRate = self.settings[`jog${params.axis.toUpperCase()}Speed`];
           const requestParams = {
             method: `POST`,
             uri: self.port,
             body: {
               command: `jog`,
               axis: params.axis,
-              amount: params.amount,
+              amount,
               feedRate,
             },
             json: true,
