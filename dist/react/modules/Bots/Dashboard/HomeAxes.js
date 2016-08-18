@@ -43,7 +43,11 @@ class HomeAxes extends _react2.default.Component {
       gcode = 'G28 Z';
     }
 
-    _superagent2.default.post(this.props.endpoint).send({ command: `processGcode` }).send({ gcode }).set('Accept', 'application/json').end();
+    _superagent2.default.post(this.props.endpoint).send({ command: `processGcode` }).send({ gcode }).set('Accept', 'application/json').end(() => {
+      if (axes.z) {
+        _superagent2.default.post(this.props.endpoint).send({ command: `processGcode` }).send({ gcode: `G1 Z0 F${ this.pros.bot.settings.jogZSpeed }` }).set('Accept', 'application/json').end();
+      }
+    });
   }
 
   render() {

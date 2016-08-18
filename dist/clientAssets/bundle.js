@@ -45302,11 +45302,11 @@
 
 	var _Dashboard2 = _interopRequireDefault(_Dashboard);
 
-	var _Terminal = __webpack_require__(696);
+	var _Terminal = __webpack_require__(697);
 
 	var _Terminal2 = _interopRequireDefault(_Terminal);
 
-	var _Settings = __webpack_require__(697);
+	var _Settings = __webpack_require__(698);
 
 	var _Settings2 = _interopRequireDefault(_Settings);
 
@@ -48098,6 +48098,10 @@
 
 	var _Temp2 = _interopRequireDefault(_Temp);
 
+	var _SendGcode = __webpack_require__(696);
+
+	var _SendGcode2 = _interopRequireDefault(_SendGcode);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	class Dashboard extends _react2.default.Component {
@@ -48125,7 +48129,7 @@
 	          _react2.default.createElement(
 	            'div',
 	            { className: 'area' },
-	            _react2.default.createElement(_HomeAxes2.default, { endpoint: endpoint })
+	            _react2.default.createElement(_HomeAxes2.default, { endpoint: endpoint, bot: this.props.bot })
 	          )
 	        ),
 	        _react2.default.createElement(
@@ -48154,6 +48158,11 @@
 	            'div',
 	            { className: 'area' },
 	            _react2.default.createElement(_Temp2.default, { bot: this.props.bot })
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'area' },
+	            _react2.default.createElement(_SendGcode2.default, { endpoint: endpoint })
 	          )
 	        ),
 	        ' '
@@ -49093,7 +49102,11 @@
 	      gcode = 'G28 Z';
 	    }
 
-	    _superagent2.default.post(this.props.endpoint).send({ command: `processGcode` }).send({ gcode }).set('Accept', 'application/json').end();
+	    _superagent2.default.post(this.props.endpoint).send({ command: `processGcode` }).send({ gcode }).set('Accept', 'application/json').end(() => {
+	      if (axes.z) {
+	        _superagent2.default.post(this.props.endpoint).send({ command: `processGcode` }).send({ gcode: `G1 Z0 F${ this.pros.bot.settings.jogZSpeed }` }).set('Accept', 'application/json').end();
+	      }
+	    });
 	  }
 
 	  render() {
@@ -49635,6 +49648,72 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	class SendGcode extends _react2.default.Component {
+	  constructor(props) {
+	    super(props);
+
+	    this.processGcode = this.processGcode.bind(this);
+	  }
+
+	  processGcode(event) {
+	    event.preventDefault();
+	    const gcode = event.target.gcode.value;
+
+	    _superagent2.default.post(this.props.endpoint).send({ command: `processGcode` }).send({ gcode }).set('Accept', 'application/json').end();
+	  }
+
+	  render() {
+	    return _react2.default.createElement(
+	      'div',
+	      null,
+	      _react2.default.createElement(
+	        'h3',
+	        null,
+	        'SEND GCODE'
+	      ),
+	      _react2.default.createElement(
+	        'form',
+	        { onSubmit: this.processGcode },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'row' },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'col-sm-9' },
+	            _react2.default.createElement('input', { type: 'text', name: 'gcode' })
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'col-sm-3' },
+	            _react2.default.createElement('input', { type: 'submit', value: 'SEND GCODE' })
+	          )
+	        )
+	      )
+	    );
+	  }
+	}
+	exports.default = SendGcode;
+
+/***/ },
+/* 697 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _react = __webpack_require__(299);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _superagent = __webpack_require__(540);
+
+	var _superagent2 = _interopRequireDefault(_superagent);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	class Terminal extends _react2.default.Component {
 	  constructor(props) {
 	    super(props);
@@ -49651,7 +49730,7 @@
 	exports.default = Terminal;
 
 /***/ },
-/* 697 */
+/* 698 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

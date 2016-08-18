@@ -40,6 +40,10 @@ var _Temp = require('./Temp');
 
 var _Temp2 = _interopRequireDefault(_Temp);
 
+var _SendGcode = require('./SendGcode');
+
+var _SendGcode2 = _interopRequireDefault(_SendGcode);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class Dashboard extends _react2.default.Component {
@@ -67,7 +71,7 @@ class Dashboard extends _react2.default.Component {
           _react2.default.createElement(
             'div',
             { className: 'area' },
-            _react2.default.createElement(_HomeAxes2.default, { endpoint: endpoint })
+            _react2.default.createElement(_HomeAxes2.default, { endpoint: endpoint, bot: this.props.bot })
           )
         ),
         _react2.default.createElement(
@@ -96,6 +100,11 @@ class Dashboard extends _react2.default.Component {
             'div',
             { className: 'area' },
             _react2.default.createElement(_Temp2.default, { bot: this.props.bot })
+          ),
+          _react2.default.createElement(
+            'div',
+            { className: 'area' },
+            _react2.default.createElement(_SendGcode2.default, { endpoint: endpoint })
           )
         ),
         ' '
