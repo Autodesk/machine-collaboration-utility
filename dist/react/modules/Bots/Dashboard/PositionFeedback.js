@@ -63,7 +63,7 @@ class PositionFeedback extends _react2.default.Component {
         _react2.default.createElement(
           'div',
           null,
-          position.x
+          Number(position.x) - Number(this.props.bot.settings.offsetX)
         ),
         _react2.default.createElement(
           'button',
@@ -84,7 +84,7 @@ class PositionFeedback extends _react2.default.Component {
         _react2.default.createElement(
           'div',
           null,
-          position.y
+          Number(position.y) - Number(this.props.bot.settings.offsetY)
         ),
         _react2.default.createElement(
           'button',
@@ -105,7 +105,7 @@ class PositionFeedback extends _react2.default.Component {
         _react2.default.createElement(
           'div',
           null,
-          position.z
+          Number(position.z) - Number(this.props.bot.settings.offsetZ)
         ),
         _react2.default.createElement(
           'button',
