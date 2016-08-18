@@ -145,7 +145,8 @@ const Marlin = function (app) {
           } else {
             feedRate = self.settings[`jog${params.axis.toUpperCase()}Speed`];
           }
-          const jogGcode = `G1 ${params.axis.toUpperCase()}${newPosition} F${feedRate}`;
+          let jogGcode = `G1 ${params.axis.toUpperCase()}${newPosition} F${feedRate}`;
+          jogGcode = self.addOffset(jogGcode);
           self.queue.prependCommands(jogGcode);
           return true;
         },
