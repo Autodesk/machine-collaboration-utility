@@ -31,7 +31,15 @@ export default class HomeAxes extends React.Component {
     .send({ command: `processGcode` })
     .send({ gcode })
     .set('Accept', 'application/json')
-    .end();
+    .end(() => {
+      if (axes.z) {
+        request.post(this.props.endpoint)
+        .send({ command: `processGcode` })
+        .send({ gcode: `G1 Z0 F${this.pros.bot.settings.jogZSpeed}` })
+        .set('Accept', 'application/json')
+        .end();
+      }
+    });
   }
 
   render() {

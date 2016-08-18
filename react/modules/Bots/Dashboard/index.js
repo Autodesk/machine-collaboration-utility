@@ -8,6 +8,7 @@ import HomeAxes from './HomeAxes';
 import PositionFeedback from './PositionFeedback';
 import DisableMotors from './DisableMotors';
 import Temp from './Temp';
+import SendGcode from './SendGcode';
 
 export default class Dashboard extends React.Component {
   constructor(props) {
@@ -25,7 +26,7 @@ export default class Dashboard extends React.Component {
               <JogPanel endpoint={endpoint}/>
             </div>
             <div className="area">
-              <HomeAxes endpoint={endpoint}/>
+              <HomeAxes endpoint={endpoint} bot={this.props.bot}/>
             </div>
           </div>{/* END LEFT */}
           <div id="right" className="col-md-6">
@@ -42,6 +43,9 @@ export default class Dashboard extends React.Component {
             </div>
             <div className="area">
               <Temp bot={this.props.bot}/>
+            </div>
+            <div className="area">
+              <SendGcode endpoint={endpoint}/>
             </div>
           </div> {/* END RIGHT */}
         </div>{/* END CONTAINER */}
