@@ -5,11 +5,12 @@ export default class Temp extends React.Component {
   constructor(props) {
     super(props);
 
-    this.setTemp = this.setTemp.bind(this);
+    this.setNozzleTemp = this.setNozzleTemp.bind(this);
+    this.setBedTemp = this.setBedTemp.bind(this);
     this.processGcode = this.processGcode.bind(this);
   }
 
-  setTemp(event) {
+  setNozzleTemp(event) {
     event.preventDefault();
 
     const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
@@ -25,6 +26,22 @@ export default class Temp extends React.Component {
     }
   }
 
+  setBedTemp(event) {
+    event.preventDefault();
+
+    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
+    const temp = Number(event.target.setpoint.value);
+
+    // Don't update the temp unless the value passed is a number 0 or greater
+    if (!Number.isNaN(temp) && temp >= 0) {
+      request.post(endpoint)
+      .send({ command: `processGcode` })
+      .send({ gcode: `M140 S${event.target.setpoint.value}` })
+      .set('Accept', 'application/json')
+      .end();
+    }
+  }
+
   processGcode(gcode) {
     const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
 
@@ -35,7 +52,7 @@ export default class Temp extends React.Component {
     .end();
   }
 
-  renderOnOff() {
+  renderNozzleOnOff() {
     const t0 = this.props.bot.status.sensors.t0 === undefined ?
       { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.t0;
 
@@ -47,28 +64,66 @@ export default class Temp extends React.Component {
     return <button disabled>On/Off</button>;
   }
 
+  renderBedOnOff() {
+    const b0 = this.props.bot.status.sensors.b0 === undefined ?
+      { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.b0;
+
+    if (Number(b0.setpoint) === 0) {
+      return <button onClick={() => { this.processGcode(`M140 S${this.props.bot.settings.tempB}`) } }>Turn On ({this.props.bot.settings.tempB}&#x2103;)</button>;
+    } else if (Number(b0.setpoint) > 0 || Number(b0.setpoint < 0)) {
+      return <button onClick={() => { this.processGcode(`M140 S0`) } }>Turn Off (0&#x2103;)</button>;
+    }
+    return <button disabled>On/Off</button>;
+  }
+
   render() {
-    const t0 = this.props.bot.status.sensors.t0 === undefined ?
-      { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.t0;
+    const t0Disabled = this.props.bot.status.sensors.t0 === undefined ||
+    Number.isNaN(Number(this.props.bot.status.sensors.t0.setpoint));
+    const b0Disabled = this.props.bot.status.sensors.b0 === undefined ||
+    Number.isNaN(Number(this.props.bot.status.sensors.b0.setpoint));
+
+    const t0 = t0Disabled ? { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.t0;
+    const b0 = b0Disabled ? { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.b0;
     return (
       <div className="row">
         <h3>TEMPERATURE CONTROL</h3>
-        <div className="col-sm-3">
-          <p>&#x25EF; Extruder</p>
+        <div className="row">
+          <div className="col-sm-3">
+            <p>&#x25EF; Extruder</p>
+          </div>
+          <div className="col-sm-3">
+            <form onSubmit={this.setNozzleTemp}>
+              <div className="row">
+                <input type="text" name="setpoint" className="col-sm-5" disabled={t0Disabled}/>
+                <input type="submit" value="*" className="col-sm-1" disabled={t0Disabled}/>
+              </div>
+            </form>
+          </div>
+          <div className="col-sm-3">
+            <p>{t0.temperature} / {t0.setpoint}</p>
+          </div>
+          <div className="col-sm-3">
+            {this.renderNozzleOnOff()}
+          </div>
         </div>
-        <div className="col-sm-3">
-          <form onSubmit={this.setTemp}>
-            <div className="row">
-              <input type="text" name="setpoint" className="col-sm-5"/>
-              <input type="submit" value="*" className="col-sm-1"/>
-            </div>
-          </form>
-        </div>
-        <div className="col-sm-3">
-          <p>{t0.temperature} / {t0.setpoint}</p>
-        </div>
-        <div className="col-sm-3">
-          {this.renderOnOff()}
+        <div className="row">
+          <div className="col-sm-3">
+            <p>&#x25EF; Bed</p>
+          </div>
+          <div className="col-sm-3">
+            <form onSubmit={this.setBedTemp}>
+              <div className="row">
+                <input type="text" name="setpoint" className="col-sm-5" disabled={b0Disabled}/>
+                <input type="submit" value="*" className="col-sm-1" disabled={b0Disabled}/>
+              </div>
+            </form>
+          </div>
+          <div className="col-sm-3">
+            <p>{b0.temperature} / {b0.setpoint}</p>
+          </div>
+          <div className="col-sm-3">
+            {this.renderBedOnOff()}
+          </div>
         </div>
       </div>
     );

@@ -22,6 +22,25 @@ const Marlin = function (app) {
 
   _.extend(this.commands, {
     updateRoutine: (self, params) => {
+      self.status = {
+        position: {
+          x: undefined,
+          y: undefined,
+          z: undefined,
+          e: undefined,
+        },
+        sensors: {
+          t0: {
+            temperature: undefined,
+            setpoint: undefined,
+          },
+          b0: {
+            temperature: undefined,
+            setpoint: undefined,
+          },
+        },
+      };
+
       if (self.fsm.current === `connected`) {
         const commandArray = [];
         commandArray.push({
@@ -41,9 +60,25 @@ const Marlin = function (app) {
               temperature: '?',
               setpoint: '?',
             };
-            self.status.sensors.t0.temperature = reply.split('T:')[1].split(' ')[0];
-            self.status.sensors.t0.setpoint = reply.split('T:')[1].split('/')[1].split(' ')[0];
-            console.log('emitting event here');
+            self.status.sensors.b0 = {
+              temperature: '?',
+              setpoint: '?',
+            };
+
+            try {
+              self.status.sensors.t0.temperature = reply.split('T:')[1].split(' ')[0];
+              self.status.sensors.t0.setpoint = reply.split('T:')[1].split('/')[1].split(' ')[0];
+            } catch (ex) {
+              // this.logger.info(`Failed to parse nozzle temp`);
+            }
+
+            try {
+              self.status.sensors.b0.temperature = reply.split('B:')[1].split(' ')[0];
+              self.status.sensors.b0.setpoint = reply.split('B:')[1].split('/')[1].split(' ')[0];
+            } catch (ex) {
+              // this.logger.info(`Failed to parse bed temp`);
+            }
+
             self.app.io.emit(`botEvent`, {
               uuid: self.settings.uuid,
               event: `update`,
