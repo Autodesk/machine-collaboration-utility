@@ -91,7 +91,7 @@ const Marlin = function (app) {
       }
     },
     processGcode: bsync((self, params) => {
-      const gcode = params.gcode;
+      const gcode = self.addOffset(params.gcode);
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }
@@ -115,7 +115,7 @@ const Marlin = function (app) {
       if (self.queue.mQueue.length >= 32) {
         return false;
       }
-      const gcode = params.gcode;
+      const gcode = self.addOffset(params.gcode);
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }

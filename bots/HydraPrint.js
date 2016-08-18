@@ -29,7 +29,6 @@ const HydraPrint = function(app) {
       self.status.position.z = reply.data.status.position.z;
       self.status.position.e = reply.data.status.position.e;
       self.status.sensors.t0 = reply.data.status.sensors.t0;
-      self.status.sensors.b0 = reply.data.status.sensors.b0;
       self.app.io.emit(`botEvent`, {
         uuid: self.settings.uuid,
         event: `update`,
@@ -37,7 +36,7 @@ const HydraPrint = function(app) {
       });
     }),
     processGcode: bsync((self, params) => {
-      const gcode = params.gcode;
+      const gcode = self.addOffset(params.gcode);
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }
@@ -64,7 +63,7 @@ const HydraPrint = function(app) {
       if (self.queue.mQueue.length >= 32) {
         return false;
       }
-      const gcode = params.gcode;
+      const gcode = self.addOffset(params.gcode);
       if (gcode === undefined) {
         throw `"gcode" is undefined`;
       }
