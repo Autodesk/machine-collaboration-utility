@@ -413,7 +413,7 @@ Bot.prototype.offsetAxis = function offsetAxis(command, axis) {
     const axisArray = offsetCommand.split(axis);
     const before = axisArray[0];
     const splitArray = axisArray[1].split(' ');
-    const middle = axis + Number(Number(splitArray[0]) + Number(this.settings['offset' + axis])).toFixed(5);
+    const middle = axis + Number(Number(splitArray[0]) + Number(this.settings['offset' + axis])).toFixed(4);
     let end = '';
     if (splitArray.length > 1) {
       for (let i = 1; i < splitArray.length; i++) {
