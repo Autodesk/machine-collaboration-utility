@@ -33,6 +33,37 @@ var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
  *                           connected
  * Return: N/A
  */
+
+const roundAxis = function roundAxis(command, axis) {
+  let roundedCommand = command;
+  if (roundedCommand.indexOf(axis) !== -1) {
+    const axisArray = roundedCommand.split(axis);
+    const before = axisArray[0];
+    const splitArray = axisArray[1].split(' ');
+    const middle = axis + Number(splitArray[0]).toFixed(4);
+    let end = '';
+    if (splitArray.length > 1) {
+      for (let i = 1; i < splitArray.length; i++) {
+        end += ` ${splitArray[i]}`;
+      }
+    }
+    roundedCommand = before + middle + end;
+  }
+  return roundedCommand;
+};
+
+const roundGcode = function roundGcode(inGcode) {
+  let gcode = inGcode;
+  if (inGcode.indexOf(`G1`) !== -1) {
+    gcode = roundAxis(`X`);
+    gcode = roundAxis(`Y`);
+    gcode = roundAxis(`Z`);
+    gcode = roundAxis(`E`);
+    gcode = roundAxis(`F`);
+  }
+  return gcode;
+};
+
 var SerialConnection = function(
   app,
   inComName,
@@ -141,13 +172,14 @@ SerialConnection.prototype.setErrorFunc = function (inErrorFunc) {
  * Return: N/A
  */
 SerialConnection.prototype.send = function (inCommandStr) {
+    const gcode = roundGcode(inCommandStr);
     var error = undefined;
     var commandSent = false;
 
     if (this.mState === SerialConnection.State.CONNECTED) {
         try {
             // TODO add GCODE Validation regex
-            this.mPort.write(inCommandStr);
+            this.mPort.write(gcode);
             commandSent = true;
         } catch (inError) {
             error = inError;
