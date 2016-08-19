@@ -54,12 +54,13 @@ const roundAxis = function roundAxis(command, axis) {
 
 const roundGcode = function roundGcode(inGcode) {
   let gcode = inGcode;
-  if (inGcode.indexOf(`G1`) !== -1) {
-    gcode = roundAxis(`X`);
-    gcode = roundAxis(`Y`);
-    gcode = roundAxis(`Z`);
-    gcode = roundAxis(`E`);
-    gcode = roundAxis(`F`);
+  if (gcode.indexOf(`G0`) !== -1 || gcode.indexOf(`G1`) !== -1) {
+    gcode = roundAxis(gcode, `X`);
+    gcode = roundAxis(gcode, `Y`);
+    gcode = roundAxis(gcode, `Z`);
+    gcode = roundAxis(gcode, `E`);
+    gcode = roundAxis(gcode, `F`);
+    gcode += `\n`;
   }
   return gcode;
 };
