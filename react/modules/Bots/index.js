@@ -7,6 +7,7 @@ import request from 'superagent';
 import _ from 'underscore';
 
 import Bot from './Bot';
+import NavLink from '../NavLink';
 
 export default class Bots extends React.Component {
   constructor(props) {
@@ -20,7 +21,7 @@ export default class Bots extends React.Component {
 
     this.state = {
       showModal: false,
-      selectedBot: _.pairs(props.bots).length > 0 ? _.pairs(props.bots)[0][0]: undefined,
+      selectedBot: props.params.id || _.pairs(props.bots).length > 0 ? _.pairs(props.bots)[0][0]: undefined,
       selectedPreset: _.pairs(props.botPresets)[0][1],
     };
   }
@@ -52,19 +53,16 @@ export default class Bots extends React.Component {
   }
 
   renderBotList() {
-    let defaultSet = false;
-    const botRadioList = _.pairs(this.props.bots).map(([botUuid, bot]) => {
-      const radioElement = <Radio inline key={botUuid} name="botList" defaultValue={botUuid} checked={this.state.selectedBot === botUuid}>{bot.settings.name}</Radio>;
-      if (!defaultSet) {
-        defaultSet = true;
-      }
-      return radioElement;
+    const botLinkList = _.pairs(this.props.bots).map(([botUuid, bot]) => {
+      const botElement = <NavLink to={`/${botUuid}`}>{bot.settings.name}</NavLink>;
+      return botElement;
     });
-    botRadioList.push(<Button key="createBot" onClick={this.toggleModal}>Create Bot</Button>);
+
+    botLinkList.push(<Button key="createBot" onClick={this.toggleModal}>Create Bot</Button>);
     return (
-      <FormGroup onChange={this.handleSelectBot}>
-        {botRadioList}
-      </FormGroup>
+      <div>
+        {botLinkList}
+      </div>
     );
   }
 
@@ -194,7 +192,7 @@ export default class Bots extends React.Component {
       selectedBot = undefined;
       currentJob = undefined;
     } else {
-      selectedBot = this.props.bots[this.state.selectedBot];
+      selectedBot = this.props.params.id ? this.props.bots[this.props.params.id] : this.props.bots[this.state.selectedBot];
       currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
     }
 
