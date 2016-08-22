@@ -188,12 +188,16 @@ export default class Bots extends React.Component {
   render() {
     let selectedBot;
     let currentJob;
-    if (this.state.selectedBot === undefined) {
+    if (this.props.params.id !== undefined && this.props.bots[this.props.params.id] !== undefined) {
+      selectedBot = this.props.bots[this.props.params.id];
+      currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
+      // if the bot doesn't exist, we want to redirect the user...
+    } else if (this.state.selectedBot !== undefined && this.props.bots[this.state.selectedBot] !== undefined) {
+      selectedBot = this.props.bots[this.state.selectedBot];
+      currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
+    } else {
       selectedBot = undefined;
       currentJob = undefined;
-    } else {
-      selectedBot = this.props.params.id ? this.props.bots[this.props.params.id] : this.props.bots[this.state.selectedBot];
-      currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
     }
 
     const daBot = this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>;
