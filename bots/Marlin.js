@@ -46,11 +46,22 @@ const Marlin = function (app) {
         commandArray.push({
           code: `M114`,
           processData: (command, reply) => {
-            self.status.position.x = reply.split('X:')[1].split('Y')[0];
-            self.status.position.y = reply.split('Y:')[1].split('Z')[0];
-            self.status.position.z = reply.split('Z:')[1].split('E')[0];
-            self.status.position.e = reply.split('E:')[1].split(' ')[0];
-            return true;
+            const newPosition = {
+              x: undefined,
+              y: undefined,
+              z: undefined,
+              e: undefined,
+            };
+            try {
+              newPosition.x = reply.split('X:')[1].split('Y')[0];
+              newPosition.y = reply.split('Y:')[1].split('Z')[0];
+              newPosition.z = reply.split('Z:')[1].split('E')[0];
+              newPosition.e = reply.split('E:')[1].split(' ')[0];
+              self.status.position = newPosition;
+              return true;
+            } catch (ex) {
+              self.logger.error(`Failed to set position`, reply, ex);
+            }
           },
         });
         commandArray.push({
