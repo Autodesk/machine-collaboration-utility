@@ -181,13 +181,17 @@ SerialConnection.prototype.setErrorFunc = function (inErrorFunc) {
  * Return: N/A
  */
 SerialConnection.prototype.send = function (inCommandStr) {
-    const gcode = roundGcode(inCommandStr);
+    let gcode = roundGcode(inCommandStr);
     var error = undefined;
     var commandSent = false;
 
     if (this.mState === SerialConnection.State.CONNECTED) {
         try {
             // TODO add GCODE Validation regex
+            // Add a line break if it isn't in there yet
+            if (gcode.indexOf(`\n`) === -1) {
+              gcode += `\n`;
+            }
             this.mPort.write(gcode);
             console.log('sent', gcode);
             commandSent = true;
