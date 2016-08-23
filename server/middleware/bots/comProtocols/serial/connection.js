@@ -116,6 +116,7 @@ var SerialConnection = function(
         } else {
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
+              console.log('data', data);
               this.returnString += data;
               if (data.includes('ok')) {
                 if (_.isFunction(that.mDataFunc)) {
@@ -188,6 +189,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
         try {
             // TODO add GCODE Validation regex
             this.mPort.write(gcode);
+            console.log('sent', gcode);
             commandSent = true;
         } catch (inError) {
             error = inError;
