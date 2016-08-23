@@ -9,6 +9,20 @@ const http = require(`http`);
 const config = require(`./config`);
 const koaApp = require(`./koaApp`);
 
+function dumpError(err) {
+  if (typeof err === 'object') {
+    if (err.message) {
+      console.log('\nMessage: ' + err.message)
+    }
+    if (err.stack) {
+      console.log('\nStacktrace:')
+      console.log('====================')
+      console.log(err.stack);
+    }
+  } else {
+    console.log('dumpError :: argument is not an object');
+  }
+}
 
 // Set up logging
 const filename = path.join(__dirname, `../catchall.log`);
@@ -23,6 +37,7 @@ logger.info('started logging');
 
 process.on(`uncaughtException`, (err) => {
   logger.error(`Caught exception: ${err}`);
+  dumpError(err);
 });
 
 
