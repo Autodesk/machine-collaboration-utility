@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node server/index.js"
+    "debug": "node node_modules/gulp/bin/gulp.js debug",
+    "test": "node node_modules/gulp/bin/gulp.js test",
+    "start": "node node_modules/gulp/bin/gulp.js",
+    "build": "node node_modules/gulp/bin/gulp.js build"
   },
   "dependencies": {
     "asyncawait": "^1.0.6",
