@@ -73,10 +73,14 @@ const DefaultBot = function DefaultBot(app) {
 
         // Add an extra G4 P0 to pad the hydra-print buffer
         // TODO handle the summation of buffers here instead of on the composer side
-        if (command.indexOf('G4 P0') !== -1) {
-          self.queue.queueCommands({
-            code: command,
-          });
+        try {
+          if (command.indexOf('G4 P1') !== -1) {
+            self.queue.queueCommands({
+              code: command,
+            });
+          }
+        } catch (ex) {
+          self.logger.error('The ole G4 snag', command);
         }
         self.queue.queueCommands({
           code: command,
