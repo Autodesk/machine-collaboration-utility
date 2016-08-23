@@ -341,9 +341,14 @@ Bot.prototype.expandCode = function expandCode(code) {
  */
 Bot.prototype.validateSerialReply = function validateSerialReply(command, reply) {
   const lines = reply.toString().split('\n');
-  const ok = _.last(lines).indexOf(`ok`) !== -1;
+  let ok;
+  try {
+    ok = _.last(lines).indexOf(`ok`) !== -1;
+  } catch (ex) {
+    this.logger.error(`Bot validate serial reply error`, reply, ex);
+  }
   return ok;
-}
+};
 
 /**
  * validateHttpReply()
@@ -389,10 +394,14 @@ Bot.prototype.validateVirtualReply = function validateVirtualReply(command, repl
  */
 Bot.prototype.addOffset = function addOffset(command) {
   let offsetCommand = command;
-  if (offsetCommand.indexOf('G1') !== -1) {
-    offsetCommand = this.offsetAxis(offsetCommand, 'X');
-    offsetCommand = this.offsetAxis(offsetCommand, 'Y');
-    offsetCommand = this.offsetAxis(offsetCommand, 'Z');
+  try {
+    if (offsetCommand.indexOf('G1') !== -1) {
+      offsetCommand = this.offsetAxis(offsetCommand, 'X');
+      offsetCommand = this.offsetAxis(offsetCommand, 'Y');
+      offsetCommand = this.offsetAxis(offsetCommand, 'Z');
+    }
+  } catch (ex) {
+    this.logger.error(`index of error on bot AddOffset`, ex, command);
   }
   return offsetCommand;
 };
@@ -409,18 +418,22 @@ Bot.prototype.addOffset = function addOffset(command) {
  */
 Bot.prototype.offsetAxis = function offsetAxis(command, axis) {
   let offsetCommand = command;
-  if (offsetCommand.indexOf(axis) !== -1) {
-    const axisArray = offsetCommand.split(axis);
-    const before = axisArray[0];
-    const splitArray = axisArray[1].split(' ');
-    const middle = axis + Number(Number(splitArray[0]) + Number(this.settings['offset' + axis])).toFixed(4);
-    let end = '';
-    if (splitArray.length > 1) {
-      for (let i = 1; i < splitArray.length; i++) {
-        end += ' ' + splitArray[i];
+  try {
+    if (offsetCommand.indexOf(axis) !== -1) {
+      const axisArray = offsetCommand.split(axis);
+      const before = axisArray[0];
+      const splitArray = axisArray[1].split(' ');
+      const middle = axis + Number(Number(splitArray[0]) + Number(this.settings['offset' + axis])).toFixed(4);
+      let end = '';
+      if (splitArray.length > 1) {
+        for (let i = 1; i < splitArray.length; i++) {
+          end += ' ' + splitArray[i];
+        }
       }
+      offsetCommand = before + middle + end;
     }
-    offsetCommand = before + middle + end;
+  } catch (ex) {
+    this.logger.error(`Error when offsetting axis`, command, axis, ex);
   }
   return offsetCommand;
 };

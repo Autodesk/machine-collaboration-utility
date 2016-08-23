@@ -34,32 +34,40 @@ var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
  * Return: N/A
  */
 
-const roundAxis = function roundAxis(command, axis) {
+const roundAxis = function roundAxis(command, axis, self) {
   let roundedCommand = command;
-  if (roundedCommand.indexOf(axis) !== -1) {
-    const axisArray = roundedCommand.split(axis);
-    const before = axisArray[0];
-    const splitArray = axisArray[1].split(' ');
-    const middle = axis + Number(splitArray[0]).toFixed(4);
-    let end = '';
-    if (splitArray.length > 1) {
-      for (let i = 1; i < splitArray.length; i++) {
-        end += ` ${splitArray[i]}`;
+  try {
+    if (roundedCommand.indexOf(axis) !== -1) {
+      const axisArray = roundedCommand.split(axis);
+      const before = axisArray[0];
+      const splitArray = axisArray[1].split(' ');
+      const middle = axis + Number(splitArray[0]).toFixed(4);
+      let end = '';
+      if (splitArray.length > 1) {
+        for (let i = 1; i < splitArray.length; i++) {
+          end += ` ${splitArray[i]}`;
+        }
       }
+      roundedCommand = before + middle + end;
     }
-    roundedCommand = before + middle + end;
+  } catch (ex) {
+    self.logger.error(`Round Axis error`, command, axis, ex);
   }
   return roundedCommand;
 };
 
-const roundGcode = function roundGcode(inGcode) {
+const roundGcode = function roundGcode(inGcode, self) {
   let gcode = inGcode;
-  if (inGcode.indexOf(`G1`) !== -1) {
-    gcode = roundAxis(`X`);
-    gcode = roundAxis(`Y`);
-    gcode = roundAxis(`Z`);
-    gcode = roundAxis(`E`);
-    gcode = roundAxis(`F`);
+  try {
+    if (inGcode.indexOf(`G1`) !== -1) {
+      gcode = roundAxis(gcode, `X`, self);
+      gcode = roundAxis(gcode, `Y`, self);
+      gcode = roundAxis(gcode, `Z`, self);
+      gcode = roundAxis(gcode, `E`, self);
+      gcode = roundAxis(gcode, `F`, self);
+    }
+  } catch (ex) {
+    self.logger.error(`Error index of G1`, inGcode, ex);
   }
   return gcode;
 };
@@ -108,6 +116,7 @@ var SerialConnection = function(
         } else {
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
+              console.log('data', data);
               this.returnString += data;
               if (data.includes('ok')) {
                 if (_.isFunction(that.mDataFunc)) {
@@ -180,6 +189,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
         try {
             // TODO add GCODE Validation regex
             this.mPort.write(gcode);
+            console.log('sent', gcode);
             commandSent = true;
         } catch (inError) {
             error = inError;

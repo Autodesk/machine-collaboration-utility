@@ -28,7 +28,7 @@ const Job = function Job(jobParams) {
   this.app = jobParams.app;
   this.botUuid = jobParams.botUuid;
   this.fileUuid = jobParams.fileUuid;
-  this.uuid = jobParams.uuid !== undefined ? jobParams.uuid : uuidGenerator.v1();
+  this.uuid = jobParams.jobUuid !== undefined ? jobParams.jobUuid : uuidGenerator.v1();
 
   this.initialState = jobParams.initialState;
   this.id = jobParams.id;
