@@ -38,17 +38,17 @@ export default class PositionFeedback extends React.Component {
         <h3>POSITIONING</h3>
         <div className="col-sm-4">
           <h5>X-Axis</h5>
-          <div>{Number(position.x) - Number(this.props.bot.settings.offsetX)}</div>
+          <div>{Number(Number(position.x) - Number(this.props.bot.settings.offsetX)).toFixed(3)}</div>
           <button onClick={() => { this.zeroAxis({ x: true }) } }>Zero X</button>
         </div>
         <div className="col-sm-4">
           <h5>Y-Axis</h5>
-          <div>{Number(position.y) - Number(this.props.bot.settings.offsetY)}</div>
+          <div>{Number(Number(position.y) - Number(this.props.bot.settings.offsetY)).toFixed(3)}</div>
           <button onClick={() => { this.zeroAxis({ y: true }) } }>Zero Y</button>
         </div>
         <div className="col-sm-4">
           <h5>Z-Axis</h5>
-          <div>{Number(position.z) - Number(this.props.bot.settings.offsetZ)}</div>
+          <div>{Number(Number(position.z) - Number(this.props.bot.settings.offsetZ)).toFixed(3)}</div>
           <button onClick={() => { this.zeroAxis({ z: true }) } }>Zero Z</button>
         </div>
       </div>
