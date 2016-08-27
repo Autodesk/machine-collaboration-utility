@@ -7,6 +7,7 @@ import request from 'superagent';
 import _ from 'underscore';
 
 import Bot from './Bot';
+import NavLink from '../NavLink';
 
 export default class Bots extends React.Component {
   constructor(props) {
@@ -20,7 +21,7 @@ export default class Bots extends React.Component {
 
     this.state = {
       showModal: false,
-      selectedBot: _.pairs(props.bots).length > 0 ? _.pairs(props.bots)[0][0]: undefined,
+      selectedBot: props.params.id || _.pairs(props.bots).length > 0 ? _.pairs(props.bots)[0][0]: undefined,
       selectedPreset: _.pairs(props.botPresets)[0][1],
     };
   }
@@ -52,19 +53,18 @@ export default class Bots extends React.Component {
   }
 
   renderBotList() {
-    let defaultSet = false;
-    const botRadioList = _.pairs(this.props.bots).map(([botUuid, bot]) => {
-      const radioElement = <Radio inline key={botUuid} name="botList" defaultValue={botUuid} checked={this.state.selectedBot === botUuid}>{bot.settings.name}</Radio>;
-      if (!defaultSet) {
-        defaultSet = true;
-      }
-      return radioElement;
-    });
-    botRadioList.push(<Button key="createBot" onClick={this.toggleModal}>Create Bot</Button>);
+    const botLinkList = [];
+    botLinkList.push(<Button key="createBot" className="add-bot" onClick={this.toggleModal}>+</Button>);
+
+    for(const [botUuid, bot] of _.pairs(this.props.bots)) {
+      const botElement = <NavLink className="bot-tabs" to={`/${botUuid}`}>{bot.settings.name}</NavLink>;
+      botLinkList.push(botElement);
+    };
+
     return (
-      <FormGroup onChange={this.handleSelectBot}>
-        {botRadioList}
-      </FormGroup>
+      <div>
+        {botLinkList}
+      </div>
     );
   }
 
@@ -190,12 +190,16 @@ export default class Bots extends React.Component {
   render() {
     let selectedBot;
     let currentJob;
-    if (this.state.selectedBot === undefined) {
-      selectedBot = undefined;
-      currentJob = undefined;
-    } else {
+    if (this.props.params.id !== undefined && this.props.bots[this.props.params.id] !== undefined) {
+      selectedBot = this.props.bots[this.props.params.id];
+      currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
+      // if the bot doesn't exist, we want to redirect the user...
+    } else if (this.state.selectedBot !== undefined && this.props.bots[this.state.selectedBot] !== undefined) {
       selectedBot = this.props.bots[this.state.selectedBot];
       currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
+    } else {
+      selectedBot = undefined;
+      currentJob = undefined;
     }
 
     const daBot = this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>;
