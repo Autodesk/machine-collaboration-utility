@@ -1,17 +1,17 @@
-const Promise = require(`bluebird`);
-const StateMachine = require(`javascript-state-machine`);
-const _ = require(`underscore`);
-const request = require(`request-promise`);
-const uuidGenerator = require(`node-uuid`);
-const ip = require(`ip`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const Promise = require('bluebird');
+const StateMachine = require('javascript-state-machine');
+const _ = require('underscore');
+const request = require('request-promise');
+const uuidGenerator = require('node-uuid');
+const ip = require('ip');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
-const SerialCommandExecutor = require(`./comProtocols/serial/executor`);
-const HydraprintExecutor = require(`./comProtocols/hydraprint/executor`);
-const TelnetExecutor = require(`./comProtocols/telnet/executor`);
-const VirtualExecutor = require(`./comProtocols/virtual/executor`);
-const CommandQueue = require(`./commandQueue`);
+const SerialCommandExecutor = require('./comProtocols/serial/executor');
+const HydraprintExecutor = require('./comProtocols/hydraprint/executor');
+const TelnetExecutor = require('./comProtocols/telnet/executor');
+const VirtualExecutor = require('./comProtocols/virtual/executor');
+const CommandQueue = require('./commandQueue');
 
 /**
  * This is a Bot class representing hardware that can process jobs.
@@ -95,7 +95,7 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
       onenterstate: (event, from, to) => {
         this.logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
         try {
-          this.app.io.emit(`botEvent`, {
+          this.app.io.broadcast(`botEvent`, {
             uuid: this.settings.uuid,
             event: `update`,
             data: this.getBot(),
@@ -227,7 +227,7 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
       }
     }
 
-    this.app.io.emit(`botEvent`, {
+    this.app.io.broadcast(`botEvent`, {
       uuid: this.settings.uuid,
       event: `update`,
       data: this.getBot(),

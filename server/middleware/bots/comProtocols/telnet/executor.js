@@ -10,7 +10,7 @@
  * Args:   externalEndpoint - url at which to communicate
  */
 
-const TelnetConnection = require(`./connection`);
+const TelnetConnection = require('./connection');
 
 const TelnetCommandExecutor = function (app, externalEndpoint) {
   this.app = app;

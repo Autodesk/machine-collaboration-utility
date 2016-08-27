@@ -12,8 +12,8 @@
  */
 
 var HttpConnection = require('./connection');
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
 var HttpCommandExecutor = function (app, externalEndpoint) {
   this.app = app;

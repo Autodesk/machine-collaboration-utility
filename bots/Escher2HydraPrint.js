@@ -1,13 +1,13 @@
-const _ = require(`underscore`);
+const _ = require('underscore');
 
-const HydraPrint = require(`./HydraPrint`);
+const HydraPrint = require('./HydraPrint');
 
 const Escher2HydraPrint = function Escher2HydraPrint(app) {
   HydraPrint.call(this, app);
 
   _.extend(this.settings, {
     name: `Escher 2 HydraPrint`,
-    model: `Escher2HydraPrint`,
+    model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.commands, {

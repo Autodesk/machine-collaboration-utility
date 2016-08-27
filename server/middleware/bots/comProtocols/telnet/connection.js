@@ -3,8 +3,8 @@
  *
  * A class to manage opening, maintaining, and closing a telnet connection.
  ******************************************************************************/
-const _ = require(`underscore`);
-const net = require(`net`);
+const _ = require('underscore');
+const net = require('net');
 
 /**
  * TelnetConnection()

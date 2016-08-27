@@ -1,5 +1,5 @@
 /* global describe, it */
-require(`source-map-support`).install();
+require('source-map-support').install();
 'use strict';
 
 /*******************************************************************************
@@ -10,12 +10,12 @@ require(`source-map-support`).install();
  * If you want to run an individual test, use npm test --yourtest
  ******************************************************************************/
 
-const path = require(`path`);
-const walk = require(`fs-walk`);
+const path = require('path');
+const walk = require('fs-walk');
 const winston = require('winston');
 
 const tests = [];
-const config = require(`./server/config`);
+const config = require('./server/config');
 const npmArgs = JSON.parse(process.env.npm_config_argv);
 
 // Setup logger

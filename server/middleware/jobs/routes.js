@@ -1,8 +1,8 @@
-const Response = require(`../helpers/response`);
-const Promise = require(`bluebird`);
-const _ = require(`underscore`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const Response = require('../helpers/response');
+const Promise = require('bluebird');
+const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
  /**
   * getJobs()

@@ -1,21 +1,21 @@
-const util = require(`util`);
-const request = require(`request-promise`);
-const unzip = require(`unzip2`);
-const fs = require(`fs`);
-const Promise = require(`bluebird`);
-const _ = require(`underscore`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
-const path = require(`path`);
+const util = require('util');
+const request = require('request-promise');
+const unzip = require('unzip2');
+const fs = require('fs');
+const Promise = require('bluebird');
+const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
+const path = require('path');
 
-const Jobs = require(path.join(__dirname, `../server/middleware/jobs`));
-const DefaultBot = require(`./DefaultBot`);
+const Jobs = require(path.join(__dirname, '../server/middleware/jobs'));
+const DefaultBot = require('./DefaultBot');
 
 const ConductorVirtual = function ConductorVirtual(app) {
   DefaultBot.call(this, app);
 
   _.extend(this.settings, {
-    model: `Conductor`,
+    model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
     name: `Conductor`,
   });
 

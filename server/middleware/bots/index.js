@@ -1,14 +1,14 @@
-const router = require(`koa-router`)();
-const fs = require(`fs-promise`);
-const path = require(`path`);
-const _ = require(`underscore`);
-const Promise = require(`bluebird`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const router = require('koa-router')();
+const fs = require('fs-promise');
+const path = require('path');
+const _ = require('underscore');
+const Promise = require('bluebird');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
-const botsRoutes = require(`./routes`);
-const botModel = require(`./model`);
-const Bot = require(`./bot`);
+const botsRoutes = require('./routes');
+const botModel = require('./model');
+const Bot = require('./bot');
 
 /**
  * This is a Bots class representing all of the available hardware
@@ -155,7 +155,7 @@ Bots.prototype.createBot = function createBot(inputSettings = {}) {
   // Add the bot to the list
   this.botList[newBot.settings.uuid] = newBot;
 
-  this.app.io.emit(`botEvent`, {
+  this.app.io.broadcast(`botEvent`, {
     uuid: newBot.settings.uuid,
     event: `new`,
     data: newBot.getBot(),
@@ -185,7 +185,7 @@ Bots.prototype.deleteBot = bsync(function deleteBot(uuid) {
   if (!deleted) {
     throw `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`;
   }
-  this.app.io.emit(`botEvent`, {
+  this.app.io.broadcast(`botEvent`, {
     uuid,
     event: `delete`,
     data: null,

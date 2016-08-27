@@ -1,11 +1,11 @@
-const Promise = require(`bluebird`);
-const usb = Promise.promisifyAll(require(`usb`));
-const SerialPort = require(`serialport`);
-const _ = require(`underscore`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const Promise = require('bluebird');
+const usb = Promise.promisifyAll(require('usb'));
+const SerialPort = require('serialport');
+const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
-const Bot = require(`../bot`);
+const Bot = require('../bot');
 
 const UsbDiscovery = function(app) {
   this.app = app;
@@ -22,6 +22,7 @@ UsbDiscovery.prototype.initialize = bsync(function initialize() {
     // Need to wait arbitrary amount of time for Serialport list to update
     bwait(Promise.delay(100));
     SerialPort.list((err, ports) => {
+      console.log('ports', ports);
       // Compare every available port against every known port
       for (const port of ports) {
         // Ignore ports with undefined vid pids
@@ -65,7 +66,7 @@ UsbDiscovery.prototype.initialize = bsync(function initialize() {
             // a persistent pnpid connection, then delete it
             if (self.app.context.bots.botList[removedBot.settings.uuid] !== undefined) {
               delete self.app.context.bots.botList[removedBot.settings.uuid];
-              self.app.io.emit(`botEvent`, {
+              self.app.io.broadcast(`botEvent`, {
                 uuid: removedBot.settings.uuid,
                 event: `delete`,
                 data: null,

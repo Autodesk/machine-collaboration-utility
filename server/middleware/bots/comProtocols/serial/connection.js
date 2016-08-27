@@ -84,10 +84,13 @@ var SerialConnection = function(
     this.io = app.io;
     this.logger = app.context.logger;
     var that = this;
-    var portParams = { baudrate : inBaud,
-                       parser: SerialPort.parsers.readline('\n') };
+    var portParams = {
+      baudrate: inBaud,
+      parser: SerialPort.parsers.readline('\n'),
+      autoOpen: false,
+    };
 
-    this.mPort = new SerialPort.SerialPort(inComName, portParams, false);
+    this.mPort = new SerialPort(inComName, portParams);
     this.mConnectedFunc = inConnectedFunc;
 
     // User configurable data callback and close notification.  Our initial
@@ -123,7 +126,7 @@ var SerialConnection = function(
                   that.mDataFunc(String(this.returnString));
                   this.returnString = '';
                 }
-                that.io.emit('botReply', data);
+                that.io.broadcast('botReply', data);
               }
             });
 

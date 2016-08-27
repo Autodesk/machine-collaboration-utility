@@ -1,15 +1,15 @@
-const _ = require(`underscore`);
-const DefaultBot = require(`./DefaultBot`);
-const request = require(`request-promise`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const _ = require('underscore');
+const DefaultBot = require('./DefaultBot');
+const request = require('request-promise');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
 const HydraPrint = function(app) {
   DefaultBot.call(this, app);
 
   _.extend(this.settings, {
     model: `HydraPrint`,
-    name: `HydraPrint`,
+    name: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.info, {
@@ -29,7 +29,7 @@ const HydraPrint = function(app) {
       self.status.position.z = reply.data.status.position.z;
       self.status.position.e = reply.data.status.position.e;
       self.status.sensors.t0 = reply.data.status.sensors.t0;
-      self.app.io.emit(`botEvent`, {
+      self.app.io.broadcast(`botEvent`, {
         uuid: self.settings.uuid,
         event: `update`,
         data: self.getBot(),

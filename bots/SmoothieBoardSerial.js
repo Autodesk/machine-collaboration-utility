@@ -1,13 +1,13 @@
-const _ = require(`underscore`);
+const _ = require('underscore');
 
-const Marlin = require(`./Marlin`);
+const Marlin = require('./Marlin');
 
 const SmoothieBoard = function SmoothieBoard(app) {
   Marlin.call(this, app);
 
   _.extend(this.settings, {
     name: `Smoothie Board Serial`,
-    model: `SmoothieBoardSerial`,
+    model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.info, {

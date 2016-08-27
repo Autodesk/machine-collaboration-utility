@@ -1,13 +1,13 @@
-require(`source-map-support`).install();
-require(`dotenv`).config();
-const winston = require(`winston`);
-const path = require(`path`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
-const http = require(`http`);
+require('source-map-support').install();
+require('dotenv').config();
+const winston = require('winston');
+const path = require('path');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
+const http = require('http');
 
-const config = require(`./config`);
-const koaApp = require(`./koaApp`);
+const config = require('./config');
+const koaApp = require('./koaApp');
 
 function dumpError(err) {
   if (typeof err === 'object') {

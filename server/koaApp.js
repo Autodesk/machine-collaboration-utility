@@ -1,30 +1,30 @@
-const Koa = require(`koa`);
-const cors = require(`koa-cors`);
-const convert = require(`koa-convert`);
-const bodyparser = require(`koa-bodyparser`);
-const json = require(`koa-json`);
+const Koa = require('koa');
+const cors = require('koa-cors');
+const convert = require('koa-convert');
+const bodyparser = require('koa-bodyparser');
+const json = require('koa-json');
 const serve = require('koa-static');
-const winston = require(`winston`);
-const IO = require(`koa-socket`);
-const path = require(`path`);
-const Sequelize = require(`sequelize`);
-const router = require(`koa-router`)();
-const _ = require(`underscore`);
-const stringify = require(`json-stringify-safe`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const winston = require('winston');
+const IO = require('koa-socket');
+const path = require('path');
+const Sequelize = require('sequelize');
+const router = require('koa-router')();
+const _ = require('underscore');
+const stringify = require('json-stringify-safe');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
-const React = require(`react`);
-const renderToString = require(`react-dom/server`).renderToString;
-const match = require(`react-router`).match;
-const RouterContext = require(`react-router`).RouterContext;
+const React = require('react');
+const renderToString = require('react-dom/server').renderToString;
+const match = require('react-router').match;
+const RouterContext = require('react-router').RouterContext;
 
 // NOTE THIS FILE IS BUILT BY GULP
-const routes = require(`../dist/react/routes`);
+const routes = require('../dist/react/routes');
 
-const Files = require(`./middleware/files`);
-const Jobs = require(`./middleware/jobs`);
-const Bots = require(`./middleware/bots`);
+const Files = require('./middleware/files');
+const Jobs = require('./middleware/jobs');
+const Bots = require('./middleware/bots');
 
 /**
  * renderPage()
@@ -138,6 +138,7 @@ const koaApp = bsync((config) => {
   // Set up Koa to match any routes to the React App. If a route exists, render it.
   router.get('*', (ctx) => {
     try {
+      debugger;
       match({ routes, location: ctx.req.url }, (error, redirect, props) => {
         if (error) {
           logger.error(`Server routing error: ${err}`);

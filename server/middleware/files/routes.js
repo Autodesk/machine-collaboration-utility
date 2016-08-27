@@ -1,11 +1,11 @@
-const convert = require(`koa-convert`);
-const body = require(`koa-body`);
-const fs = require(`fs-promise`);
-const Promise = require(`bluebird`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const convert = require('koa-convert');
+const body = require('koa-body');
+const fs = require('fs-promise');
+const Promise = require('bluebird');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
-const Response = require(`../helpers/response`);
+const Response = require('../helpers/response');
 
 /**
  * uploadFile()

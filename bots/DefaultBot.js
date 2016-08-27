@@ -1,9 +1,9 @@
-const Promise = require(`bluebird`);
-const LineByLineReader = Promise.promisifyAll(require(`line-by-line`));
-const fs = require(`fs`);
-const _ = require(`underscore`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const Promise = require('bluebird');
+const LineByLineReader = Promise.promisifyAll(require('line-by-line'));
+const fs = require('fs');
+const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
 const DefaultBot = function DefaultBot(app) {
   this.app = app;
@@ -15,7 +15,7 @@ const DefaultBot = function DefaultBot(app) {
   };
 
   this.settings = {
-    model: `DefaultBot`,
+    model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
     name: `Default`,
     endpoint: false,
     jogXSpeed: `2000`,

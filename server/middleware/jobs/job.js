@@ -1,11 +1,11 @@
-const Promise = require(`bluebird`);
-const uuidGenerator = require(`node-uuid`);
-const StateMachine = require(`javascript-state-machine`);
-const Stopwatch = require(`timer-stopwatch`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const Promise = require('bluebird');
+const uuidGenerator = require('node-uuid');
+const StateMachine = require('javascript-state-machine');
+const Stopwatch = require('timer-stopwatch');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
-const jobModel = require(`./model`);
+const jobModel = require('./model');
 
 /**
  * Job()
@@ -105,7 +105,7 @@ Job.prototype.initialize = bsync(function initialize() {
           }
           if (self.loud) {
             self.logger.info(`jobEvent`, self.getJob());
-            self.app.io.emit(`jobEvent`, {
+            self.app.io.broadcast(`jobEvent`, {
               uuid: self.uuid,
               event: `update`,
               data: self.getJob(),
@@ -126,7 +126,7 @@ Job.prototype.initialize = bsync(function initialize() {
   this.stopwatch.onTime(() => {
     if (self.loud) {
       this.logger.info('jobEvent', this.getJob());
-      this.app.io.emit(`jobEvent`, {
+      this.app.io.broadcast(`jobEvent`, {
         uuid: this.uuid,
         event: `update`,
         data: this.getJob(),

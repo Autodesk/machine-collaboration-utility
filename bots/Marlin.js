@@ -1,15 +1,15 @@
-const _ = require(`underscore`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
-const DefaultBot = require(`./DefaultBot`);
+const DefaultBot = require('./DefaultBot');
 
 const Marlin = function (app) {
   DefaultBot.call(this, app);
 
   _.extend(this.settings, {
     name: `Marlin`,
-    model: `Marlin`,
+    model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.info, {
@@ -90,7 +90,7 @@ const Marlin = function (app) {
               // this.logger.info(`Failed to parse bed temp`);
             }
 
-            self.app.io.emit(`botEvent`, {
+            self.app.io.broadcast(`botEvent`, {
               uuid: self.settings.uuid,
               event: `update`,
               data: self.getBot(),

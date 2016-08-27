@@ -7,10 +7,10 @@ var _ = require('underscore'),
     Heartbeat = require('heartbeater');
 let logger;
 
-var request = require(`request-promise`);
-var request2 = require(`request`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+var request = require('request-promise');
+var request2 = require('request');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
 /**
  * HttpConnection()

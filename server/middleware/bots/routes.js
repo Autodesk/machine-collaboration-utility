@@ -1,7 +1,7 @@
-const Response = require(`../helpers/response`);
-const _ = require(`underscore`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const Response = require('../helpers/response');
+const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
 /**
  * Handle all logic at this endpoint for reading all of the bots

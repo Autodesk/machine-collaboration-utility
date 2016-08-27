@@ -1,14 +1,14 @@
-const router = require(`koa-router`)();
-const path = require(`path`);
-const fs = require(`fs-promise`);
-const walk = require(`fs-walk`);
-const uuidGenerator = require(`node-uuid`);
-const winston = require(`winston`);
-const _ = require(`underscore`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const router = require('koa-router')();
+const path = require('path');
+const fs = require('fs-promise');
+const walk = require('fs-walk');
+const uuidGenerator = require('node-uuid');
+const winston = require('winston');
+const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
-const filesRoutes = require(`./routes`);
+const filesRoutes = require('./routes');
 
 /**
  * Files()
@@ -144,7 +144,7 @@ Files.prototype.createFile = bsync(function createFile(file, userPath, userUuid)
     const filenameWithUuid = `${this.uploadDir}/${fileName}_${uuid}.${fileExt}`;
     bwait(fs.rename(file.path, filenameWithUuid));
     this.fileList[uuid] = fileObject;
-    this.app.io.emit(`fileEvent`, {
+    this.app.io.broadcast(`fileEvent`, {
       uuid,
       event: `new`,
       data: fileObject,
@@ -219,7 +219,7 @@ Files.prototype.deleteFile = bsync(function deleteFile(fileUuid) {
     this.logger.info('Just deleted file', file.filePath);
     // Remove the file object from the 'files' array
     delete this.fileList[fileUuid];
-    this.app.io.emit(`fileEvent`, {
+    this.app.io.broadcast(`fileEvent`, {
       uuid: fileUuid,
       event: `delete`,
       data: null,

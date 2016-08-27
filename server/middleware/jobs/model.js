@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
 /**
  * initializeJobModel()

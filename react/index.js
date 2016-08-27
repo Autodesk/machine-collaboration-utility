@@ -1,10 +1,11 @@
-const React = require('react');
-const render = require('react-dom').render;
-const Router = require('react-router').Router;
-const browserHistory = require('react-router').browserHistory;
+/* global document */
+import React from 'react';
+import { render } from 'react-dom';
+import { Router, browserHistory } from 'react-router';
+
 const routes = require('./routes');
 
 render(
-  <Router routes={routes} history={browserHistory}/>,
+  <Router routes={routes} history={browserHistory} />,
   document.getElementById('app')
 );

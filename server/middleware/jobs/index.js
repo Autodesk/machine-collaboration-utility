@@ -1,11 +1,11 @@
-const router = require(`koa-router`)();
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
-const _ = require(`underscore`);
+const router = require('koa-router')();
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
+const _ = require('underscore');
 
-const jobsRouter = require(`./routes`);
-const Job = require(`./job`);
-const jobModel = require(`./model`);
+const jobsRouter = require('./routes');
+const Job = require('./job');
+const jobModel = require('./model');
 
 /**
  * Jobs()
@@ -107,7 +107,7 @@ Jobs.prototype.createJob = bsync(
     // If you pass a uuid, you are deleting the existing job
     if (this.jobList[jobUuid] !== undefined) {
       // Delete the job from the database and the jobs object
-      bwait(self.deleteJob(jobUuid));
+      bwait(this.deleteJob(jobUuid));
     }
 
     const jobObject = new Job({
@@ -137,7 +137,7 @@ Jobs.prototype.createJob = bsync(
     this.jobList[jobObject.uuid] = jobObject;
     if (loud) {
       this.logger.info('jobEvent', jobJson);
-      this.app.io.emit(`jobEvent`, {
+      this.app.io.broadcast(`jobEvent`, {
         uuid: jobObject.uuid,
         event: `new`,
         data: jobObject.getJob(),
@@ -220,7 +220,7 @@ Jobs.prototype.deleteJob = bsync(function deleteJob(jobUuid) {
   delete this.jobList[jobUuid];
   this.logger.info(`Job ${jobUuid} deleted`);
   try {
-    this.app.io.emit('jobEvent', {
+    this.app.io.broadcast('jobEvent', {
       uuid: jobUuid,
       event: `delete`,
       data: null,

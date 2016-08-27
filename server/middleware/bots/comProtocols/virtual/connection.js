@@ -7,9 +7,9 @@
  * with responses.
  ******************************************************************************/
 const _ = require('underscore');
-const Promise = require(`bluebird`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
+const Promise = require('bluebird');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 let logger;
 
 /**

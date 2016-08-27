@@ -1,9 +1,10 @@
 /* global APP_VAR, io */
 
 import React from 'react';
-import Header from './modules/Header';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
+
+import Header from './modules/Header';
 
 export default class App extends React.Component {
   constructor(props) {

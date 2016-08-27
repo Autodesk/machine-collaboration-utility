@@ -1,9 +1,9 @@
-const _ = require(`underscore`);
-const bsync = require(`asyncawait/async`);
-const bwait = require(`asyncawait/await`);
-const Promise = require(`bluebird`);
+const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
+const Promise = require('bluebird');
 
-const HydraPrint = require(`./HydraPrint`);
+const HydraPrint = require('./HydraPrint');
 
 function dumpError(err) {
   if (typeof err === 'object') {
@@ -27,7 +27,7 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
 
   _.extend(this.settings, {
     name: `Smoothie Board HydraPrint`,
-    model: `SmoothieBoardHydraPrint`,
+    model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.commands, {

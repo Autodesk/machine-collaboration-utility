@@ -1,42 +1,41 @@
-require(`dotenv`).config();
+require('dotenv').config();
 
-const gulp = require(`gulp`);
-const sourcemaps = require(`gulp-sourcemaps`);
-const babel = require(`gulp-babel`);
-const nodemon = require(`gulp-nodemon`);
-const autoprefixer = require(`gulp-autoprefixer`);
-const mocha = require(`gulp-mocha`);
-const sass = require(`gulp-sass`);
-const webpack = require(`gulp-webpack`);
-const webpackPlugins = require(`webpack`);
-const shell = require(`gulp-shell`);
+const gulp = require('gulp');
+const sourcemaps = require('gulp-sourcemaps');
+const babel = require('gulp-babel');
+const nodemon = require('gulp-nodemon');
+const autoprefixer = require('gulp-autoprefixer');
+const mocha = require('gulp-mocha');
+const sass = require('gulp-sass');
+const webpack = require('gulp-webpack');
+const shell = require('gulp-shell');
 
 const src = {
-  reactClient: `./react/index.js`,
-  reactServer: `react/**/*.js`,
-  scss: `client/scss/styles.scss`,
-  scssWatch: `client/scss/**/*.scss`,
-  fonts: `./client/fonts/**/*.*`,
-  images: `./client/images/**/*.*`,
-  vendorJs: `./client/vendorJs/**/*.*`,
+  reactClient: './react/index.js',
+  reactServer: 'react/**/*.js',
+  scss: 'client/scss/styles.scss',
+  scssWatch: 'client/scss/**/*.scss',
+  fonts: './client/fonts/**/*.*',
+  images: './client/images/**/*.*',
+  vendorJs: './client/vendorJs/**/*.*',
 };
 
 const dest = {
-  css: `./dist/clientAssets`,
-  fonts: `./dist/clientAssets/fonts`,
-  images: `./dist/clientAssets/images`,
-  react: `dist/react`,
-  vendorJs: `./dist/clientAssets/vendorJs`,
+  css: './dist/clientAssets',
+  fonts: './dist/clientAssets/fonts',
+  images: './dist/clientAssets/images',
+  react: 'dist/react',
+  vendorJs: './dist/clientAssets/vendorJs',
 };
 
-gulp.task(`build`, [
-  `build-files`,
-  `build-scss`,
-  `build-react-client`,
-  `build-react-server`,
+gulp.task('build', [
+  'build-files',
+  'build-scss',
+  'build-react-client',
+  'build-react-server',
 ]);
 
-gulp.task(`build-files`, () => {
+gulp.task('build-files', () => {
   gulp.src(src.images)
   .pipe(gulp.dest(dest.images));
   gulp.src(src.fonts)
@@ -45,7 +44,7 @@ gulp.task(`build-files`, () => {
   .pipe(gulp.dest(dest.vendorJs));
 });
 
-gulp.task(`build-scss`, () => {
+gulp.task('build-scss', () => {
   return gulp.src(src.scss)
   .pipe(sass({
     outputStyle: 'compressed',
@@ -58,28 +57,29 @@ gulp.task(`build-scss`, () => {
     'last 2 version', 'safari 5', 'ie 8', 'ie 9',
     'opera 12.1', 'ios 6', 'android 4'
   ))
+
   // Funally put the compiled sass into a css file
   .pipe(gulp.dest(dest.css));
 });
 
-gulp.task(`watch`, [`build`], () => {
-  gulp.watch([src.scssWatch], [`build-scss`]);
-  gulp.watch([src.reactServer], [`build-react-client`, `build-react-server`]);
+gulp.task('watch', ['build'], () => {
+  gulp.watch([src.scssWatch], ['build-scss']);
+  gulp.watch([src.reactServer], ['build-react-client', 'build-react-server']);
 });
 
 // Complete every task before starting nodemon
 gulp.task(
-  `develop`,
+  'develop',
   [
-    `build`,
-    `watch`,
+    'build',
+    'watch',
   ],
   () => {
     return nodemon(
       {
         script: 'server/index.js',
         ignore: [
-          `./uploads`
+          './uploads',
         ],
       }
     )
@@ -98,14 +98,22 @@ gulp.task('build-react-client', () => {
         filename: 'bundle.js',
         publicPath: '/',
       },
+      devtool: 'eval',
       module: {
-        loaders: [
+        preLoaders: [
           {
             test: /\.js$/,
             exclude: /node_modules/,
-            loader: 'babel',
+            loader: 'source-map',
+          },
+        ],
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            exclude: /node_modules/,
             query: {
-              presets: ['es2017', 'react'],
+              presets: ['es2015', 'es2017', 'react'],
             },
           },
         ],
@@ -114,43 +122,43 @@ gulp.task('build-react-client', () => {
     .pipe(gulp.dest(dest.css));
 });
 
-gulp.task(`build-react-server`, () => {
+gulp.task('build-react-server', () => {
   return gulp.src(src.reactServer)
   .pipe(sourcemaps.init())
   .pipe(
     babel({
-      presets: [`react`, `es2017`],
+      presets: ['react', 'node6'],
     })
   )
-  .pipe(sourcemaps.write(`.`))
+  .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest(dest.react));
 });
 
-gulp.task(`test`, [`default`], () => {
+gulp.task('test', ['default'], () => {
   // Timeout is ugly hack to allow time for the server instance to initialize
   // TODO Get rid of timeout for running tests
   setTimeout(() => {
-    return gulp.src(`./test.js`, { read: false })
+    return gulp.src('./test.js', { read: false })
     .pipe(mocha())
-    .once(`error`, (err) => {
+    .once('error', (err) => {
       // Error could be caused by not giving enough time
       // for the server to spin up before starting tests
-      console.log(`Testing error:\n`, err);
+      console.log('Testing error:\n', err);
       process.exit(1);
     })
-    .once(`end`, () => {
+    .once('end', () => {
       process.exit();
     });
   }, 5000);
 });
 
-gulp.task(`default`, [
-  `build`,
-  `watch`,
-  `develop`,
+gulp.task('default', [
+  'build',
+  'watch',
+  'develop',
 ]);
 
-gulp.task('debug', [`build`], () => {
+gulp.task('debug', ['build'], () => {
   return gulp.src('')
   .pipe(shell(['node_modules/node-inspector/bin/node-debug.js server/index.js']));
 });
