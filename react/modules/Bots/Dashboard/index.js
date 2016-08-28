@@ -34,18 +34,15 @@ export default class Dashboard extends React.Component {
               <CurrentJob bot={this.props.bot}/>
             </div>
             <div className="area row">
-              <div className="col-sm-6">
+              <div className="col-sm-6 no-padding">
                 <PositionFeedback bot={this.props.bot}/>
               </div>
-              <div className="col-sm-6">
+              <div className="col-sm-6 no-padding">
                 <DisableMotors endpoint={endpoint}/>
               </div>
             </div>
             <div className="area">
               <Temp bot={this.props.bot}/>
-            </div>
-            <div className="area">
-              <SendGcode endpoint={endpoint}/>
             </div>
           </div> {/* END RIGHT */}
         </div>{/* END CONTAINER */}

@@ -37,19 +37,21 @@ export default class HomeAxes extends React.Component {
   render() {
     return (
       <div>
-        <h3>Home!</h3>
+        <h3>HOME</h3>
         <div className="row">
-          <div className="col-sm-3">
-            <button onClick={() => this.homeAxes({ x: true })}>Home X</button>
-          </div>
-          <div className="col-sm-3">
-          <button onClick={() => this.homeAxes({ y: true })}>Home Y</button>
-          </div>
-          <div className="col-sm-3">
-          <button onClick={() => this.homeAxes({ z: true })}>Home Z</button>
-          </div>
-          <div className="col-sm-3">
-          <button onClick={() => this.homeAxes({ x: true, y: true, z: true })}>Home All</button>
+          <div className="area-padding max-area-width">
+            <div className="col-xs-3 no-padding">
+              <button onClick={() => this.homeAxes({ x: true })}>Home X</button>
+            </div>
+            <div className="col-xs-3 no-padding">
+            <button onClick={() => this.homeAxes({ y: true })}>Home Y</button>
+            </div>
+            <div className="col-xs-3 no-padding">
+            <button onClick={() => this.homeAxes({ z: true })}>Home Z</button>
+            </div>
+            <div className="col-xs-3 no-padding">
+            <button onClick={() => this.homeAxes({ x: true, y: true, z: true })}>Home All</button>
+            </div>
           </div>
         </div>
       </div>

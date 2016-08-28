@@ -62,8 +62,10 @@ export default class Bots extends React.Component {
     };
 
     return (
-      <div>
-        {botLinkList}
+      <div className="bot-tab-list-container">
+        <div className="bot-tab-list">
+          {botLinkList}
+        </div>
       </div>
     );
   }

@@ -36,15 +36,15 @@ export default class CurrentJob extends React.Component {
       case `parking`:
       case `unparking`:
       case `connecting`:
-        return <Button onClick={() => { this.sendCommand('connect') } }>Connect</Button>;
+        return <Button className="connect" onClick={() => { this.sendCommand('connect') } }>Connect</Button>;
       default:
-        return <Button onClick={() => { this.sendCommand('disconnect') } }>Disconnect</Button>;
+        return <Button className="disconnect" onClick={() => { this.sendCommand('disconnect') } }>Disconnect</Button>;
     }
   }
 
   renderPauseButton() {
     if (this.props.bot.currentJob === undefined) {
-      return <Button disabled>Pause/Resume</Button>;
+      return <Button className="pause-resume" disabled>Pause/Resume</Button>;
     }
 
     switch (this.props.bot.currentJob.state) {
@@ -59,7 +59,7 @@ export default class CurrentJob extends React.Component {
 
   renderCancelButton() {
     if (this.props.bot.currentJob === undefined) {
-      return <Button bsStyle="danger" disabled>Cancel</Button>;
+      return <Button className="cancel" bsStyle="danger" disabled>Cancel</Button>;
     }
     return <Button bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>;
   }
@@ -75,16 +75,18 @@ export default class CurrentJob extends React.Component {
   render() {
     return (
       <div>
-        <h3>Current Job!</h3>
-        <div className="row">
-          <div className="col-sm-4">
-            {this.renderConnectButton()}
-          </div>
-          <div className="col-sm-4">
-            {this.renderPauseButton()}
-          </div>
-          <div className="col-sm-4">
-            {this.renderCancelButton()}
+        <div classname="area max-area-width">
+          <h3>CURRENT JOB</h3>
+          <div className="row">
+            <div className="col-xs-3">
+              {this.renderConnectButton()}
+            </div>
+            <div className="col-xs-5">
+              {this.renderPauseButton()}
+            </div>
+            <div className="col-xs-4">
+              {this.renderCancelButton()}
+            </div>
           </div>
         </div>
         <br/>

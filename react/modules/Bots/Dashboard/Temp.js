@@ -85,13 +85,13 @@ export default class Temp extends React.Component {
     const t0 = t0Disabled ? { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.t0;
     const b0 = b0Disabled ? { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.b0;
     return (
-      <div className="row">
+      <div>
         <h3>TEMPERATURE CONTROL</h3>
-        <div className="row">
-          <div className="col-sm-3">
-            <p>&#x25EF; Extruder</p>
+        <div className="row temperature">
+          <div className="col-xs-3">
+            <p><span>&#x25EF;</span> Extruder</p>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             <form onSubmit={this.setNozzleTemp}>
               <div className="row">
                 <input type="text" name="setpoint" className="col-sm-5" disabled={t0Disabled}/>
@@ -99,18 +99,18 @@ export default class Temp extends React.Component {
               </div>
             </form>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             <p>{t0.temperature} / {t0.setpoint}</p>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             {this.renderNozzleOnOff()}
           </div>
         </div>
-        <div className="row">
-          <div className="col-sm-3">
-            <p>&#x25EF; Bed</p>
+        <div className="row temperature">
+          <div className="col-xs-3">
+            <p><span>&#x25EF;</span> Bed</p>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             <form onSubmit={this.setBedTemp}>
               <div className="row">
                 <input type="text" name="setpoint" className="col-sm-5" disabled={b0Disabled}/>
@@ -118,10 +118,10 @@ export default class Temp extends React.Component {
               </div>
             </form>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             <p>{b0.temperature} / {b0.setpoint}</p>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             {this.renderBedOnOff()}
           </div>
         </div>
