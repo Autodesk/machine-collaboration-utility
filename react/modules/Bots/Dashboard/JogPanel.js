@@ -32,7 +32,7 @@ export default class JogPanel extends React.Component {
   render() {
     return (
       <div style={{
-        maxWidth: `70vh`,
+        maxWidth: `450px`,
         height: `auto`,
         st0: { fill: `#479C93` },
         st1: { fill: `#5EA59F` },

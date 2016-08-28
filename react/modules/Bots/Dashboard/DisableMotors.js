@@ -33,26 +33,23 @@ export default class DisableMotors extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="disable-motors">
         <h3>DISABLE MOTORS</h3>
         <div className="row">
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             <button onClick={() => this.disableAxes({ x: true })}>X</button>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             <button onClick={() => this.disableAxes({ y: true })}>Y</button>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             <button onClick={() => this.disableAxes({ z: true })}>Z</button>
           </div>
-          <div className="col-sm-3">
+          <div className="col-xs-3">
             <button onClick={() => this.disableAxes({ e: true })}>E</button>
           </div>
-        </div>
-        <br/>
-        <div className="row">
           <div className="col-sm-12">
-            <button onClick={() => this.disableAxes({ x: true, y: true, z: true, e: true })}>All</button>
+            <button className="full-width" onClick={() => this.disableAxes({ x: true, y: true, z: true, e: true })}>All</button>
           </div>
         </div>
       </div>

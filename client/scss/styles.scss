@@ -1,6 +1,7 @@
 @import "bootstrap.min.scss";
 @import "fonts.scss";
 @import "font-awesome/font-awesome.scss";
+@import "variables.scss";
 
 /* GENERAL */
 .modal.fade.in{
@@ -8,15 +9,17 @@
 }
 body {
   font-family:  "turkey-regular";
-  background-color: #d1d2d4;
+  background-color: $base-bg-color;
   a {
     color: #00B7FF;
   }
-
+  .container{
+    max-width: 970px;
+    width: 100%;
+  }
   #connect {
     cursor: pointer;
   }
-
   .button {
     cursor: pointer;
   }
@@ -61,9 +64,61 @@ body {
   }
 }
 
+/* tabs */
+button{
+  &.add-bot{
+    font-size: $standard-padding;
+    background-color: $dark-gray;
+    color: $white;
+    padding: $standard-padding/3 $standard-padding/1.5;
+    border-radius: 0;
+    border: none;
+  }
+}
+.bot-tab-list-container{
+  width: 100%;
+  height: 64px;
+  overflow-y: hidden;
+  overflow-x: scroll;
+  &::-webkit-scrollbar{
+    display:none;
+  }
+}
+.bot-tab-list{
+  background-color: $bot-tab-div-bg;
+  width: 100%;
+  height: 85px;
+  overflow-y: hidden;
+  margin-top: -6px;
+  @media screen and (max-width: $screen-lg-min) {
+    width: 1440px;
+  }
+}
+a{
+  &.bot-tabs{
+    color: $dark-gray;
+    font-size: $bot-tab-font-size;
+    background-color: $bot-tab-bg;
+    padding: 19px 15px;
+    display: inline-block;
+    margin: 0 3px;
+    border-radius: 0;
+    border: none;
+    position: relative;
+    top: 4px;
+    &.active{
+      background-color: $active-bot-bg;
+    }
+    &:hover{
+      text-decoration: none;
+    }
+  }
+}
+
+
 #dashboard{
-  background-color: #ffffff;
-  padding: 15px;
+  background-color: $white;
+  padding-top: $standard-padding/2;
   .col-md-6{
     padding: 0;
   }
@@ -71,13 +126,88 @@ body {
     background-color: #f0efef;
     padding: 15px;
     margin: 7px 4px;
+    .no-padding{
+      padding:0;
+    }
+    .col-xs-4{
+      position: relative;
+      z-index: 9999999;
+    }
+    .area-padding{
+      padding: $standard-padding/2;
+    }
+    .disable-motors{
+      button{
+        padding: $standard-padding/4;
+      }
+    }
+    .positioning{
+      button{
+        padding: $standard-padding/6;
+        @media screen and (max-width: $screen-sm-max) {
+          margin-bottom: $standard-padding/2;
+        }
+      }
+    }
+    .progress{
+      margin-bottom: 0;
+    }
+    .temperature{
+      padding-bottom: $standard-padding/2;
+      span{
+        color: $button-color;
+        background-color: $button-color;
+        border-radius: 100%;
+        padding: 0 2px;
+        &.active{
+          color: $red;
+          background-color: $red;
+        }
+      }
+    }
+    .max-area-width{
+      max-width: 460px;
+    }
+    button{
+      background-color: $button-color;
+      border: none;
+      padding: $standard-padding/3 $standard-padding/2;
+      border-radius: 0;
+      color: white;
+      letter-spacing: 1px;
+      @media screen and (max-width: $screen-xs-max) {
+        padding: $standard-padding/3;
+      }
+      &.full-width{
+        width: 100%;
+        margin-top: 10px;
+      }
+      &.cancel{
+        background-color: $red;
+      }
+      &.connect{
+        background-color: $green;
+      }
+      &.disconnect{
+        background-color: $button-color;
+      }
+      &.pause-resume{
+        color: $white;
+        background-color: $button-color;
+      }
+    }
+    h3{
+      font-size: $standard-padding/2;
+      font-weight: bold;
+      letter-spacing: $standard-padding/15;
+      margin-top: 0;
+    }
   }
 }
 
 .header {
   background-color: #fff;
   height: 65px;
-  margin-bottom: 25px;
   a {
     color: #373435;
   }
@@ -130,7 +260,8 @@ body {
 }
 
 .nav-tabs{
-  margin-top: 25px;
+  background-color: $base-bg-color;
+  padding-top: $standard-padding/2;
   >li{
     width: calc(100% / 3);
     text-align: center;
@@ -146,7 +277,7 @@ body {
       border: none !important;
       font-size: 20px;
       border-radius: 0;
-      padding: 20px;
+      padding: $standard-padding/3;
       &:hover{
         background-color: #808284;
       }
