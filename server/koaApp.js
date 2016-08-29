@@ -208,11 +208,10 @@ const koaApp = bsync((config) => {
 
     runCommands(commands, (error, results) => {
       if (error === undefined || error === null) {
-        app.context.logger.error(`Update error: ${error}`);
-      } else {
         app.context.logger.info(`Update results: ${results}`);
         exec('sudo reboot');
-        // error or results here
+      } else {
+        app.context.logger.error(`Update error: ${error}`);
       }
     });
 
