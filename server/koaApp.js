@@ -42,7 +42,8 @@ function renderPage(appHtml, jsVariables = {}) {
 <html>
 <meta charset=utf-8/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hydra-Print</title>
+<title>AwesomeName</title>
+<link rel="icon" type="image/png" href="/images/logo.ico" />
 <link rel=stylesheet href=/styles.css>
 <div id=app><div>${appHtml}</div></div>
 <script src="/vendorJs/jquery.min.js"></script>

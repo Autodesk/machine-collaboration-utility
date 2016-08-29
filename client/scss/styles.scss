@@ -228,6 +228,9 @@ a{
     display: inline-block;
     position: relative;
     top: 9px;
+    img{
+      width:100%;
+    }
   }
   ul{
     text-align: right;
