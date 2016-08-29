@@ -131,7 +131,7 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
   // Set the bot's uuid to the port, for bots that use an IP address
   switch (this.info.connectionType) {
     case `virtual`:
-      this.setPort(`http://localhost:9000/v1/bots/${this.settings.uuid}`);
+      this.setPort(`http://localhost:${process.env.PORT}/v1/bots/${this.settings.uuid}`);
       break;
     case `hydraprint`:
     case `telnet`:

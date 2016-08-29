@@ -240,13 +240,13 @@ const ConductorVirtual = function ConductorVirtual(app) {
           if (unique) {
             switch (botModel) {
               case `Escher2HydraPrint`:
-                endpoint = `http://${botName.toLowerCase().replace(`hydraprint`, ``)}.local:9000/v1/bots/solo`;
+                endpoint = `http://${botName.toLowerCase().replace(`hydraprint`, ``)}.local/v1/bots/solo`;
                 break;
               case `virtual`:
                 endpoint = `http://localhost:${process.env.PORT}/v1/bots/${newBot.settings.uuid}`;
                 break;
               default:
-                endpoint = `http://${botName}.local:9000/v1/bots/solo`;
+                endpoint = `http://${botName}.local/v1/bots/solo`;
             }
             const newBot = bwait(
               this.app.context.bots.createPersistentBot({
