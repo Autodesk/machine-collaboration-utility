@@ -46,6 +46,11 @@ export default class Dashboard extends React.Component {
             </div>
           </div> {/* END RIGHT */}
         </div>{/* END CONTAINER */}
+        <div className="container">
+          <div className="area row">
+            <SendGcode bot={this.props.bot}/>
+          </div>
+        </div>{/* END CONTAINER */}
       </div>
     );
   }
