@@ -12,6 +12,7 @@ import NavLink from '../NavLink';
 export default class Bots extends React.Component {
   constructor(props) {
     super(props);
+
     this.toggleModal = this.toggleModal.bind(this);
     this.addBot = this.addBot.bind(this);
     this.closeModal = this.closeModal.bind(this);
@@ -21,9 +22,18 @@ export default class Bots extends React.Component {
 
     this.state = {
       showModal: false,
-      selectedBot: props.params.id || _.pairs(props.bots).length > 0 ? _.pairs(props.bots)[0][0]: undefined,
+      selectedBot: this.findSelectedBot(props),
       selectedPreset: _.pairs(props.botPresets)[0][1],
     };
+  }
+
+  // If the uuid found in the url is a known bot, then set it
+  findSelectedBot(props) {
+    let selectedBot;
+    if (props.params.id !== undefined && _.has(props.bots, props.params.id)) {
+      selectedBot = props.bots[props.params.id];
+    }
+    return selectedBot;
   }
 
   updateText(event) {
@@ -57,7 +67,7 @@ export default class Bots extends React.Component {
     botLinkList.push(<Button key="createBot" className="add-bot" onClick={this.toggleModal}>+</Button>);
 
     for(const [botUuid, bot] of _.pairs(this.props.bots)) {
-      const botElement = <NavLink className="bot-tabs" to={`/${botUuid}`}>{bot.settings.name}</NavLink>;
+      const botElement = <NavLink key={botUuid} className="bot-tabs" to={`/${botUuid}`}>{bot.settings.name}</NavLink>;
       botLinkList.push(botElement);
     };
 
@@ -175,15 +185,8 @@ export default class Bots extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    let newBotState = this.state.selectedBot;
-    if (_.pairs(nextProps.bots).length <= 0) {
-      newBotState = undefined;
-    } else {
-      if (nextProps.bots[this.state.selectedBot] === undefined) {
-        newBotState = _.pairs(nextProps.bots).length > 0 ?
-          _.pairs(nextProps.bots)[0][0] : undefined;
-      }
-    }
+    let newBotState = this.findSelectedBot(nextProps);
+
     if (this.state.selectedBot !== newBotState) {
       this.setState({ selectedBot: newBotState });
     }
@@ -192,19 +195,16 @@ export default class Bots extends React.Component {
   render() {
     let selectedBot;
     let currentJob;
-    if (this.props.params.id !== undefined && this.props.bots[this.props.params.id] !== undefined) {
-      selectedBot = this.props.bots[this.props.params.id];
-      currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
-      // if the bot doesn't exist, we want to redirect the user...
-    } else if (this.state.selectedBot !== undefined && this.props.bots[this.state.selectedBot] !== undefined) {
-      selectedBot = this.props.bots[this.state.selectedBot];
-      currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
-    } else {
+    if (this.state.selectedBot === undefined) {
       selectedBot = undefined;
       currentJob = undefined;
+    } else {
+      selectedBot = this.state.selectedBot;
+      currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
     }
-
-    const daBot = this.state.selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>;
+    // if the bot doesn't exist, we want to redirect the user...
+    // if the user hasn't selected a bot, redirect them to the first available bot
+    const daBot = selectedBot === undefined ? '' : <Bot currentJob={currentJob} conducting={this.props.conducting} botPresets={this.props.botPresets} bot={selectedBot}/>;
 
     return (
       <div>
