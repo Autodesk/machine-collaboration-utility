@@ -289,7 +289,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
             self.metajob = JSON.parse(JSON.stringify(require(theFile.filePath.split(`.`)[0] + `/metajob.json`)));
             // Convert the list of players into an array so that we can map the array
             self.metajobCopy = JSON.parse(JSON.stringify(require(theFile.filePath.split(`.`)[0] + `/metajob.json`)));
-            bwait(Promise.map(_.pairs(self.metajob), bsync(([metajobPlayerKey, metajobPlayer]) => {
+            bwait(Promise.map(_.pairs(self.metajob.bots), bsync(([metajobPlayerKey, metajobPlayer]) => {
               self.currentJob.nMetajobs += metajobPlayer.jobs.length;
               // find the bot that corresponds with the metajob player we're currently populating
               let botUuid;
