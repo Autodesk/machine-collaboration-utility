@@ -45,7 +45,7 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
             try {
               zPosition = Number(positionString.split('Z:')[1].split('E:')[0]);
               yPosition = Number(positionString.split('Y:')[1].split('Z:')[0]);
-              if (zPosition < 400) {
+              if (zPosition < 470) {
                 zDestination = Number(zPosition + parkLift).toFixed(4);
               } else {
                 zDestination = zPosition - 5;
