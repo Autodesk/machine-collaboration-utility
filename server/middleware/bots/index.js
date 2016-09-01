@@ -61,18 +61,16 @@ Bots.prototype.initialize = bsync(function initialize() {
     // Load all bots from the database and add them to the 'bots' object
     for (const dbBot of botsDbArray) {
       try {
-        if (dbBot.model.indexOf('Serial') === -1) {
-          bwait(this.createBot(dbBot.dataValues));
-        }
+        bwait(this.createBot(dbBot.dataValues));
       } catch (ex) {
         this.logger.error(`Failed to create bot. ${ex}`);
       }
     }
 
     // Start scanning for all bots
-    //Promise.delay(1000).then(() => {
-    //  this.setupDiscovery();
-    //});
+    Promise.delay(1000).then(() => {
+      this.setupDiscovery();
+    });
 
     this.logger.info(`Bots instance initialized`);
   } catch (ex) {
