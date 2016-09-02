@@ -29,6 +29,7 @@ const DefaultBot = function DefaultBot(app) {
     offsetX: `0`,
     offsetY: `0`,
     offsetZ: `0`,
+    m561Plane: null,
   };
 
   this.commands = {};

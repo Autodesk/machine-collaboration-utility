@@ -271,8 +271,8 @@ Bot.prototype.detect = function detect() {
     let validator;
     // Set up the validator and executor
     switch (this.info.connectionType) {
-      case `serial`:
-        const openPrime = 'M501';
+      case 'serial': {
+        const openPrime = this.settings.m561Plane || 'M501';
         executor = new SerialCommandExecutor(
           this.app,
           this.port,
@@ -281,28 +281,33 @@ Bot.prototype.detect = function detect() {
         );
         validator = this.validateSerialReply;
         break;
-      case `hydraprint`:
+      }
+      case 'hydraprint': {
         executor = new HydraprintExecutor(
           this.app,
           this.port
         );
         validator = this.validateHydraprintReply;
         break;
-      case `virtual`:
-      case `conductor`:
+      }
+      case 'virtual':
+      case 'conductor': {
         executor = new VirtualExecutor(this.app);
         validator = this.validateSerialReply;
         break;
-      case `telnet`:
+      }
+      case 'telnet': {
         executor = new TelnetExecutor(
           this.app,
           this.port
         );
         validator = this.validateSerialReply;
         break;
-      default:
+      }
+      default: {
         const errorMessage = `connectionType "${this.info.connectionType}" is not supported.`;
         throw errorMessage;
+      }
     }
 
     // Set up the bot's command queue
