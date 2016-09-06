@@ -53,9 +53,9 @@ const Marlin = function (app) {
               e: undefined,
             };
             try {
-              newPosition.x = reply.split('X:')[1].split('Y')[0];
-              newPosition.y = reply.split('Y:')[1].split('Z')[0];
-              newPosition.z = reply.split('Z:')[1].split('E')[0];
+              newPosition.x = Number(Number(reply.split('X:')[1].split('Y')[0]) - Number(self.settings.offsetX)).toFixed(3);
+              newPosition.y = Number(Number(reply.split('Y:')[1].split('Z')[0]) - Number(self.settings.offsetY)).toFixed(3);
+              newPosition.z = Number(Number(reply.split('Z:')[1].split('E')[0]) - Number(self.settings.offsetZ)).toFixed(3);
               newPosition.e = reply.split('E:')[1].split(' ')[0];
               self.status.position = newPosition;
               return true;
