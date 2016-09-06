@@ -23,7 +23,7 @@ function dumpError(err) {
 const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
   HydraPrint.call(this, app);
 
-  const parkLift = 2;
+  const parkLift = 5;
 
   _.extend(this.settings, {
     name: `Smoothie Board HydraPrint`,
@@ -45,10 +45,10 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
             try {
               zPosition = Number(positionString.split('Z:')[1].split('E:')[0]);
               yPosition = Number(positionString.split('Y:')[1].split('Z:')[0]);
-              if (zPosition < 470) {
+              if (zPosition < 400) {
                 zDestination = Number(zPosition + parkLift).toFixed(4);
               } else {
-                zDestination = zPosition - 5;
+                zDestination = zPosition;
               }
             } catch (ex) {
               self.logger.error(`Parse Z fail`, ex);
@@ -58,11 +58,13 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
             const commandArray = [];
             commandArray.push(`G92 E0`);
             commandArray.push(`G1 E-2 F3000`); // Retract
-            commandArray.push(`G1 Z${zDestination} F1000`); // Jog up in Z
+            if (zPosition < 400) {
+              commandArray.push(`G1 Z${zDestination} F1000`); // Jog up in Z
+            }
             if (Number(yPosition) > 0) {
               commandArray.push(`G1 Y0 F2000`); // Home Y
             }
-            commandArray.push(`G1 Y-38 F600`); // Drag Y across the purge
+            commandArray.push(`G1 Y-78 F600`); // Drag Y across the purge
             commandArray.push({
               postCallback: () => {
                 self.fsm.parkDone();
