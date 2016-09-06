@@ -13,6 +13,8 @@ const _ = require('underscore');
 const stringify = require('json-stringify-safe');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
+const Promise = require('bluebird');
+const exec = require('child_process').exec;
 
 const React = require('react');
 const renderToString = require('react-dom/server').renderToString;
@@ -176,6 +178,44 @@ const koaApp = bsync((config) => {
       ctx.body = `Server Error`;
       ctx.status = 500;
     }
+  });
+
+  router.post('/update', (ctx) => {
+    const scriptPath = path.join(__dirname, '../update.sh');
+    const commands = [scriptPath];
+
+    function runCommands(array, callback) {
+      let index = 0;
+      const results = [];
+      function next() {
+        if (index < array.length) {
+          exec(array[index++], (error, stdout) => {
+            if (error) {
+              return callback(error);
+            }
+            // do the next iteration
+            results.push(stdout);
+            next();
+          });
+        } else {
+          // all done here
+          callback(null, results);
+        }
+      }
+      // start the first iteration
+      next();
+    }
+
+    runCommands(commands, (error, results) => {
+      if (error === undefined || error === null) {
+        app.context.logger.info(`Update results: ${results}`);
+        exec('sudo reboot');
+      } else {
+        app.context.logger.error(`Update error: ${error}`);
+      }
+    });
+
+    ctx.body = 'Updating. System will reboot on completion of update.';
   });
 
   // Latch the defined routes to the koa app
