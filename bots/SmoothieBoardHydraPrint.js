@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const request = require('request-promise');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 const Promise = require('bluebird');
@@ -23,7 +24,7 @@ function dumpError(err) {
 const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
   HydraPrint.call(this, app);
 
-  const parkLift = 5;
+  const parkLift = 10;
 
   _.extend(this.settings, {
     name: `Smoothie Board HydraPrint`,
@@ -39,17 +40,11 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
           processData: (command, reply) => {
             const positionString = reply.data;
             let zPosition;
-            let zDestination;
             // Parse current position
 
             try {
               zPosition = Number(positionString.split('Z:')[1].split('E:')[0]);
               yPosition = Number(positionString.split('Y:')[1].split('Z:')[0]);
-              if (zPosition < 400) {
-                zDestination = Number(zPosition + parkLift).toFixed(4);
-              } else {
-                zDestination = zPosition;
-              }
             } catch (ex) {
               self.logger.error(`Parse Z fail`, ex);
               throw ex;
@@ -59,7 +54,27 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
             commandArray.push(`G92 E0`);
             commandArray.push(`G1 E-2 F3000`); // Retract
             if (zPosition < 400) {
-              commandArray.push(`G1 Z${zDestination} F1000`); // Jog up in Z
+              commandArray.push({
+                postCallback: bsync(() => {
+                  const requestParams = {
+                    method: `POST`,
+                    uri: self.port,
+                    body: {
+                      command: 'jog',
+                      axis: 'z',
+                      amount: parkLift,
+                      feedRate: 1000,
+                    },
+                    json: true,
+                  };
+                  try {
+                    bwait(request(requestParams));
+                  } catch (ex) {
+                    self.logger.error(`Jog Failed: ${ex}`);
+                  }
+                  return true;
+                }),
+              })
             }
             if (Number(yPosition) > 0) {
               commandArray.push(`G1 Y0 F2000`); // Home Y
@@ -70,6 +85,7 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
                 self.fsm.parkDone();
               },
             });
+            self.logger.info('parking', JSON.stringify(commandArray))
             self.queue.queueCommands(commandArray);
             return true;
           },
@@ -83,7 +99,7 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
 
     unpark: function unpark(self, params) {
       self.fsm.unpark();
-      if (params.dryJob) {
+      if (!params.dryJob) {
         try {
           const commandArray = [];
           if (params.xEntry !== undefined && params.xEntry !== null) {
@@ -92,13 +108,13 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
           }
           commandArray.push(`G92 E0`);
           commandArray.push(`G1 E22 F100`); // Purge
-          commandArray.push(`G1 E20 F3000`); // Retract
           commandArray.push(`G1 Y0 F600`); // Scrub
           commandArray.push({
             postCallback: () => {
               self.fsm.unparkDone();
             },
           });
+          self.logger.info('unparking', JSON.stringify(commandArray))
           self.queue.queueCommands(commandArray);
         } catch (ex) {
           self.fsm.unparkFail();
