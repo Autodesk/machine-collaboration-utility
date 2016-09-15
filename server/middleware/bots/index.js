@@ -61,7 +61,19 @@ Bots.prototype.initialize = bsync(function initialize() {
     // Load all bots from the database and add them to the 'bots' object
     for (const dbBot of botsDbArray) {
       try {
-        bwait(this.createBot(dbBot.dataValues));
+        // In case the middleware instance is only for Conducting or Serial,
+        // Don't or Do, respectively, add Serial printers
+        if (process.env.ONLY_CONDUCT === 'true') {
+          if (dbBot.dataValues.model.indexOf('Serial') === -1) {
+            bwait(this.createBot(dbBot.dataValues));
+          }
+        } else if (process.env.ONLY_SERIAL === 'true') {
+          if (dbBot.dataValues.model.indexOf('Serial') !== -1) {
+            bwait(this.createBot(dbBot.dataValues));
+          }
+        } else {
+          bwait(this.createBot(dbBot.dataValues));
+        }
       } catch (ex) {
         this.logger.error(`Failed to create bot. ${ex}`);
       }
