@@ -76,10 +76,11 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
                 }),
               })
             }
-            if (Number(yPosition) > 0) {
-              commandArray.push(`G1 Y0 F2000`); // Home Y
+            if (Number(yPosition) > -50) {
+              commandArray.push(`G1 Y-50 F10000`); // Home Y
             }
-            commandArray.push(`G1 Y-78 F600`); // Drag Y across the purge
+            commandArray.push(`G1 Y-78 F2000`); // Drag Y across the purge
+            commandArray.push(`M400`); // Clear motion buffer before saying we're done
             commandArray.push({
               postCallback: () => {
                 self.fsm.parkDone();
@@ -107,8 +108,11 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
             commandArray.push(`G1 X${params.xEntry} F3000`);
           }
           commandArray.push(`G92 E0`);
-          commandArray.push(`G1 E22 F100`); // Purge
-          commandArray.push(`G1 Y0 F600`); // Scrub
+          commandArray.push(`G1 E12 F100`); // Purge
+          commandArray.push(`G1 E10 F3000`); // Purge
+          commandArray.push(`G1 Y-50 F2000`); // Scrub
+          commandArray.push(`G92 E-2`); // Prepare extruder for E0
+          commandArray.push(`M400`); // Clear motion buffer before saying we're done
           commandArray.push({
             postCallback: () => {
               self.fsm.unparkDone();
