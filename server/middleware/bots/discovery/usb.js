@@ -22,7 +22,6 @@ UsbDiscovery.prototype.initialize = bsync(function initialize() {
     // Need to wait arbitrary amount of time for Serialport list to update
     bwait(Promise.delay(100));
     SerialPort.list((err, ports) => {
-      console.log('ports', ports);
       // Compare every available port against every known port
       for (const port of ports) {
         // Ignore ports with undefined vid pids
