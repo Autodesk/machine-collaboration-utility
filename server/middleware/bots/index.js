@@ -80,9 +80,11 @@ Bots.prototype.initialize = bsync(function initialize() {
     }
 
     // Start scanning for all bots
-    Promise.delay(1000).then(() => {
-      this.setupDiscovery();
-    });
+    if (process.env.ONLY_CONDUCT !== 'true') {
+      Promise.delay(1000).then(() => {
+        this.setupDiscovery();
+      });
+    }
 
     this.logger.info(`Bots instance initialized`);
   } catch (ex) {
