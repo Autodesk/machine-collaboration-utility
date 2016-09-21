@@ -16,19 +16,19 @@ const DefaultBot = function DefaultBot(app) {
 
   this.settings = {
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
-    name: `Default`,
+    name: 'Default',
     endpoint: false,
-    jogXSpeed: `2000`,
-    jogYSpeed: `2000`,
-    jogZSpeed: `1000`,
-    jogESpeed: `120`,
-    tempE: `200`,
-    tempB: `0`,
-    speedRatio: `1.0`,
-    eRatio: `1.0`,
-    offsetX: `0`,
-    offsetY: `0`,
-    offsetZ: `0`,
+    jogXSpeed: '2000',
+    jogYSpeed: '2000',
+    jogZSpeed: '1000',
+    jogESpeed: '120',
+    tempE: '200',
+    tempB: '0',
+    speedRatio: '1.0',
+    eRatio: '1.0',
+    offsetX: '0',
+    offsetY: '0',
+    offsetZ: '0',
     m561Plane: null,
   };
 
@@ -63,6 +63,8 @@ const DefaultBot = function DefaultBot(app) {
       // We only care about the info prior to the first semicolon
       // NOTE This code is assuming we are processing GCODE
       // In case of adding support for multiple contrl formats, this is a good place to start
+
+      
       let command = line.split(';')[0];
       if (command.length <= 0) {
         // If the line is blank, move on to the next line
@@ -72,21 +74,10 @@ const DefaultBot = function DefaultBot(app) {
         command = self.addSpeedMultiplier(command);
         command = self.addFeedMultiplier(command);
 
-        // Add an extra G4 P0 to pad the hydra-print buffer
-        // TODO handle the summation of buffers here instead of on the composer side
-        try {
-          if (command.indexOf('G4 P1') !== -1) {
-            self.queue.queueCommands({
-              code: command,
-            });
-          }
-        } catch (ex) {
-          self.logger.error('The ole G4 snag', command);
-        }
         self.queue.queueCommands({
           code: command,
           postCallback: bsync(() => {
-            if (self.currentJob.fsm.current === `running`) {
+            if (self.currentJob.fsm.current === 'running') {
               bwait(self.lr.resume());
             }
             self.currentLine += 1;
@@ -106,20 +97,6 @@ const DefaultBot = function DefaultBot(app) {
           bwait(self.fsm.stopDone());
           bwait(self.currentJob.fsm.runningDone());
           bwait(self.currentJob.stopwatch.stop());
-          // Hack to keep conductor job transfer time low
-          for (const [botKey, bot] of _.pairs(self.app.context.bots.botList)) {
-            if (bot.settings.model.toLowerCase().indexOf(`conductor`) !== -1) {
-              bwait(bot.commands.updateRoutine(self));
-              bwait(Promise.delay(10));
-              bwait(bot.commands.updateRoutine(self));
-              bwait(Promise.delay(10));
-              bwait(bot.commands.updateRoutine(self));
-              bwait(Promise.delay(10));
-              bwait(bot.commands.updateRoutine(self));
-              bwait(Promise.delay(10));
-              bwait(bot.commands.updateRoutine(self));
-            }
-          }
         }),
       });
     }));
@@ -173,10 +150,10 @@ const DefaultBot = function DefaultBot(app) {
   // End of Job pass through commands
 
   this.commands.updateRoutine = function updateRoutine(self, params) {
-    if (self.fsm.current === `connected`) {
+    if (self.fsm.current === 'connected') {
       const commandArray = [];
       commandArray.push({
-        code: `G4 P10`,
+        code: 'G4 P10',
         processData: (command, reply) => {
           return true;
         },
@@ -188,7 +165,7 @@ const DefaultBot = function DefaultBot(app) {
   this.commands.toggleUpdater = function toggleUpdater(self, params) {
     const update = params.update;
     if (update === undefined) {
-      throw `"update" is not defined`;
+      throw '"update" is not defined';
     }
     if (update) {
       if (self.updateInterval === undefined) {
@@ -196,12 +173,12 @@ const DefaultBot = function DefaultBot(app) {
           self.commands.updateRoutine(self);
         }, 1000);
       }
-      return `Bot update routine is on`;
+      return 'Bot update routine is on';
     }
     if (self.updateInterval !== undefined) {
       clearInterval(self.updateInterval);
     }
-    return `Bot update routine is off`;
+    return 'Bot update routine is off';
   };
 
   // NOTE a try / catch on queueing commands will not actually fix an error
@@ -251,7 +228,7 @@ const DefaultBot = function DefaultBot(app) {
   };
 
   this.commands.resume = function resume(self, params) {
-    if (self.fsm.current === `parked`) {
+    if (self.fsm.current === 'parked') {
       self.commands.unpark(self);
     }
     self.fsm.start();
@@ -346,7 +323,6 @@ const DefaultBot = function DefaultBot(app) {
 
   this.commands.updateState = function updateState(self, params) {
     const event = params.body.event;
-    const bot = params.body.bot;
 
     const theEvent = self.fsmEvents.find((fsmEvent) => {
       return fsmEvent.name === event;
