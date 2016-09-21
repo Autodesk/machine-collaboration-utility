@@ -59,37 +59,34 @@ const Marlin = function (app) {
         if (conductorCommentResult !== null) {
           switch (conductorCommentResult[1]) {
             case 'CHECKPOINT': {
-              console.log('checkpoint', conductorCommentResult);
               const botRegex = /^.*bot(\w+) : (\d+)$/;
               const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
-              // const bot = botAndCheckpoint[1];
+              const bot = botAndCheckpoint[1];
               const checkpoint = parseInt(botAndCheckpoint[2], 10);
               self.status.checkpoint = parseInt(checkpoint, 10);
+              self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
               self.lr.resume();
               // Let conductor know that you've reached the latest checkpoint
               // Check if precursors are complete
               break;
             }
             case 'PRECURSOR': {
-              console.log('precursor', conductorCommentResult);
               const botRegex = /^.*(bot\w+) : (\d+)$/;
               const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
               const bot = botAndCheckpoint[1];
               const checkpoint = parseInt(botAndCheckpoint[2], 10);
-              console.log(bot, checkpoint);
               self.status.blocker = { bot, checkpoint };
+              self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
               self.commands.checkPrecursors(self);
-              console.log('just hit a precursor', self.status);
               break;
             }
             case 'DRY': {
-              console.log('dry', conductorCommentResult);
-              // jog in x, unpark
+              // unpark?
               self.lr.resume();
               break;
             }
             default: {
-              console.log('wuuuuh', conductorCommentResult);
+              self.logger.error('Unknown comment', conductorCommentResult);
               break;
             }
           }
@@ -353,11 +350,8 @@ const Marlin = function (app) {
       return command;
     },
     checkPrecursors: bsync(function checkPrecursors(self, params) {
-      console.log('current status', self.status);
       if (self.status.collaborators[self.status.blocker.bot] >= self.status.blocker.checkpoint) {
         self.lr.resume();
-      } else {
-        console.log('nope!', self.status);
       }
     }),
     updateCollaboratorCheckpoints: (self, params) => {
