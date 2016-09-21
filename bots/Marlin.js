@@ -4,9 +4,33 @@ const LineByLineReader = Promise.promisifyAll(require('line-by-line'));
 const fs = require('fs');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
+const request = require('request-promise');
 
 const DefaultBot = require('./DefaultBot');
 
+function updateSubscribers(self) {
+  if (Array.isArray(this.subscribers)) {
+    Promise.map(this.subscribers, bsync((subscriber) => {
+      const requestParams = {
+        method: 'POST',
+        uri: subscriber,
+        body: {
+          command: 'updateState',
+          body: {
+            event,
+            bot: this.getBot(),
+          },
+        },
+        json: true,
+      };
+      try {
+        bwait(request(requestParams));
+      } catch (ex) {
+        this.logger.error(`Failed to update endpoint "${subscriber}": ${ex}`);
+      }
+    }, { concurrency: 5 }));
+  }
+}
 const Marlin = function (app) {
   DefaultBot.call(this, app);
 
@@ -66,6 +90,29 @@ const Marlin = function (app) {
               self.status.checkpoint = parseInt(checkpoint, 10);
               self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
               self.lr.resume();
+
+              if (Array.isArray(self.subscribers)) {
+                for (const subscriber of self.subscribers) {
+                  try {
+                    const updateParams = {
+                      method: 'POST',
+                      uri: subscriber,
+                      body: {
+                        command: 'updateCollaborativeBotCheckpoint',
+                        bot: self.settings.name,
+                        checkpoint: self.status.checkpoint,
+                      },
+                    };
+                    try {
+                      request(updateParams);
+                    } catch (ex) {
+                      self.logger.error('Conductor update fail', ex);
+                    }
+                  } catch (ex) {
+                    this.logger.error(`Failed to update endpoint "${subscriber}": ${ex}`);
+                  }
+                }
+              }
               // Let conductor know that you've reached the latest checkpoint
               // Check if precursors are complete
               break;
