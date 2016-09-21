@@ -95,21 +95,21 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
       onenterstate: (event, from, to) => {
         this.logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
         try {
-          this.app.io.broadcast(`botEvent`, {
+          this.app.io.broadcast('botEvent', {
             uuid: this.settings.uuid,
-            event: `update`,
+            event: 'update',
             data: this.getBot(),
           });
         } catch (ex) {
-          this.logger.error(`Update bot socket error`, ex);
+          this.logger.error('Update bot socket error', ex);
         }
         if (Array.isArray(this.subscribers)) {
           Promise.map(this.subscribers, bsync((subscriber) => {
             const requestParams = {
-              method: `POST`,
+              method: 'POST',
               uri: subscriber,
               body: {
-                command: `updateState`,
+                command: 'updateState',
                 body: {
                   event,
                   bot: this.getBot(),
@@ -130,11 +130,11 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
 
   // Set the bot's uuid to the port, for bots that use an IP address
   switch (this.info.connectionType) {
-    case `virtual`:
+    case 'virtual':
       this.setPort(`http://localhost:${process.env.PORT}/v1/bots/${this.settings.uuid}`);
       break;
-    case `hydraprint`:
-    case `telnet`:
+    case 'hydraprint':
+    case 'telnet':
       this.setPort(this.settings.endpoint);
       break;
     default:
@@ -150,7 +150,7 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
 Bot.prototype.getBot = function getBot() {
   const currentJob = this.currentJob === undefined ? undefined : this.currentJob.getJob();
   return {
-    state: (this.fsm !== undefined && this.fsm.current !== undefined) ? this.fsm.current : `unavailable`,
+    state: (this.fsm !== undefined && this.fsm.current !== undefined) ? this.fsm.current : 'unavailable',
     status: this.status,
     port: this.port,
     settings: this.settings,
@@ -163,13 +163,13 @@ Bot.prototype.subscribe = bsync(function subscribe() {
   switch (this.info.connectionType) {
     // In case there is no detection method required, detect the device and
     // move directly to a "ready" state
-    case `hydraprint`:
+    case 'hydraprint':
       // add a subscriber
       const requestParams = {
-        method: `POST`,
+        method: 'POST',
         uri: this.port,
         body: {
-          command: `addSubscriber`,
+          command: 'addSubscriber',
           subscriberEndpoint: `http://${ip.address()}:${process.env.PORT}/v1/bots/${this.settings.uuid}`,
         },
         json: true,
@@ -181,9 +181,9 @@ Bot.prototype.subscribe = bsync(function subscribe() {
         this.logger.error(`Failed to subscribe to bot endpoint ${this.port}. ${ex}`);
       }
       break;
-    case `telnet`:
-    case `virtual`:
-    case `conductor`:
+    case 'telnet':
+    case 'virtual':
+    case 'conductor':
       this.detect();
       break;
     default:
@@ -228,9 +228,9 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
       }
     }
 
-    this.app.io.broadcast(`botEvent`, {
+    this.app.io.broadcast('botEvent', {
       uuid: this.settings.uuid,
-      event: `update`,
+      event: 'update',
       data: this.getBot(),
     });
   }
@@ -252,7 +252,7 @@ Bot.prototype.setPort = function(port) {
  * "done" or "fail" events and corresponding state transitions
  */
 Bot.prototype.processCommand = bsync(function processCommand(command, params) {
-  if (typeof this.commands[command] !== `function`) {
+  if (typeof this.commands[command] !== 'function') {
     throw `Command ${command} not supported.`;
   }
   try {
@@ -349,9 +349,9 @@ Bot.prototype.validateSerialReply = function validateSerialReply(command, reply)
   const lines = reply.toString().split('\n');
   let ok;
   try {
-    ok = _.last(lines).indexOf(`ok`) !== -1;
+    ok = _.last(lines).indexOf('ok') !== -1;
   } catch (ex) {
-    this.logger.error(`Bot validate serial reply error`, reply, ex);
+    this.logger.error('Bot validate serial reply error', reply, ex);
   }
   return ok;
 };
@@ -370,7 +370,7 @@ Bot.prototype.validateHydraprintReply = function validateHydraprintReply(command
   if (reply.status !== 200) {
     ok = false;
   }
-  if (String(reply.data) === `false`) {
+  if (String(reply.data) === 'false') {
     ok = false;
   }
   return ok;
@@ -386,7 +386,7 @@ Bot.prototype.validateHydraprintReply = function validateHydraprintReply(command
  */
 Bot.prototype.validateVirtualReply = function validateVirtualReply(command, reply) {
   const lines = reply.toString().split('\n');
-  const ok = _.last(lines).indexOf(`ok`) !== -1;
+  const ok = _.last(lines).indexOf('ok') !== -1;
   return ok;
 };
 
@@ -407,7 +407,7 @@ Bot.prototype.addOffset = function addOffset(command) {
       offsetCommand = this.offsetAxis(offsetCommand, 'Z');
     }
   } catch (ex) {
-    this.logger.error(`index of error on bot AddOffset`, ex, command);
+    this.logger.error('index of error on bot AddOffset', ex, command);
   }
   return offsetCommand;
 };
@@ -439,7 +439,7 @@ Bot.prototype.offsetAxis = function offsetAxis(command, axis) {
       offsetCommand = before + middle + end;
     }
   } catch (ex) {
-    this.logger.error(`Error when offsetting axis`, command, axis, ex);
+    this.logger.error('Error when offsetting axis', command, axis, ex);
   }
   return offsetCommand;
 };
