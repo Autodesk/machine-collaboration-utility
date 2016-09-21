@@ -16,17 +16,17 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
   _.extend(this.settings, {
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
-    name: `Conductor`,
+    name: 'Conductor',
   });
 
   _.extend(this.info, {
-    connectionType: `conductor`,
+    connectionType: 'conductor',
     vid: undefined,
     pid: undefined,
     baudrate: undefined,
     fileTypes: ['.esh'],
     conductorPresets: {
-      botModel: `Virtual`,
+      botModel: 'Virtual',
       nPlayers: [5, 1],
     },
     players: {},
@@ -46,7 +46,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
         bwait(this.setupConductorArms());
         for(const [playerKey, player] of _.pairs(self.info.players)) {
           self.logger.info('starting to connect', playerKey);
-          if (player.fsm.current === `unavailable`) {
+          if (player.fsm.current === 'unavailable') {
             bwait(player.commands.checkSubscription(player));
           }
           player.commands.connect(player);
@@ -76,8 +76,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
     startJob: bsync(function startJob(self, params) {
       const job = params.job;
       self.currentJob = job;
-      self.currentJob.nMetajobs = 0;
-      self.currentJob.nMetajobsComplete = 0;
+      self.currentJob.collaboratorCheckpoints = {};
       self.fsm.start();
 
       try {
@@ -95,125 +94,14 @@ const ConductorVirtual = function ConductorVirtual(app) {
       self.fsm.startDone();
     }),
     updateRoutine: bsync(function updateRoutine(self, params) {
-      if (self.fsm.current === `processingJob`) {
-        // Check to see if we can start a new job
-        for (const [playerKey, player] of _.pairs(self.info.players)) {
-          try {
-            if (player.fsm.current === `processingJob`) {
-              continue;
-            }
-
-            // check each player's first job. Queue it up.
-            let noPrecursors = true;
-            if (player.metajobQueue.length === 0) {
-              self.logger.info(`${player.settings.name} metajobQueue is empty`);
-              continue;
-            }
-
-            const currentJob = (Array.isArray(player.metajobQueue) && player.metajobQueue.length > 0) ? player.metajobQueue[0] : undefined;
-            if (currentJob === undefined ) {
-              throw `First job in metajobQueue is undefined`;
-            }
-            const jobObject = self.jobs.jobList[currentJob.uuid];
-
-            // If the current job is still processing, let it go
-            if (jobObject.fsm.current === `complete`) {
-              player.metajobQueue.shift();
-              self.currentJob.nMetajobsComplete++;
-              self.currentJob.percentComplete = (self.currentJob.nMetajobsComplete / self.currentJob.nMetajobs * 100).toFixed(5);
-              continue;
-            }
-
-            if (jobObject.fsm.current !== `ready`) {
-              self.logger.info(`Not starting a new job from state ${self.jobs.jobList[currentJob.uuid].fsm.current}`);
-              continue;
-            }
-
-            // go through every precursor to the current job
-            for (const precursor of currentJob.precursors) {
-              const job = self.jobs.jobList[precursor];
-              if (job === undefined) {
-                throw `Error, the job ${precursor} is undefined`;
-              }
-              // flag noPrecursors if any of the jobs aren't complete yet
-              if (job.fsm.current !== `complete`) {
-                self.logger.info(`${currentJob.botUuid} job ${currentJob.uuid} won't start because job ${job.uuid} is ${job.fsm.current}`);
-                noPrecursors = false;
-              }
-            }
-            if (noPrecursors) {
-              try {
-                if (
-                  player.currentJob &&
-                  (
-                    player.currentJob.fsm.current === `paused` ||
-                    player.currentJob.fsm.current === `pausing` ||
-                    player.currentJob.fsm.current === `resuming` ||
-                    player.currentJob.fsm.current === `running` ||
-                    player.currentJob.fsm.current === `canceling`
-                  )
-                ) {
-                  continue;
-                }
-                if (player.fsm.current === `parked`) {
-                  const unparkParams = {
-                    xEntry: currentJob.x_entry,
-                    dryJob: currentJob.dry,
-                  };
-                  player.commands.unpark(player, unparkParams);
-                  continue;
-                }
-                if (player.fsm.current !== `connected`) {
-                  // i.e. paused, parking or unparking
-                  self.logger.info(`Not starting a new job when bot is in state ${player.fsm.current}`);
-                  continue;
-                }
-                const jobToStart = self.jobs.jobList[currentJob.uuid];
-                if (jobToStart === undefined) {
-                  throw `job ${currentJob.uuid} is undefined`;
-                }
-                bwait(Promise.delay(100));
-                bwait(jobToStart.start());
-                self.logger.info(`${player.settings.botUuid}, Just started ${currentJob.uuid}`);
-              } catch (ex) {
-                self.logger.error(`Job start fail`, ex);
-              }
-            } else {
-              if (
-                player.fsm.current === `parked` ||
-                player.fsm.current === `parking` ||
-                player.fsm.current === `unparking` ||
-                player.fsm.current === `startingJob` ||
-                player.fsm.current === `stopping`
-              ) {
-                continue;
-              }
-              // Just sitting there in the ready position. park instead
-              player.commands.park(player);
-            }
-          } catch (ex) {
-            self.logger.error(`Checking player ${playerKey} error:`, ex);
-          }
-        }
-
-        // Check if all of the jobs are done
-        let doneConducting = true;
-        for (const [playerKey, player] of _.pairs(self.metajobCopy.bots)) {
-          for (const job of player.jobs) {
-            if (self.jobs.jobList[job.uuid].fsm.current !== `complete`) {
-              doneConducting = false;
-              break;
-            }
-          }
-        }
-        if (doneConducting) {
-          bwait(self.fsm.stop());
-          bwait(self.fsm.stopDone());
-          self.currentJob.percentComplete = 100;
-          bwait(self.currentJob.fsm.runningDone());
-          bwait(self.currentJob.stopwatch.stop());
-        }
-      }
+      console.log('Conductor update');
+        // if (doneConducting) {
+        //   bwait(self.fsm.stop());
+        //   bwait(self.fsm.stopDone());
+        //   self.currentJob.percentComplete = 100;
+        //   bwait(self.currentJob.fsm.runningDone());
+        //   bwait(self.currentJob.stopwatch.stop());
+        // }
     }),
     // If the database doesn't yet have printers for the endpoints, create them
     setupConductorArms: bsync((self, params) => {
@@ -239,10 +127,10 @@ const ConductorVirtual = function ConductorVirtual(app) {
           let endpoint;
           if (unique) {
             switch (botModel) {
-              case `Escher2HydraPrint`:
-                endpoint = `http://${botName.toLowerCase().replace(`hydraprint`, ``)}.local/v1/bots/solo`;
+              case 'Escher2HydraPrint':
+                endpoint = `http://${botName.toLowerCase().replace('hydraprint', '')}.local/v1/bots/solo`;
                 break;
-              case `virtual`:
+              case 'virtual':
                 endpoint = `http://localhost:${process.env.PORT}/v1/bots/${newBot.settings.uuid}`;
                 break;
               default:
@@ -272,6 +160,35 @@ const ConductorVirtual = function ConductorVirtual(app) {
         }
       }
     }),
+    updatePlayers: bsync(function(self) {
+      for (const [playerKey, player] of _.pairs(self.info.players)) {
+        const updatePlayerParams = {
+          method: 'POST',
+          uri: player.settings.endpoint,
+          body: {
+            command: 'updateCollaboratorCheckpoints',
+            collaborators: self.currentJob.collaboratorCheckpoints,
+          },
+          json: true,
+        };
+        const updateCollaboratorReply = bwait(request(updatePlayerParams));
+        console.log('update results', updateCollaboratorReply);
+      }
+    }),
+    updateCollaborativeBotCheckpoint: function(self, params) {
+      const bot = params.bot;
+      if (bot === undefined) {
+        throw 'Param "bot" is undefined';
+      }
+
+      const checkpoint = params.checkpoint;
+      if (checkpoint === undefined) {
+        throw 'Param "checkpoint" is undefined';
+      }
+
+      self.currentJob.collaboratorCheckpoints[bot] = checkpoint;
+      self.commands.updatePlayers(self);
+    },
     uploadAndSetupPlayerJobs: bsync(function(self, job) {
       self.nJobs = 0;
       self.nJobsComplete = 0;
@@ -282,46 +199,46 @@ const ConductorVirtual = function ConductorVirtual(app) {
         bwait(new Promise(bsync((resolve, reject) => {
           // Open and unzip the file
           bwait(fs.createReadStream(theFile.filePath))
-          .pipe(unzip.Extract({ path: theFile.filePath.split(`.`)[0] }))
+          .pipe(unzip.Extract({ path: theFile.filePath.split('.')[0] }))
           // As soon as the file is done being unzipped
-          .on(`close`, bsync(() => {
-            // Read the metajob.json file inside of the unzipped folder
-            self.metajob = JSON.parse(JSON.stringify(require(theFile.filePath.split(`.`)[0] + `/metajob.json`)));
-            // Convert the list of players into an array so that we can map the array
-            self.metajobCopy = JSON.parse(JSON.stringify(require(theFile.filePath.split(`.`)[0] + `/metajob.json`)));
-            bwait(Promise.map(_.pairs(self.metajob.bots), bsync(([metajobPlayerKey, metajobPlayer]) => {
-              self.currentJob.nMetajobs += metajobPlayer.jobs.length;
-              // find the bot that corresponds with the metajob player we're currently populating
-              let botUuid;
-              for (const [playerKey, player] of _.pairs(self.info.players)) {
-                if (
-                  player.settings.conductorX === String(metajobPlayer.layout_location_x) &&
-                  player.settings.conductorY === String(metajobPlayer.layout_location_y)
-                ) {
-                  botUuid = player.settings.uuid;
-                  break;
-                }
-              }
-              bwait(Promise.map(metajobPlayer.jobs, bsync((playerJob) => {
-                let fileUuid;
-                let jobUuid;
-                // create a file with a custom path and uuid
-                const jobFilePath = theFile.filePath.split(`.`)[0] + '/' + playerJob.filename;
-                fileUuid = playerJob.uuid;
-                self.app.context.files.createFile(undefined, jobFilePath, fileUuid);
+          .on('close', bsync(() => {
+            console.log('unzipped the file');
 
-                const createJobReply = bwait(self.jobs.createJob(botUuid, fileUuid, playerJob.uuid, false));
-                jobUuid = createJobReply.uuid;
+            // Reset each player's collaborator list
+            for (const [playerKey, player] of _.pairs(self.info.players)) {
+              self.currentJob.collaboratorCheckpoints[playerKey] = 0;
+            }
+            bwait(self.commands.updatePlayers(self));
 
-                self.nJobs++;
-                // add the job to a list
-                // the array order from metajob must be maintained
-                playerJob.botUuid = botUuid;
-                playerJob.state = self.jobs.jobList[jobUuid].fsm.current;
-              }, { concurrency: 4 })));
-              self.info.players[botUuid].metajobQueue = metajobPlayer.jobs;
-            }, { concurrency: 4 })));
-            resolve();
+            for (const [playerKey, player] of _.pairs(self.info.players)) {
+              // For each player we're going to upload a file, and then create a job
+              // Upload a file
+              const testFilePath = theFile.filePath.split('.')[0] + '/' + player.settings.name + '.gcode';
+              const fileStream = bwait(fs.createReadStream(testFilePath));
+              const formData = { file: fileStream };
+              const fileParams = {
+                method: 'POST',
+                uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/files`,
+                formData,
+                json: true,
+              };
+              const uploadFileReply = bwait(request(fileParams));
+              console.log('file upload reply', uploadFileReply);
+
+              // Create and start job
+              const jobParams = {
+                method: 'POST',
+                uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs`,
+                body: {
+                  botUuid: player.settings.uuid,
+                  fileUuid: uploadFileReply.data[0].uuid,
+                  startJob: true,
+                },
+                json: true,
+              };
+              const createJobReply = bwait(request(jobParams));
+              console.log('create job reply', createJobReply);
+            }
           }));
         })));
       } catch (ex) {
