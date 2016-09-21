@@ -220,6 +220,7 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
   });
 
   if (dbBot !== undefined) {
+    this.logger.info(`About to update bot ${this.settings.name} settings from ${JSON.stringify(this.settings)} to ${JSON.stringify(settingsToUpdate)}`);
     bwait(dbBot.update(settingsToUpdate));
     for (const newSetting in settingsToUpdate) {
       if (settingsToUpdate.hasOwnProperty(newSetting) && this.settings.hasOwnProperty(newSetting)) {
