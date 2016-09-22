@@ -5,8 +5,23 @@ const fs = require('fs');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 const request = require('request-promise');
+const path = require('path');
+const winston = require('winston');
 
 const DefaultBot = require('./DefaultBot');
+
+let serialLogger;
+if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+  // Set up logging for written serial data
+  const serialLogName = path.join(__dirname, '../../../../../verbose-serial.log');
+  serialLogger = new (winston.Logger)({
+    levels: { write: 0, read: 1, info: 2 },
+    transports: [
+      new (winston.transports.Console)(),
+      new (winston.transports.File)({ filename: serialLogName }),
+    ],
+  });
+}
 
 function updateSubscribers(self) {
   if (Array.isArray(this.subscribers)) {
@@ -114,6 +129,9 @@ const Marlin = function (app) {
               const checkpoint = parseInt(botAndCheckpoint[2], 10);
               self.status.checkpoint = parseInt(checkpoint, 10);
               self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+              }
               self.lr.resume();
 
               if (Array.isArray(self.subscribers)) {
@@ -151,11 +169,17 @@ const Marlin = function (app) {
               const checkpoint = parseInt(botAndCheckpoint[2], 10);
               self.status.blocker = { bot, checkpoint };
               self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
+              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                serialLogger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
+              }
               self.commands.checkPrecursors(self);
               break;
             }
             case 'DRY': {
               // unpark?
+              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                serialLogger.info('Just received a "dry" metacommand');
+              }
               self.lr.resume();
               break;
             }
@@ -168,6 +192,9 @@ const Marlin = function (app) {
           let command = line.split(';')[0];
           if (command.length <= 0) {
             // If the line is blank, move on to the next line
+            if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+              serialLogger.info('Passed on parsing a blank line', line);
+            }
             bwait(self.lr.resume());
           } else {
             command = self.addOffset(command);
@@ -220,6 +247,9 @@ const Marlin = function (app) {
       });
 
       bwait(fsPromise);
+      if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+        serialLogger.info('Beginning to read a gcode file, line by line');
+      }
       self.lr.resume();
       self.fsm.startDone();
     }),
@@ -427,6 +457,9 @@ const Marlin = function (app) {
       if (self.status.blocker.bot !== undefined && self.status.blocker.checkpoint !== undefined) {
         self.logger.info('Checking precursors for bot', self.status, params);
         if (self.status.collaborators[self.status.blocker.bot] > self.status.blocker.checkpoint) {
+          if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+            serialLogger.info(`Just exceeded blocker. ${JSON.stringify(self.status)}`);
+          }
           self.lr.resume();
         }
       }
