@@ -11,6 +11,9 @@ var _ = require('underscore'),
 
 // loading serialport may fail, so surround it with a try
 var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
+var winston = require('winston');
+var path = require('path');
+
 /**
  * SerialConnection()
  *
@@ -33,6 +36,33 @@ var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
  *                           connected
  * Return: N/A
  */
+
+let serialWrittenLogger;
+let serialReceivedLogger;
+
+if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+  // Set up logging for written serial data
+  const serialWrittenName = path.join(__dirname, '../../../../../serial-written.log');
+  serialWrittenLogger = new (winston.Logger)({
+    level: 'debug',
+    transports: [
+      new (winston.transports.Console)(),
+      new (winston.transports.File)({ serialWrittenName }),
+    ],
+  });
+  serialWrittenLogger.info('started logging');
+
+   // Set up logging for received serial data
+  const serialReceivedName = path.join(__dirname, '../../../../../serial-received.log');
+  serialReceivedLogger = new (winston.Logger)({
+    level: 'debug',
+    transports: [
+      new (winston.transports.Console)(),
+      new (winston.transports.File)({ serialReceivedName }),
+    ],
+  });
+  serialReceivedLogger.info('started logging');
+}
 
 const roundAxis = function roundAxis(command, axis, self) {
   let roundedCommand = command;
@@ -119,7 +149,9 @@ var SerialConnection = function(
         } else {
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
-              console.log('data', data);
+              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                serialReceivedLogger.log(data);
+              }
               this.returnString += data;
               if (data.includes('ok')) {
                 if (_.isFunction(that.mDataFunc)) {
@@ -131,20 +163,24 @@ var SerialConnection = function(
             });
 
             that.mPort.on('close', function () {
-                    if (_.isFunction(that.mCloseFunc)) {
-                        that.mCloseFunc();
-                    }
-                });
+                if (_.isFunction(that.mCloseFunc)) {
+                    that.mCloseFunc();
+                }
+            });
 
-            that.mPort.on('error', function () {
-                    if (_.isFunction(that.mErrorFunc)) {
-                        that.mErrorFunc(arguments);
-                    }
-                });
+            that.mPort.on('error', function (error) {
+                that.logger.error('Serial error', error);
+                if (_.isFunction(that.mErrorFunc)) {
+                    that.mErrorFunc(arguments);
+                }
+            });
 
             // Some printers start spewing data on open, some require a prime
             if (that.mOpenPrimeStr && (that.mOpenPrimeStr !== '')) {
                 that.mPort.write(that.mOpenPrimeStr + '\n');
+                if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                  serialWrittenLogger.log(that.mOpenPrimeStr + '\n');
+                }
             }
         }
     });
@@ -196,7 +232,9 @@ SerialConnection.prototype.send = function (inCommandStr) {
               gcode += `\n`;
             }
             this.mPort.write(gcode);
-            console.log('sent', gcode);
+            if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+              serialWrittenLogger.log(gcode);
+            }
             commandSent = true;
         } catch (inError) {
             error = inError;
@@ -266,6 +304,9 @@ SerialConnection.prototype.heartbeat = function () {
         // We were expecting data from the open, but it finally stopped.
         // Issue the M115
         this.mPort.write('M115\n'); // can't use 'send()' until connected
+        if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+          serialWrittenLogger.log('M115\n');
+        }
         // logger.info('Wrote M115 to serialport');
         this.mState = SerialConnection.State.M115_SENT;
         this.mWait = SerialConnection.WAIT_COUNT; // refresh our wait count
