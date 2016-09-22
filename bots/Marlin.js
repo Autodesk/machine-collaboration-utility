@@ -34,6 +34,31 @@ function updateSubscribers(self) {
 const Marlin = function (app) {
   DefaultBot.call(this, app);
 
+  this.status = {
+    position: {
+      x: undefined,
+      y: undefined,
+      z: undefined,
+      e: undefined,
+    },
+    sensors: {
+      t0: {
+        temperature: undefined,
+        setpoint: undefined,
+      },
+      b0: {
+        temperature: undefined,
+        setpoint: undefined,
+      },
+    },
+    checkpoint: undefined,
+    collaborators: {},
+    blocker: {
+      bot: undefined,
+      checkpoint: undefined,
+    },
+  };
+
   _.extend(this.settings, {
     name: 'Marlin',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
