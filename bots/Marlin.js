@@ -425,7 +425,7 @@ const Marlin = function (app) {
     },
     checkPrecursors: bsync(function checkPrecursors(self, params) {
       if (self.status.blocker.bot !== undefined && self.status.blocker.checkpoint !== undefined) {
-        if (self.status.collaborators[self.status.blocker.bot] >= self.status.blocker.checkpoint) {
+        if (self.status.collaborators[self.status.blocker.bot] > self.status.blocker.checkpoint) {
           self.lr.resume();
         }
       }
