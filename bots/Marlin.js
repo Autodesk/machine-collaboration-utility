@@ -122,7 +122,7 @@ const Marlin = function (app) {
                     const updateParams = {
                       method: 'POST',
                       // HACK hardcoded for testing
-                      uri: 'http://10.139.18.9:9000/v1/bots/741e6d10-8032-11e6-b0e4-e13ac65db298',
+                      uri: 'http://10.139.15.16:9000/v1/bots/741e6d10-8032-11e6-b0e4-e13ac65db298',
                       body: {
                         command: 'updateCollaborativeBotCheckpoint',
                         bot: self.settings.name,
