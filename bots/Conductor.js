@@ -206,12 +206,20 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
             // Reset each player's collaborator list
             for (const [playerKey, player] of _.pairs(self.info.players)) {
-              self.currentJob.collaboratorCheckpoints[playerKey] = 0;
+              self.currentJob.collaboratorCheckpoints[player.settings.name] = 0;
             }
             bwait(self.commands.updatePlayers(self));
 
             for (const [playerKey, player] of _.pairs(self.info.players)) {
               // For each player we're going to upload a file, and then create a job
+              // Get the bot's uuid
+              const getBotUuidParams = {
+                method: 'GET',
+                uri: player.settings.endpoint,
+                json: true,
+              }
+              const getBotUuidReply = bwait(request(getBotUuidParams));
+              const botUuid = getBotUuidReply.data.settings.uuid;
               // Upload a file
               const testFilePath = theFile.filePath.split('.')[0] + '/' + player.settings.name + '.gcode';
               const fileStream = bwait(fs.createReadStream(testFilePath));
@@ -230,14 +238,26 @@ const ConductorVirtual = function ConductorVirtual(app) {
                 method: 'POST',
                 uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs`,
                 body: {
-                  botUuid: player.settings.uuid,
+                  botUuid,
                   fileUuid: uploadFileReply.data[0].uuid,
-                  startJob: true,
                 },
                 json: true,
               };
+              console.log('creating a job with these params', jobParams);
               const createJobReply = bwait(request(jobParams));
               console.log('create job reply', createJobReply);
+              const jobUuid = createJobReply.data.uuid;
+
+              const startJobParams = {
+                method: 'POST',
+                uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs/${jobUuid}`,
+                body: {
+                  command: 'start',
+                },
+                json: true,
+              };
+              const startJobReply = bwait(request(startJobParams));
+              console.log('start job reply', startJobReply);
             }
           }));
         })));
