@@ -13,7 +13,7 @@ const DefaultBot = require('./DefaultBot');
 let serialLogger;
 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
   // Set up logging for written serial data
-  const serialLogName = path.join(__dirname, '../../../../../verbose-serial.log');
+  const serialLogName = path.join(__dirname, '../verbose-serial.log');
   serialLogger = new (winston.Logger)({
     levels: { write: 0, read: 1, info: 2 },
     transports: [
@@ -336,7 +336,7 @@ const Marlin = function (app) {
             return true;
           },
         });
-        self.queue.queueCommands(commandArray);
+        //self.queue.queueCommands(commandArray);
       }
     },
     processGcode: bsync((self, params) => {
@@ -400,7 +400,7 @@ const Marlin = function (app) {
         },
       });
       commandArray.push(self.commands.gcodeFinalState(self, params));
-      self.queue.queueCommands(commandArray);
+      //self.queue.queueCommands(commandArray);
       return self.getBot();
     },
     gcodeInitialState: (self, params) => {
@@ -456,7 +456,8 @@ const Marlin = function (app) {
     checkPrecursors: bsync(function checkPrecursors(self, params) {
       if (self.status.blocker.bot !== undefined && self.status.blocker.checkpoint !== undefined) {
         self.logger.info('Checking precursors for bot', self.status, params);
-        if (self.status.collaborators[self.status.blocker.bot] > self.status.blocker.checkpoint) {
+        const blockingBotCurrentCheckpoint = self.status.collaborators[self.status.blocker.bot];
+        if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
           if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
             serialLogger.info(`Just exceeded blocker. ${JSON.stringify(self.status)}`);
           }
