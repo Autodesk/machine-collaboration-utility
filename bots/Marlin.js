@@ -279,10 +279,7 @@ const Marlin = function (app) {
         },
         checkpoint: self.status.checkpoint || undefined,
         collaborators: self.status.collaborators || {},
-        blocker: self.status.blocker || {
-          bot: undefined,
-          checkpoint: undefined,
-        },
+        blocker: self.status.blocker || undefined,
       };
 
       if (self.fsm.current === 'connected') {
@@ -461,13 +458,18 @@ const Marlin = function (app) {
     },
     checkPrecursors: bsync(function checkPrecursors(self, params) {
       debugger;
-      if (self.status.blocker.bot !== undefined && self.status.blocker.checkpoint !== undefined) {
+      if (
+        self.status.blocker !== undefined &&
+        self.status.blocker.bot !== undefined &&
+        self.status.blocker.checkpoint !== undefined
+      ) {
         self.logger.info('Checking precursors for bot', self.status, params);
         const blockingBotCurrentCheckpoint = self.status.collaborators[self.status.blocker.bot];
         if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
           if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
             serialLogger.info(`Just exceeded blocker. ${JSON.stringify(self.status)}`);
           }
+          self.status.blocker = undefined;
           self.lr.resume();
         }
       }
