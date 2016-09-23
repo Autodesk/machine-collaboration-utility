@@ -336,7 +336,7 @@ const Marlin = function (app) {
             return true;
           },
         });
-        //self.queue.queueCommands(commandArray);
+        self.queue.queueCommands(commandArray);
       }
     },
     processGcode: bsync((self, params) => {
@@ -400,7 +400,7 @@ const Marlin = function (app) {
         },
       });
       commandArray.push(self.commands.gcodeFinalState(self, params));
-      //self.queue.queueCommands(commandArray);
+      self.queue.queueCommands(commandArray);
       return self.getBot();
     },
     gcodeInitialState: (self, params) => {
