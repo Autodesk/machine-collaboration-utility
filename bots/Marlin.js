@@ -466,7 +466,12 @@ const Marlin = function (app) {
       }
     }),
     updateCollaboratorCheckpoints: (self, params) => {
+      if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+        serialLogger.info('Old collaborater params', JSON.stringify(self.status.collaborators));
+        serialLogger.info('New collaborater params', JSON.stringify(params.collaborators));
+      }
       self.status.collaborators = params.collaborators;
+
       self.commands.checkPrecursors(self);
     },
   });
