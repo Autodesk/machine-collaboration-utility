@@ -14,6 +14,8 @@ const DefaultBot = require('./DefaultBot');
 const ConductorVirtual = function ConductorVirtual(app) {
   DefaultBot.call(this, app);
 
+  this.collaboratorCheckpoints = {};
+
   _.extend(this.settings, {
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
     name: 'Conductor',
@@ -76,7 +78,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
     startJob: bsync(function startJob(self, params) {
       const job = params.job;
       self.currentJob = job;
-      self.currentJob.collaboratorCheckpoints = {};
       self.fsm.start();
 
       try {
@@ -167,7 +168,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
           uri: player.settings.endpoint,
           body: {
             command: 'updateCollaboratorCheckpoints',
-            collaborators: self.currentJob.collaboratorCheckpoints,
+            collaborators: self.collaboratorCheckpoints,
           },
           json: true,
         };
@@ -185,8 +186,9 @@ const ConductorVirtual = function ConductorVirtual(app) {
       if (checkpoint === undefined) {
         throw 'Param "checkpoint" is undefined';
       }
-
-      self.currentJob.collaboratorCheckpoints[bot] = checkpoint;
+      self.logger.info('updating bot checkpoints', bot, checkpoint, self.collaboratorCheckpoints);
+      self.collaboratorCheckpoints[bot] = checkpoint;
+      self.logger.info(`Just updated bot ${bot} to checkpoint ${checkpoint}`, JSON.stringify(self.collaboratorCheckpoints));
       self.commands.updatePlayers(self);
     },
     uploadAndSetupPlayerJobs: bsync(function(self, job) {
@@ -206,7 +208,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
             // Reset each player's collaborator list
             for (const [playerKey, player] of _.pairs(self.info.players)) {
-              self.currentJob.collaboratorCheckpoints[player.settings.name] = 0;
+              self.collaboratorCheckpoints[player.settings.name] = 0;
             }
             bwait(self.commands.updatePlayers(self));
 
