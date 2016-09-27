@@ -141,7 +141,6 @@ const koaApp = bsync((config) => {
   // Set up Koa to match any routes to the React App. If a route exists, render it.
   router.get('*', (ctx) => {
     try {
-      debugger;
       match({ routes, location: ctx.req.url }, (error, redirect, props) => {
         if (error) {
           logger.error(`Server routing error: ${err}`);
