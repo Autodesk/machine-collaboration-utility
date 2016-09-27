@@ -90,6 +90,22 @@ const Marlin = function (app) {
   _.extend(this.commands, {
     // In order to start processing a job, the job's file is opened and then
     // processed one line at a time
+    park: function(self, params) {
+      self.parkJob();
+      try {
+        self.parkJobDone();
+      } catch (ex) {
+        self.parkJobFail();
+      }
+    },
+    unpark: function(self, params) {
+      self.unparkJob();
+      try {
+        self.unparkJobDone();
+      } catch (ex) {
+        self.unparkJobFail();
+      }
+    },
     startJob: bsync(function startJob(self, params) {
       const job = params.job;
       self.currentJob = job;
@@ -123,7 +139,6 @@ const Marlin = function (app) {
         if (conductorCommentResult !== null) {
           switch (conductorCommentResult[1]) {
             case 'CHECKPOINT': {
-              debugger;
               const botRegex = /^.*bot(\w+) : (\d+)$/;
               const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
               const bot = botAndCheckpoint[1];
@@ -164,7 +179,6 @@ const Marlin = function (app) {
               break;
             }
             case 'PRECURSOR': {
-              debugger;
               const botRegex = /^.*(bot\w+) : (\d+)$/;
               const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
               const bot = botAndCheckpoint[1];
@@ -178,7 +192,6 @@ const Marlin = function (app) {
               break;
             }
             case 'DRY': {
-              debugger;
               // unpark?
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
                 serialLogger.info('Just received a "dry" metacommand');
@@ -187,7 +200,6 @@ const Marlin = function (app) {
               break;
             }
             default: {
-              debugger;
               self.logger.error('Unknown comment', conductorCommentResult);
               break;
             }
@@ -199,7 +211,6 @@ const Marlin = function (app) {
             if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
               serialLogger.info('Passed on parsing a blank line', line);
             }
-            debugger;
             bwait(self.lr.resume());
           } else {
             command = self.addOffset(command);
@@ -255,7 +266,6 @@ const Marlin = function (app) {
       if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
         serialLogger.info('Beginning to read a gcode file, line by line');
       }
-      debugger;
       self.lr.resume();
       self.fsm.startDone();
     }),
@@ -457,7 +467,6 @@ const Marlin = function (app) {
       return command;
     },
     checkPrecursors: bsync(function checkPrecursors(self, params) {
-      debugger;
       if (
         self.status.blocker !== undefined &&
         self.status.blocker.bot !== undefined &&
@@ -465,12 +474,20 @@ const Marlin = function (app) {
       ) {
         self.logger.info('Checking precursors for bot', self.status, params);
         const blockingBotCurrentCheckpoint = self.status.collaborators[self.status.blocker.bot];
+        // If the precursor is complete then move on
         if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
           if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
             serialLogger.info(`Just exceeded blocker. ${JSON.stringify(self.status)}`);
           }
           self.status.blocker = undefined;
+          // If the printer is currently parked, then unpark it
+          if (self.fsm.current === 'parkedJob') {
+            self.commands.unpark(self);
+          }
           self.lr.resume();
+        } else {
+          // If the precursor is not complete, then park
+          self.commands.park(self);
         }
       }
     }),
