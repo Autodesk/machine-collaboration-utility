@@ -260,6 +260,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
               };
               const startJobReply = bwait(request(startJobParams));
               console.log('start job reply', startJobReply);
+              bwait(Promise.delay(2000));
             }
           }));
         })));
