@@ -79,6 +79,12 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
     { name: 'unpark',             from: 'parked',              to: 'unparking'           },
     { name: 'unparkFail',         from: 'unparking',           to: 'connected'           },
     { name: 'unparkDone',         from: 'unparking',           to: 'connected'           },
+    { name: 'parkJob',            from: 'processingJob',       to: 'parkingJob'          },
+    { name: 'parkJobFail',        from: 'parkingJob',          to: 'processingJob'       },
+    { name: 'parkJobDone',        from: 'parkingJob',          to: 'parkedJob'           },
+    { name: 'unparkJob',          from: 'parkedJob',           to: 'unparkingJob'        },
+    { name: 'unparkJobFail',      from: 'unparkingJob',        to: 'parkedJob'           },
+    { name: 'unparkJobDone',      from: 'unparkingJob',        to: 'processingJob'       },
     { name: 'unplug',             from: '*',                   to: 'unavailable'         },
     /* eslint-enable no-multi-spaces */
   ];
