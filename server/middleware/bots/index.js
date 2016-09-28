@@ -58,7 +58,7 @@ Bots.prototype.initialize = bsync(function initialize() {
       bwait(this.app.context.db.sync({ force: true }));
       botsDbArray = bwait(this.BotModel.findAll());
     }
-    // Load all bots from the database and add them to the 'bots' object
+    // Load all bots from the database and add them to the 'botList' object
     for (const dbBot of botsDbArray) {
       try {
         // In case the middleware instance is only for Conducting or Serial,
@@ -86,9 +86,9 @@ Bots.prototype.initialize = bsync(function initialize() {
       });
     }
 
-    this.logger.info(`Bots instance initialized`);
+    this.logger.info('Bots instance initialized');
   } catch (ex) {
-    this.logger.error(`Bot initialization error`, ex);
+    this.logger.error('Bot initialization error', ex);
   }
 });
 
@@ -102,9 +102,9 @@ Bots.prototype.setupRouter = bsync(function setupRouter() {
     bwait(botsRoutes(this));
     // Register all router routes with the app
     this.app.use(this.router.routes()).use(this.router.allowedMethods());
-    this.logger.info(`Bots router setup complete`);
+    this.logger.info('Bots router setup complete');
   } catch (ex) {
-    this.logger.error(`Bots router setup error`, ex);
+    this.logger.error('Bots router setup error', ex);
   }
 });
 
@@ -112,14 +112,14 @@ Bots.prototype.setupRouter = bsync(function setupRouter() {
  * Scan through and initialize every discovery type
  */
 Bots.prototype.setupDiscovery = bsync(function setupDiscovery() {
-  const discoveryDirectory = path.join(__dirname, `./discovery`);
+  const discoveryDirectory = path.join(__dirname, './discovery');
   const discoveryTypes = bwait(fs.readdir(discoveryDirectory));
   discoveryTypes.forEach((discoveryFile) => {
     // Scan through all of the discovery types.
     // Make sure to ignore the source map files
     // TODO refactor in case helper files are necessary in the 'discovery' folder
-    if (discoveryFile.indexOf(`.map`) === -1) {
-      const discoveryType = discoveryFile.split(`.`)[0];
+    if (discoveryFile.indexOf('.map') === -1) {
+      const discoveryType = discoveryFile.split('.')[0];
       const discoveryPath = path.join(__dirname, `./discovery/${discoveryFile}`);
       const DiscoveryClass = require(discoveryPath);
       const discoveryObject = new DiscoveryClass(this.app);
@@ -130,10 +130,10 @@ Bots.prototype.setupDiscovery = bsync(function setupDiscovery() {
 });
 
 Bots.prototype.loadBotPresets = bsync(function loadBotPresets() {
-  const botsPresetsPath = path.join(__dirname, `../../../bots`);
+  const botsPresetsPath = path.join(__dirname, '../../../bots');
   const botPresets = bwait(fs.readdir(botsPresetsPath));
   for (const botPresetFile of botPresets) {
-    const presetType = botPresetFile.split(`.`)[0];
+    const presetType = botPresetFile.split('.')[0];
     const presetPath = `${botsPresetsPath}/${botPresetFile}`;
     const BotPresetClass = require(presetPath);
     this.botPresetList[presetType] = BotPresetClass;
@@ -160,7 +160,7 @@ Bots.prototype.createBot = function createBot(inputSettings = {}) {
     inputSettings.model === undefined ||
     this.botPresetList[inputSettings.model] === undefined
   ) ?
-  this.botPresetList[`DefaultBot`] :
+  this.botPresetList['DefaultBot'] :
   this.botPresetList[inputSettings.model];
   // Mixin all input settings into the bot object
   const newBot = new Bot(this.app, botPresets, inputSettings);
@@ -169,9 +169,9 @@ Bots.prototype.createBot = function createBot(inputSettings = {}) {
   // Add the bot to the list
   this.botList[newBot.settings.uuid] = newBot;
 
-  this.app.io.broadcast(`botEvent`, {
+  this.app.io.broadcast('botEvent', {
     uuid: newBot.settings.uuid,
-    event: `new`,
+    event: 'new',
     data: newBot.getBot(),
   });
   return newBot;
@@ -199,9 +199,9 @@ Bots.prototype.deleteBot = bsync(function deleteBot(uuid) {
   if (!deleted) {
     throw `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`;
   }
-  this.app.io.broadcast(`botEvent`, {
+  this.app.io.broadcast('botEvent', {
     uuid,
-    event: `delete`,
+    event: 'delete',
     data: null,
   });
   return `Bot "${uuid}" successfully deleted`;
@@ -249,13 +249,13 @@ Bots.prototype.findBotByName = function(name) {
 Bots.prototype.soloBot = function() {
   let uuid = undefined;
   for (const [botKey, bot] of _.pairs(this.botList)) {
-    if (bot.fsm.current !== `unavailable`) {
+    if (bot.fsm.current !== 'unavailable') {
       uuid = bot.settings.uuid;
       break;
     }
   }
   if (uuid === undefined) {
-    throw `No bot is currently available`;
+    throw 'No bot is currently available';
   }
   return uuid;
 };
