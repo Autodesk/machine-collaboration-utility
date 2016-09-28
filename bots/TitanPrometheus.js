@@ -31,7 +31,7 @@ const TitanPrometheus = function TitanPrometheus(app) {
               zPosition = Number(reply.split('Z:')[1].split('E:')[0]);
               yPosition = Number(reply.split('Y:')[1].split('Z:')[0]);
             } catch (ex) {
-              self.logger.error(`Parse Z fail`, ex);
+              self.logger.error('Parse Z fail', ex);
               throw ex;
             }
 
@@ -43,9 +43,9 @@ const TitanPrometheus = function TitanPrometheus(app) {
               commandArray.push(`G1 Z${zPosition + parkLift} F1000`);
             }
             if (yPosition > -50) {
-              commandArray.push('G1 Y10 F5000'); // Home Y
+              commandArray.push('G1 Y-50 F10000'); // Home Y
             }
-            commandArray.push('G1 Y-5 F1000'); // Drag Y across the purge
+            commandArray.push('G1 Y-78 F2000'); // Drag Y across the purge
             commandArray.push('M400'); // Clear motion buffer before saying we're done
             commandArray.push({
               postCallback: () => {
@@ -70,7 +70,7 @@ const TitanPrometheus = function TitanPrometheus(app) {
         commandArray.push('G92 E0');
         commandArray.push('G1 E12 F100'); // Purge
         commandArray.push('G1 E10 F3000'); // Retract
-        commandArray.push('G1 Y10 F1000'); // Scrub
+        commandArray.push('G1 Y-50 F2000'); // Scrub
         commandArray.push('G92 E-2'); // Prepare extruder for E0
         commandArray.push('M400'); // Clear motion buffer before saying we're done
         commandArray.push({
