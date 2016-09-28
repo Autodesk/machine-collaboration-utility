@@ -8,18 +8,18 @@ const HydraPrint = function(app) {
   DefaultBot.call(this, app);
 
   _.extend(this.settings, {
-    model: `HydraPrint`,
+    model: 'HydraPrint',
     name: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.info, {
-    connectionType: `hydraprint`,
+    connectionType: 'hydraprint',
   });
 
   _.extend(this.commands, {
     updateRoutine: bsync((self, params) => {
       const requestParams = {
-        method: `GET`,
+        method: 'GET',
         uri: self.port,
         json: true,
       };
@@ -29,16 +29,16 @@ const HydraPrint = function(app) {
       self.status.position.z = reply.data.status.position.z;
       self.status.position.e = reply.data.status.position.e;
       self.status.sensors.t0 = reply.data.status.sensors.t0;
-      self.app.io.broadcast(`botEvent`, {
+      self.app.io.broadcast('botEvent', {
         uuid: self.settings.uuid,
-        event: `update`,
+        event: 'update',
         data: self.getBot(),
       });
     }),
     processGcode: bsync((self, params) => {
       const gcode = self.addOffset(params.gcode);
       if (gcode === undefined) {
-        throw `"gcode" is undefined`;
+        throw '"gcode" is undefined';
       }
       const commandArray = [];
 
@@ -47,10 +47,10 @@ const HydraPrint = function(app) {
         commandArray.push({
           code: gcode,
           processData: (command, reply) => {
-            if (typeof reply.data === `boolean`) {
+            if (typeof reply.data === 'boolean') {
               resolve(reply.data);
             } else {
-              resolve(reply.data.replace(`\r`, ``));
+              resolve(reply.data.replace('\r', ''));
             }
             return true;
           },
@@ -65,7 +65,7 @@ const HydraPrint = function(app) {
       }
       const gcode = self.addOffset(params.gcode);
       if (gcode === undefined) {
-        throw `"gcode" is undefined`;
+        throw '"gcode" is undefined';
       }
       const commandArray = [];
       commandArray.push(self.commands.gcodeInitialState(self, params));
@@ -84,10 +84,10 @@ const HydraPrint = function(app) {
       commandArray.push({
         postCallback: bsync(() => {
           const requestParams = {
-            method: `POST`,
+            method: 'POST',
             uri: self.port,
             body: {
-              command: `jog`,
+              command: 'jog',
               axis: params.axis,
               amount,
               feedRate,
@@ -107,19 +107,19 @@ const HydraPrint = function(app) {
       return true;
     },
     gcodeInitialState: (self, params) => {
-      let command = ``;
+      let command = '';
       switch (self.fsm.current) {
-        case `connected`:
+        case 'connected':
           break;
-        case `processingJob`:
-        case `processingJobGcode`:
+        case 'processingJob':
+        case 'processingJobGcode':
           command = {
             preCallback: () => {
               self.fsm.jobToGcode();
             },
           };
           break;
-        case `parked`:
+        case 'parked':
           command = {
             preCallback: () => {
               self.fsm.parkToGcode();
@@ -132,19 +132,19 @@ const HydraPrint = function(app) {
       return command;
     },
     gcodeFinalState: (self, params) => {
-      let command = ``;
+      let command = '';
       switch (self.fsm.current) {
-        case `connected`:
+        case 'connected':
           break;
-        case `processingJob`:
-        case `processingJobGcode`:
+        case 'processingJob':
+        case 'processingJobGcode':
           command = {
             preCallback: () => {
               self.fsm.jobGcodeDone();
             },
           };
           break;
-        case `processingParkGcode`:
+        case 'processingParkGcode':
           command = {
             preCallback: () => {
               self.fsm.parkGcodeDone();

@@ -96,7 +96,7 @@ class TelnetConnection {
    */
   close() {
     this.mPort.destroy();
-    this.logger.info(`Closing telnet connection!`);
+    this.logger.info('Closing telnet connection!');
   }
 }
 

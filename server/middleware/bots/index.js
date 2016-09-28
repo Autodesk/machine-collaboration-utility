@@ -244,7 +244,7 @@ Bots.prototype.findBotByName = function(name) {
 };
 
 // For ease of communication with single bots using the api
-// allow the first connected bot to be address as `solo`
+// allow the first connected bot to be address as 'solo'
 // return the first connected bot
 Bots.prototype.soloBot = function() {
   let uuid = undefined;

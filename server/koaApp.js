@@ -70,7 +70,7 @@ const koaApp = bsync((config) => {
   // Setup logger
   const filename = path.join(__dirname, `../${config.logFileName}`);
   const logger = new (winston.Logger)({
-    level: `debug`,
+    level: 'debug',
     transports: [
       new (winston.transports.Console)(),
       new (winston.transports.File)({ filename }),
@@ -85,13 +85,13 @@ const koaApp = bsync((config) => {
   // Add middleware
 
   // on 'error' is the first middleware in the koa middleware stack, should this be moved to later?
-  app.on(`error`, (error, ctx) => {
-    app.context.logger.error(`server error`, error, ctx);
+  app.on('error', (error, ctx) => {
+    app.context.logger.error('server error', error, ctx);
   });
   app.use(convert(cors()));
   app.use(convert(bodyparser()));
   app.use(convert(json()));
-  app.use(convert(serve(path.join(__dirname, `../dist/clientAssets`))));
+  app.use(convert(serve(path.join(__dirname, '../dist/clientAssets'))));
 
   // attach socket middleware
   const io = new IO();
@@ -105,7 +105,7 @@ const koaApp = bsync((config) => {
   try {
     err = bwait(sequelize.authenticate());
   } catch (ex) {
-    app.context.logger.error(`Sequelize authentication error`, ex);
+    app.context.logger.error('Sequelize authentication error', ex);
   }
 
   if (err) {
@@ -121,21 +121,21 @@ const koaApp = bsync((config) => {
   try {
     bwait(files.initialize());
   } catch (ex) {
-    app.context.logger.error(`"Files" middleware initialization error`, ex);
+    app.context.logger.error('"Files" middleware initialization error', ex);
   }
 
   const jobs = new Jobs(app, `/${config.apiVersion}/jobs`);
   try {
     bwait(jobs.initialize());
   } catch (ex) {
-    app.context.logger.error(`"Jobs" middleware initialization error`, ex);
+    app.context.logger.error('"Jobs" middleware initialization error', ex);
   }
 
   const bots = new Bots(app, `/${config.apiVersion}/bots`);
   try {
     bwait(bots.initialize());
   } catch (ex) {
-    app.context.logger.error(`"Bots" middleware initialization error`, ex);
+    app.context.logger.error('"Bots" middleware initialization error', ex);
   }
 
   // Set up Koa to match any routes to the React App. If a route exists, render it.
@@ -153,7 +153,7 @@ const koaApp = bsync((config) => {
         } else if (
           ctx.req.headers &&
           ctx.req.headers.referer &&
-          ctx.req.headers.referer.indexOf(`/v1`) !== -1
+          ctx.req.headers.referer.indexOf('/v1') !== -1
         ) {
           return;
         } else if (props) {
@@ -174,7 +174,7 @@ const koaApp = bsync((config) => {
       });
     } catch (ex) {
       app.context.logger.error(ex);
-      ctx.body = `Server Error`;
+      ctx.body = 'Server Error';
       ctx.status = 500;
     }
   });
@@ -220,11 +220,11 @@ const koaApp = bsync((config) => {
   // Latch the defined routes to the koa app
   app.use(router.routes(), router.allowedMethods());
 
-  app.on(`error`, (error, ctx) => {
-    app.context.logger.error(`server error`, error, ctx);
+  app.on('error', (error, ctx) => {
+    app.context.logger.error('server error', error, ctx);
   });
 
-  app.context.logger.info(`Hydra-Print has been initialized successfully.`);
+  app.context.logger.info('Hydra-Print has been initialized successfully.');
 
   return app;
 });

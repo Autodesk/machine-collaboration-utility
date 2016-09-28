@@ -25,9 +25,9 @@ function dumpError(err) {
 }
 
 // Set up logging
-const filename = path.join(__dirname, `../catchall.log`);
+const filename = path.join(__dirname, '../catchall.log');
 const logger = new (winston.Logger)({
-  level: `debug`,
+  level: 'debug',
   transports: [
     new (winston.transports.Console)(),
     new (winston.transports.File)({ filename }),
@@ -35,7 +35,7 @@ const logger = new (winston.Logger)({
 });
 logger.info('started logging');
 
-process.on(`uncaughtException`, (err) => {
+process.on('uncaughtException', (err) => {
   logger.error(`Caught exception: ${err}`);
   dumpError(err);
 });
@@ -54,15 +54,15 @@ try {
      */
 
 
-    const port = normalizePort(process.env.PORT || `9000`);
+    const port = normalizePort(process.env.PORT || '9000');
 
     app.server.listen(port);
-    server.on(`error`, onError);
-    server.on(`listening`, onListening);
-    app.context.logger.info(`Server initialized`);
+    server.on('error', onError);
+    server.on('listening', onListening);
+    app.context.logger.info('Server initialized');
   })();
 } catch (ex) {
-  app.context.logger.error(`Catchall Server Error Handler`, ex);
+  app.context.logger.error('Catchall Server Error Handler', ex);
 }
 
 /**

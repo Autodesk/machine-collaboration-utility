@@ -25,7 +25,7 @@ export default class Settings extends React.Component {
     try {
       update.end();
     } catch (ex) {
-      console.log(`Update error`, ex);
+      console.log('Update error', ex);
     }
   }
 
@@ -33,14 +33,14 @@ export default class Settings extends React.Component {
     const settings = [];
     for (const [settingKey, setting] of _.pairs(this.props.bot.settings)) {
       switch (settingKey) {
-        case `createdAt`:
-        case `updatedAt`:
-        case `uuid`:
-        case `id`:
-        case `model`:
+        case 'createdAt':
+        case 'updatedAt':
+        case 'uuid':
+        case 'id':
+        case 'model':
           break;
-        case `endpoint`:
-          if (String(setting) === `false`) {
+        case 'endpoint':
+          if (String(setting) === 'false') {
             break;
           }
         default:

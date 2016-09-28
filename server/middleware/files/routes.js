@@ -26,7 +26,7 @@ const uploadFile = (self) => {
       try {
         const files = ctx.request.body.files;
         if (files === undefined) {
-          const errorMessage = `No file was received.`;
+          const errorMessage = 'No file was received.';
           throw errorMessage;
         }
         // Rename each file to be its filename plus a uuid
@@ -74,7 +74,7 @@ const deleteFile = (self) => {
     try {
       const fileUuid = ctx.request.body.uuid;
       if (fileUuid === undefined) {
-        const errorMessage = `"uuid" of file is not provided`;
+        const errorMessage = '"uuid" of file is not provided';
         throw errorMessage;
       }
       const reply = bwait(self.deleteFile(fileUuid));
@@ -125,7 +125,7 @@ const getFile = (self) => {
       // Parse the file's uuid
       const fileUuid = ctx.params.uuid;
       if (fileUuid === undefined) {
-        const errorMessage = `uuid of file is not defined`;
+        const errorMessage = 'uuid of file is not defined';
         throw errorMessage;
       }
       // Load the file from the list of files
@@ -159,7 +159,7 @@ const downloadFile = (self) => {
       // Parse the file's uuid
       const fileUuid = ctx.params.uuid;
       if (fileUuid === undefined) {
-        const errorMessage = `uuid of file is not defined`;
+        const errorMessage = 'uuid of file is not defined';
         throw errorMessage;
       }
       // Load the file from the list of files
@@ -169,7 +169,7 @@ const downloadFile = (self) => {
         throw errorMessage;
       }
       const fileName = file.name;
-      ctx.res.setHeader(`Content-disposition`, `attachment; filename=${fileName}`);
+      ctx.res.setHeader('Content-disposition', `attachment; filename=${fileName}`);
       ctx.body = fs.createReadStream(file.filePath);
     } catch (ex) {
       ctx.status = 500;
@@ -188,7 +188,7 @@ const downloadFile = (self) => {
  *
  */
 const deleteAllFiles = (self) => {
-  const requestDescription = `Delete All Files`;
+  const requestDescription = 'Delete All Files';
   self.router.delete(`${self.routeEndpoint}/all/`, bsync((ctx) => {
     try {
       for (const file in self.fileList) {
@@ -196,7 +196,7 @@ const deleteAllFiles = (self) => {
           bwait(self.deleteFile(self.fileList[file].uuid));
         }
       }
-      const status = `All files deleted`;
+      const status = 'All files deleted';
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, status);
     } catch (ex) {

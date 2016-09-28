@@ -42,21 +42,21 @@ const HttpConnection = function(app, externalEndpoint, doneFunction) {
   // A hack. Normally we would validate the connection and then call this function
   // once we are validated
   const getRequestParams = {
-    method: `GET`,
+    method: 'GET',
     uri: this.externalEndpoint,
     json: true,
   };
   try {
     request(getRequestParams)
     .then((reply) => {
-      if (reply.data.state === `connected`) {
+      if (reply.data.state === 'connected') {
         doneFunction(this);
       } else {
         const connectRequestParams = {
-          method: `POST`,
+          method: 'POST',
           uri: this.externalEndpoint,
           body: {
-            command: `connect`,
+            command: 'connect',
           },
           json: true,
         };
@@ -114,9 +114,9 @@ HttpConnection.prototype.send = bsync(function send(inCommandStr) {
 
   let stream = false;
   switch (true) {
-    case inCommandStr.includes(`G0`):
-    case inCommandStr.includes(`G1`):
-    case inCommandStr.includes(`G4`):
+    case inCommandStr.includes('G0'):
+    case inCommandStr.includes('G1'):
+    case inCommandStr.includes('G4'):
       stream = true;
       break;
     default:
@@ -128,17 +128,17 @@ HttpConnection.prototype.send = bsync(function send(inCommandStr) {
 
   try {
     const requestParams = {
-      method: `POST`,
+      method: 'POST',
       uri: `${this.externalEndpoint}`,
       body: {
-        command: stream ? `streamGcode` : `processGcode`,
+        command: stream ? 'streamGcode' : 'processGcode',
         gcode: inCommandStr,
       },
       json: true,
     };
     try {
       const reply = bwait(request(requestParams));
-      if (String(reply.data) === `false`) {
+      if (String(reply.data) === 'false') {
         setTimeout(() => {
           this.send(inCommandStr);
         }, 1000);
@@ -168,7 +168,7 @@ HttpConnection.prototype.send = bsync(function send(inCommandStr) {
  */
 HttpConnection.prototype.close = bsync(function close() {
   const getRequestParams = {
-    method: `GET`,
+    method: 'GET',
     uri: this.externalEndpoint,
     json: true,
   };
@@ -180,10 +180,10 @@ HttpConnection.prototype.close = bsync(function close() {
 
     } else {
       const disconnectRequestParams = {
-        method: `POST`,
+        method: 'POST',
         uri: this.externalEndpoint,
         body: {
-          command: `disconnect`,
+          command: 'disconnect',
         },
         json: true,
       };

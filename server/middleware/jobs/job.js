@@ -49,10 +49,10 @@ Job.prototype.initialize = bsync(function initialize() {
 
   this.JobModel = bwait(jobModel(this.app));
   if (this.botUuid === undefined) {
-    throw `"botUuid" is not defined`;
+    throw '"botUuid" is not defined';
   }
 
-  const cancelable = [`running`, `paused`, `starting`, `pausing`, `resuming`];
+  const cancelable = ['running', 'paused', 'starting', 'pausing', 'resuming'];
   const fsmSettings = {
     initial: self.initialState === undefined ? 'ready' : self.initialState,
     error: (eventName, from, to, args, errorCode, errorMessage) => {
@@ -83,7 +83,7 @@ Job.prototype.initialize = bsync(function initialize() {
         if (self.loud) {
           self.logger.info(`Bot ${self.botUuid} Job ${self.uuid} event ${event}: Transitioning from ${from} to ${to}.`);
         }
-        if (from !== `none`) {
+        if (from !== 'none') {
           if (event.indexOf('Done') !== -1) {
             try {
               // As soon as an event successfully transistions, update it in the database
@@ -104,10 +104,10 @@ Job.prototype.initialize = bsync(function initialize() {
             }
           }
           if (self.loud) {
-            self.logger.info(`jobEvent`, self.getJob());
-            self.app.io.broadcast(`jobEvent`, {
+            self.logger.info('jobEvent', self.getJob());
+            self.app.io.broadcast('jobEvent', {
               uuid: self.uuid,
-              event: `update`,
+              event: 'update',
               data: self.getJob(),
             });
           }
@@ -126,9 +126,9 @@ Job.prototype.initialize = bsync(function initialize() {
   this.stopwatch.onTime(() => {
     if (self.loud) {
       this.logger.info('jobEvent', this.getJob());
-      this.app.io.broadcast(`jobEvent`, {
+      this.app.io.broadcast('jobEvent', {
         uuid: this.uuid,
-        event: `update`,
+        event: 'update',
         data: this.getJob(),
       });
     }
@@ -147,19 +147,19 @@ Job.prototype.initialize = bsync(function initialize() {
 Job.prototype.processCommand = bsync(function processCommand(command) {
   let commandReply;
   switch (command) {
-    case `start`:
+    case 'start':
       bwait(this.start());
       commandReply = this.getJob();
       break;
-    case `pause`:
+    case 'pause':
       bwait(this.pause());
       commandReply = this.getJob();
       break;
-    case `resume`:
+    case 'resume':
       bwait(this.resume());
       commandReply = this.getJob();
       break;
-    case `cancel`:
+    case 'cancel':
       bwait(this.cancel());
       commandReply = this.getJob();
       break;
@@ -178,7 +178,7 @@ Job.prototype.processCommand = bsync(function processCommand(command) {
   * @returns {Object} - The job object, but filtered to contain only values, no functions
   */
 Job.prototype.getJob = function getJob() {
-  const state = this.fsm.current ? this.fsm.current : `ready`;
+  const state = this.fsm.current ? this.fsm.current : 'ready';
   const started = !!this.started ? this.started : null;
   const elapsed = !!this.started ? this.stopwatch.ms || this.elapsed : null;
   return {
@@ -202,7 +202,7 @@ Job.prototype.start = bsync(function start() {
   this.fsm.start();
   const bot = this.app.context.bots.botList[this.botUuid];
   try {
-    bwait(bot.processCommand(`startJob`, { job: this }));
+    bwait(bot.processCommand('startJob', { job: this }));
     this.started = new Date().getTime();
     bwait(this.stopwatch.start());
     this.fsm.startDone();
@@ -220,7 +220,7 @@ Job.prototype.start = bsync(function start() {
   *
   */
 Job.prototype.pause = bsync(function pause(params) {
-  if (this.fsm.current === `paused`) {
+  if (this.fsm.current === 'paused') {
     return;
   }
   this.fsm.pause();
@@ -243,7 +243,7 @@ Job.prototype.pause = bsync(function pause(params) {
  *
  */
 Job.prototype.resume = bsync(function resume(params) {
-  if (this.fsm.current === `running`) {
+  if (this.fsm.current === 'running') {
     return;
   }
   this.fsm.resume();
@@ -272,7 +272,7 @@ Job.prototype.cancel = bsync(function cancel(params) {
     try {
       bwait(bot.commands.cancel(bot, params));
     } catch (ex) {
-      this.logger.error(`Bot can't be cancelled`, ex);
+      this.logger.error('Bot can\'t be cancelled', ex);
     }
     bwait(this.stopwatch.stop());
     bwait(this.fsm.cancelDone());

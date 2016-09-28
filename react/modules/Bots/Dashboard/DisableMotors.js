@@ -25,7 +25,7 @@ export default class DisableMotors extends React.Component {
     }
 
     request.post(this.props.endpoint)
-    .send({ command: `processGcode` })
+    .send({ command: 'processGcode' })
     .send({ gcode })
     .set('Accept', 'application/json')
     .end();

@@ -27,7 +27,7 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
   const parkLift = 10;
 
   _.extend(this.settings, {
-    name: `Smoothie Board HydraPrint`,
+    name: 'Smoothie Board HydraPrint',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
@@ -36,7 +36,7 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
       self.fsm.park();
       try {
         self.queue.queueCommands({
-          code: `M114`,
+          code: 'M114',
           processData: (command, reply) => {
             const positionString = reply.data;
             let zPosition;
@@ -46,18 +46,18 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
               zPosition = Number(positionString.split('Z:')[1].split('E:')[0]);
               yPosition = Number(positionString.split('Y:')[1].split('Z:')[0]);
             } catch (ex) {
-              self.logger.error(`Parse Z fail`, ex);
+              self.logger.error('Parse Z fail', ex);
               throw ex;
             }
 
             const commandArray = [];
-            commandArray.push(`G92 E0`);
-            commandArray.push(`G1 E-2 F3000`); // Retract
+            commandArray.push('G92 E0');
+            commandArray.push('G1 E-2 F3000'); // Retract
             if (zPosition < 400) {
               commandArray.push({
                 postCallback: bsync(() => {
                   const requestParams = {
-                    method: `POST`,
+                    method: 'POST',
                     uri: self.port,
                     body: {
                       command: 'jog',
@@ -77,10 +77,10 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
               })
             }
             if (Number(yPosition) > -50) {
-              commandArray.push(`G1 Y-50 F10000`); // Home Y
+              commandArray.push('G1 Y-50 F10000'); // Home Y
             }
-            commandArray.push(`G1 Y-78 F2000`); // Drag Y across the purge
-            commandArray.push(`M400`); // Clear motion buffer before saying we're done
+            commandArray.push('G1 Y-78 F2000'); // Drag Y across the purge
+            commandArray.push('M400'); // Clear motion buffer before saying we're done
             commandArray.push({
               postCallback: () => {
                 self.fsm.parkDone();
@@ -107,12 +107,12 @@ const SmoothieBoardHydraPrint = function SmoothieBoardHydraPrint(app){
             console.log('unparking and jogging X', params.xEntry);
             commandArray.push(`G1 X${params.xEntry} F3000`);
           }
-          commandArray.push(`G92 E0`);
-          commandArray.push(`G1 E12 F100`); // Purge
-          commandArray.push(`G1 E10 F3000`); // Purge
-          commandArray.push(`G1 Y-50 F2000`); // Scrub
-          commandArray.push(`G92 E-2`); // Prepare extruder for E0
-          commandArray.push(`M400`); // Clear motion buffer before saying we're done
+          commandArray.push('G92 E0');
+          commandArray.push('G1 E12 F100'); // Purge
+          commandArray.push('G1 E10 F3000'); // Purge
+          commandArray.push('G1 Y-50 F2000'); // Scrub
+          commandArray.push('G92 E-2'); // Prepare extruder for E0
+          commandArray.push('M400'); // Clear motion buffer before saying we're done
           commandArray.push({
             postCallback: () => {
               self.fsm.unparkDone();

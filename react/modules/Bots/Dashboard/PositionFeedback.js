@@ -24,7 +24,7 @@ export default class PositionFeedback extends React.Component {
     }
 
     request.post(endpoint)
-    .send({ command: `processGcode` })
+    .send({ command: 'processGcode' })
     .send({ gcode })
     .set('Accept', 'application/json')
     .end();

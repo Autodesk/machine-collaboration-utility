@@ -71,25 +71,25 @@ VirtualConnection.prototype.setErrorFunc = function setErrorFunc(inErrorFunc) {
  */
 VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
   if (_.isFunction(this.mDataFunc)) {
-    const commandPrefix = inCommandStr.split(` `).shift();
-    let reply = `ok`;
+    const commandPrefix = inCommandStr.split(' ').shift();
+    let reply = 'ok';
     if (this.nBufferedCommands >= this.bufferSize) {
       bwait(this.waitForBufferToClear());
     }
     this.nBufferedCommands++;
     switch (commandPrefix) {
       case 'G4':
-        if (inCommandStr.indexOf(`G4 P`) !== -1) {
-          bwait(Promise.delay(parseInt(inCommandStr.split(`G4 P`).pop().split(`\n`).shift(), 10)));
+        if (inCommandStr.indexOf('G4 P') !== -1) {
+          bwait(Promise.delay(parseInt(inCommandStr.split('G4 P').pop().split('\n').shift(), 10)));
         }
-        reply = `ok`;
+        reply = 'ok';
         break;
       case 'G1':
         bwait(Promise.delay(5));
-        reply = `ok`;
+        reply = 'ok';
         break;
       default:
-        this.logger.error(`command not supported`);
+        this.logger.error('command not supported');
     }
     this.nBufferedCommands--;
     this.mDataFunc(reply);

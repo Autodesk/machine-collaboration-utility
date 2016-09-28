@@ -19,7 +19,7 @@ export default class Temp extends React.Component {
     // Don't update the temp unless the value passed is a number 0 or greater
     if (!Number.isNaN(temp) && temp >= 0) {
       request.post(endpoint)
-      .send({ command: `processGcode` })
+      .send({ command: 'processGcode' })
       .send({ gcode: `M104 S${event.target.setpoint.value}` })
       .set('Accept', 'application/json')
       .end();
@@ -35,7 +35,7 @@ export default class Temp extends React.Component {
     // Don't update the temp unless the value passed is a number 0 or greater
     if (!Number.isNaN(temp) && temp >= 0) {
       request.post(endpoint)
-      .send({ command: `processGcode` })
+      .send({ command: 'processGcode' })
       .send({ gcode: `M140 S${event.target.setpoint.value}` })
       .set('Accept', 'application/json')
       .end();
@@ -46,7 +46,7 @@ export default class Temp extends React.Component {
     const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
 
     request.post(endpoint)
-    .send({ command: `processGcode` })
+    .send({ command: 'processGcode' })
     .send({ gcode })
     .set('Accept', 'application/json')
     .end();
@@ -59,7 +59,7 @@ export default class Temp extends React.Component {
     if (Number(t0.setpoint) === 0) {
       return <button onClick={() => { this.processGcode(`M104 S${this.props.bot.settings.tempE}`) } }>Turn On ({this.props.bot.settings.tempE}&#x2103;)</button>;
     } else if (Number(t0.setpoint) > 0 || Number(t0.setpoint < 0)) {
-      return <button onClick={() => { this.processGcode(`M104 S0`) } }>Turn Off (0&#x2103;)</button>;
+      return <button onClick={() => { this.processGcode('M104 S0') } }>Turn Off (0&#x2103;)</button>;
     }
     return <button disabled>On/Off</button>;
   }
@@ -71,7 +71,7 @@ export default class Temp extends React.Component {
     if (Number(b0.setpoint) === 0) {
       return <button onClick={() => { this.processGcode(`M140 S${this.props.bot.settings.tempB}`) } }>Turn On ({this.props.bot.settings.tempB}&#x2103;)</button>;
     } else if (Number(b0.setpoint) > 0 || Number(b0.setpoint < 0)) {
-      return <button onClick={() => { this.processGcode(`M140 S0`) } }>Turn Off (0&#x2103;)</button>;
+      return <button onClick={() => { this.processGcode('M140 S0') } }>Turn Off (0&#x2103;)</button>;
     }
     return <button disabled>On/Off</button>;
   }

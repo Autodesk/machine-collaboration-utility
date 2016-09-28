@@ -48,13 +48,13 @@ export default class Files extends React.Component {
   getActiveBotUuid(props) {
     // In case the botUuid is already set, just check to make sure that the bot is still connected
     if (this.state && this.state.botUuid !== undefined) {
-      if (this.props.bots[this.state.botUuid].state === `connected`) {
+      if (this.props.bots[this.state.botUuid].state === 'connected') {
         return this.state.botUuid;
       }
     }
     for (const [botUuid, bot] of _.pairs(this.props.bots)) {
       // Only allow jobs to be stared on a bot in the state "connected"
-      if (bot.state !== `connected`) {
+      if (bot.state !== 'connected') {
         continue;
       }
       return botUuid;
@@ -69,7 +69,7 @@ export default class Files extends React.Component {
     }
     _.pairs(this.props.bots).map(([botUuid, bot]) => {
       // Only allow jobs to be stared on a bot in the state "connected"
-      if (bot.state !== `connected`) {
+      if (bot.state !== 'connected') {
         return;
       }
       options.push(<option key={botUuid} value={botUuid}>{bot.settings.name}</option>);
@@ -89,7 +89,7 @@ export default class Files extends React.Component {
       startJob: true,
     };
 
-    request.post(`/v1/jobs`)
+    request.post('/v1/jobs')
     .send(requestParams)
     .set('Accept', 'application/json')
     .end();

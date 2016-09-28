@@ -7,7 +7,7 @@ const bwait = require('asyncawait/await');
  * Handle all logic at this endpoint for reading all of the bots
  */
 const getBots = (self) => {
-  const requestDescription = `Get Bots`;
+  const requestDescription = 'Get Bots';
   self.router.get(`${self.routeEndpoint}/`, (ctx) => {
     try {
       const botsJson = self.getBots();
@@ -25,7 +25,7 @@ const getBots = (self) => {
  * Handle all logic at this endpoint for deleting all bots
  */
 const deleteAllBots = (self) => {
-  const requestDescription = `Delete All Bots`;
+  const requestDescription = 'Delete All Bots';
   self.router.delete(`${self.routeEndpoint}/all/`, bsync((ctx) => {
     try {
       for (const uuid in self.botList) {
@@ -37,7 +37,7 @@ const deleteAllBots = (self) => {
           }
         }
       }
-      const status = `All bots deleted`;
+      const status = 'All bots deleted';
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, status);
     } catch (ex) {
@@ -76,12 +76,12 @@ const updateBot = (self) => {
     try {
       let uuid = ctx.params.uuid;
       if (uuid === undefined) {
-        throw `"uuid" is not defined`;
+        throw '"uuid" is not defined';
       }
 
       // For ease of communication with single bots using the api
-      // allow the first connected bot to be address as `solo`
-      if (uuid === `solo`) {
+      // allow the first connected bot to be address as 'solo'
+      if (uuid === 'solo') {
         uuid = self.soloBot();
       }
 
@@ -111,11 +111,11 @@ const deleteBot = (self) => {
     try {
       const uuid = ctx.params.uuid;
       if (uuid === undefined) {
-        throw `"uuid" is undefined.`;
+        throw '"uuid" is undefined.';
       }
 
       const reply = bwait(self.deleteBot(uuid));
-      // const reply = `Bot successfully deleted`;
+      // const reply = 'Bot successfully deleted';
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
@@ -130,17 +130,17 @@ const deleteBot = (self) => {
  * Handle all logic at this endpoint for retreiving a specific bot
  */
 const getBot = (self) => {
-  const requestDescription = `Get Bot`;
+  const requestDescription = 'Get Bot';
   self.router.get(`${self.routeEndpoint}/:uuid`, (ctx) => {
     try {
       let uuid = ctx.params.uuid;
       if (uuid === undefined) {
-        throw `"uuid" is not defined`;
+        throw '"uuid" is not defined';
       }
 
       // For ease of communication with single bots using the api
-      // allow the first connected bot to be address as `solo`
-      if (uuid === `solo`) {
+      // allow the first connected bot to be address as 'solo'
+      if (uuid === 'solo') {
         uuid = self.soloBot();
       }
 
@@ -159,17 +159,17 @@ const getBot = (self) => {
  * Handle all logic at this endpoint for sending a command to the bot
  */
 const processBotCommand = (self) => {
-  const requestDescription = `Process Bot Command`;
+  const requestDescription = 'Process Bot Command';
   self.router.post(`${self.routeEndpoint}/:uuid`, bsync((ctx) => {
     try {
       let uuid = ctx.params.uuid;
       if (uuid === undefined) {
-        throw `"uuid" is not defined`;
+        throw '"uuid" is not defined';
       }
 
       // For ease of communication with single bots using the api
-      // allow the first connected bot to be address as `solo`
-      if (uuid === `solo`) {
+      // allow the first connected bot to be address as 'solo'
+      if (uuid === 'solo') {
         uuid = self.soloBot();
       }
 
@@ -180,14 +180,14 @@ const processBotCommand = (self) => {
 
       let command = ctx.request.body.command;
       if (command === undefined) {
-        throw `"command" is undefined`;
+        throw '"command" is undefined';
       }
 
       // The commands pause, resume, and cancel must be processed through the job api
       switch (command) {
-        case `pause`:
-        case `resume`:
-        case `cancel`:
+        case 'pause':
+        case 'resume':
+        case 'cancel':
           command = `${command}Job`;
           break;
         default:
@@ -196,7 +196,7 @@ const processBotCommand = (self) => {
 
       const params = {};
       for (const [paramKey, param] of _.pairs(ctx.request.body)) {
-        if (paramKey !== `command`) {
+        if (paramKey !== 'command') {
           params[paramKey] = param;
         }
       }

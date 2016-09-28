@@ -20,22 +20,22 @@ export default class CurrentJob extends React.Component {
 
   cancelJob() {
     request.post(`/v1/jobs/${this.props.bot.currentJob.uuid}`)
-    .send({ command: `cancel` })
+    .send({ command: 'cancel' })
     .set('Accept', 'application/json')
     .end();
   }
 
   renderConnectButton() {
     switch (this.props.bot.state) {
-      case `unavailable`:
+      case 'unavailable':
         return <Button onClick={() => { this.sendCommand('checkSubscription') } }>Detect</Button>;
-      case `detecting`:
-      case `ready`:
-      case `startingJob`:
-      case `stopping`:
-      case `parking`:
-      case `unparking`:
-      case `connecting`:
+      case 'detecting':
+      case 'ready':
+      case 'startingJob':
+      case 'stopping':
+      case 'parking':
+      case 'unparking':
+      case 'connecting':
         return <Button className="connect" onClick={() => { this.sendCommand('connect') } }>Connect</Button>;
       default:
         return <Button className="disconnect" onClick={() => { this.sendCommand('disconnect') } }>Disconnect</Button>;
@@ -48,9 +48,9 @@ export default class CurrentJob extends React.Component {
     }
 
     switch (this.props.bot.currentJob.state) {
-      case `paused`:
+      case 'paused':
         return <Button onClick={ () => { this.sendCommand('resume') } }>Resume</Button>;
-      case `running`:
+      case 'running':
         return <Button onClick={ () => { this.sendCommand('pause') } }>Pause</Button>;
       default:
         return <Button disabled>{this.props.bot.currentJob.state}</Button>;

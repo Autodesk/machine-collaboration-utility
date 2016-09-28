@@ -63,10 +63,10 @@ Jobs.prototype.initialize = bsync(function initialize() {
 
       // // Make some code here to change the state of old jobs when the server is restarted
       // switch (state) {
-      //   case `canceled`:
+      //   case 'canceled':
       //     break;
       //   default:
-      //     state = `canceled`;
+      //     state = 'canceled';
       // }
 
       const jobObject = new Job({
@@ -83,9 +83,9 @@ Jobs.prototype.initialize = bsync(function initialize() {
       jobObject.elapsed = job.dataValues.elapsed;
       this.jobList[jobUuid] = jobObject;
     }
-    this.logger.info(`Jobs instance initialized`);
+    this.logger.info('Jobs instance initialized');
   } catch (ex) {
-    this.logger.error(`Jobs initialization error`, ex);
+    this.logger.error('Jobs initialization error', ex);
   }
 });
 
@@ -137,9 +137,9 @@ Jobs.prototype.createJob = bsync(
     this.jobList[jobObject.uuid] = jobObject;
     if (loud) {
       this.logger.info('jobEvent', jobJson);
-      this.app.io.broadcast(`jobEvent`, {
+      this.app.io.broadcast('jobEvent', {
         uuid: jobObject.uuid,
-        event: `new`,
+        event: 'new',
         data: jobObject.getJob(),
       });
     }
@@ -161,9 +161,9 @@ Jobs.prototype.setupRouter = bsync(function setupRouter() {
 
     // Register all router routes with the app
     this.app.use(this.router.routes()).use(this.router.allowedMethods());
-    this.logger.info(`Jobs router setup complete`);
+    this.logger.info('Jobs router setup complete');
   } catch (ex) {
-    this.logger.error(`Jobs router setup error`, ex);
+    this.logger.error('Jobs router setup error', ex);
   }
 });
 
@@ -222,11 +222,11 @@ Jobs.prototype.deleteJob = bsync(function deleteJob(jobUuid) {
   try {
     this.app.io.broadcast('jobEvent', {
       uuid: jobUuid,
-      event: `delete`,
+      event: 'delete',
       data: null,
     });
   } catch (ex) {
-    this.logger.error(`Socket error`, ex);
+    this.logger.error('Socket error', ex);
   }
   return `Job ${jobUuid} deleted`;
 });

@@ -27,28 +27,28 @@ module.exports = function jobsTests() {
   describe('Jobs unit test', function () {
     it('should create a virtual printer to execute jobs on', bsync(function (done) {
       const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/bots/`,
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/bots/',
         body: {
-          model: `Virtual`,
+          model: 'Virtual',
         },
         json: true,
       };
       const initializeBotReply = bwait(request(requestParams));
       botUuid = initializeBotReply.data.settings.uuid;
       should(initializeBotReply.status).equal(201);
-      should(initializeBotReply.query).equal(`Create Bot`);
+      should(initializeBotReply.query).equal('Create Bot');
       done();
     }));
 
     it('should upload a file for a job to process', bsync(function (done) {
       // Upload a file
-      const testFilePath = path.join(__dirname, `blah.txt`);
+      const testFilePath = path.join(__dirname, 'blah.txt');
       const fileStream = bwait(fs.createReadStream(testFilePath));
       const formData = { file: fileStream };
       const fileUploadParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/files`,
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/files',
         formData,
         json: true,
       };
@@ -64,8 +64,8 @@ module.exports = function jobsTests() {
             botUuid,
             fileUuid,
           },
-          method: `POST`,
-          uri: `http://localhost:9000/v1/jobs/`,
+          method: 'POST',
+          uri: 'http://localhost:9000/v1/jobs/',
           json: true,
         };
         const jobCreateReply = bwait(request(requestParams));
@@ -73,7 +73,7 @@ module.exports = function jobsTests() {
         should(!!job.uuid);
         should(!!job.state);
         should(jobCreateReply.status).equal(201);
-        should(jobCreateReply.query).equal(`Create Job`);
+        should(jobCreateReply.query).equal('Create Job');
         done();
       } catch (ex) {
         logger.error(ex);
@@ -82,29 +82,29 @@ module.exports = function jobsTests() {
 
     it('should have a job state of "ready"', bsync(function (done) {
       const requestParams = {
-        method: `GET`,
+        method: 'GET',
         uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
       const getJobReply = bwait(request(requestParams));
       job = getJobReply.data;
-      should(job.state === `ready`);
+      should(job.state === 'ready');
       should(getJobReply.status).equal(200);
-      should(getJobReply.query).equal(`Get Job`);
+      should(getJobReply.query).equal('Get Job');
       done();
     }));
 
     it('should retreive an array of existing jobs', bsync(function (done) {
       const requestParams = {
-        method: `GET`,
-        uri: `http://localhost:9000/v1/jobs/`,
+        method: 'GET',
+        uri: 'http://localhost:9000/v1/jobs/',
         json: true,
       };
       const getJobsReply = bwait(request(requestParams));
       const jobs = getJobsReply.data;
       should(jobs.constructor).equal(Object);
       should(getJobsReply.status).equal(200);
-      should(getJobsReply.query).equal(`Get Jobs`);
+      should(getJobsReply.query).equal('Get Jobs');
 
       nJobs = Object.keys(jobs).length;
       done();
@@ -112,8 +112,8 @@ module.exports = function jobsTests() {
 
     it('should delete a job', bsync(function (done) {
       const requestParams = {
-        method: `DELETE`,
-        uri: `http://localhost:9000/v1/jobs/`,
+        method: 'DELETE',
+        uri: 'http://localhost:9000/v1/jobs/',
         body: {
           uuid: job.uuid,
         },
@@ -122,7 +122,7 @@ module.exports = function jobsTests() {
       const deleteJobReply = bwait(request(requestParams));
       should(deleteJobReply.data.indexOf('deleted') !== -1).equal(true);
       should(deleteJobReply.status).equal(200);
-      should(deleteJobReply.query).equal(`Delete Job`);
+      should(deleteJobReply.query).equal('Delete Job');
       done();
     }));
   });

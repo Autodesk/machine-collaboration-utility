@@ -6,7 +6,7 @@ const Escher2Serial = function Escher2Serial(app) {
   Marlin.call(this, app);
 
   _.extend(this.settings, {
-    name: `Escher 2 Serial`,
+    name: 'Escher 2 Serial',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 

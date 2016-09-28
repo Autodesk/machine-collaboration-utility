@@ -27,7 +27,7 @@ const Files = function Files(app, routeEndpoint) {
   this.logger = app.context.logger;
   this.routeEndpoint = routeEndpoint;
   this.router = router;
-  this.uploadDir = path.join(__dirname, `../../../uploads`);
+  this.uploadDir = path.join(__dirname, '../../../uploads');
   this.fileList = {};
 };
 
@@ -42,9 +42,9 @@ Files.prototype.initialize = bsync(function initialize() {
     bwait(this.setupRouter());
     bwait(this.createUploadDirectory());
     bwait(this.scanUploadDirectory());
-    this.logger.info(`Files instance initialized`);
+    this.logger.info('Files instance initialized');
   } catch (ex) {
-    this.logger.error(`Files initialization error`, ex);
+    this.logger.error('Files initialization error', ex);
   }
 });
 
@@ -75,11 +75,11 @@ Files.prototype.scanUploadDirectory = bsync(function scanUploadDirectory() {
     if (uuid.length !== 36) {
       return;
     }
-    const fileExtension = filename.split(`.`)[1];
+    const fileExtension = filename.split('.')[1];
     if (fileExtension === undefined) {
       return;
     }
-    const name = `${filename.split(`_${uuid}`)[0]}.${filename.split(`.`)[1]}`;
+    const name = `${filename.split(`_${uuid}`)[0]}.${filename.split('.')[1]}`;
     const filePath = `${basedir}/${filename}`;
     const fileStats = bwait(fs.stat(filePath));
     const dateChanged = fileStats.ctime;
@@ -108,9 +108,9 @@ Files.prototype.setupRouter = bsync(function setupRouter() {
 
     // Register all router routes with the app
     this.app.use(this.router.routes()).use(this.router.allowedMethods());
-    this.logger.info(`Files router setup complete`);
+    this.logger.info('Files router setup complete');
   } catch (ex) {
-    this.logger.error(`Files router setup error`, ex);
+    this.logger.error('Files router setup error', ex);
   }
 });
 
@@ -134,24 +134,24 @@ Files.prototype.createFile = bsync(function createFile(file, userPath, userUuid)
     const name = file.name;
     const fileStats = bwait(fs.stat(file.path));
     const dateChanged = fileStats.ctime;
-    const filePath = this.uploadDir + `/` + name.split(`.`)[0] + `_` + uuid + `.` + name.split(`.`)[1];
+    const filePath = this.uploadDir + '/' + name.split('.')[0] + '_' + uuid + '.' + name.split('.')[1];
     fileObject = { uuid, name, dateChanged, filePath };
 
     // Rename the file from it's random name to the file's name plus the uuid
-    const nameArray = name.split(`.`);
+    const nameArray = name.split('.');
     const fileName = nameArray[0];
     const fileExt = nameArray[1];
     const filenameWithUuid = `${this.uploadDir}/${fileName}_${uuid}.${fileExt}`;
     bwait(fs.rename(file.path, filenameWithUuid));
     this.fileList[uuid] = fileObject;
-    this.app.io.broadcast(`fileEvent`, {
+    this.app.io.broadcast('fileEvent', {
       uuid,
-      event: `new`,
+      event: 'new',
       data: fileObject,
     });
   } else {
     if (userUuid === undefined) {
-      throw `userUuid must be defined`;
+      throw 'userUuid must be defined';
     }
     const fileStats = bwait(fs.stat(userPath));
     const uuid = userUuid;
@@ -190,7 +190,7 @@ Files.prototype.getFiles = function getFiles() {
  */
 Files.prototype.getFile = function getFile(fileUuid) {
   if (fileUuid === undefined) {
-    throw `File uuid is undefined`;
+    throw 'File uuid is undefined';
   }
 
   const theFile = this.fileList[fileUuid];
@@ -219,9 +219,9 @@ Files.prototype.deleteFile = bsync(function deleteFile(fileUuid) {
     this.logger.info('Just deleted file', file.filePath);
     // Remove the file object from the 'files' array
     delete this.fileList[fileUuid];
-    this.app.io.broadcast(`fileEvent`, {
+    this.app.io.broadcast('fileEvent', {
       uuid: fileUuid,
-      event: `delete`,
+      event: 'delete',
       data: null,
     });
     return `File ${fileUuid} deleted`;

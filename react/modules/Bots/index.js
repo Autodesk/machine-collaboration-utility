@@ -88,7 +88,7 @@ export default class Bots extends React.Component {
     const options = _.pairs(this.props.botPresets).map(([botPresetKey, botPreset]) => {
       switch (botPreset.info.connectionType) {
         case undefined:
-        case `serial`:
+        case 'serial':
           return;
         default:
           break;
@@ -165,7 +165,7 @@ export default class Bots extends React.Component {
     this.closeModal();
     event.preventDefault();
 
-    request.post(`/v1/bots`)
+    request.post('/v1/bots')
     .send({ name: event.target.name.value })
     .send({ model: event.target.model.value })
     .send({ endpoint: event.target.endpoint.value })

@@ -65,9 +65,9 @@ UsbDiscovery.prototype.initialize = bsync(function initialize() {
             // a persistent pnpid connection, then delete it
             if (self.app.context.bots.botList[removedBot.settings.uuid] !== undefined) {
               delete self.app.context.bots.botList[removedBot.settings.uuid];
-              self.app.io.broadcast(`botEvent`, {
+              self.app.io.broadcast('botEvent', {
                 uuid: removedBot.settings.uuid,
-                event: `delete`,
+                event: 'delete',
                 data: null,
               });
             }
@@ -101,7 +101,7 @@ UsbDiscovery.prototype.detectPort = bsync(function detectPort(port) {
   const pid = parseInt(port.productId, 16);
 
   for (const [botPresetKey, botPresets] of _.pairs(this.app.context.bots.botSettingList)) {
-    if (botPresets.info.connectionType === `serial`) {
+    if (botPresets.info.connectionType === 'serial') {
       if (vid === botPresets.info.vid && pid === botPresets.info.pid) {
         // Pass the detected preset to populate new settings
         const persistentCheck = bwait(this.checkForPersistentSettings(port, botPresets));

@@ -26,12 +26,12 @@ module.exports = function toDoListTests() {
 
   describe('Files unit test', bsync(function () {
     it('should upload a file and retrieve a file object', bsync(function (done) {
-      const testFilePath = path.join(__dirname, `blah.txt`);
+      const testFilePath = path.join(__dirname, 'blah.txt');
       const file = bwait(fs.createReadStream(testFilePath));
       const formData = { file };
       const requestParams = {
-        method: `POST`,
-        uri: `http://localhost:9000/v1/files`,
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/files',
         formData,
         json: true,
       };
@@ -43,21 +43,21 @@ module.exports = function toDoListTests() {
       should(!!files.uuid);
       should(!!files.name);
       should(uploadReply.status).equal(200);
-      should(uploadReply.query).equal(`Upload File`);
+      should(uploadReply.query).equal('Upload File');
       done();
     }));
 
     it('should retrieve a dictionary of files', bsync(function (done) {
       const requestParams = {
-        method: `GET`,
-        uri: `http://localhost:9000/v1/files`,
+        method: 'GET',
+        uri: 'http://localhost:9000/v1/files',
         json: true,
       };
       const getFilesReply = bwait(request(requestParams));
       const files = getFilesReply.data;
       should(files.constructor).equal(Object);
       should(getFilesReply.status).equal(200);
-      should(getFilesReply.query).equal(`Get Files`);
+      should(getFilesReply.query).equal('Get Files');
 
       fileArrayLength = Object.keys(files).length;
       fileUuid = files[Object.keys(files)[0]].uuid;
@@ -66,7 +66,7 @@ module.exports = function toDoListTests() {
 
     it('should retrieve an a single file', bsync(function (done) {
       const requestParams = {
-        method: `GET`,
+        method: 'GET',
         uri: `http://localhost:9000/v1/files/${fileUuid}`,
         json: true,
       };
@@ -74,14 +74,14 @@ module.exports = function toDoListTests() {
       const file = getFileReply.data;
       should(file.uuid).equal(fileUuid);
       should(getFileReply.status).equal(200);
-      should(getFileReply.query).equal(`Get File`);
+      should(getFileReply.query).equal('Get File');
       done();
     }));
 
     it('should fail when trying to retrieve a nonexistent file', bsync(function (done) {
       try {
         const requestParams = {
-          method: `GET`,
+          method: 'GET',
           uri: `http://localhost:9000/v1/files/${fileUuid}foobar`,
           json: true,
         };
@@ -92,7 +92,7 @@ module.exports = function toDoListTests() {
       } catch (ex) {
         should(ex.error.error).equal(`File ${fileUuid}foobar not found`);
         should(ex.error.status).equal(500);
-        should(ex.error.query).equal(`Get File`);
+        should(ex.error.query).equal('Get File');
         done();
       }
     }));
@@ -100,8 +100,8 @@ module.exports = function toDoListTests() {
 
     it('should delete the file that was originally uploaded', bsync(function (done) {
       const requestParams = {
-        method: `DELETE`,
-        uri: `http://localhost:9000/v1/files/`,
+        method: 'DELETE',
+        uri: 'http://localhost:9000/v1/files/',
         body: {
           uuid: fileUuid,
         },
@@ -110,14 +110,14 @@ module.exports = function toDoListTests() {
       const deleteFileReply = bwait(request(requestParams));
       should(deleteFileReply.data).equal(`File ${fileUuid} deleted`);
       should(deleteFileReply.status).equal(200);
-      should(deleteFileReply.query).equal(`Delete File`);
+      should(deleteFileReply.query).equal('Delete File');
       done();
     }));
 
     it('should have one less file in the file array after deleting a file', bsync(function (done) {
       const requestParams = {
-        method: `GET`,
-        uri: `http://localhost:9000/v1/files`,
+        method: 'GET',
+        uri: 'http://localhost:9000/v1/files',
         json: true,
       };
       const getFilesReply = bwait(request(requestParams));

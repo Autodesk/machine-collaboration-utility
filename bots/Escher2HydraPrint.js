@@ -6,7 +6,7 @@ const Escher2HydraPrint = function Escher2HydraPrint(app) {
   HydraPrint.call(this, app);
 
   _.extend(this.settings, {
-    name: `Escher 2 HydraPrint`,
+    name: 'Escher 2 HydraPrint',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
@@ -48,7 +48,7 @@ const Escher2HydraPrint = function Escher2HydraPrint(app) {
       self.fsm.unpark();
 
       const xEntry = params.xEntry;
-      const dryJob = params.dryJob === undefined ? `false` : String(params.dryJob);
+      const dryJob = params.dryJob === undefined ? 'false' : String(params.dryJob);
       const commandArray = [
         {
           code: 'M114',

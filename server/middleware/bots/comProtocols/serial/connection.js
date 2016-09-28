@@ -69,7 +69,7 @@ const roundAxis = function roundAxis(command, axis, self) {
       roundedCommand = before + middle + end;
     }
   } catch (ex) {
-    self.logger.error(`Round Axis error`, command, axis, ex);
+    self.logger.error('Round Axis error', command, axis, ex);
   }
   return roundedCommand;
 };
@@ -77,15 +77,15 @@ const roundAxis = function roundAxis(command, axis, self) {
 const roundGcode = function roundGcode(inGcode, self) {
   let gcode = inGcode;
   try {
-    if (inGcode.indexOf(`G1`) !== -1) {
-      gcode = roundAxis(gcode, `X`, self);
-      gcode = roundAxis(gcode, `Y`, self);
-      gcode = roundAxis(gcode, `Z`, self);
-      gcode = roundAxis(gcode, `E`, self);
-      gcode = roundAxis(gcode, `F`, self);
+    if (inGcode.indexOf('G1') !== -1) {
+      gcode = roundAxis(gcode, 'X', self);
+      gcode = roundAxis(gcode, 'Y', self);
+      gcode = roundAxis(gcode, 'Z', self);
+      gcode = roundAxis(gcode, 'E', self);
+      gcode = roundAxis(gcode, 'F', self);
     }
   } catch (ex) {
-    self.logger.error(`Error index of G1`, inGcode, ex);
+    self.logger.error('Error index of G1', inGcode, ex);
   }
   return gcode;
 };
@@ -216,8 +216,8 @@ SerialConnection.prototype.send = function (inCommandStr) {
         try {
             // TODO add GCODE Validation regex
             // Add a line break if it isn't in there yet
-            if (gcode.indexOf(`\n`) === -1) {
-              gcode += `\n`;
+            if (gcode.indexOf('\n') === -1) {
+              gcode += '\n';
             }
             this.mPort.write(gcode);
             if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {

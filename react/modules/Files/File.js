@@ -9,7 +9,7 @@ export default class File extends React.Component {
   }
 
   deleteFile() {
-    request.delete(`/v1/files`)
+    request.delete('/v1/files')
     .send({ uuid: this.props.file.uuid })
     .set('Accept', 'application/json')
     .end();

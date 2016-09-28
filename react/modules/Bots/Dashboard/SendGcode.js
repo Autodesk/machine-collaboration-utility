@@ -13,7 +13,7 @@ export default class SendGcode extends React.Component {
     const gcode = event.target.gcode.value;
 
     request.post(this.props.endpoint)
-    .send({ command: `processGcode` })
+    .send({ command: 'processGcode' })
     .send({ gcode })
     .set('Accept', 'application/json')
     .end();

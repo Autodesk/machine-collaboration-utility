@@ -15,7 +15,7 @@ export default class Job extends React.Component {
   }
 
   handleClick() {
-    request.delete(`/v1/jobs`)
+    request.delete('/v1/jobs')
     .send({ uuid: this.state.job.uuid })
     .set('Accept', 'application/json')
     .end();

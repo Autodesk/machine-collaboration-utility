@@ -6,7 +6,7 @@ const Printrbot = function (app) {
   Marlin.call(this, app);
 
   _.extend(this.settings, {
-    name: `Printrbot Simple Serial`,
+    name: 'Printrbot Simple Serial',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 

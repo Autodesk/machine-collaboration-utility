@@ -24,12 +24,12 @@ export default class App extends React.Component {
       this.socket.on('botEvent', (bot) => {
         const newBots = this.state.bots;
         switch (bot.event) {
-          case `new`:
-          case `update`:
+          case 'new':
+          case 'update':
             newBots[bot.uuid] = bot.data;
             this.setState({ bots: newBots });
             break;
-          case `delete`:
+          case 'delete':
             delete newBots[bot.uuid];
             this.setState({ bots: newBots });
             break;
@@ -40,11 +40,11 @@ export default class App extends React.Component {
       this.socket.on('fileEvent', (file) => {
         const newFiles = this.state.files;
         switch (file.event) {
-          case `new`:
+          case 'new':
             newFiles[file.uuid] = file.data;
             this.setState({ files: newFiles });
             break;
-          case `delete`:
+          case 'delete':
             delete newFiles[file.uuid];
             this.setState({ files: newFiles });
             break;
@@ -56,20 +56,20 @@ export default class App extends React.Component {
         const newJobs = this.state.jobs;
         const newBots = this.state.bots;
         switch (job.event) {
-          case `new`:
-          case `update`:
+          case 'new':
+          case 'update':
             newJobs[job.uuid] = job.data;
             try {
               newBots[job.data.botUuid].currentJob = job.data;
             } catch (ex) {
-              console.log(`Failed to update bots from job event`, ex);
+              console.log('Failed to update bots from job event', ex);
             }
             this.setState({
               jobs: newJobs,
               bots: newBots,
             });
             break;
-          case `delete`:
+          case 'delete':
             delete newJobs[job.uuid];
             this.setState({ jobs: newJobs });
             break;
@@ -96,8 +96,8 @@ export default class App extends React.Component {
 
   render() {
     const dropzoneStyle = {
-      width: `100%`,
-      height: `100%`,
+      width: '100%',
+      height: '100%',
     };
     const childrenComponents = React.Children.map(this.props.children, child => {
       // mapping through all of the children components in order to inject hydraPrint app objects
