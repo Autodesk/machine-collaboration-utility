@@ -24,133 +24,148 @@ module.exports = function botsTests() {
     let job;
     let botUuid;
 
-    it('should create a virtual bot', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'POST',
-          uri: 'http://localhost:9000/v1/bots/',
-          body: {
-            model: 'Virtual',
-          },
-          json: true,
-        };
-        const initializeBotReply = bwait(request(requestParams));
-        botUuid = initializeBotReply.data.settings.uuid;
-        should(initializeBotReply.status).equal(201);
-        should(initializeBotReply.query).equal('Create Bot');
+    it('should create a virtual bot', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/bots/',
+        body: {
+          model: 'Virtual',
+        },
+        json: true,
+      };
+      request(requestParams)
+      .then((reply) => {
+        console.log('initialize bot reply', reply);
+        botUuid = reply.data.settings.uuid;
+        should(reply.status).equal(201);
+        should(reply.query).equal('Create Bot');
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
-
-    it('the bot should have an initial state to ready', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'GET',
-          uri: `http://localhost:9000/v1/bots/${botUuid}`,
-          json: true,
-        };
-        bwait(Promise.delay(config.virtualDelay)); // Wait for virtual "detecting" event to complete
-        const getStatusReply = bwait(request(requestParams));
-        should(getStatusReply.data.state).equal('ready');
-        should(getStatusReply.status).equal(200);
-        should(getStatusReply.query).equal('Get Bot');
+      })
+      .catch((err) => {
+        logger.error(err);
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      });
+    });
 
-    it('should destroy the virtual bot', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'DELETE',
-          uri: `http://localhost:9000/v1/bots/${botUuid}`,
-          json: true,
-        };
-        const destroyBotReply = bwait(request(requestParams));
+    it('the bot should have an initial state to ready', function (done) {
+      const requestParams = {
+        method: 'GET',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        json: true,
+      };
+      Promise.delay(config.virtualDelay) // Wait for virtual "detecting" event to complete
+      .then(() => {
+        request(requestParams)
+        .then((getStatusReply) => {
+          should(getStatusReply.data.state).equal('ready');
+          should(getStatusReply.status).equal(200);
+          should(getStatusReply.query).equal('Get Bot');
+          done();
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
+      });
+    });
 
+    it('should destroy the virtual bot', function (done) {
+      const requestParams = {
+        method: 'DELETE',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        json: true,
+      };
+      request(requestParams)
+      .then((destroyBotReply) => {
         should(destroyBotReply.status).equal(200);
         should(destroyBotReply.query).equal('Delete Bot');
         should(destroyBotReply.data).equal(`Bot "${botUuid}" successfully deleted`);
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
+    it('should create a virtual bot, again', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/bots/',
+        body: {
+          model: 'Virtual',
+          botUuid,
+        },
+        json: true,
+      };
 
-    it('should create a virtual bot, again', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'POST',
-          uri: 'http://localhost:9000/v1/bots/',
-          body: {
-            model: 'Virtual',
-            botUuid,
-          },
-          json: true,
-        };
-        const initializeBotReply = bwait(request(requestParams));
+      request(requestParams)
+      .then((initializeBotReply) => {
         botUuid = initializeBotReply.data.settings.uuid;
         should(initializeBotReply.status).equal(201);
         should(initializeBotReply.query).equal('Create Bot');
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
 
-    it('should connect', bsync(function (done) {
-      bwait(Promise.delay(config.virtualDelay)); // Wait for virtual "detecting" event to complete
-      try {
+    it('should connect', function (done) {
+      Promise.delay(config.virtualDelay) // Wait for virtual "detecting" event to complete
+      .then(() => {
         const requestParams = {
           method: 'POST',
           uri: `http://localhost:9000/v1/bots/${botUuid}`,
           body: { command: 'connect' },
           json: true,
         };
-        const botCommandReply = bwait(request(requestParams));
-        should(botCommandReply.data.state).equal('connecting');
-        should(botCommandReply.status).equal(200);
-        should(botCommandReply.query).equal('Process Bot Command');
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+        request(requestParams)
+        .then((botCommandReply) => {
+          should(botCommandReply.data.state).equal('connecting');
+          should(botCommandReply.status).equal(200);
+          should(botCommandReply.query).equal('Process Bot Command');
+          done();
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
+      });
+    });
 
-    it('should finish connecting', bsync(function (done) {
-      try {
-        bwait(Promise.delay(config.virtualDelay));
+    it('should finish connecting', function (done) {
+      Promise.delay(config.virtualDelay)
+      .then(() => {
         const requestParams = {
           method: 'GET',
           uri: `http://localhost:9000/v1/bots/${botUuid}`,
           json: true,
         };
-        const getStatusReply = bwait(request(requestParams));
-        should(getStatusReply.data.state).equal('connected');
-        should(getStatusReply.status).equal(200);
-        should(getStatusReply.query).equal('Get Bot');
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+        request(requestParams)
+        .then((getStatusReply) => {
+          should(getStatusReply.data.state).equal('connected');
+          should(getStatusReply.status).equal(200);
+          should(getStatusReply.query).equal('Get Bot');
+          done();
+        });
+      });
+    });
 
-    it('should setup a job and a file', bsync(function (done) {
-      try {
-        // Upload a file
-        const testFilePath = path.join(__dirname, 'pause.gcode');
-        const fileStream = bwait(fs.createReadStream(testFilePath));
-        const formData = { file: fileStream };
-        const fileParams = {
-          method: 'POST',
-          uri: 'http://localhost:9000/v1/files',
-          formData,
-          json: true,
-        };
-        const uploadFileReply = bwait(request(fileParams));
+    it('should setup a job and a file', function (done) {
+      // Upload a file
+      const testFilePath = path.join(__dirname, 'pause.gcode');
+      const fileStream = fs.createReadStream(testFilePath);
+
+      const formData = { file: fileStream };
+      const fileParams = {
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/files',
+        formData,
+        json: true,
+      };
+      request(fileParams)
+      .then((uploadFileReply) => {
         should(uploadFileReply.status).equal(200);
         should(uploadFileReply.query).equal('Upload File');
         const file = uploadFileReply.data[0];
@@ -165,144 +180,171 @@ module.exports = function botsTests() {
           },
           json: true,
         };
-        const createJobReply = bwait(request(jobParams));
-        // assign value to job
-        job = createJobReply.data;
-        should(!!job.uuid);
-        should(job.state).equal('ready');
-        should(createJobReply.status).equal(201);
-        should(createJobReply.query).equal('Create Job');
+        request(jobParams)
+        .then((createJobReply) => {
+          // assign value to job
+          job = createJobReply.data;
+          should(!!job.uuid);
+          should(job.state).equal('ready');
+          should(createJobReply.status).equal(201);
+          should(createJobReply.query).equal('Create Job');
+          done();
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
+      })
+      .catch((err) => {
+        logger.error(err);
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      });
+    });
 
-    it('should start a job', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'POST',
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          body: { command: 'start' },
-          json: true,
-        };
-        const startJobReply = bwait(request(requestParams));
+    it('should start a job', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
+        body: { command: 'start' },
+        json: true,
+      };
+      request(requestParams)
+      .then((startJobReply) => {
         should(startJobReply.data.state).equal('running');
         should(startJobReply.status).equal(200);
         should(startJobReply.query).equal('Process Job Command');
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
 
-    it('should pause a job', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'POST',
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          body: { command: 'pause' },
-          json: true,
-        };
-        const jobPauseReply = bwait(request(requestParams));
+    it('should pause a job', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
+        body: { command: 'pause' },
+        json: true,
+      };
+      request(requestParams)
+      .then((jobPauseReply) => {
         should(jobPauseReply.data.state).equal('paused');
         should(jobPauseReply.status).equal(200);
         should(jobPauseReply.query).equal('Process Job Command');
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
 
-    it('pause should be idempotent', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'POST',
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          body: { command: 'pause' },
-          json: true,
-        };
-        const jobPauseReply = bwait(request(requestParams));
+    it('pause should be idempotent', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
+        body: { command: 'pause' },
+        json: true,
+      };
+      request(requestParams)
+      .then((jobPauseReply) => {
         should(jobPauseReply.data.state).equal('paused');
         should(jobPauseReply.status).equal(200);
         should(jobPauseReply.query).equal('Process Job Command');
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
 
-    it('should resume a job', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'POST',
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          body: { command: 'resume' },
-          json: true,
-        };
-        const jobResumeReply = bwait(request(requestParams));
+    it('should resume a job', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
+        body: { command: 'resume' },
+        json: true,
+      };
+      request(requestParams)
+      .then((jobResumeReply) => {
         should(jobResumeReply.data.state).equal('running');
         should(jobResumeReply.status).equal(200);
         should(jobResumeReply.query).equal('Process Job Command');
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
 
-    it('resume should be idempotent', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'POST',
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          body: { command: 'resume' },
-          json: true,
-        };
-        const jobResumeReply = bwait(request(requestParams));
+    it('resume should be idempotent', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
+        body: { command: 'resume' },
+        json: true,
+      };
+      request(requestParams)
+      .then((jobResumeReply) => {
         should(jobResumeReply.data.state).equal('running');
         should(jobResumeReply.status).equal(200);
         should(jobResumeReply.query).equal('Process Job Command');
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
 
-    it('should cancel a job', bsync(function (done) {
-      try {
-        this.timeout(10000);
-        bwait(Promise.delay(5000));
+    it('should cancel a job', function (done) {
+      this.timeout(10000);
+      Promise.delay(5000)
+      .then(() => {
         const requestParams = {
           method: 'POST',
           uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
           body: { command: 'cancel' },
           json: true,
         };
-        const jobCancelReply = bwait(request(requestParams));
-        should(jobCancelReply.data.state).equal('canceled');
-        should(jobCancelReply.status).equal(200);
-        should(jobCancelReply.query).equal('Process Job Command');
-        done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+        request(requestParams)
+        .then((jobCancelReply) => {
+          should(jobCancelReply.data.state).equal('canceled');
+          should(jobCancelReply.status).equal(200);
+          should(jobCancelReply.query).equal('Process Job Command');
+          done();
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
+      });
+    });
 
-    it('should clean up by deleting the virtual bot', bsync(function (done) {
-      try {
-        const requestParams = {
-          method: 'DELETE',
-          uri: `http://localhost:9000/v1/bots/${botUuid}`,
-          json: true,
-        };
-        const destroyBotReply = bwait(request(requestParams));
+    it('should clean up by deleting the virtual bot', function (done) {
+      const requestParams = {
+        method: 'DELETE',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        json: true,
+      };
+      request(requestParams)
+      .then((destroyBotReply) => {
         should(destroyBotReply.status).equal(200);
         should(destroyBotReply.query).equal('Delete Bot');
         should(destroyBotReply.data).equal(`Bot "${botUuid}" successfully deleted`);
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
+      });
+    });
+  });
+
+  describe('Conductor unit test', function () {
+    it('should do something better than this', bsync(function (done) {
+      should(true).equal(true);
+      done();
     }));
   });
 };

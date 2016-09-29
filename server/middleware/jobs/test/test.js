@@ -25,7 +25,7 @@ module.exports = function jobsTests() {
   let fileUuid;
 
   describe('Jobs unit test', function () {
-    it('should create a virtual printer to execute jobs on', bsync(function (done) {
+    it('should create a virtual printer to execute jobs on', function (done) {
       const requestParams = {
         method: 'POST',
         uri: 'http://localhost:9000/v1/bots/',
@@ -34,17 +34,19 @@ module.exports = function jobsTests() {
         },
         json: true,
       };
-      const initializeBotReply = bwait(request(requestParams));
-      botUuid = initializeBotReply.data.settings.uuid;
-      should(initializeBotReply.status).equal(201);
-      should(initializeBotReply.query).equal('Create Bot');
-      done();
-    }));
+      request(requestParams)
+      .then((initializeBotReply) => {
+        botUuid = initializeBotReply.data.settings.uuid;
+        should(initializeBotReply.status).equal(201);
+        should(initializeBotReply.query).equal('Create Bot');
+        done();
+      })
+    });
 
-    it('should upload a file for a job to process', bsync(function (done) {
+    it('should upload a file for a job to process', function (done) {
       // Upload a file
       const testFilePath = path.join(__dirname, 'blah.txt');
-      const fileStream = bwait(fs.createReadStream(testFilePath));
+      const fileStream = fs.createReadStream(testFilePath);
       const formData = { file: fileStream };
       const fileUploadParams = {
         method: 'POST',
@@ -52,65 +54,77 @@ module.exports = function jobsTests() {
         formData,
         json: true,
       };
-      const getFilesReply = bwait(request(fileUploadParams));
-      fileUuid = getFilesReply.data[0].uuid;
-      done();
-    }));
+      request(fileUploadParams)
+      .then((getFilesReply) => {
+        fileUuid = getFilesReply.data[0].uuid;
+        done();
+      })
+      .catch((error) => {
+        logger.error(error);
+        done();
+      });
+    });
 
-    it('should create a job', bsync(function (done) {
-      try {
-        const requestParams = {
-          body: {
-            botUuid,
-            fileUuid,
-          },
-          method: 'POST',
-          uri: 'http://localhost:9000/v1/jobs/',
-          json: true,
-        };
-        const jobCreateReply = bwait(request(requestParams));
+    it('should create a job', function (done) {
+      const requestParams = {
+        body: {
+          botUuid,
+          fileUuid,
+        },
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/jobs/',
+        json: true,
+      };
+      request(requestParams)
+      .then((jobCreateReply) => {
         job = jobCreateReply.data;
         should(!!job.uuid);
         should(!!job.state);
         should(jobCreateReply.status).equal(201);
         should(jobCreateReply.query).equal('Create Job');
         done();
-      } catch (ex) {
-        logger.error(ex);
-      }
-    }));
+      })
+      .catch((error) => {
+        logger.error(error);
+        done();
+      });
+    });
 
-    it('should have a job state of "ready"', bsync(function (done) {
+    it('should have a job state of "ready"', function (done) {
       const requestParams = {
         method: 'GET',
         uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
         json: true,
       };
-      const getJobReply = bwait(request(requestParams));
-      job = getJobReply.data;
-      should(job.state === 'ready');
-      should(getJobReply.status).equal(200);
-      should(getJobReply.query).equal('Get Job');
-      done();
-    }));
+      request(requestParams)
+      .then((getJobReply) => {
+        job = getJobReply.data;
+        should(job.state === 'ready');
+        should(getJobReply.status).equal(200);
+        should(getJobReply.query).equal('Get Job');
+        done();
+      });
+    });
 
-    it('should retreive an array of existing jobs', bsync(function (done) {
+    it('should retreive an array of existing jobs', function (done) {
       const requestParams = {
         method: 'GET',
         uri: 'http://localhost:9000/v1/jobs/',
         json: true,
       };
-      const getJobsReply = bwait(request(requestParams));
-      const jobs = getJobsReply.data;
-      should(jobs.constructor).equal(Object);
-      should(getJobsReply.status).equal(200);
-      should(getJobsReply.query).equal('Get Jobs');
+      request(requestParams)
+      .then((getJobsReply) => {
+        const jobs = getJobsReply.data;
+        should(jobs.constructor).equal(Object);
+        should(getJobsReply.status).equal(200);
+        should(getJobsReply.query).equal('Get Jobs');
 
-      nJobs = Object.keys(jobs).length;
-      done();
-    }));
+        nJobs = Object.keys(jobs).length;
+        done();
+      });
+    });
 
-    it('should delete a job', bsync(function (done) {
+    it('should delete a job', function (done) {
       const requestParams = {
         method: 'DELETE',
         uri: 'http://localhost:9000/v1/jobs/',
@@ -119,11 +133,13 @@ module.exports = function jobsTests() {
         },
         json: true,
       };
-      const deleteJobReply = bwait(request(requestParams));
-      should(deleteJobReply.data.indexOf('deleted') !== -1).equal(true);
-      should(deleteJobReply.status).equal(200);
-      should(deleteJobReply.query).equal('Delete Job');
-      done();
-    }));
+      request(requestParams)
+      .then((deleteJobReply) => {
+        should(deleteJobReply.data.indexOf('deleted') !== -1).equal(true);
+        should(deleteJobReply.status).equal(200);
+        should(deleteJobReply.query).equal('Delete Job');
+        done();
+      });
+    });
   });
 };
