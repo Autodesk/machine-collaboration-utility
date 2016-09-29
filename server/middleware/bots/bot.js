@@ -279,7 +279,7 @@ Bot.prototype.detect = function detect() {
     // Set up the validator and executor
     switch (this.info.connectionType) {
       case 'serial': {
-        const openPrime = this.settings.m561Plane || 'M501';
+        const openPrime = this.settings.openString || 'M501';
         executor = new SerialCommandExecutor(
           this.app,
           this.port,

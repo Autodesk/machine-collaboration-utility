@@ -35,7 +35,6 @@ module.exports = function botsTests() {
       };
       request(requestParams)
       .then((reply) => {
-        console.log('initialize bot reply', reply);
         botUuid = reply.data.settings.uuid;
         should(reply.status).equal(201);
         should(reply.query).equal('Create Bot');
@@ -342,9 +341,79 @@ module.exports = function botsTests() {
   });
 
   describe('Conductor unit test', function () {
-    it('should do something better than this', bsync(function (done) {
-      should(true).equal(true);
-      done();
-    }));
+    let conductorUuid;
+    it('should create a conductor bot', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/bots/',
+        body: {
+          model: 'Conductor',
+        },
+        json: true,
+      };
+      request(requestParams)
+      .then((reply) => {
+        botUuid = reply.data.settings.uuid;
+        should(reply.status).equal(201);
+        should(reply.query).equal('Create Bot');
+        done();
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
+    it('should add a player to the conductor', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'addPlayer',
+          name: 'botA',
+          endpoint: 'http://google.com',
+        },
+        json: true,
+      };
+      request(requestParams)
+      .then((reply) => {
+        botUuid = reply.data.settings.uuid;
+        const players = reply.data.settings.custom.players;
+        should(reply.status).equal(200);
+        should(Array.isArray(players)).equal(true);
+        should(players.length).equal(1);
+        should(reply.query).equal('Process Bot Command');
+        done();
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
+    it('should remove a player from the conductor', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'removePlayer',
+          name: 'botA',
+          endpoint: 'http://google.com',
+        },
+        json: true,
+      };
+      request(requestParams)
+      .then((reply) => {
+        botUuid = reply.data.settings.uuid;
+        const players = reply.data.settings.custom.players;
+        should(reply.status).equal(200);
+        should(Array.isArray(players)).equal(true);
+        should(players.length).equal(1);
+        should(reply.query).equal('Process Bot Command');
+        done();
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
   });
 };

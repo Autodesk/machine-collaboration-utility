@@ -29,7 +29,7 @@ const DefaultBot = function DefaultBot(app) {
     offsetX: '0',
     offsetY: '0',
     offsetZ: '0',
-    m561Plane: null,
+    openString: null,
   };
 
   this.commands = {};
@@ -64,7 +64,7 @@ const DefaultBot = function DefaultBot(app) {
       // NOTE This code is assuming we are processing GCODE
       // In case of adding support for multiple contrl formats, this is a good place to start
 
-      
+
       let command = line.split(';')[0];
       if (command.length <= 0) {
         // If the line is blank, move on to the next line

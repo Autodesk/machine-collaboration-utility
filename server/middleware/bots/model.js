@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const Sequelize = require('sequelize');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
@@ -7,23 +6,24 @@ module.exports = bsync((app) => {
   const BotModel = app.context.db.define('Bot', {
     model: Sequelize.STRING,
     name: Sequelize.STRING,
-    uuid: Sequelize.STRING,
-    endpoint: Sequelize.STRING,
+    uuid: Sequelize.UUID,
+
     // The identifier is either an ip address endpoint or a pnpid
-    jogXSpeed: Sequelize.STRING,
-    jogYSpeed: Sequelize.STRING,
-    jogZSpeed: Sequelize.STRING,
-    jogESpeed: Sequelize.STRING,
-    tempE: Sequelize.STRING,
-    tempB: Sequelize.STRING,
-    speedRatio: Sequelize.STRING,
-    eRatio: Sequelize.STRING,
-    offsetX: Sequelize.STRING,
-    offsetY: Sequelize.STRING,
-    offsetZ: Sequelize.STRING,
-    conductorX: Sequelize.STRING,
-    conductorY: Sequelize.STRING,
-    m561Plane: Sequelize.STRING,
+    endpoint: Sequelize.STRING,
+
+    jogXSpeed: Sequelize.INTEGER,
+    jogYSpeed: Sequelize.INTEGER,
+    jogZSpeed: Sequelize.INTEGER,
+    jogESpeed: Sequelize.INTEGER,
+    tempE: Sequelize.INTEGER,
+    tempB: Sequelize.INTEGER,
+    speedRatio: Sequelize.FLOAT,
+    eRatio: Sequelize.FLOAT,
+    offsetX: Sequelize.FLOAT,
+    offsetY: Sequelize.FLOAT,
+    offsetZ: Sequelize.FLOAT,
+    openString: Sequelize.STRING,
+    custom: Sequelize.JSON,
   });
 
   return BotModel;

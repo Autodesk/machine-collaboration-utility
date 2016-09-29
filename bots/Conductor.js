@@ -14,11 +14,12 @@ const DefaultBot = require('./DefaultBot');
 const ConductorVirtual = function ConductorVirtual(app) {
   DefaultBot.call(this, app);
 
-  this.collaboratorCheckpoints = {};
-
   _.extend(this.settings, {
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
     name: 'Conductor',
+    custom: {
+      players: [],
+    },
   });
 
   _.extend(this.info, {
@@ -29,9 +30,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
     fileTypes: ['.esh'],
     conductorPresets: {
       botModel: 'Virtual',
-      nPlayers: [5, 1],
     },
-    players: {},
   });
 
 
@@ -46,15 +45,13 @@ const ConductorVirtual = function ConductorVirtual(app) {
       self.fsm.connect();
       try {
         bwait(this.setupConductorArms());
-        for(const [playerKey, player] of _.pairs(self.info.players)) {
-          self.logger.info('starting to connect', playerKey);
-          if (player.fsm.current === 'unavailable') {
-            bwait(player.commands.checkSubscription(player));
-          }
-          player.commands.connect(player);
-        }
-        self.commands.toggleUpdater(self, { update: true });
-        self.fsm.connectDone();
+        // go through each player and connect it
+
+        // Then enable the conductor updater function
+        // self.commands.toggleUpdater(self, { update: true });
+
+        // Then you're done
+        // self.fsm.connectDone();
       } catch (ex) {
         self.logger.error(ex);
         self.fsm.connectFail();
@@ -63,12 +60,12 @@ const ConductorVirtual = function ConductorVirtual(app) {
     disconnect: function disconnect(self) {
       self.fsm.disconnect();
       try {
-        _.pairs(self.info.players).forEach(([playerKey, player]) => {
-          self.logger.info('starting to disconnect', playerKey);
-          player.commands.disconnect(player);
-        });
-        // TODO actually check this
-        self.commands.toggleUpdater(self, { update: false });
+        // _.pairs(self.info.players).forEach(([playerKey, player]) => {
+        //   self.logger.info('starting to disconnect', playerKey);
+        //   player.commands.disconnect(player);
+        // });
+        // // TODO actually check this
+        // self.commands.toggleUpdater(self, { update: false });
         self.fsm.disconnectDone();
       } catch (ex) {
         self.logger.error(ex);
@@ -83,11 +80,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
       try {
         bwait(this.uploadAndSetupPlayerJobs(self, job));
         self.logger.info('All files uploaded and set up');
-        self.logger.info('Players have begun');
-        for(const [playerKey, player] of _.pairs(self.info.players)) {
-          self.logger.info(`${player.settings.name}, is prepared to process ${player.metajobQueue.length} jobs`);
-        }
-        // then grab each player's first job
       } catch (ex) {
         self.logger.error(`Conductor failed to start job: ${ex}`);
       }
@@ -95,7 +87,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
       self.fsm.startDone();
     }),
     updateRoutine: bsync(function updateRoutine(self, params) {
-      console.log('Conductor update');
         // if (doneConducting) {
         //   bwait(self.fsm.stop());
         //   bwait(self.fsm.stopDone());
@@ -107,57 +98,20 @@ const ConductorVirtual = function ConductorVirtual(app) {
     // If the database doesn't yet have printers for the endpoints, create them
     setupConductorArms: bsync((self, params) => {
       // Sweet through every player
-      for (let playerX = 1; playerX <= this.info.conductorPresets.nPlayers[0]; playerX++) {
-        for (let playerY = 1; playerY <= this.info.conductorPresets.nPlayers[1]; playerY++) {
-          // Check if a bot exists with that end point
-          const botModel = this.info.conductorPresets.botModel;
-          const botName = `${botModel}-${playerX}-${playerY}`;
-          const bots = this.app.context.bots.getBots();
-          let unique = true;
-          for (const botKey in bots) {
-            const conductorBot = bots[botKey];
-            if (
-              parseInt(bots[botKey].settings.conductorX, 10) === playerX &&
-              parseInt(bots[botKey].settings.conductorY, 10) === playerY
-            ) {
-              unique = false;
-              break;
-            }
-          }
+      for (let i = 0; i < 0; i++) {
+        // Check if a bot exists with that end point
+        let created = true;
+        // If it doesn't, create it
 
-          let endpoint;
-          if (unique) {
-            switch (botModel) {
-              case 'Escher2HydraPrint':
-                endpoint = `http://${botName.toLowerCase().replace('hydraprint', '')}.local/v1/bots/solo`;
-                break;
-              case 'virtual':
-                endpoint = `http://localhost:${process.env.PORT}/v1/bots/${newBot.settings.uuid}`;
-                break;
-              default:
-                endpoint = `http://${botName}.local/v1/bots/solo`;
-            }
-            const newBot = bwait(
-              this.app.context.bots.createPersistentBot({
-                name: `${botModel}-${playerX}-${playerY}`,
-                model: botModel,
-                endpoint,
-                conductorX: playerX,
-                conductorY: playerY,
-              })
-            );
-          }
-        }
-      }
-      for (const [botKey, bot] of _.pairs(this.app.context.bots.botList)) {
-        if (
-          bot.settings.conductorX !== null &&
-          bot.settings.conductorY !== null
-        ) {
-          this.info.players[botKey] = bot;
-          if (!Array.isArray(this.info.players[botKey].metajobQueue)) {
-            this.info.players[botKey].metajobQueue = [];
-          }
+        if (!created) {
+          const newBot = bwait(
+            this.app.context.bots.createPersistentBot({
+              name: 'whatever the player name is',
+              model: 'whatever the model type is',
+              endpoint: 'whatever the endpoint is',
+            })
+          );
+          self.logger.info('just created bot', newBot);
         }
       }
     }),
@@ -190,6 +144,21 @@ const ConductorVirtual = function ConductorVirtual(app) {
       self.collaboratorCheckpoints[bot] = checkpoint;
       self.logger.info(`Just updated bot ${bot} to checkpoint ${checkpoint}`, JSON.stringify(self.collaboratorCheckpoints));
       self.commands.updatePlayers(self);
+    },
+    addPlayer: function(self, params) {
+      const name = params.name;
+      if (name === undefined) {
+        throw '"name" is undefined';
+      }
+
+      const endpoint = params.endpoint;
+      if (endpoint === undefined) {
+        throw '"endpoint" is undefined';
+      }
+
+      const playerArray = self.settings.custom.players;
+      playerArray.push({ name, endpoint });
+      return self.getBot();
     },
     uploadAndSetupPlayerJobs: bsync(function(self, job) {
       self.nJobs = 0;
