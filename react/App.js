@@ -15,6 +15,16 @@ export default class App extends React.Component {
       this.state = props.params;
     }
     this.openDropzone = this.openDropzone.bind(this);
+    this.restart = this.restart.bind(this);
+  }
+
+  restart() {
+    request.post('/restart')
+    .end();
+
+    setTimeout(() => {
+      location.reload();
+    }, 10000);
   }
 
   componentDidMount() {
@@ -112,6 +122,9 @@ export default class App extends React.Component {
       >
         <Header/>
         {childrenComponents}
+        <div onClick={this.restart}>
+          <img style={{width:"50px", position:"fixed", cursor:"pointer", right:"0px", bottom:"0px"}} src="images/restart.svg"/>
+        </div>
       </Dropzone>
     );
   }
