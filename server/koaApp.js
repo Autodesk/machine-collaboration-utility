@@ -179,42 +179,9 @@ const koaApp = bsync((config) => {
     }
   });
 
-  router.post('/update', (ctx) => {
-    const scriptPath = path.join(__dirname, '../update.sh');
-    const commands = [scriptPath];
-
-    function runCommands(array, callback) {
-      let index = 0;
-      const results = [];
-      function next() {
-        if (index < array.length) {
-          exec(array[index++], (error, stdout) => {
-            if (error) {
-              return callback(error);
-            }
-            // do the next iteration
-            results.push(stdout);
-            next();
-          });
-        } else {
-          // all done here
-          callback(null, results);
-        }
-      }
-      // start the first iteration
-      next();
-    }
-
-    runCommands(commands, (error, results) => {
-      if (error === undefined || error === null) {
-        app.context.logger.info(`Update results: ${results}`);
-        exec('sudo reboot');
-      } else {
-        app.context.logger.error(`Update error: ${error}`);
-      }
-    });
-
-    ctx.body = 'Updating. System will reboot on completion of update.';
+  router.post('/restart', (ctx) => {
+    process.exit(1);
+    ctx.body = 'Restarting';
   });
 
   // Latch the defined routes to the koa app
