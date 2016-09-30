@@ -156,7 +156,7 @@ const Marlin = function (app) {
                     const updateParams = {
                       method: 'POST',
                       // HACK hardcoded for testing
-                      uri: 'http://10.139.15.16:9000/v1/bots/741e6d10-8032-11e6-b0e4-e13ac65db298',
+                      uri: 'http://smoothieboardhydraprint-5-1.local:9999/v1/bots/e395b160-7166-11e6-8940-9908b43e819d',
                       body: {
                         command: 'updateCollaborativeBotCheckpoint',
                         bot: self.settings.name,
