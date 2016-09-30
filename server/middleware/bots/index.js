@@ -64,12 +64,22 @@ Bots.prototype.initialize = bsync(function initialize() {
         // In case the middleware instance is only for Conducting or Serial,
         // Don't or Do, respectively, add Serial printers
         if (process.env.ONLY_CONDUCT === 'true') {
-          if (dbBot.dataValues.model.indexOf('Serial') === -1) {
-            bwait(this.createBot(dbBot.dataValues));
+          try {
+            const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
+            if (connectionType !== 'serial') {
+              bwait(this.createBot(dbBot.dataValues));
+            }
+          } catch (ex) {
+            this.logger.error('Could not retreive connectionType', ex);
           }
         } else if (process.env.ONLY_SERIAL === 'true') {
-          if (dbBot.dataValues.model.indexOf('Serial') !== -1) {
-            bwait(this.createBot(dbBot.dataValues));
+          try {
+            const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
+            if (connectionType === 'serial') {
+              bwait(this.createBot(dbBot.dataValues));
+            }
+          } catch (ex) {
+            this.logger.error('Could not retreive connectionType', ex);
           }
         } else {
           bwait(this.createBot(dbBot.dataValues));
