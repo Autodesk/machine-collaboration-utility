@@ -342,6 +342,7 @@ module.exports = function botsTests() {
 
   describe('Conductor unit test', function () {
     let conductorUuid;
+    let virtualBot;
     let players;
     it('should create a conductor bot', function (done) {
       const requestParams = {
@@ -354,7 +355,29 @@ module.exports = function botsTests() {
       };
       request(requestParams)
       .then((reply) => {
-        botUuid = reply.data.settings.uuid;
+        conductorUuid = reply.data.settings.uuid;
+        should(reply.status).equal(201);
+        should(reply.query).equal('Create Bot');
+        done();
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
+
+    it('should create a virtual bot', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/bots/',
+        body: {
+          model: 'Virtual',
+        },
+        json: true,
+      };
+      request(requestParams)
+      .then((reply) => {
+        virtualBot = reply.data.settings.uuid;
         should(reply.status).equal(201);
         should(reply.query).equal('Create Bot');
         done();
@@ -366,9 +389,10 @@ module.exports = function botsTests() {
     });
 
     it('should add a player to the conductor', function (done) {
+      console.log('the virtual bot', virtualBot);
       const requestParams = {
         method: 'POST',
-        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
           command: 'addPlayer',
           name: 'botA',
