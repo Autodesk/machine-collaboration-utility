@@ -342,6 +342,7 @@ module.exports = function botsTests() {
 
   describe('Conductor unit test', function () {
     let conductorUuid;
+    let players;
     it('should create a conductor bot', function (done) {
       const requestParams = {
         method: 'POST',
@@ -363,6 +364,7 @@ module.exports = function botsTests() {
         done();
       });
     });
+
     it('should add a player to the conductor', function (done) {
       const requestParams = {
         method: 'POST',
@@ -377,7 +379,7 @@ module.exports = function botsTests() {
       request(requestParams)
       .then((reply) => {
         botUuid = reply.data.settings.uuid;
-        const players = reply.data.settings.custom.players;
+        players = reply.data.settings.custom.players;
         should(reply.status).equal(200);
         should(Array.isArray(players)).equal(true);
         should(players.length).equal(1);
@@ -389,6 +391,50 @@ module.exports = function botsTests() {
         done();
       });
     });
+
+    it('should create and connect all of the conductor\'s players', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'connect',
+        },
+        json: true,
+      };
+      request(requestParams)
+      .then((reply) => {
+        // Wait a second for the bots to connect
+        Promise.delay(1000)
+        .then(done);
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
+
+    it('should verify that the players are connected', function (done) {
+      let success = true;
+      let nTimes = 0;
+      console.log('players', players);
+      Promise.map(players, (player) => {
+        const requestParams = {
+          method: 'GET',
+          uri: `http://localhost:9000/v1/bots/${player.endpoint}`,
+          json: true,
+        };
+        return request(requestParams)
+        .then((reply) => {
+          console.log('get request reply', player, reply);
+          nTimes += 1;
+        });
+      })
+      .then(() => {
+        console.log('all done', success, nTimes);
+        done();
+      });
+    });
+
     it('should remove a player from the conductor', function (done) {
       const requestParams = {
         method: 'POST',
@@ -402,12 +448,7 @@ module.exports = function botsTests() {
       };
       request(requestParams)
       .then((reply) => {
-        botUuid = reply.data.settings.uuid;
-        const players = reply.data.settings.custom.players;
-        should(reply.status).equal(200);
-        should(Array.isArray(players)).equal(true);
-        should(players.length).equal(1);
-        should(reply.query).equal('Process Bot Command');
+        console.log('success!', reply);
         done();
       })
       .catch((err) => {
