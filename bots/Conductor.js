@@ -23,10 +23,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
   });
 
   _.extend(this.info, {
-    connectionType: 'conductor',
-    vid: undefined,
-    pid: undefined,
-    baudrate: undefined,
     fileTypes: ['.esh'],
     conductorPresets: {
       botModel: 'Virtual',
@@ -98,20 +94,28 @@ const ConductorVirtual = function ConductorVirtual(app) {
     // If the database doesn't yet have printers for the endpoints, create them
     setupConductorArms: bsync((self, params) => {
       // Sweet through every player
-      for (let i = 0; i < 0; i++) {
+      for (const player of self.settings.custom.players) {
         // Check if a bot exists with that end point
-        let created = true;
+        let created = false;
+        for (const [botUuid, bot] of _.pairs(self.app.context.bots.botList)) {
+          if (
+            bot.settings.endpoint === player.endpoint &&
+            bot.settings.name === player.name
+          ) {
+            created = true;
+          }
+        }
         // If it doesn't, create it
 
         if (!created) {
           const newBot = bwait(
             this.app.context.bots.createPersistentBot({
-              name: 'whatever the player name is',
-              model: 'whatever the model type is',
-              endpoint: 'whatever the endpoint is',
+              name: player.name,
+              endpoint: player.endpoint,
+              model: self.info.conductorPresets.botModel,
             })
           );
-          self.logger.info('just created bot', newBot);
+          self.logger.info('Just created bot', newBot);
         }
       }
     }),
@@ -158,6 +162,34 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
       const playerArray = self.settings.custom.players;
       playerArray.push({ name, endpoint });
+      // should update the database version of this
+      return self.getBot();
+    },
+    removePlayer: function(self, params) {
+      const name = params.name;
+      if (name === undefined) {
+        throw '"name" is undefined';
+      }
+
+      const endpoint = params.endpoint;
+      if (endpoint === undefined) {
+        throw '"endpoint" is undefined';
+      }
+
+      const players = self.settings.custom.players;
+      let returnMessage = `Player "${name} with endpoint ${endpoint} could not be found"`;
+      for (let i = 0; i < self.setplayers.length; i++) {
+        const player = self.settings.custom.players[i];
+        if (player.name === name && player.endpoint === endpoint) {
+          players.splice(i, 1);
+          break;
+        }
+      }
+
+      if (playerToRemove === undefined) {
+        throw `Player "${name}" with endpoint "${endpoint}" could not be found`;
+      }
+
       return self.getBot();
     },
     uploadAndSetupPlayerJobs: bsync(function(self, job) {
