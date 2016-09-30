@@ -14,6 +14,8 @@ export default class App extends React.Component {
     } catch (ex) {
       this.state = props.params;
     }
+    this.state.restartWidth = '50px';
+
     this.openDropzone = this.openDropzone.bind(this);
     this.restart = this.restart.bind(this);
   }
@@ -21,6 +23,9 @@ export default class App extends React.Component {
   restart() {
     request.post('/restart')
     .end();
+    this.setState({
+      restartWidth: '50%',
+    });
 
     setTimeout(() => {
       location.reload();
@@ -123,7 +128,7 @@ export default class App extends React.Component {
         <Header/>
         {childrenComponents}
         <div onClick={this.restart}>
-          <img style={{width:"50px", position:"fixed", cursor:"pointer", right:"0px", bottom:"0px"}} src="images/restart.svg"/>
+          <img style={{width:this.state.restartWidth, position:"fixed", cursor:"pointer", right:"0px", bottom:"0px"}} src="images/restart.svg"/>
         </div>
       </Dropzone>
     );
