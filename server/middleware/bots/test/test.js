@@ -377,7 +377,7 @@ module.exports = function botsTests() {
       };
       request(requestParams)
       .then((reply) => {
-        virtualBot = reply.data.settings.uuid;
+        virtualBot = reply.data;
         should(reply.status).equal(201);
         should(reply.query).equal('Create Bot');
         done();
@@ -389,14 +389,13 @@ module.exports = function botsTests() {
     });
 
     it('should add a player to the conductor', function (done) {
-      console.log('the virtual bot', virtualBot);
       const requestParams = {
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
           command: 'addPlayer',
-          name: 'botA',
-          endpoint: 'http://google.com',
+          name: virtualBot.settings.name,
+          endpoint: virtualBot.port,
         },
         json: true,
       };
@@ -419,7 +418,7 @@ module.exports = function botsTests() {
     it('should create and connect all of the conductor\'s players', function (done) {
       const requestParams = {
         method: 'POST',
-        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
           command: 'connect',
         },
@@ -428,7 +427,7 @@ module.exports = function botsTests() {
       request(requestParams)
       .then((reply) => {
         // Wait a second for the bots to connect
-        Promise.delay(1000)
+        Promise.delay(4000)
         .then(done);
       })
       .catch((err) => {
@@ -440,21 +439,23 @@ module.exports = function botsTests() {
     it('should verify that the players are connected', function (done) {
       let success = true;
       let nTimes = 0;
-      console.log('players', players);
       Promise.map(players, (player) => {
         const requestParams = {
           method: 'GET',
-          uri: `http://localhost:9000/v1/bots/${player.endpoint}`,
+          uri: player.endpoint,
           json: true,
         };
         return request(requestParams)
         .then((reply) => {
-          console.log('get request reply', player, reply);
+          if (reply.data.state !== 'connected') {
+            success = false;
+          }
           nTimes += 1;
         });
       })
       .then(() => {
-        console.log('all done', success, nTimes);
+        should(nTimes).equal(players.length);
+        should(success).equal(true);
         done();
       });
     });

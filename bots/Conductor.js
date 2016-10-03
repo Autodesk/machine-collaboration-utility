@@ -23,6 +23,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
   });
 
   _.extend(this.info, {
+    connectionType: 'conductor',
     fileTypes: ['.esh'],
     conductorPresets: {
       botModel: 'Virtual',
@@ -31,23 +32,33 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
 
   _.extend(this.commands, {
-    initialize: bsync(function initialize(self) {
-      const config = app.context.config;
-      const jobsUrl = `/${config.apiVersion}/bots/${self.settings.uuid}/jobs`;
-      self.jobs = new Jobs(self.app, jobsUrl);
-      self.jobs.initialize();
-    }),
     connect: bsync(function connect(self) {
       self.fsm.connect();
       try {
         bwait(this.setupConductorArms());
-        // go through each player and connect it
+
+        // Go through each player and connect it
+        for (const player of this.settings.custom.players) {
+          const connectParams = {
+            method: 'POST',
+            uri: player.endpoint,
+            body: {
+              command: 'connect',
+            },
+            json: true,
+          };
+          try {
+            bwait(request(connectParams));
+          } catch(ex) {
+            this.logger.error('Connect player request fail', ex);
+          }
+        }
 
         // Then enable the conductor updater function
-        // self.commands.toggleUpdater(self, { update: true });
+        self.commands.toggleUpdater(self, { update: true });
 
         // Then you're done
-        // self.fsm.connectDone();
+        self.fsm.connectDone();
       } catch (ex) {
         self.logger.error(ex);
         self.fsm.connectFail();
@@ -94,6 +105,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
     // If the database doesn't yet have printers for the endpoints, create them
     setupConductorArms: bsync((self, params) => {
       // Sweet through every player
+      console.log('players', self);
       for (const player of self.settings.custom.players) {
         // Check if a bot exists with that end point
         let created = false;
