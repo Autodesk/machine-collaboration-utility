@@ -33,12 +33,12 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
   _.extend(this.commands, {
     connect: bsync(function connect(self) {
-      self.fsm.connect();
       try {
-        bwait(this.setupConductorArms());
+        self.fsm.connect();
+        bwait(self.commands.setupConductorArms(self));
 
         // Go through each player and connect it
-        for (const player of this.settings.custom.players) {
+        for (const player of self.settings.custom.players) {
           const connectParams = {
             method: 'POST',
             uri: player.endpoint,
@@ -49,8 +49,8 @@ const ConductorVirtual = function ConductorVirtual(app) {
           };
           try {
             bwait(request(connectParams));
-          } catch(ex) {
-            this.logger.error('Connect player request fail', ex);
+          } catch (ex) {
+            self.logger.error('Connect player request fail', ex);
           }
         }
 
@@ -65,8 +65,8 @@ const ConductorVirtual = function ConductorVirtual(app) {
       }
     }),
     disconnect: function disconnect(self) {
-      self.fsm.disconnect();
       try {
+        self.fsm.disconnect();
         // _.pairs(self.info.players).forEach(([playerKey, player]) => {
         //   self.logger.info('starting to disconnect', playerKey);
         //   player.commands.disconnect(player);
@@ -80,12 +80,11 @@ const ConductorVirtual = function ConductorVirtual(app) {
       }
     },
     startJob: bsync(function startJob(self, params) {
-      const job = params.job;
-      self.currentJob = job;
-      self.fsm.start();
-
       try {
-        bwait(this.uploadAndSetupPlayerJobs(self, job));
+        const job = params.job;
+        self.currentJob = job;
+        self.fsm.start();
+        bwait(self.uploadAndSetupPlayerJobs(self, job));
         self.logger.info('All files uploaded and set up');
       } catch (ex) {
         self.logger.error(`Conductor failed to start job: ${ex}`);
@@ -104,46 +103,56 @@ const ConductorVirtual = function ConductorVirtual(app) {
     }),
     // If the database doesn't yet have printers for the endpoints, create them
     setupConductorArms: bsync((self, params) => {
-      // Sweet through every player
-      console.log('players', self);
-      for (const player of self.settings.custom.players) {
-        // Check if a bot exists with that end point
-        let created = false;
-        for (const [botUuid, bot] of _.pairs(self.app.context.bots.botList)) {
-          if (
-            bot.settings.endpoint === player.endpoint &&
-            bot.settings.name === player.name
-          ) {
-            created = true;
+      try {
+        // Sweet through every player
+        for (const player of self.settings.custom.players) {
+          // Check if a bot exists with that end point
+          let created = false;
+          for (const [botUuid, bot] of _.pairs(self.app.context.bots.botList)) {
+            if (
+              bot.settings.endpoint === player.endpoint &&
+              bot.settings.name === player.name
+            ) {
+              created = true;
+            }
+          }
+
+          // If it doesn't, create it
+          if (!created) {
+            try {
+              const newBot = bwait(
+                this.app.context.bots.createPersistentBot({
+                  name: player.name,
+                  endpoint: player.endpoint,
+                  model: self.info.conductorPresets.botModel,
+                })
+              );
+              self.logger.info('Just created bot', newBot.getBot());
+            } catch (ex) {
+              self.logger.error('Create bot fail', ex);
+            }
           }
         }
-        // If it doesn't, create it
-
-        if (!created) {
-          const newBot = bwait(
-            this.app.context.bots.createPersistentBot({
-              name: player.name,
-              endpoint: player.endpoint,
-              model: self.info.conductorPresets.botModel,
-            })
-          );
-          self.logger.info('Just created bot', newBot);
-        }
+      } catch (ex) {
+        self.logger.error(ex);
       }
     }),
     updatePlayers: bsync(function(self) {
-      for (const [playerKey, player] of _.pairs(self.info.players)) {
-        const updatePlayerParams = {
-          method: 'POST',
-          uri: player.settings.endpoint,
-          body: {
-            command: 'updateCollaboratorCheckpoints',
-            collaborators: self.collaboratorCheckpoints,
-          },
-          json: true,
-        };
-        const updateCollaboratorReply = bwait(request(updatePlayerParams));
-        console.log('update results', updateCollaboratorReply);
+      try {
+        for (const [playerKey, player] of _.pairs(self.info.players)) {
+          const updatePlayerParams = {
+            method: 'POST',
+            uri: player.settings.endpoint,
+            body: {
+              command: 'updateCollaboratorCheckpoints',
+              collaborators: self.collaboratorCheckpoints,
+            },
+            json: true,
+          };
+          const updateCollaboratorReply = bwait(request(updatePlayerParams));
+        }
+      } catch (ex) {
+        self.logger.error(ex);
       }
     }),
     updateCollaborativeBotCheckpoint: function(self, params) {
@@ -161,121 +170,140 @@ const ConductorVirtual = function ConductorVirtual(app) {
       self.logger.info(`Just updated bot ${bot} to checkpoint ${checkpoint}`, JSON.stringify(self.collaboratorCheckpoints));
       self.commands.updatePlayers(self);
     },
-    addPlayer: function(self, params) {
-      const name = params.name;
-      if (name === undefined) {
-        throw '"name" is undefined';
-      }
-
-      const endpoint = params.endpoint;
-      if (endpoint === undefined) {
-        throw '"endpoint" is undefined';
-      }
-
-      const playerArray = self.settings.custom.players;
-      playerArray.push({ name, endpoint });
-      // should update the database version of this
-      return self.getBot();
-    },
-    removePlayer: function(self, params) {
-      const name = params.name;
-      if (name === undefined) {
-        throw '"name" is undefined';
-      }
-
-      const endpoint = params.endpoint;
-      if (endpoint === undefined) {
-        throw '"endpoint" is undefined';
-      }
-
-      const players = self.settings.custom.players;
-      let returnMessage = `Player "${name} with endpoint ${endpoint} could not be found"`;
-      for (let i = 0; i < self.setplayers.length; i++) {
-        const player = self.settings.custom.players[i];
-        if (player.name === name && player.endpoint === endpoint) {
-          players.splice(i, 1);
-          break;
-        }
-      }
-
-      if (playerToRemove === undefined) {
-        throw `Player "${name}" with endpoint "${endpoint}" could not be found`;
-      }
-
-      return self.getBot();
-    },
-    uploadAndSetupPlayerJobs: bsync(function(self, job) {
-      self.nJobs = 0;
-      self.nJobsComplete = 0;
-
-      const filesApp = self.app.context.files;
-      const theFile = filesApp.getFile(job.fileUuid);
+    addPlayer: bsync(function(self, params) {
       try {
+        const name = params.name;
+        if (name === undefined) {
+          throw '"name" is undefined';
+        }
+
+        const endpoint = params.endpoint;
+        if (endpoint === undefined) {
+          throw '"endpoint" is undefined';
+        }
+
+        const playerArray = self.settings.custom.players;
+
+        // Check for duplicate names or endpoints
+        for (const player of playerArray) {
+          if (player.name === name) {
+            throw `Duplicate name "${name}".`;
+          }
+          if (player.endpoint === endpoint) {
+            throw `Duplicate endpoint "${endpoint}".`;
+          }
+        }
+        playerArray.push({ name, endpoint });
+        bwait(self.updateBot({ custom: self.settings.custom }));
+        // should update the database version of this
+        return self.getBot();
+      } catch (ex) {
+        self.logger.error('Add player error', ex);
+        throw ex;
+      }
+    }),
+    removePlayer: bsync(function(self, params) {
+      try {
+        const name = params.name;
+        if (name === undefined) {
+          throw '"name" is undefined';
+        }
+
+        const players = self.settings.custom.players;
+        let playerRemoved = false;
+        for (let i = 0; i < players.length; i++) {
+          const player = players[i];
+          if (player.name === name) {
+            players.splice(i, 1);
+            playerRemoved = true;
+            break;
+          }
+        }
+
+        if (!playerRemoved) {
+          throw `Player "${name}" could not be found.`;
+        }
+        bwait(self.updateBot({ custom: self.settings.custom }));
+        return self.getBot();
+      } catch (ex) {
+        self.logger.error('error', ex);
+        return 'wuuuh';
+      }
+    }),
+    uploadAndSetupPlayerJobs: bsync(function(self, job) {
+      try {
+        self.nJobs = 0;
+        self.nJobsComplete = 0;
+
+        const filesApp = self.app.context.files;
+        const theFile = filesApp.getFile(job.fileUuid);
         bwait(new Promise(bsync((resolve, reject) => {
-          // Open and unzip the file
-          bwait(fs.createReadStream(theFile.filePath))
-          .pipe(unzip.Extract({ path: theFile.filePath.split('.')[0] }))
-          // As soon as the file is done being unzipped
-          .on('close', bsync(() => {
-            console.log('unzipped the file');
+          try {
+            // Open and unzip the file
+            bwait(fs.createReadStream(theFile.filePath))
+            .pipe(unzip.Extract({ path: theFile.filePath.split('.')[0] }))
+            // As soon as the file is done being unzipped
+            .on('close', bsync(() => {
+              try {
+                // Reset each player's collaborator list
+                for (const [playerKey, player] of _.pairs(self.info.players)) {
+                  self.collaboratorCheckpoints[player.settings.name] = 0;
+                }
+                bwait(self.commands.updatePlayers(self));
 
-            // Reset each player's collaborator list
-            for (const [playerKey, player] of _.pairs(self.info.players)) {
-              self.collaboratorCheckpoints[player.settings.name] = 0;
-            }
-            bwait(self.commands.updatePlayers(self));
+                for (const [playerKey, player] of _.pairs(self.info.players)) {
+                  // For each player we're going to upload a file, and then create a job
+                  // Get the bot's uuid
+                  const getBotUuidParams = {
+                    method: 'GET',
+                    uri: player.settings.endpoint,
+                    json: true,
+                  }
+                  const getBotUuidReply = bwait(request(getBotUuidParams));
+                  const botUuid = getBotUuidReply.data.settings.uuid;
+                  // Upload a file
+                  const testFilePath = theFile.filePath.split('.')[0] + '/' + player.settings.name + '.gcode';
+                  const fileStream = bwait(fs.createReadStream(testFilePath));
+                  const formData = { file: fileStream };
+                  const fileParams = {
+                    method: 'POST',
+                    uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/files`,
+                    formData,
+                    json: true,
+                  };
+                  const uploadFileReply = bwait(request(fileParams));
 
-            for (const [playerKey, player] of _.pairs(self.info.players)) {
-              // For each player we're going to upload a file, and then create a job
-              // Get the bot's uuid
-              const getBotUuidParams = {
-                method: 'GET',
-                uri: player.settings.endpoint,
-                json: true,
+                  // Create and start job
+                  const jobParams = {
+                    method: 'POST',
+                    uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs`,
+                    body: {
+                      botUuid,
+                      fileUuid: uploadFileReply.data[0].uuid,
+                    },
+                    json: true,
+                  };
+                  const createJobReply = bwait(request(jobParams));
+                  const jobUuid = createJobReply.data.uuid;
+
+                  const startJobParams = {
+                    method: 'POST',
+                    uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs/${jobUuid}`,
+                    body: {
+                      command: 'start',
+                    },
+                    json: true,
+                  };
+                  const startJobReply = bwait(request(startJobParams));
+                  bwait(Promise.delay(2000));
+                }
+              } catch (ex) {
+                self.logger.error(ex);
               }
-              const getBotUuidReply = bwait(request(getBotUuidParams));
-              const botUuid = getBotUuidReply.data.settings.uuid;
-              // Upload a file
-              const testFilePath = theFile.filePath.split('.')[0] + '/' + player.settings.name + '.gcode';
-              const fileStream = bwait(fs.createReadStream(testFilePath));
-              const formData = { file: fileStream };
-              const fileParams = {
-                method: 'POST',
-                uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/files`,
-                formData,
-                json: true,
-              };
-              const uploadFileReply = bwait(request(fileParams));
-              console.log('file upload reply', uploadFileReply);
-
-              // Create and start job
-              const jobParams = {
-                method: 'POST',
-                uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs`,
-                body: {
-                  botUuid,
-                  fileUuid: uploadFileReply.data[0].uuid,
-                },
-                json: true,
-              };
-              console.log('creating a job with these params', jobParams);
-              const createJobReply = bwait(request(jobParams));
-              console.log('create job reply', createJobReply);
-              const jobUuid = createJobReply.data.uuid;
-
-              const startJobParams = {
-                method: 'POST',
-                uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs/${jobUuid}`,
-                body: {
-                  command: 'start',
-                },
-                json: true,
-              };
-              const startJobReply = bwait(request(startJobParams));
-              console.log('start job reply', startJobReply);
-              bwait(Promise.delay(2000));
-            }
-          }));
+            }));
+          } catch (ex) {
+            self.logger.error(ex);
+          }
         })));
       } catch (ex) {
         self.logger.error(ex);

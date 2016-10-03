@@ -415,6 +415,29 @@ module.exports = function botsTests() {
       });
     });
 
+    it('should not allow two players to have the same name', function (done) {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        body: {
+          command: 'addPlayer',
+          name: virtualBot.settings.name,
+          endpoint: virtualBot.port,
+        },
+        json: true,
+      };
+      request(requestParams)
+      .then((reply) => {
+        console.log('431 reply', reply);
+        should(reply.data.includes('Duplicate name')).equal(true);
+        done();
+      })
+      .catch((err) => {
+        logger.error(err);
+        done();
+      });
+    });
+
     it('should create and connect all of the conductor\'s players', function (done) {
       const requestParams = {
         method: 'POST',
@@ -427,7 +450,7 @@ module.exports = function botsTests() {
       request(requestParams)
       .then((reply) => {
         // Wait a second for the bots to connect
-        Promise.delay(4000)
+        Promise.delay(1000)
         .then(done);
       })
       .catch((err) => {
@@ -463,17 +486,20 @@ module.exports = function botsTests() {
     it('should remove a player from the conductor', function (done) {
       const requestParams = {
         method: 'POST',
-        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
           command: 'removePlayer',
-          name: 'botA',
-          endpoint: 'http://google.com',
+          name: virtualBot.settings.name,
         },
         json: true,
       };
       request(requestParams)
       .then((reply) => {
-        console.log('success!', reply);
+        const replyPlayers = reply.data.settings.custom.players;
+        should(reply.status).equal(200);
+        should(Array.isArray(players)).equal(true);
+        should(replyPlayers.length).equal(players.length - 1);
+        should(reply.query).equal('Process Bot Command');
         done();
       })
       .catch((err) => {

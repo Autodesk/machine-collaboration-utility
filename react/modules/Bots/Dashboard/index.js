@@ -9,6 +9,7 @@ import PositionFeedback from './PositionFeedback';
 import DisableMotors from './DisableMotors';
 import Temp from './Temp';
 import SendGcode from './SendGcode';
+import ConductorPlayers from './ConductorPlayers';
 
 export default class Dashboard extends React.Component {
   constructor(props) {
@@ -17,6 +18,16 @@ export default class Dashboard extends React.Component {
 
   render() {
     const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
+    let conductorPlayers = '';
+    if (this.props.bot.settings.model.toLowerCase().includes('conductor')) {
+      conductorPlayers =
+        <div className="container">
+          <div className="area row">
+            <ConductorPlayers bot={this.props.bot}/>
+          </div>
+        </div>
+        ;
+    }
 
     return (
       <div id="dashboard">
@@ -51,6 +62,7 @@ export default class Dashboard extends React.Component {
             <SendGcode endpoint={endpoint} bot={this.props.bot}/>
           </div>
         </div>{/* END CONTAINER */}
+        {conductorPlayers}
       </div>
     );
   }
