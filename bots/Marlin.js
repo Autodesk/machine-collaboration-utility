@@ -192,11 +192,24 @@ const Marlin = function (app) {
               break;
             }
             case 'DRY': {
-              // unpark?
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
                 serialLogger.info('Just received a "dry" metacommand');
               }
-              self.lr.resume();
+
+              const dry = Boolean(conductorCommentResult[2]);
+
+              // If the printer is currently parked, then purge and unpark it
+              if (!dry && self.fsm.current === 'parkedJob') {
+                self.commands.unpark(self);
+                self.queue.queueCommands({
+                  postCallback: () => {
+                    self.lr.resume();
+                  },
+                });
+              // If it is a dry job, or if the bot is not in the parked state, keep going
+              } else {
+                self.lr.resume();
+              }
               break;
             }
             default: {
@@ -480,10 +493,6 @@ const Marlin = function (app) {
             serialLogger.info(`Just exceeded blocker. ${JSON.stringify(self.status)}`);
           }
           self.status.blocker = undefined;
-          // If the printer is currently parked, then unpark it
-          if (self.fsm.current === 'parkedJob') {
-            self.commands.unpark(self);
-          }
           self.lr.resume();
         } else {
           // If the precursor is not complete, then park
