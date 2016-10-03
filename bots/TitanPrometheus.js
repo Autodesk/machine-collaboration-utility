@@ -42,7 +42,7 @@ const TitanPrometheus = function TitanPrometheus(app) {
             if (zPosition < 400) {
               commandArray.push(`G1 Z${(zPosition + parkLift).toFixed(2)} F1000`);
             }
-            if (Number(yPosition + self.settings.offsetY) > -50) {
+            if (Number(yPosition - self.settings.offsetY) > -50) {
               commandArray.push('G1 Y' + (-50.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F10000'); // Scrub
             }
             commandArray.push('G1 Y' + (-78.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Drag Y across the purge
