@@ -199,22 +199,19 @@ const Marlin = function (app) {
               const dry = conductorCommentResult[2].toLowerCase() === 'true';
 
               // If the printer is currently parked, then purge and unpark it
-              if (
-                !dry && (
-                  self.fsm.current === 'parkedJob' ||
-                  self.fsm.current === 'parkingJob'
-                )
-              ) {
-                self.commands.unpark(self, { dry });
-                self.queue.queueCommands({
+              self.queue.queueCommands([
+                {
+                  postCallback: () => {
+                    self.commands.unpark(self, { dry });
+                  },
+                },
+                {
                   postCallback: () => {
                     self.lr.resume();
                   },
-                });
-              // If it is a dry job, or if the bot is not in the parked state, keep going
-              } else {
-                self.lr.resume();
-              }
+                },
+              ]);
+
               break;
             }
             default: {
