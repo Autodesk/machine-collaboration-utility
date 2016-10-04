@@ -207,6 +207,8 @@ const Marlin = function (app) {
                 },
               });
 
+              self.lr.resume();
+
               break;
             }
             default: {
