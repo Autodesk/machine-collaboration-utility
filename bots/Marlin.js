@@ -201,12 +201,14 @@ const Marlin = function (app) {
               // If the printer is currently parked, then purge and unpark it
               self.queue.queueCommands([
                 {
-                  postCallback: () => {
-                    self.commands.unpark(self, { dry });
+                  preCallback: () => {
+                    if (self.fsm.current === 'parkedJob') {
+                      self.commands.unpark(self, { dry });
+                    }
                   },
                 },
                 {
-                  postCallback: () => {
+                  preCallback: () => {
                     self.lr.resume();
                   },
                 },
@@ -499,7 +501,7 @@ const Marlin = function (app) {
         } else {
           // If the precursor is not complete, then park
           self.queue.queueCommands({
-            postCallback: () => {
+            preCallback: () => {
               self.commands.park(self);
             },
           });
