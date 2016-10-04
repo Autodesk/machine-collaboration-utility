@@ -59,7 +59,9 @@ const TitanPrometheus = function TitanPrometheus(app) {
         });
       } catch (ex) {
         self.logger.error(ex);
-        self.fsm.parkJobFail();
+        if (self.fsm.current === 'parkingJob') {
+          self.fsm.parkJobFail();
+        }
       }
       return self.getBot();
     },
@@ -84,7 +86,9 @@ const TitanPrometheus = function TitanPrometheus(app) {
         self.queue.queueCommands(commandArray);
       } catch (ex) {
         self.logger.error('unparkjob error', ex);
-        self.fsm.unparkJobFail();
+        if (self.fsm.current === 'unparkingJob') {
+          self.fsm.unparkJobFail();
+        }
       }
       return self.getBot();
     },
