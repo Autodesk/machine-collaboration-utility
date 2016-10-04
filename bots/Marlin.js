@@ -193,13 +193,18 @@ const Marlin = function (app) {
             }
             case 'DRY': {
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                serialLogger.info('Just received a "dry" metacommand');
+                serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
               }
 
-              const dry = Boolean(conductorCommentResult[2]);
+              const dry = conductorCommentResult[2].toLowerCase() === 'true';
 
               // If the printer is currently parked, then purge and unpark it
-              if (!dry && self.fsm.current === 'parkedJob') {
+              if (
+                !dry && (
+                  self.fsm.current === 'parkedJob' ||
+                  self.fsm.current === 'parkingJob'
+                )
+              ) {
                 self.commands.unpark(self);
                 self.queue.queueCommands({
                   postCallback: () => {
