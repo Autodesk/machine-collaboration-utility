@@ -199,12 +199,15 @@ const Marlin = function (app) {
               const dry = conductorCommentResult[2].toLowerCase() === 'true';
 
               // If the printer is currently parked, then purge and unpark it
-              if (self.fsm.current === 'parkedJob') {
-                self.commands.unpark(self, { dry });
-              }
-
-              self.lr.resume();
-
+              self.queue.queueCommands({
+                code: 'M400',
+                postCallback: () => {
+                  if (self.fsm.current === 'parkedJob') {
+                    self.commands.unpark(self, { dry });
+                  }
+                  self.lr.resume();
+                },
+              });
               break;
             }
             default: {
