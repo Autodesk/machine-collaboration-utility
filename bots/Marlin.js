@@ -490,7 +490,7 @@ const Marlin = function (app) {
         self.status.blocker.bot !== undefined &&
         self.status.blocker.checkpoint !== undefined
       ) {
-        self.logger.info('Checking precursors for bot', self.status, params);
+        self.logger.info('Checking precursors for bot', self.getBot());
         const blockingBotCurrentCheckpoint = self.status.collaborators[self.status.blocker.bot];
         // If the precursor is complete then move on
         if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
@@ -501,7 +501,11 @@ const Marlin = function (app) {
           self.lr.resume();
         } else {
           // If the precursor is not complete, then park
-          self.commands.park(self);
+          self.queue.queueCommands({
+            postCallback: () => {
+              self.commands.park(self);
+            },
+          });
         }
       }
     }),
