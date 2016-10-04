@@ -18,8 +18,8 @@ const TitanPrometheus = function TitanPrometheus(app) {
 
   _.extend(this.commands, {
     park: function park(self, params) {
-      self.fsm.parkJob();
       try {
+        self.fsm.parkJob();
         self.queue.queueCommands({
           code: 'M114',
           processData: (command, reply) => {
@@ -64,8 +64,8 @@ const TitanPrometheus = function TitanPrometheus(app) {
       return self.getBot();
     },
     unpark: function unpark(self, params) {
-      self.fsm.unparkJob();
       try {
+        self.fsm.unparkJob();
         const commandArray = [];
         if (params.dry === false) {
           commandArray.push('G92 E0');

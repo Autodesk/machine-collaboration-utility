@@ -91,16 +91,16 @@ const Marlin = function (app) {
     // In order to start processing a job, the job's file is opened and then
     // processed one line at a time
     park: function(self, params) {
-      self.parkJob();
       try {
+        self.parkJob();
         self.parkJobDone();
       } catch (ex) {
         self.parkJobFail();
       }
     },
     unpark: function(self, params) {
-      self.unparkJob();
       try {
+        self.unparkJob();
         self.unparkJobDone();
       } catch (ex) {
         self.unparkJobFail();
@@ -199,13 +199,9 @@ const Marlin = function (app) {
               const dry = conductorCommentResult[2].toLowerCase() === 'true';
 
               // If the printer is currently parked, then purge and unpark it
-              self.queue.queueCommands({
-                preCallback: () => {
-                  if (self.fsm.current === 'parkedJob') {
-                    self.commands.unpark(self, { dry });
-                  }
-                },
-              });
+              if (self.fsm.current === 'parkedJob') {
+                self.commands.unpark(self, { dry });
+              }
 
               self.lr.resume();
 
