@@ -67,12 +67,14 @@ const TitanPrometheus = function TitanPrometheus(app) {
       self.fsm.unparkJob();
       try {
         const commandArray = [];
-        commandArray.push('G92 E0');
-        commandArray.push('G1 E12 F100'); // Purge
-        commandArray.push('G1 E10 F3000'); // Retract
-        commandArray.push('G1 Y' + (-50.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Scrub
-        commandArray.push('G92 E-2'); // Prepare extruder for E0
-        commandArray.push('M400'); // Clear motion buffer before saying we're done
+        if (params.dry === false) {
+          commandArray.push('G92 E0');
+          commandArray.push('G1 E12 F100'); // Purge
+          commandArray.push('G1 E10 F3000'); // Retract
+          commandArray.push('G1 Y' + (-50.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Scrub
+          commandArray.push('G92 E-2'); // Prepare extruder for E0
+          commandArray.push('M400'); // Clear motion buffer before saying we're done
+        }
         commandArray.push({
           postCallback: () => {
             self.fsm.unparkJobDone();

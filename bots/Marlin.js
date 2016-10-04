@@ -205,7 +205,7 @@ const Marlin = function (app) {
                   self.fsm.current === 'parkingJob'
                 )
               ) {
-                self.commands.unpark(self);
+                self.commands.unpark(self, { dry });
                 self.queue.queueCommands({
                   postCallback: () => {
                     self.lr.resume();
