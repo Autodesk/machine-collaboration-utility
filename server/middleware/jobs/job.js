@@ -117,7 +117,7 @@ Job.prototype.initialize = bsync(function initialize() {
   };
 
   this.fsm = StateMachine.create(fsmSettings);
-  this.stopwatch = new Stopwatch(false, { refreshRateMS: 1000 });
+  this.stopwatch = new Stopwatch(false, { refreshRateMS: 10000 });
   this.started = undefined;
   this.elapsed = undefined;
   this.percentComplete = 0;
