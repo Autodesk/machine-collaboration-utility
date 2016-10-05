@@ -91,16 +91,16 @@ const Marlin = function (app) {
     // In order to start processing a job, the job's file is opened and then
     // processed one line at a time
     park: function(self, params) {
-      self.parkJob();
       try {
+        self.parkJob();
         self.parkJobDone();
       } catch (ex) {
         self.parkJobFail();
       }
     },
     unpark: function(self, params) {
-      self.unparkJob();
       try {
+        self.unparkJob();
         self.unparkJobDone();
       } catch (ex) {
         self.unparkJobFail();
@@ -126,108 +126,123 @@ const Marlin = function (app) {
 
       // As the buffer reads each line, process it
       self.lr.on('line', bsync((line) => {
-        // pause the line reader immediately
-        // we will resume it as soon as the line is done processing
-        bwait(self.lr.pause());
-        // We only care about the info prior to the first semicolon
-        // NOTE This code is assuming we are processing GCODE
-        // In case of adding support for multiple control formats, this is a good place to start
+        try {
+          // pause the line reader immediately
+          // we will resume it as soon as the line is done processing
+          bwait(self.lr.pause());
+          // We only care about the info prior to the first semicolon
+          // NOTE This code is assuming we are processing GCODE
+          // In case of adding support for multiple control formats, this is a good place to start
 
-        // Looking for a comment between 3 brackets and whatever comes after that
-        const conductorComment = /^[\w\d\s]*; <<<(\w+)>>> (.*)$/;
-        const conductorCommentResult = conductorComment.exec(line);
-        if (conductorCommentResult !== null) {
-          switch (conductorCommentResult[1]) {
-            case 'CHECKPOINT': {
-              const botRegex = /^.*bot(\w+) : (\d+)$/;
-              const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
-              const bot = botAndCheckpoint[1];
-              const checkpoint = parseInt(botAndCheckpoint[2], 10);
-              self.status.checkpoint = parseInt(checkpoint, 10);
-              self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
-              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
-              }
-              self.lr.resume();
+          // Looking for a comment between 3 brackets and whatever comes after that
+          const conductorComment = /^[\w\d\s]*; <<<(\w+)>>> (.*)$/;
+          const conductorCommentResult = conductorComment.exec(line);
+          if (conductorCommentResult !== null) {
+            switch (conductorCommentResult[1]) {
+              case 'CHECKPOINT': {
+                const botRegex = /^.*bot(\w+) : (\d+)$/;
+                const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
+                const bot = botAndCheckpoint[1];
+                const checkpoint = parseInt(botAndCheckpoint[2], 10);
+                self.status.checkpoint = parseInt(checkpoint, 10);
+                self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+                if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                  serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+                }
+                self.lr.resume();
 
-              if (Array.isArray(self.subscribers)) {
-                for (const subscriber of self.subscribers) {
-                  try {
-                    const updateParams = {
-                      method: 'POST',
-                      // HACK hardcoded for testing
-                      uri: 'http://10.139.15.16:9000/v1/bots/741e6d10-8032-11e6-b0e4-e13ac65db298',
-                      body: {
-                        command: 'updateCollaborativeBotCheckpoint',
-                        bot: self.settings.name,
-                        checkpoint: self.status.checkpoint,
-                      },
-                      json: true,
-                    };
+                if (Array.isArray(self.subscribers)) {
+                  for (const subscriber of self.subscribers) {
                     try {
-                      request(updateParams);
+                      const updateParams = {
+                        method: 'POST',
+                        // HACK hardcoded for testing
+                        uri: 'http://smoothieboardhydraprint-5-1.local:9999/v1/bots/e395b160-7166-11e6-8940-9908b43e819d',
+                        body: {
+                          command: 'updateCollaborativeBotCheckpoint',
+                          bot: self.settings.name,
+                          checkpoint: self.status.checkpoint,
+                        },
+                        json: true,
+                      };
+                      try {
+                        request(updateParams);
+                      } catch (ex) {
+                        self.logger.error('Conductor update fail', ex);
+                      }
                     } catch (ex) {
-                      self.logger.error('Conductor update fail', ex);
+                      this.logger.error(`Failed to update endpoint "${subscriber}": ${ex}`);
                     }
-                  } catch (ex) {
-                    this.logger.error(`Failed to update endpoint "${subscriber}": ${ex}`);
                   }
                 }
+                // Let conductor know that you've reached the latest checkpoint
+                // Check if precursors are complete
+                break;
               }
-              // Let conductor know that you've reached the latest checkpoint
-              // Check if precursors are complete
-              break;
-            }
-            case 'PRECURSOR': {
-              const botRegex = /^.*(bot\w+) : (\d+)$/;
-              const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
-              const bot = botAndCheckpoint[1];
-              const checkpoint = parseInt(botAndCheckpoint[2], 10);
-              self.status.blocker = { bot, checkpoint };
-              self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
-              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                serialLogger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
-              }
-              self.commands.checkPrecursors(self);
-              break;
-            }
-            case 'DRY': {
-              // unpark?
-              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                serialLogger.info('Just received a "dry" metacommand');
-              }
-              self.lr.resume();
-              break;
-            }
-            default: {
-              self.logger.error('Unknown comment', conductorCommentResult);
-              break;
-            }
-          }
-        } else {
-          let command = line.split(';')[0];
-          if (command.length <= 0) {
-            // If the line is blank, move on to the next line
-            if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-              serialLogger.info('Passed on parsing a blank line', line);
-            }
-            bwait(self.lr.resume());
-          } else {
-            command = self.addOffset(command);
-            command = self.addSpeedMultiplier(command);
-            command = self.addFeedMultiplier(command);
-
-            self.queue.queueCommands({
-              code: command,
-              postCallback: bsync(() => {
-                if (self.currentJob.fsm.current === 'running') {
-                  bwait(self.lr.resume());
+              case 'PRECURSOR': {
+                const botRegex = /^.*(bot\w+) : (\d+)$/;
+                const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
+                const bot = botAndCheckpoint[1];
+                const checkpoint = parseInt(botAndCheckpoint[2], 10);
+                self.status.blocker = { bot, checkpoint };
+                self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
+                if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                  serialLogger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
                 }
-                self.currentLine += 1;
-                self.currentJob.percentComplete = parseInt((self.currentLine / self.numLines) * 100, 10);
-              }),
-            });
+                self.commands.checkPrecursors(self);
+                break;
+              }
+              case 'DRY': {
+                if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                  serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
+                }
+
+                const dry = conductorCommentResult[2].toLowerCase() === 'true';
+
+                // If the printer is currently parked, then purge and unpark it
+                self.queue.queueCommands({
+                  code: 'M400',
+                  postCallback: () => {
+                    if (self.fsm.current === 'parkedJob') {
+                      self.commands.unpark(self, { dry });
+                    }
+                    self.lr.resume();
+                  },
+                });
+                break;
+              }
+              default: {
+                self.logger.error('Unknown comment', conductorCommentResult);
+                break;
+              }
+            }
+          } else {
+            let command = line.split(';')[0];
+            if (command.length <= 0) {
+              // If the line is blank, move on to the next line
+              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                serialLogger.info('Passed on parsing a blank line', line);
+              }
+              bwait(self.lr.resume());
+            } else {
+              command = self.addOffset(command);
+              command = self.addSpeedMultiplier(command);
+              command = self.addFeedMultiplier(command);
+
+              self.queue.queueCommands({
+                code: command,
+                postCallback: bsync(() => {
+                  if (self.currentJob.fsm.current === 'running') {
+                    bwait(self.lr.resume());
+                  }
+                  self.currentLine += 1;
+                  self.currentJob.percentComplete = parseInt((self.currentLine / self.numLines) * 100, 10);
+                }),
+              });
+            }
           }
+        } catch (ex) {
+          self.logger.error('Line read error', line, ex);
         }
       }));
 
@@ -472,7 +487,7 @@ const Marlin = function (app) {
         self.status.blocker.bot !== undefined &&
         self.status.blocker.checkpoint !== undefined
       ) {
-        self.logger.info('Checking precursors for bot', self.status, params);
+        self.logger.info('Checking precursors for bot', self.getBot());
         const blockingBotCurrentCheckpoint = self.status.collaborators[self.status.blocker.bot];
         // If the precursor is complete then move on
         if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
@@ -480,14 +495,14 @@ const Marlin = function (app) {
             serialLogger.info(`Just exceeded blocker. ${JSON.stringify(self.status)}`);
           }
           self.status.blocker = undefined;
-          // If the printer is currently parked, then unpark it
-          if (self.fsm.current === 'parkedJob') {
-            self.commands.unpark(self);
-          }
           self.lr.resume();
         } else {
           // If the precursor is not complete, then park
-          self.commands.park(self);
+          self.queue.queueCommands({
+            preCallback: () => {
+              self.commands.park(self);
+            },
+          });
         }
       }
     }),

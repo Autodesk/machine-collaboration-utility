@@ -18,8 +18,8 @@ const TitanPrometheus = function TitanPrometheus(app) {
 
   _.extend(this.commands, {
     park: function park(self, params) {
-      self.fsm.parkJob();
       try {
+        self.fsm.parkJob();
         self.queue.queueCommands({
           code: 'M114',
           processData: (command, reply) => {
@@ -40,12 +40,12 @@ const TitanPrometheus = function TitanPrometheus(app) {
             commandArray.push('G92 E0');
             commandArray.push('G1 E-2 F3000'); // Retract
             if (zPosition < 400) {
-              commandArray.push(`G1 Z${zPosition + parkLift} F1000`);
+              commandArray.push(`G1 Z${(zPosition + parkLift).toFixed(2)} F1000`);
             }
-            if (yPosition > -50) {
-              commandArray.push('G1 Y-50 F10000'); // Home Y
+            if (Number(yPosition - self.settings.offsetY) > -50) {
+              commandArray.push('G1 Y' + (-50.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F10000'); // Scrub
             }
-            commandArray.push('G1 Y-78 F2000'); // Drag Y across the purge
+            commandArray.push('G1 Y' + (-78.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Drag Y across the purge
             commandArray.push('M400'); // Clear motion buffer before saying we're done
             commandArray.push({
               postCallback: () => {
@@ -59,20 +59,24 @@ const TitanPrometheus = function TitanPrometheus(app) {
         });
       } catch (ex) {
         self.logger.error(ex);
-        self.fsm.parkJobFail();
+        if (self.fsm.current === 'parkingJob') {
+          self.fsm.parkJobFail();
+        }
       }
       return self.getBot();
     },
     unpark: function unpark(self, params) {
-      self.fsm.unparkJob();
       try {
+        self.fsm.unparkJob();
         const commandArray = [];
-        commandArray.push('G92 E0');
-        commandArray.push('G1 E12 F100'); // Purge
-        commandArray.push('G1 E10 F3000'); // Retract
-        commandArray.push('G1 Y-50 F2000'); // Scrub
-        commandArray.push('G92 E-2'); // Prepare extruder for E0
-        commandArray.push('M400'); // Clear motion buffer before saying we're done
+        if (params.dry === false) {
+          commandArray.push('G92 E0');
+          commandArray.push('G1 E12 F100'); // Purge
+          commandArray.push('G1 E10 F3000'); // Retract
+          commandArray.push('G1 Y' + (-50.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Scrub
+          commandArray.push('G92 E-2'); // Prepare extruder for E0
+          commandArray.push('M400'); // Clear motion buffer before saying we're done
+        }
         commandArray.push({
           postCallback: () => {
             self.fsm.unparkJobDone();
@@ -82,7 +86,9 @@ const TitanPrometheus = function TitanPrometheus(app) {
         self.queue.queueCommands(commandArray);
       } catch (ex) {
         self.logger.error('unparkjob error', ex);
-        self.fsm.unparkJobFail();
+        if (self.fsm.current === 'unparkingJob') {
+          self.fsm.unparkJobFail();
+        }
       }
       return self.getBot();
     },
