@@ -499,7 +499,8 @@ const Marlin = function (app) {
         } else {
           // If the precursor is not complete, then park
           self.queue.queueCommands({
-            preCallback: () => {
+            code: 'M400',
+            postCallback: () => {
               self.commands.park(self);
             },
           });
