@@ -32,7 +32,7 @@ export default class Bot extends React.Component {
   render() {
     return (
       <div className="container">
-        <Tabs activeKey={this.state.selectedTab} onSelect={this.tabSelectEvent}>
+        <Tabs id="bot-pages" activeKey={this.state.selectedTab} onSelect={this.tabSelectEvent}>
           <Tab eventKey={1} title="Dashboard">
             <Dashboard bot={this.props.bot}/>
           </Tab>

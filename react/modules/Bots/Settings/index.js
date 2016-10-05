@@ -47,7 +47,7 @@ export default class Settings extends React.Component {
           settings.push(this.renderSettingInput(settingKey, setting));
       }
     }
-    settings.push(<input type="submit" value="Update!"/>);
+    settings.push(<input key="submit" type="submit" value="Update!"/>);
     return (
       <form onSubmit={this.updateBotSettings}>
         {settings}

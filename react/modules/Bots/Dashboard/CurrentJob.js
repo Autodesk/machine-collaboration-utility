@@ -75,7 +75,7 @@ export default class CurrentJob extends React.Component {
   render() {
     return (
       <div>
-        <div classname="area max-area-width">
+        <div className="area max-area-width">
           <h3>CURRENT JOB</h3>
           <div className="row">
             <div className="col-xs-3">
