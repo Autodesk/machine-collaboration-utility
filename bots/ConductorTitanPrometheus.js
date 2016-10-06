@@ -8,16 +8,14 @@ const ConductorSmoothieBoard = function (app) {
   Conductor.call(this, app);
 
   _.extend(this.settings, {
-    name: 'Conductor Smoothie Board',
+    name: 'Conductor Titan Prometheus',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.info, {
     conductorPresets: {
       botModel: 'SmoothieBoardHydraPrint',
-      nPlayers: [5, 1],
     },
-    players: {},
   });
 
   _.extend(this.commands, {
