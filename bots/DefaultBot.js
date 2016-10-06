@@ -9,6 +9,8 @@ const DefaultBot = function DefaultBot(app) {
   this.app = app;
   this.logger = app.context.logger;
 
+  this.updateInterval = false;
+
   this.info = {
     connectionType: undefined,
     fileTypes: [],
@@ -168,15 +170,16 @@ const DefaultBot = function DefaultBot(app) {
       throw '"update" is not defined';
     }
     if (update) {
-      if (self.updateInterval === undefined) {
+      if (self.updateInterval === false) {
         self.updateInterval = setInterval(() => {
           self.commands.updateRoutine(self);
         }, 1000);
       }
       return 'Bot update routine is on';
     }
-    if (self.updateInterval !== undefined) {
+    if (self.updateInterval !== false) {
       clearInterval(self.updateInterval);
+      self.updateInterval = false;
     }
     return 'Bot update routine is off';
   };
@@ -184,15 +187,17 @@ const DefaultBot = function DefaultBot(app) {
   // NOTE a try / catch on queueing commands will not actually fix an error
   // TODO attach an error handler to the about-to-be-queued command
   this.commands.connect = function connect(self, params) {
-    self.fsm.connect();
     try {
-      self.queue.queueCommands({
-        open: true,
-        postCallback: () => {
-          self.commands.toggleUpdater(self, { update: true });
-          self.fsm.connectDone();
-        },
-      });
+      if (self.fsm.current === 'ready') {
+        self.fsm.connect();
+        self.queue.queueCommands({
+          open: true,
+          postCallback: () => {
+            self.commands.toggleUpdater(self, { update: true });
+            self.fsm.connectDone();
+          },
+        });
+      }
     } catch (ex) {
       self.fsm.connectFail();
     }
@@ -205,6 +210,7 @@ const DefaultBot = function DefaultBot(app) {
       self.queue.queueCommands({
         close: true,
         postCallback: () => {
+          self.commands.toggleUpdater(self, { update: false });
           self.fsm.disconnectDone();
         },
       });
@@ -322,14 +328,47 @@ const DefaultBot = function DefaultBot(app) {
   };
 
   this.commands.updateState = function updateState(self, params) {
-    const event = params.body.event;
+    try {
+      const event = params.body.event;
 
-    const theEvent = self.fsmEvents.find((fsmEvent) => {
-      return fsmEvent.name === event;
-    });
-
-    self.fsm.current = theEvent.from;
-    self.fsm[theEvent.name]();
+      if (event !== undefined) {
+        const theEvent = self.fsmEvents.find((fsmEvent) => {
+          return fsmEvent.name === event;
+        });
+        self.fsm.current = theEvent.from;
+        self.fsm[theEvent.name]();
+        // Once the event has transitioned the current state
+        // Check if we should be updating the bot while in this state
+        switch (self.fsm.current) {
+          case 'connected':
+          case 'startingJob':
+          case 'processingJob':
+          case 'stopping':
+          case 'processingJobGcode':
+          case 'parking':
+          case 'parked':
+          case 'processingParkGcode':
+          case 'parkingJob':
+          case 'parkedJob':
+          case 'unparkingJob':
+            if (self.updateInterval === false) {
+              self.commnds.toggleUpdater(self, { update: true });
+            }
+            break;
+          case 'unavailable':
+          case 'detecting':
+          case 'ready':
+            if (self.updateInterval !== false) {
+              self.commands.toggleUpdater(self, { update: false });
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    } catch (ex) {
+      self.logger.error('Update state error', ex);
+    }
   };
 
   this.commands.checkSubscription = bsync(function checkSubscription(self, params) {
