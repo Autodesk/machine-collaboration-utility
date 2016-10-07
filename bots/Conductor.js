@@ -259,7 +259,11 @@ const ConductorVirtual = function ConductorVirtual(app) {
                     uri: player.settings.endpoint,
                     json: true,
                   }
-                  const getBotUuidReply = bwait(request(getBotUuidParams));
+                  try {
+                    const getBotUuidReply = bwait(request(getBotUuidParams));
+                  } catch (ex) {
+                    throw `nope: ${ex}`;
+                  }
                   const botUuid = getBotUuidReply.data.settings.uuid;
                   // Upload a file
                   const testFilePath = theFile.filePath.split('.')[0] + '/' + player.settings.name + '.gcode';
