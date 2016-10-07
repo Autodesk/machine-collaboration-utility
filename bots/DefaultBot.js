@@ -352,7 +352,7 @@ const DefaultBot = function DefaultBot(app) {
           case 'parkedJob':
           case 'unparkingJob':
             if (self.updateInterval === false) {
-              self.commnds.toggleUpdater(self, { update: true });
+              self.commands.toggleUpdater(self, { update: true });
             }
             break;
           case 'unavailable':
