@@ -92,18 +92,18 @@ const Marlin = function (app) {
     // processed one line at a time
     park: function(self, params) {
       try {
-        self.parkJob();
-        self.parkJobDone();
+        // self.parkJob();
+        // self.parkJobDone();
       } catch (ex) {
-        self.parkJobFail();
+        // self.parkJobFail();
       }
     },
     unpark: function(self, params) {
       try {
-        self.unparkJob();
-        self.unparkJobDone();
+        // self.unparkJob();
+        // self.unparkJobDone();
       } catch (ex) {
-        self.unparkJobFail();
+        // self.unparkJobFail();
       }
     },
     startJob: bsync(function startJob(self, params) {

@@ -292,7 +292,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                       botUuid,
                       fileUuid: uploadFileReply.data[0].uuid,
                       subscribers: [
-                        `${ip.address()}:${process.env.PORT}/v1/bots/${self.settings.uuid}`,
+                        `http://${ip.address()}:${process.env.PORT}/v1/bots/${self.settings.uuid}`,
                       ],
                     },
                     json: true,
