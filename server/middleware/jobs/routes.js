@@ -86,8 +86,11 @@ const createJob = (self) => {
         throw 'File not found';
       }
 
+      // Subscribers is an optional parameter
+      const subscribers = ctx.request.body.subscribers;
+
       // Create and save the job object
-      const jobObject = bwait(self.createJob(botUuid, fileUuid, uuid));
+      const jobObject = bwait(self.createJob(botUuid, fileUuid, uuid, subscribers));
 
       const startJob = String(ctx.request.body.startJob) === 'true';
       if (startJob) {

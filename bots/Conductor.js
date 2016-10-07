@@ -7,12 +7,15 @@ const _ = require('underscore');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 const path = require('path');
+const ip = require('ip');
 
 const Jobs = require(path.join(__dirname, '../server/middleware/jobs'));
 const DefaultBot = require('./DefaultBot');
 
 const ConductorVirtual = function ConductorVirtual(app) {
   DefaultBot.call(this, app);
+
+  this.collaboratorCheckpoints = {};
 
   _.extend(this.settings, {
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
@@ -84,7 +87,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
         const job = params.job;
         self.currentJob = job;
         self.fsm.start();
-        bwait(self.uploadAndSetupPlayerJobs(self, job));
+        bwait(self.commands.uploadAndSetupPlayerJobs(self, job));
         self.logger.info('All files uploaded and set up');
       } catch (ex) {
         self.logger.error(`Conductor failed to start job: ${ex}`);
@@ -139,10 +142,10 @@ const ConductorVirtual = function ConductorVirtual(app) {
     }),
     updatePlayers: bsync(function(self) {
       try {
-        for (const [playerKey, player] of _.pairs(self.info.players)) {
+        for (const player of self.settings.custom.players) {
           const updatePlayerParams = {
             method: 'POST',
-            uri: player.settings.endpoint,
+            uri: player.endpoint,
             body: {
               command: 'updateCollaboratorCheckpoints',
               collaborators: self.collaboratorCheckpoints,
@@ -227,11 +230,12 @@ const ConductorVirtual = function ConductorVirtual(app) {
         return self.getBot();
       } catch (ex) {
         self.logger.error('error', ex);
-        return 'wuuuh';
+        return ex;
       }
     }),
     uploadAndSetupPlayerJobs: bsync(function(self, job) {
       try {
+        console.log('starting job');
         self.nJobs = 0;
         self.nJobsComplete = 0;
 
@@ -244,34 +248,37 @@ const ConductorVirtual = function ConductorVirtual(app) {
             .pipe(unzip.Extract({ path: theFile.filePath.split('.')[0] }))
             // As soon as the file is done being unzipped
             .on('close', bsync(() => {
+              self.logger.info('unzipped file', self.settings.custom.players);
               try {
                 // Reset each player's collaborator list
-                for (const [playerKey, player] of _.pairs(self.info.players)) {
-                  self.collaboratorCheckpoints[player.settings.name] = 0;
+                for (const player of self.settings.custom.players) {
+                  console.log('da player', player);
+                  self.collaboratorCheckpoints[player.name] = 0;
                 }
                 bwait(self.commands.updatePlayers(self));
-
-                for (const [playerKey, player] of _.pairs(self.info.players)) {
+                self.logger.info('updated the players');
+                for (const player of self.settings.custom.players) {
                   // For each player we're going to upload a file, and then create a job
                   // Get the bot's uuid
                   const getBotUuidParams = {
                     method: 'GET',
-                    uri: player.settings.endpoint,
+                    uri: player.endpoint,
                     json: true,
                   }
+                  let getBotUuidReply;
                   try {
-                    const getBotUuidReply = bwait(request(getBotUuidParams));
+                    getBotUuidReply = bwait(request(getBotUuidParams));
                   } catch (ex) {
                     throw `nope: ${ex}`;
                   }
                   const botUuid = getBotUuidReply.data.settings.uuid;
                   // Upload a file
-                  const testFilePath = theFile.filePath.split('.')[0] + '/' + player.settings.name + '.gcode';
+                  const testFilePath = theFile.filePath.split('.')[0] + '/' + player.name + '.gcode';
                   const fileStream = bwait(fs.createReadStream(testFilePath));
                   const formData = { file: fileStream };
                   const fileParams = {
                     method: 'POST',
-                    uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/files`,
+                    uri: `${player.endpoint.split('/v1/bots/solo')[0]}/v1/files`,
                     formData,
                     json: true,
                   };
@@ -280,10 +287,13 @@ const ConductorVirtual = function ConductorVirtual(app) {
                   // Create and start job
                   const jobParams = {
                     method: 'POST',
-                    uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs`,
+                    uri: `${player.endpoint.split('/v1/bots/solo')[0]}/v1/jobs`,
                     body: {
                       botUuid,
                       fileUuid: uploadFileReply.data[0].uuid,
+                      subscribers: [
+                        `${ip.address()}:${process.env.PORT}/v1/bots/${self.settings.uuid}`,
+                      ],
                     },
                     json: true,
                   };
@@ -292,7 +302,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
                   const startJobParams = {
                     method: 'POST',
-                    uri: `${player.settings.endpoint.split('/v1/bots/solo')[0]}/v1/jobs/${jobUuid}`,
+                    uri: `${player.endpoint.split('/v1/bots/solo')[0]}/v1/jobs/${jobUuid}`,
                     body: {
                       command: 'start',
                     },

@@ -151,13 +151,12 @@ const Marlin = function (app) {
                 }
                 self.lr.resume();
 
-                if (Array.isArray(self.subscribers)) {
-                  for (const subscriber of self.subscribers) {
+                if (Array.isArray(self.currentJob.subscribers)) {
+                  for (const subscriber of self.currentJob.subscribers) {
                     try {
                       const updateParams = {
                         method: 'POST',
-                        // HACK hardcoded for testing
-                        uri: 'http://smoothieboardhydraprint-5-1.local:9999/v1/bots/e395b160-7166-11e6-8940-9908b43e819d',
+                        uri: subscriber,
                         body: {
                           command: 'updateCollaborativeBotCheckpoint',
                           bot: self.settings.name,

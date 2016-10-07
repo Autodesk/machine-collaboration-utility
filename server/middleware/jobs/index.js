@@ -97,12 +97,12 @@ Jobs.prototype.initialize = bsync(function initialize() {
  * @param {String} botUuid - The bot to be associated with the job
  * @param {String} fileUuid - The file to be associated with the job
  * @param {String} jobUuid - An option, the Job UUID can be passed by a user
- * @param {bool} loud - Pass the option for a job to be persistent and to create socket events
+ * @param {Array} subscribers - Optionally pass an array of subscirbers updates whenever job events occur
  *
  * @returns {Object} - A new Jobs server object
  */
 Jobs.prototype.createJob = bsync(
-  function createJob(botUuid, fileUuid, jobUuid, loud = true) {
+  function createJob(botUuid, fileUuid, jobUuid, subscribers) {
     // Do not allow for duplicate uuid's.
     // If you pass a uuid, you are deleting the existing job
     if (this.jobList[jobUuid] !== undefined) {
@@ -115,34 +115,31 @@ Jobs.prototype.createJob = bsync(
       botUuid,
       fileUuid,
       jobUuid,
-      loud,
+      subscribers,
     });
 
-    if (loud) {
-      const dbJob = bwait(this.JobModel.create({
-        uuid: jobObject.uuid,
-        botUuid,
-        fileUuid,
-        state: null,
-        started: null,
-        elapsed: null,
-        percentComplete: null,
-      }));
-      // HACK. The job's id cannot be known until it is added to the database
-      jobObject.id = dbJob.dataValues.id;
-    }
+    const dbJob = bwait(this.JobModel.create({
+      uuid: jobObject.uuid,
+      botUuid,
+      fileUuid,
+      state: null,
+      started: null,
+      elapsed: null,
+      percentComplete: null,
+    }));
+    // HACK. The job's id cannot be known until it is added to the database
+    jobObject.id = dbJob.dataValues.id;
+
     bwait(jobObject.initialize());
     const jobJson = jobObject.getJob();
 
     this.jobList[jobObject.uuid] = jobObject;
-    if (loud) {
-      this.logger.info('jobEvent', jobJson);
-      this.app.io.broadcast('jobEvent', {
-        uuid: jobObject.uuid,
-        event: 'new',
-        data: jobObject.getJob(),
-      });
-    }
+    this.logger.info('jobEvent', jobJson);
+    this.app.io.broadcast('jobEvent', {
+      uuid: jobObject.uuid,
+      event: 'new',
+      data: jobObject.getJob(),
+    });
     return jobObject;
   }
 );
@@ -213,10 +210,8 @@ Jobs.prototype.deleteJob = bsync(function deleteJob(jobUuid) {
   if (theJob === undefined) {
     throw `Job ${jobUuid} does not exist`;
   }
-  if (theJob.loud) {
-    const dbJob = bwait(this.JobModel.findById(theJob.id));
-    bwait(dbJob.destroy());
-  }
+  const dbJob = bwait(this.JobModel.findById(theJob.id));
+  bwait(dbJob.destroy());
   delete this.jobList[jobUuid];
   this.logger.info(`Job ${jobUuid} deleted`);
   try {
