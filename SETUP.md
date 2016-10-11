@@ -14,7 +14,7 @@ In order to use HardwareHub, you will need the following:
 
 # Lets set this thing up!
 
-1. Download the "Hardware Hub" Raspberry PI image [here](http://www.zonbo.com)
+1. Download the "Hardware Hub" Raspberry PI image [here](https://beta.autodesk.com/files/download.aspx/hardwarehub-2016-10-11.zip?d=D6AB0FE21F3847EA9B15DDAAFB3A733E&p=7196A5DB2881433BB011D2894DB627A1&n=4FE1AC280E304A3484AFB677DA2B03CA&s=a5eb64db6fb4436d82bbb2b82fe6f351&l=D8BFBA929F9F470E8D2ED55A1DC09545&filename=hardwarehub-2016-10-11.zip)
 2. Unzip the downloaded file.
 3. Install the unzipped .img file onto a micro SD card  
     - Instructions available [here](https://www.raspberrypi.org/documentation/installation/installing-images/README.md)
