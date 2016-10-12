@@ -14,7 +14,7 @@ export default class Header extends React.Component {
               <img src="images/logo.svg"/>
             </div>
             <h2 className="hidden-xs">
-              <span className="bold">Awesome</span><span>Name</span>
+              <span className="bold">Hardware</span><span>Hub</span>
             </h2>
           </NavLink></div>
           <div className="col-xs-8 float-right">
