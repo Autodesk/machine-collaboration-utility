@@ -7,14 +7,33 @@ export default class Settings extends React.Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      settings: this.props.bot.settings,
+    }
+
     this.updateBotSettings = this.updateBotSettings.bind(this);
     this.deleteBot = this.deleteBot.bind(this);
+    this.updateSetting = this.updateSetting.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      settings: nextProps.bot.settings,
+    });
+  }
+
+  updateSetting(event) {
+    const settings = this.state.settings;
+    settings[event.target.name] = event.target.value;
+    this.setState({
+      settings
+    });
   }
 
   updateBotSettings(event) {
     event.preventDefault();
     let update = request.put(`/v1/bots/${this.props.bot.settings.uuid}`)
-    for (const [settingKey, setting] of _.pairs(this.props.bot.settings)) {
+    for (const [settingKey, setting] of _.pairs(this.state.settings)) {
       const paramJson = {};
       if (event.target[settingKey] !== undefined) {
         paramJson[settingKey] = event.target[settingKey].value;
@@ -59,7 +78,7 @@ export default class Settings extends React.Component {
     return (
       <div key={settingKey}>
         <label key={`${settingKey}label`} htmlFor={settingKey}>{settingKey}</label>
-        <input key={`${settingKey}input`} type="textarea" name={settingKey} defaultValue={setting}/>
+        <input key={`${settingKey}input`} onChange={this.updateSetting} type="textarea" name={settingKey} value={setting}/>
       </div>
     );
   }
