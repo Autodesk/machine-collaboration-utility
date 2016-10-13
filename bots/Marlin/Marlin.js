@@ -8,7 +8,7 @@ const request = require('request-promise');
 const path = require('path');
 const winston = require('winston');
 
-const DefaultBot = require('./DefaultBot');
+const DefaultBot = require('../DefaultBot');
 
 let serialLogger;
 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {

@@ -1,6 +1,7 @@
 const router = require('koa-router')();
 const fs = require('fs-promise');
 const path = require('path');
+const walk = require('fs-walk');
 const _ = require('underscore');
 const Promise = require('bluebird');
 const bsync = require('asyncawait/async');
@@ -141,14 +142,25 @@ Bots.prototype.setupDiscovery = bsync(function setupDiscovery() {
 
 Bots.prototype.loadBotPresets = bsync(function loadBotPresets() {
   const botsPresetsPath = path.join(__dirname, '../../../bots');
-  const botPresets = bwait(fs.readdir(botsPresetsPath));
-  for (const botPresetFile of botPresets) {
-    const presetType = botPresetFile.split('.')[0];
-    const presetPath = `${botsPresetsPath}/${botPresetFile}`;
+  walk.walkSync(botsPresetsPath, (basedir, filename, stat) => {
+    if (stat.isDirectory()) {
+      return;
+    }
+    const presetType = filename.split('.')[0];
+    const presetPath = `${basedir}/${filename}`;
     const BotPresetClass = require(presetPath);
+    console.log('cool files', basedir, filename, presetPath, presetType);
     this.botPresetList[presetType] = BotPresetClass;
     this.botSettingList[presetType] = new BotPresetClass(this.app);
-  }
+  });
+  // const botPresets = bwait(fs.readdir(botsPresetsPath));
+  // for (const botPresetFile of botPresets) {
+  //   const presetType = botPresetFile.split('.')[0];
+  //   const presetPath = `${botsPresetsPath}/${botPresetFile}`;
+  //   const BotPresetClass = require(presetPath);
+  //   this.botPresetList[presetType] = BotPresetClass;
+  //   this.botSettingList[presetType] = new BotPresetClass(this.app);
+  // }
   this.logger.info('done loading presets');
 });
 

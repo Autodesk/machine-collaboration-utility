@@ -104,7 +104,7 @@ export default class Bots extends React.Component {
 
   renderEndpoint(connectionType) {
     switch (connectionType) {
-      case 'hydraprint':
+      case 'hardwarehub':
       case 'telnet':
       case 'virtual':
         return (<div>

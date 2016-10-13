@@ -1,19 +1,20 @@
 const _ = require('underscore');
-const DefaultBot = require('./DefaultBot');
 const request = require('request-promise');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 
-const HydraPrint = function(app) {
+const DefaultBot = require('../DefaultBot');
+
+const HardwareHub = function(app) {
   DefaultBot.call(this, app);
 
   _.extend(this.settings, {
-    model: 'HydraPrint',
+    model: 'HardwareHub',
     name: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.info, {
-    connectionType: 'hydraprint',
+    connectionType: 'HardwareHub',
   });
 
   _.extend(this.commands, {
@@ -159,4 +160,4 @@ const HydraPrint = function(app) {
   });
 };
 
-module.exports = HydraPrint;
+module.exports = HardwareHub;

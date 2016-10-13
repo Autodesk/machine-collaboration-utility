@@ -1,22 +1,22 @@
 const _ = require('underscore');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
 
 const Conductor = require('./Conductor');
 
-const ConductorEscher2 = function (app) {
+const ConductorPrintrbot = function (app) {
   Conductor.call(this, app);
 
   _.extend(this.settings, {
-    name: 'Conductor Escher2',
+    name: 'Conductor Printrbot',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
   _.extend(this.info, {
     conductorPresets: {
-      botModel: 'Escher2HydraPrint',
-      nPlayers: [5, 1],
+      botModel: 'HardwareHub',
     },
-    players: {},
   });
 };
 
-module.exports = ConductorEscher2;
+module.exports = ConductorPrintrbot;

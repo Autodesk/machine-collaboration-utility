@@ -9,8 +9,7 @@ const bwait = require('asyncawait/await');
 const path = require('path');
 const ip = require('ip');
 
-const Jobs = require(path.join(__dirname, '../server/middleware/jobs'));
-const DefaultBot = require('./DefaultBot');
+const DefaultBot = require('../DefaultBot');
 
 const ConductorVirtual = function ConductorVirtual(app) {
   DefaultBot.call(this, app);

@@ -8,7 +8,7 @@ const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 
 const SerialCommandExecutor = require('./comProtocols/serial/executor');
-const HydraprintExecutor = require('./comProtocols/hydraprint/executor');
+const HardwareHubExecutor = require('./comProtocols/hardwarehub/executor');
 const TelnetExecutor = require('./comProtocols/telnet/executor');
 const VirtualExecutor = require('./comProtocols/virtual/executor');
 const CommandQueue = require('./commandQueue');
@@ -139,7 +139,7 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
     case 'virtual':
       this.setPort(`http://localhost:${process.env.PORT}/v1/bots/${this.settings.uuid}`);
       break;
-    case 'hydraprint':
+    case 'hardwarehub':
     case 'telnet':
       this.setPort(this.settings.endpoint);
       break;
@@ -169,7 +169,7 @@ Bot.prototype.subscribe = bsync(function subscribe() {
   switch (this.info.connectionType) {
     // In case there is no detection method required, detect the device and
     // move directly to a "ready" state
-    case 'hydraprint':
+    case 'hardwarehub':
       // add a subscriber
       const requestParams = {
         method: 'POST',
@@ -289,12 +289,12 @@ Bot.prototype.detect = function detect() {
         validator = this.validateSerialReply;
         break;
       }
-      case 'hydraprint': {
-        executor = new HydraprintExecutor(
+      case 'hardwarehub': {
+        executor = new HardwareHubExecutor(
           this.app,
           this.port
         );
-        validator = this.validateHydraprintReply;
+        validator = this.validateHardwareHubReply;
         break;
       }
       case 'virtual':
@@ -371,7 +371,7 @@ Bot.prototype.validateSerialReply = function validateSerialReply(command, reply)
  * Args:   reply - The reply from a bot after sending a command
  * Return: true if the last line was 'ok'
  */
-Bot.prototype.validateHydraprintReply = function validateHydraprintReply(command, reply) {
+Bot.prototype.validateHardwareHubReply = function validateHardwareHubReply(command, reply) {
   let ok = true;
   if (reply.status !== 200) {
     ok = false;
