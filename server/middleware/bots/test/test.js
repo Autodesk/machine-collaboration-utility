@@ -428,7 +428,6 @@ module.exports = function botsTests() {
       };
       request(requestParams)
       .then((reply) => {
-        console.log('431 reply', reply);
         should(reply.data.includes('Duplicate name')).equal(true);
         done();
       })

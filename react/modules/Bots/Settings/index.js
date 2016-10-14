@@ -7,39 +7,54 @@ export default class Settings extends React.Component {
   constructor(props) {
     super(props);
 
+    // Replace any undefined or null with a blank string
+    const settings = props.bot.settings;
+    for (const [settingKey, setting] of _.pairs(settings)) {
+      if (setting == undefined) {
+        settings[settingKey] = '';
+      }
+    }
+
     this.state = {
-      settings: this.props.bot.settings,
+      settings,
     }
 
     this.updateBotSettings = this.updateBotSettings.bind(this);
     this.deleteBot = this.deleteBot.bind(this);
-    this.updateSetting = this.updateSetting.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      settings: nextProps.bot.settings,
-    });
-  }
+    const settings = nextProps.bot.settings;
+    let updateSettings = false;
 
-  updateSetting(event) {
-    const settings = this.state.settings;
-    settings[event.target.name] = event.target.value;
-    this.setState({
-      settings
-    });
+    for (const [settingKey, setting] of _.pairs(settings)) {
+      const newSetting = setting == undefined ? '' : setting;
+      const oldSetting = this.props.bot.settings[settingKey] == undefined ? '' : this.props.bot.settings[settingKey];
+      if (newSetting !== oldSetting) {
+        updateSettings = true;
+      }
+    }
+    if (updateSettings) {
+      this.setState({
+        settings,
+      });
+    }
   }
 
   updateBotSettings(event) {
     event.preventDefault();
-    let update = request.put(`/v1/bots/${this.props.bot.settings.uuid}`)
+    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
+    let update = request.put(endpoint);
+    const paramJson = {};
     for (const [settingKey, setting] of _.pairs(this.state.settings)) {
-      const paramJson = {};
-      if (event.target[settingKey] !== undefined) {
-        paramJson[settingKey] = event.target[settingKey].value;
-        update = update.send(paramJson);
+      try {
+        const newValue = event.target[settingKey].value;
+        paramJson[settingKey] = newValue;
+      } catch (ex) {
+        // Value not listed as a part of the input form, don't add it
       }
     }
+    update = update.send(paramJson);
     update = update.set('Accept', 'application/json');
     try {
       update.end();
@@ -50,8 +65,9 @@ export default class Settings extends React.Component {
 
   renderSettingsForm() {
     const settings = [];
-    for (const [settingKey, setting] of _.pairs(this.props.bot.settings)) {
+    for (const [settingKey, setting] of _.pairs(this.state.settings)) {
       switch (settingKey) {
+        // Don't use the following settings
         case 'createdAt':
         case 'updatedAt':
         case 'uuid':
@@ -75,10 +91,16 @@ export default class Settings extends React.Component {
   }
 
   renderSettingInput(settingKey, setting) {
+    // Set undefined and null to an empty string
+    const settingValue = setting == undefined ? '' : setting;
+
     return (
-      <div key={settingKey}>
-        <label key={`${settingKey}label`} htmlFor={settingKey}>{settingKey}</label>
-        <input key={`${settingKey}input`} onChange={this.updateSetting} type="textarea" name={settingKey} value={setting}/>
+      <div key={settingKey} className="row">
+        <div key={`${settingKey}label`} className="col-md-4">{settingKey}</div>
+        <div className="col-md-4">
+          <input key={`${settingKey}input`} type="textarea" name={settingKey} defaultValue={settingValue}/>
+        </div>
+        <div className="col-md-4">{settingValue}</div>
       </div>
     );
   }
@@ -89,11 +111,10 @@ export default class Settings extends React.Component {
   }
 
   render() {
-    const settingsForm = this.renderSettingsForm();
     return (
       <div>
         <h3>Settings</h3>
-        {settingsForm}
+        {this.renderSettingsForm()}
         <Button bsStyle="danger" onClick={this.deleteBot}>Delete Bot</Button>
       </div>
     );

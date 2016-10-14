@@ -259,7 +259,7 @@ SerialConnection.prototype.close = function () {
  *******************************************************************************/
 
 // constants
-SerialConnection.HEART_BEAT_INTERVAL = 200;
+SerialConnection.HEART_BEAT_INTERVAL = 2000;
 SerialConnection.WAIT_COUNT = 20;
 SerialConnection.MAX_RETRIES = 4;
 SerialConnection.State = {
