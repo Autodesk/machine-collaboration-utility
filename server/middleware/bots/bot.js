@@ -220,26 +220,29 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
   if (settingsToUpdate.endpoint !== undefined) {
     this.setPort(settingsToUpdate.endpoint);
   }
+
+  // If the bot is persistent, then update the database with new settings
   const dbBots = bwait(this.app.context.bots.BotModel.findAll());
   const dbBot = _.find(dbBots, (bot) => {
     return bot.dataValues.uuid === this.settings.uuid;
   });
-
   if (dbBot !== undefined) {
     this.logger.info(`About to update bot ${this.settings.name} settings from ${JSON.stringify(this.settings)} to ${JSON.stringify(settingsToUpdate)}`);
     bwait(dbBot.update(settingsToUpdate));
-    for (const newSetting in settingsToUpdate) {
-      if (settingsToUpdate.hasOwnProperty(newSetting) && this.settings.hasOwnProperty(newSetting)) {
-        this.settings[newSetting] = settingsToUpdate[newSetting];
-      }
-    }
-
-    this.app.io.broadcast('botEvent', {
-      uuid: this.settings.uuid,
-      event: 'update',
-      data: this.getBot(),
-    });
   }
+
+  for (const newSetting in settingsToUpdate) {
+    if (settingsToUpdate.hasOwnProperty(newSetting) && this.settings.hasOwnProperty(newSetting)) {
+      this.settings[newSetting] = settingsToUpdate[newSetting];
+    }
+  }
+
+  this.app.io.broadcast('botEvent', {
+    uuid: this.settings.uuid,
+    event: 'update',
+    data: this.getBot(),
+  });
+
   return this.getBot();
 });
 
@@ -279,7 +282,7 @@ Bot.prototype.detect = function detect() {
     // Set up the validator and executor
     switch (this.info.connectionType) {
       case 'serial': {
-        const openPrime = this.settings.openString || 'M501';
+        const openPrime = this.settings.openString == undefined ? 'M501' : this.settings.openString;
         executor = new SerialCommandExecutor(
           this.app,
           this.port,

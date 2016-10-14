@@ -149,7 +149,6 @@ Bots.prototype.loadBotPresets = bsync(function loadBotPresets() {
     const presetType = filename.split('.')[0];
     const presetPath = `${basedir}/${filename}`;
     const BotPresetClass = require(presetPath);
-    console.log('cool files', basedir, filename, presetPath, presetType);
     this.botPresetList[presetType] = BotPresetClass;
     this.botSettingList[presetType] = new BotPresetClass(this.app);
   });
