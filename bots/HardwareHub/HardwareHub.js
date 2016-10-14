@@ -14,7 +14,7 @@ const HardwareHub = function(app) {
   });
 
   _.extend(this.info, {
-    connectionType: 'HardwareHub',
+    connectionType: 'hardwarehub',
   });
 
   _.extend(this.commands, {
