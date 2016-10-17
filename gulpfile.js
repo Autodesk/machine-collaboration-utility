@@ -8,7 +8,6 @@ const autoprefixer = require('gulp-autoprefixer');
 const mocha = require('gulp-mocha');
 const sass = require('gulp-sass');
 const webpack = require('gulp-webpack');
-const shell = require('gulp-shell');
 
 const src = {
   reactClient: './react/index.js',
@@ -78,6 +77,7 @@ gulp.task(
     return nodemon(
       {
         script: 'server/index.js',
+        nodeArgs: ['--debug'],
         ignore: [
           './uploads',
         ],
@@ -157,8 +157,3 @@ gulp.task('default', [
   'watch',
   'develop',
 ]);
-
-gulp.task('debug', ['build'], () => {
-  return gulp.src('')
-  .pipe(shell(['node_modules/node-inspector/bin/node-debug.js server/index.js']));
-});
