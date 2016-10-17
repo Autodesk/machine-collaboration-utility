@@ -73,6 +73,7 @@ export default class Settings extends React.Component {
         case 'uuid':
         case 'id':
         case 'model':
+        case 'custom':
           break;
         case 'endpoint':
           if (String(setting) === 'false') {
