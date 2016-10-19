@@ -301,7 +301,7 @@ const Marlin = function (app) {
             setpoint: undefined,
           },
         },
-        checkpoint: self.status.checkpoint || undefined,
+        checkpoint: self.status && self.status.checkpoint,
         collaborators: self.status.collaborators || {},
         blocker: self.status.blocker || undefined,
       };
