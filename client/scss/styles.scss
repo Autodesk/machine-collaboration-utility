@@ -9,6 +9,7 @@
 }
 body {
   font-family:  "turkey-regular";
+  font-size: $standard-font-size;
   background-color: $base-bg-color;
   a {
     color: #00B7FF;
@@ -68,16 +69,18 @@ body {
 button{
   &.add-bot{
     font-size: $standard-padding;
-    background-color: $dark-gray;
+    background-color: $gray;
     color: $white;
-    padding: $standard-padding/3 $standard-padding/1.5;
+    padding: 12px $standard-padding/1.5;
     border-radius: 0;
     border: none;
+    position: relative;
+    top: $standard-padding/6 * -1;
+    margin-bottom: $standard-padding/6 * -1;
   }
 }
 .bot-tab-list-container{
   width: 100%;
-  height: 64px;
   overflow-y: hidden;
   overflow-x: scroll;
   &::-webkit-scrollbar{
@@ -87,16 +90,14 @@ button{
 .bot-tab-list{
   background-color: $bot-tab-div-bg;
   width: 100%;
-  height: 85px;
   overflow-y: hidden;
-  margin-top: -6px;
   @media screen and (max-width: $screen-lg-min) {
     width: 1440px;
   }
 }
 a{
   &.bot-tabs{
-    color: $dark-gray;
+    color: $gray;
     font-size: $bot-tab-font-size;
     background-color: $bot-tab-bg;
     padding: 19px 15px;
@@ -105,7 +106,6 @@ a{
     border-radius: 0;
     border: none;
     position: relative;
-    top: 4px;
     &.active{
       background-color: $active-bot-bg;
     }
@@ -123,6 +123,7 @@ a{
 #dashboard{
   background-color: $white;
   padding-top: $standard-padding/2;
+  font-size: 14px;
   .col-md-6{
     padding: 0;
   }
@@ -135,7 +136,7 @@ a{
     }
     .col-xs-4{
       position: relative;
-      z-index: 9999999;
+      z-index: 3;
     }
     .area-padding{
       padding: $standard-padding/2;
@@ -158,6 +159,31 @@ a{
     }
     .temperature{
       padding-bottom: $standard-padding/2;
+      input{
+        padding: $standard-padding/3;
+        &[type="submit"]{
+          margin-top: 0;
+          padding: 12px;
+          margin-left: $standard-padding/6;
+        }
+      }
+      .fa{
+        &::before{
+          text-align: center;
+          font-size: $standard-padding/1.5;
+          color: white;
+          background-color: $red;
+          padding: 8px;
+          position: relative;
+          top: 8px;
+          left: -20px;
+        }
+        input[type="submit"]{
+          background: transparent;
+          position: relative;
+          right: $standard-padding/3 * -1;
+        }
+      }
       span{
         color: $button-color;
         background-color: $button-color;
@@ -205,6 +231,13 @@ a{
       font-weight: bold;
       letter-spacing: $standard-padding/15;
       margin-top: 0;
+    }
+  }
+  .send-gcode{
+    input{
+      &[type="submit"]{
+        margin-top: 0;
+      }
     }
   }
 }
@@ -459,6 +492,182 @@ a{
 .disable {
   background-color: #dd7777;
   text-align: center;
+}
+
+
+/* SETTINGS */
+
+#settings{
+  .current-value{
+    background: gray;
+    padding: $standard-padding/2;
+    min-height: 52px;
+    text-align: center;
+  }
+  .settings-label{
+    padding: $standard-padding/2;
+    text-transform: uppercase;
+    font-size: 20px;
+  }
+  input{
+    position: relative;
+  }
+}
+
+/* FILES PAGE */
+#files, #jobs{
+  button{
+    &.upload{
+      padding: $standard-padding/2 $standard-padding;
+      border: none;
+      background: none;
+      border: $standard-padding/10 dashed $gray;
+      padding: $standard-padding;
+      letter-spacing: 2px;
+      width: 100%;
+    }
+  }
+  .progress{
+    background-color: $gray-light;
+    margin-bottom: 0;
+    height: 63px;
+    margin-top: -10px;
+    border-radius: 0;
+    margin-right: -1;
+    box-shadow: none;
+    .progress-bar{
+      background-color: $teal;
+    }
+    .progress-bar-striped{
+      background-image: linear-gradient(135deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+      background-size: 40px 40px;
+    }
+    .sr-only {
+      position: relative;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+      z-index: 3;
+      top: 23px;
+      font-size: 18px;
+      font-weight: 100;
+    }
+  }
+  .file-area{
+    background-color: $white;
+    margin-top: $standard-padding/2;
+    button{
+      border: none;
+      opacity: .5;
+      display: inline-block;
+      padding: 18px;
+      font-size: 27px;
+      &.delete{
+        padding: 0;
+        outline: none;
+        background-color: transparent;
+        opacity: .2;
+        font-size: 20px;
+      }
+      &.download{
+        background-color: $gray;
+        color: $white;
+        outline: none;
+        opacity: 1;
+        float: right;
+        @media screen and (max-width: $screen-xs-max) {
+          float: left;
+          width: 50%;
+        }
+        &:hover{
+          background-color: $gray-light;
+        }
+        &:focus{
+          background-color: $gray-dark;
+        }
+      }
+      &.print{
+        background-color: $green;
+        color: $white;
+        opacity: 1;
+        float: right;
+        outline: none;
+        @media screen and (max-width: $screen-xs-max) {
+          float: left;
+          width: 50%;
+        }
+        &:hover{
+          background-color: $green-light;
+        }
+        &:focus{
+          background-color: $green-dark;
+        }
+      }
+    }
+    h2{
+      display: inline-block;
+      padding-left: $standard-padding/2;
+      margin: 0;
+      span{
+        font-size: 12px;
+        opacity: .6;
+      }
+    }
+    .file-info{
+      background-color: $white;
+      padding: $standard-padding/2;
+    }
+    .file-btns{
+      background-color: $white;
+      padding: 0;
+    }
+  }
+}
+
+/* FORMS */
+
+input{
+  padding: $standard-padding/2;
+  width: 100%;
+  padding: $standard-padding/2;
+  padding-left: 0;
+  outline: none;
+  border: none;
+  background-color: transparent;
+  border-bottom: 3px solid $gray;
+  &[type=submit]{
+    background-color: $red;
+    color: $white;
+    border: none;
+    letter-spacing: 2px;
+    padding: $standard-padding/2 $standard-padding;
+    margin-top: $standard-padding;
+  }
+}
+
+select{
+  outline: none;
+  -webkit-appearance: none;
+  padding: $standard-padding/2;
+  border-radius: 0;
+  border: 3px solid $gray;
+  background-color: $white;
+  background-image: url("../images/arrow.svg");
+  background-repeat: no-repeat;
+  background-position: 95%;
+  background-size: 40px;
+  padding-right: 50px;
+}
+
+label{
+  display: block;
+  margin-top: $standard-padding/2;
+  text-transform: uppercase;
+  font-size: $font-label-size;
 }
 
 .no-select {

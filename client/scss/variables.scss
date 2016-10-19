@@ -1,23 +1,3 @@
-$standard-padding: 30px;
-
-$white: #ffffff;
-$dark-gray: #383635;
-
-
-$base-bg-color: #F3F6FB;
-
-$button-color: #9FA1A4;
-$red: #Df3f3f;
-$green: #479C93;
-
-
-/* TABS */
-$bot-tab-bg:        #CCCBD5;
-$bot-tab-font-size: $standard-padding/1.5;
-$active-bot-bg:     $base-bg-color;
-$bot-tab-div-bg:    rgba(204,203,213,.5);
-
-
 /*BREAKPOINTS*/
 $screen-sm-min: 768px;
 $screen-xs-max: ($screen-sm-min - 1);
@@ -25,3 +5,40 @@ $screen-md-min: 992px;
 $screen-sm-max: ($screen-md-min - 1);
 $screen-lg-min: 1200px;
 $screen-md-max: ($screen-lg-min - 1);
+
+/* COLORS */
+$white: #ffffff;
+$light-gray: #9FA1A4;
+
+
+$gray:        #383635;
+$gray-light:  #5e5d5d;
+$gray-dark:   #181818;
+
+$red:         #Df3f3f;
+$red-light:   #f04b5c;
+$red-dark:    #ab3642;
+
+$teal:        #007a7c;
+
+$green:       #58915E;
+$green-light: #81CC86;
+$green-dark:  #456B47;
+
+$base-bg-color: #F3F6FB;
+
+/* PADDING */
+$standard-padding: 30px;
+
+/* TABS */
+$bot-tab-bg:        #CCCBD5;
+$bot-tab-font-size: $standard-padding/1.5;
+$active-bot-bg:     $base-bg-color;
+$bot-tab-div-bg:    rgba(204,203,213,.5);
+
+/* DASHBOARD */
+$button-color: $light-gray;
+
+/*FONT SIZES*/
+$standard-font-size: 16px;
+$font-label-size: 18px;

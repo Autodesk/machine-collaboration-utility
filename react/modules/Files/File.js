@@ -20,14 +20,17 @@ export default class File extends React.Component {
   }
 
   render() {
-    return (<div>
-      <div>File UUID: {this.props.file.uuid}</div>
-      <div>File name: {this.props.file.name}</div>
-      <button onClick={this.processFile}>Process File</button>
-      <a href={`/v1/files/${this.props.file.uuid}/download`}><button>Download</button></a>
-      <button onClick={this.deleteFile}>Delete</button>
-      <br></br>
-      <br></br>
-    </div>);
+    return (
+      <div className="file-area row">
+        <div className="file-info col-sm-8">
+          <button className="delete" onClick={this.deleteFile}><i className="fa fa-times" aria-hidden="true"></i></button>
+          <h2>{this.props.file.name} <span>{this.props.file.uuid}</span></h2>
+        </div>
+        <div className="file-btns col-sm-4">
+          <a href={`/v1/files/${this.props.file.uuid}/download`}><button className="download"><i className="fa fa-download" aria-hidden="true"></i></button></a>
+          <button className="print" onClick={this.processFile}><i className="fa fa-play" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    );
   }
 }

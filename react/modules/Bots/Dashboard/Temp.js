@@ -86,7 +86,7 @@ export default class Temp extends React.Component {
     const b0 = b0Disabled ? { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.b0;
     return (
       <div>
-        <h3>TEMPERATURE CONTROL</h3>
+          <h3>TEMPERATURE CONTROL</h3>
         <div className="row temperature">
           <div className="col-xs-3">
             <p><span>&#x25EF;</span> Extruder</p>
@@ -95,7 +95,9 @@ export default class Temp extends React.Component {
             <form onSubmit={this.setNozzleTemp}>
               <div className="row">
                 <input type="text" name="setpoint" className="col-sm-5" disabled={t0Disabled}/>
-                <input type="submit" value="*" className="col-sm-1" disabled={t0Disabled}/>
+                <i className="fa fa-repeat" aria-hidden="true">
+                  <input type="submit" value="" className="col-sm-1" disabled={t0Disabled}/>
+                </i>
               </div>
             </form>
           </div>
@@ -114,7 +116,10 @@ export default class Temp extends React.Component {
             <form onSubmit={this.setBedTemp}>
               <div className="row">
                 <input type="text" name="setpoint" className="col-sm-5" disabled={b0Disabled}/>
-                <input type="submit" value="*" className="col-sm-1" disabled={b0Disabled}/>
+
+                <i className="fa fa-repeat" aria-hidden="true">
+                  <input type="submit" value="" className="col-sm-1 fa fa-repeat" disabled={b0Disabled}/>
+                </i>
               </div>
             </form>
           </div>

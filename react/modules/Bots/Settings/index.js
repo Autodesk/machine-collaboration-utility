@@ -97,11 +97,11 @@ export default class Settings extends React.Component {
 
     return (
       <div key={settingKey} className="row">
-        <div key={`${settingKey}label`} className="col-md-4">{settingKey}</div>
+        <div key={`${settingKey}label`} className="settings-label col-md-4">{settingKey}</div>
         <div className="col-md-4">
           <input key={`${settingKey}input`} type="textarea" name={settingKey} defaultValue={settingValue}/>
         </div>
-        <div className="col-md-4">{settingValue}</div>
+        <div className="current-value col-md-4">{settingValue}</div>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default class Settings extends React.Component {
 
   render() {
     return (
-      <div>
+      <div id="settings">
         <h3>Settings</h3>
         {this.renderSettingsForm()}
         <Button bsStyle="danger" onClick={this.deleteBot}>Delete Bot</Button>
