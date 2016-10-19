@@ -123,6 +123,7 @@ a{
 #dashboard{
   background-color: $white;
   padding-top: $standard-padding/2;
+  font-size: 14px;
   .col-md-6{
     padding: 0;
   }
@@ -158,6 +159,31 @@ a{
     }
     .temperature{
       padding-bottom: $standard-padding/2;
+      input{
+        padding: $standard-padding/3;
+        &[type="submit"]{
+          margin-top: 0;
+          padding: 12px;
+          margin-left: $standard-padding/6;
+        }
+      }
+      .fa{
+        &::before{
+          text-align: center;
+          font-size: $standard-padding/1.5;
+          color: white;
+          background-color: $red;
+          padding: 8px;
+          position: relative;
+          top: 8px;
+          left: -20px;
+        }
+        input[type="submit"]{
+          background: transparent;
+          position: relative;
+          right: $standard-padding/3 * -1;
+        }
+      }
       span{
         color: $button-color;
         background-color: $button-color;
@@ -205,6 +231,13 @@ a{
       font-weight: bold;
       letter-spacing: $standard-padding/15;
       margin-top: 0;
+    }
+  }
+  .send-gcode{
+    input{
+      &[type="submit"]{
+        margin-top: 0;
+      }
     }
   }
 }
@@ -463,11 +496,41 @@ a{
 
 
 /* FILES PAGE */
-#files{
+#files, #jobs{
   button{
     &.upload{
       padding: $standard-padding/2 $standard-padding;
       border: none;
+    }
+  }
+  .progress{
+    background-color: $gray-light;
+    margin-bottom: 0;
+    height: 63px;
+    margin-top: -10px;
+    border-radius: 0;
+    margin-right: -1;
+    box-shadow: none;
+    .progress-bar{
+      background-color: $teal;
+    }
+    .progress-bar-striped{
+      background-image: linear-gradient(135deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+      background-size: 40px 40px;
+    }
+    .sr-only {
+      position: relative;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+      z-index: 3;
+      top: 23px;
+      font-size: 18px;
+      font-weight: 100;
     }
   }
   .file-area{

@@ -19,9 +19,11 @@ export default class Jobs extends React.Component {
     const jobs = _.pairs(this.state.jobs).map(([jobKey, job]) => {
       return <Job key={job.uuid} job={job}/>;
     });
-    return (<div>
-      <h1>Jobs</h1>
-      {jobs}
+    return (<div className="container">
+      <div id="jobs">
+        <h1>Jobs</h1>
+        {jobs}
+      </div>
     </div>);
   }
 }
