@@ -127,6 +127,9 @@ const Marlin = function (app) {
       // As the buffer reads each line, process it
       self.lr.on('line', bsync((line) => {
         try {
+          if (process.env.VERBOSE_SERIAL_LOGGING) {
+            serialLogger.info('About to process line', line);
+          }
           // pause the line reader immediately
           // we will resume it as soon as the line is done processing
           bwait(self.lr.pause());
@@ -263,6 +266,7 @@ const Marlin = function (app) {
               bot: undefined,
               checkpoint: undefined,
             };
+            self.lr = undefined;
           }),
         });
       }));
