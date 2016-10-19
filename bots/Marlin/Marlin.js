@@ -13,7 +13,7 @@ const DefaultBot = require('../DefaultBot');
 let serialLogger;
 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
   // Set up logging for written serial data
-  const serialLogName = path.join(__dirname, '../verbose-serial.log');
+  const serialLogName = path.join(__dirname, '../../verbose-serial.log');
   serialLogger = new (winston.Logger)({
     levels: { write: 0, read: 1, info: 2 },
     transports: [
