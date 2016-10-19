@@ -256,6 +256,13 @@ const Marlin = function (app) {
             self.currentJob.fsm.runningDone();
             self.currentJob.stopwatch.stop();
             self.currentJob = undefined;
+
+            self.status.checkpoint = undefined;
+            self.status.collaborators = {};
+            self.status.blocker = {
+              bot: undefined,
+              checkpoint: undefined,
+            };
           }),
         });
       }));
