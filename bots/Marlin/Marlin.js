@@ -251,10 +251,11 @@ const Marlin = function (app) {
         self.queue.queueCommands({
           postCallback: bsync(() => {
             self.currentJob.percentComplete = 100;
-            bwait(self.fsm.stop());
-            bwait(self.fsm.stopDone());
-            bwait(self.currentJob.fsm.runningDone());
-            bwait(self.currentJob.stopwatch.stop());
+            self.fsm.stop();
+            self.fsm.stopDone();
+            self.currentJob.fsm.runningDone();
+            self.currentJob.stopwatch.stop();
+            self.currentJob = undefined;
           }),
         });
       }));
