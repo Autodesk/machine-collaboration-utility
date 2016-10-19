@@ -166,6 +166,10 @@ a{
           padding: 12px;
           margin-left: $standard-padding/6;
         }
+        &[type="text"]{
+          background: #ffffff;
+          border: 2px solid #333;
+        }
       }
       .fa{
         &::before{
@@ -216,7 +220,7 @@ a{
         background-color: $red;
       }
       &.connect{
-        background-color: $green;
+        background-color: $green-low-sat;
       }
       &.disconnect{
         background-color: $button-color;
@@ -237,6 +241,10 @@ a{
     input{
       &[type="submit"]{
         margin-top: 0;
+      }
+      &[type="text"]{
+        background: #ffffff;
+        border: 2px solid #333;
       }
     }
   }
@@ -499,7 +507,7 @@ a{
 
 #settings{
   .current-value{
-    background: gray;
+    background: #ddd;
     padding: $standard-padding/2;
     min-height: 52px;
     text-align: center;
