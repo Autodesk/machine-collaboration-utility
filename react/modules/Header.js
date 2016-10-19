@@ -23,7 +23,7 @@ export default class Header extends React.Component {
                 <NavLink to="/">
                   <span className="hidden-xs">Bots</span>
                   <span className="hidden-sm hidden-md hidden-lg">
-                    <i className="fa fa-file"></i>
+                    <i className="fa fa-cog"></i>
                   </span>
                 </NavLink>
               </li>
@@ -31,7 +31,7 @@ export default class Header extends React.Component {
                 <NavLink to="/jobs">
                   <span className="hidden-xs">Jobs</span>
                   <span className="hidden-sm hidden-md hidden-lg">
-                    <i className="fa fa-file"></i>
+                    <i className="fa fa-tasks"></i>
                   </span>
                 </NavLink>
               </li>
