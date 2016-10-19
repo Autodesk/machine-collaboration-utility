@@ -121,11 +121,13 @@ export default class Files extends React.Component {
     });
     return (<div>
       {this.renderModal()}
-      <h1>Files</h1>
-      <button onClick={this.props.dropzoneOpener}>Upload File</button>
-      <br></br>
-      <br></br>
-      <div>{files}</div>
+      <div id="files" className="container">
+        <h1>Files</h1>
+        <button className="upload" onClick={this.props.dropzoneOpener}>Upload File</button>
+        <br></br>
+        <br></br>
+        <div>{files}</div>
+      </div>
     </div>);
   }
 }

@@ -212,13 +212,13 @@ export default class Bots extends React.Component {
         {daBot}
         <Modal show={this.state.showModal} onHide={this.closeModal}>
           <Modal.Header closeButton>
-            <Modal.Title>Create Bot</Modal.Title>
+            <Modal.Title>Create</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             {this.createPresetList()}
             <form onSubmit={this.addBot}>
               {this.createNewBotForm()}
-              <input type="submit" value="Create Bot"/>
+              <input type="submit" value="Create"/>
             </form>
           </Modal.Body>
         </Modal>

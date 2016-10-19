@@ -9,6 +9,7 @@
 }
 body {
   font-family:  "turkey-regular";
+  font-size: $standard-font-size;
   background-color: $base-bg-color;
   a {
     color: #00B7FF;
@@ -68,16 +69,18 @@ body {
 button{
   &.add-bot{
     font-size: $standard-padding;
-    background-color: $dark-gray;
+    background-color: $gray;
     color: $white;
-    padding: $standard-padding/3 $standard-padding/1.5;
+    padding: 12px $standard-padding/1.5;
     border-radius: 0;
     border: none;
+    position: relative;
+    top: $standard-padding/6 * -1;
+    margin-bottom: $standard-padding/6 * -1;
   }
 }
 .bot-tab-list-container{
   width: 100%;
-  height: 64px;
   overflow-y: hidden;
   overflow-x: scroll;
   &::-webkit-scrollbar{
@@ -87,16 +90,14 @@ button{
 .bot-tab-list{
   background-color: $bot-tab-div-bg;
   width: 100%;
-  height: 85px;
   overflow-y: hidden;
-  margin-top: -6px;
   @media screen and (max-width: $screen-lg-min) {
     width: 1440px;
   }
 }
 a{
   &.bot-tabs{
-    color: $dark-gray;
+    color: $gray;
     font-size: $bot-tab-font-size;
     background-color: $bot-tab-bg;
     padding: 19px 15px;
@@ -105,7 +106,6 @@ a{
     border-radius: 0;
     border: none;
     position: relative;
-    top: 4px;
     &.active{
       background-color: $active-bot-bg;
     }
@@ -135,7 +135,7 @@ a{
     }
     .col-xs-4{
       position: relative;
-      z-index: 9999999;
+      z-index: 3;
     }
     .area-padding{
       padding: $standard-padding/2;
@@ -459,6 +459,128 @@ a{
 .disable {
   background-color: #dd7777;
   text-align: center;
+}
+
+
+/* FILES PAGE */
+#files{
+  button{
+    &.upload{
+      padding: $standard-padding/2 $standard-padding;
+      border: none;
+    }
+  }
+  .file-area{
+    background-color: $white;
+    margin-top: $standard-padding/2;
+    button{
+      border: none;
+      opacity: .5;
+      display: inline-block;
+      padding: 18px;
+      font-size: 27px;
+      &.delete{
+        padding: 0;
+        outline: none;
+        background-color: transparent;
+        opacity: .2;
+        font-size: 20px;
+      }
+      &.download{
+        background-color: $gray;
+        color: $white;
+        outline: none;
+        opacity: 1;
+        float: right;
+        @media screen and (max-width: $screen-xs-max) {
+          float: left;
+          width: 50%;
+        }
+        &:hover{
+          background-color: $gray-light;
+        }
+        &:focus{
+          background-color: $gray-dark;
+        }
+      }
+      &.print{
+        background-color: $green;
+        color: $white;
+        opacity: 1;
+        float: right;
+        outline: none;
+        @media screen and (max-width: $screen-xs-max) {
+          float: left;
+          width: 50%;
+        }
+        &:hover{
+          background-color: $green-light;
+        }
+        &:focus{
+          background-color: $green-dark;
+        }
+      }
+    }
+    h2{
+      display: inline-block;
+      padding-left: $standard-padding/2;
+      margin: 0;
+      span{
+        font-size: 12px;
+        opacity: .6;
+      }
+    }
+    .file-info{
+      background-color: $white;
+      padding: $standard-padding/2;
+    }
+    .file-btns{
+      background-color: $white;
+      padding: 0;
+    }
+  }
+}
+
+/* FORMS */
+
+input{
+  padding: $standard-padding/2;
+  width: 100%;
+  padding: $standard-padding/2;
+  padding-left: 0;
+  outline: none;
+  border: none;
+  background-color: transparent;
+  border-bottom: 3px solid $gray;
+  &[type=submit]{
+    background-color: $red;
+    color: $white;
+    border: none;
+    letter-spacing: 2px;
+    padding: $standard-padding/2 $standard-padding;
+    margin-top: $standard-padding;
+  }
+}
+
+select{
+  outline: none;
+  -webkit-appearance: none;
+  padding: $standard-padding/2;
+  border-radius: 0;
+  border: 3px solid $gray;
+  background-color: $white;
+  background-image: url("../images/arrow.svg");
+  background-repeat: no-repeat;
+  background-position: 95%;
+  background-size: 40px;
+  padding-right: 50px;
+}
+
+label{
+  display: block;
+  margin-top: $standard-padding/2;
+  text-transform: uppercase;
+  font-size: $font-label-size;
 }
 
 .no-select {

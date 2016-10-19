@@ -8,7 +8,7 @@ export default class Header extends React.Component {
   render() {
     return (
       <div className="header">
-        <div className="container">
+        <div>
           <div className="col-xs-4"><NavLink to="/">
             <div className="logo">
               <img src="images/logo.svg"/>
