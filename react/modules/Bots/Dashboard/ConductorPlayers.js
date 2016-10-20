@@ -20,11 +20,11 @@ export default class ConductorPlayers extends React.Component {
 
   createPlayer(player) {
     return (
-      <div className="row" key={player.name}>
+      <div className="row conductor-player" key={player.name}>
         <div className="col-md-4">Name: {player.name}</div>
         <div className="col-md-4">Endpoint: {player.endpoint}</div>
         <div className="col-md-4">
-          <button onClick={() => { this.removePlayer(player.name); }}>X</button>
+          <button className="cancel" onClick={() => { this.removePlayer(player.name); }}>X</button>
         </div>
       </div>
     );
@@ -54,14 +54,14 @@ export default class ConductorPlayers extends React.Component {
         <div className="row">
           <div className="col-md-4">
             <label htmlFor="name">Player Name:</label>
-            <input type="textarea" name="name" defaultValue="" />
+            <input className="conductor-form-text" type="textarea" name="name" defaultValue="" />
           </div>
           <div className="col-md-4">
             <label htmlFor="endpoint">Player Endpoint:</label>
-            <input type="textarea" name="endpoint" defaultValue="" />
+            <input className="conductor-form-text" type="textarea" name="endpoint" defaultValue="" />
           </div>
           <div className="col-md-4">
-            <input type="submit" value="Add Player" />
+            <input className="green-plz" type="submit" value="Add Player" />
           </div>
         </div>
       </form>
@@ -74,8 +74,8 @@ export default class ConductorPlayers extends React.Component {
 
     return (
       <div>
-        {newPlayerForm}
         {playerList}
+        {newPlayerForm}
       </div>
     );
   }

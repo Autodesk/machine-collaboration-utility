@@ -4,6 +4,18 @@
 @import "variables.scss";
 
 /* GENERAL */
+.conductor-player {
+  padding: 5px;
+}
+
+.conductor-form-text {
+  background: #fff;
+}
+
+.green-plz {
+  background: $green-low-sat !important;
+}
+
 .modal.fade.in{
   display: block;
 }
