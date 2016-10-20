@@ -173,7 +173,7 @@ const DefaultBot = function DefaultBot(app) {
       if (self.updateInterval === false) {
         self.updateInterval = setInterval(() => {
           self.commands.updateRoutine(self);
-        }, 1000);
+        }, 2000);
       }
       return 'Bot update routine is on';
     }
