@@ -41,18 +41,17 @@ const ConductorVirtual = function ConductorVirtual(app) {
 
         // Go through each player and connect it
         for (const player of self.settings.custom.players) {
-          const connectParams = {
-            method: 'POST',
-            uri: player.endpoint,
-            body: {
-              command: 'connect',
-            },
-            json: true,
-          };
-          try {
-            bwait(request(connectParams));
-          } catch (ex) {
-            self.logger.error('Connect player request fail', ex);
+          const localPlayer = _.find(self.app.context.bots.botList, (bot) => {
+            return bot.port === player.endpoint;
+          });
+          if (localPlayer !== undefined) {
+            try {
+              localPlayer.commands.connect(localPlayer);
+            } catch (ex) {
+              self.logger.error(ex);
+            }
+          } else {
+            self.logger.error('Local player not found for endpoint:', playerEndpoint);
           }
         }
 
@@ -69,16 +68,113 @@ const ConductorVirtual = function ConductorVirtual(app) {
     disconnect: function disconnect(self) {
       try {
         self.fsm.disconnect();
-        // _.pairs(self.info.players).forEach(([playerKey, player]) => {
-        //   self.logger.info('starting to disconnect', playerKey);
-        //   player.commands.disconnect(player);
-        // });
-        // // TODO actually check this
-        // self.commands.toggleUpdater(self, { update: false });
+
+        for (const player of self.settings.custom.players) {
+          const connectParams = {
+            method: 'POST',
+            uri: player.endpoint,
+            body: {
+              command: 'disconnect',
+            },
+            json: true,
+          };
+          try {
+            bwait(request(connectParams));
+          } catch (ex) {
+            self.logger.error('Connect player request fail', ex);
+          }
+        }
+
+        // TODO actually check this
+        self.commands.toggleUpdater(self, { update: false });
         self.fsm.disconnectDone();
       } catch (ex) {
         self.logger.error(ex);
         self.fsm.disconnectFail();
+      }
+    },
+    pause: function disconnect(self) {
+      try {
+        self.fsm.stop();
+        for (const player of self.settings.custom.players) {
+          if (player.jobUuid !== undefined) {
+            // Ping each job for status
+            const jobEndpoint = player.endpoint.split('bots/solo')[0] + 'jobs/' + player.jobUuid;
+            const pauseJobParams = {
+              method: 'POST',
+              uri: jobEndpoint,
+              body: {
+                command: 'pause',
+              },
+              json: true,
+            };
+            try {
+              const pauseJobReply = bwait(request(pauseJobParams));
+            } catch (ex) {
+              self.logger.error('Pause fail', ex);
+            }
+          }
+        }
+        self.fsm.stopDone();
+      } catch (ex) {
+        self.logger.error(ex);
+        self.fsm.stopFail();
+      }
+    },
+    resume: function disconnect(self) {
+      try {
+        self.fsm.start();
+        for (const player of self.settings.custom.players) {
+          if (player.jobUuid !== undefined) {
+            // Ping each job for status
+            const jobEndpoint = player.endpoint.split('bots/solo')[0] + 'jobs/' + player.jobUuid;
+            const resumeJobParams = {
+              method: 'POST',
+              uri: jobEndpoint,
+              body: {
+                command: 'resume',
+              },
+              json: true,
+            };
+            try {
+              const resumeJobReply = bwait(request(resumeJobParams));
+            } catch (ex) {
+              self.logger.error('Resume fail', ex);
+            }
+          }
+        }
+        self.fsm.startDone();
+      } catch (ex) {
+        self.logger.error(ex);
+        self.fsm.startFail();
+      }
+    },
+    cancel: function disconnect(self) {
+      try {
+        self.fsm.stop();
+        for (const player of self.settings.custom.players) {
+          if (player.jobUuid !== undefined) {
+            // Ping each job for status
+            const jobEndpoint = player.endpoint.split('bots/solo')[0] + 'jobs/' + player.jobUuid;
+            const cancelJobParams = {
+              method: 'POST',
+              uri: jobEndpoint,
+              body: {
+                command: 'cancel',
+              },
+              json: true,
+            };
+            try {
+              const cancelJobReply = bwait(request(cancelJobParams));
+            } catch (ex) {
+              self.logger.error('Cancel fail', ex);
+            }
+          }
+        }
+        self.fsm.stopDone();
+      } catch (ex) {
+        self.logger.error(ex);
+        self.fsm.startFail();
       }
     },
     startJob: bsync(function startJob(self, params) {
@@ -88,20 +184,53 @@ const ConductorVirtual = function ConductorVirtual(app) {
         self.fsm.start();
         bwait(self.commands.uploadAndSetupPlayerJobs(self, job));
         self.logger.info('All files uploaded and set up');
+        self.fsm.startDone();
       } catch (ex) {
         self.logger.error(`Conductor failed to start job: ${ex}`);
       }
-
-      self.fsm.startDone();
     }),
     updateRoutine: bsync(function updateRoutine(self, params) {
-        // if (doneConducting) {
-        //   bwait(self.fsm.stop());
-        //   bwait(self.fsm.stopDone());
-        //   self.currentJob.percentComplete = 100;
-        //   bwait(self.currentJob.fsm.runningDone());
-        //   bwait(self.currentJob.stopwatch.stop());
-        // }
+      let doneConducting = true;
+      let accumulatePercentComplete = 0;
+      if (self.fsm.current === 'processingJob') {
+        for (const player of self.settings.custom.players) {
+          if (player.jobUuid !== undefined) {
+            // Ping each job for status
+            const jobEndpoint = player.endpoint.split('bots/solo')[0] + 'jobs/' + player.jobUuid;
+            const pingJobParams = {
+              method: 'GET',
+              uri: jobEndpoint,
+              json: true,
+            };
+            try {
+              const pingReply = bwait(request(pingJobParams));
+              if (pingReply.data.state !== 'complete') {
+                doneConducting = false;
+              }
+              accumulatePercentComplete += pingReply.data.percentComplete == undefined ? 0 : pingReply.data.percentComplete;
+            } catch (ex) {
+              doneConducting = false;
+            }
+          }
+        }
+        // If current job is not complete, we're not done conducting'
+        if (doneConducting) {
+          self.fsm.stop();
+          self.fsm.stopDone();
+          self.currentJob.percentComplete = 100;
+          self.currentJob.fsm.runningDone();
+          self.currentJob.stopwatch.stop();
+          self.currentJob = undefined;
+          bwait(Promise.delay(2000));
+          self.app.io.broadcast('botEvent', {
+            uuid: self.settings.uuid,
+            event: 'update',
+            data: self.getBot(),
+          });
+        } else {
+          self.currentJob.percentComplete = Number(accumulatePercentComplete / self.settings.custom.players.length).toFixed(3);
+        }
+      }
     }),
     // If the database doesn't yet have printers for the endpoints, create them
     setupConductorArms: bsync((self, params) => {
@@ -234,7 +363,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
     }),
     uploadAndSetupPlayerJobs: bsync(function(self, job) {
       try {
-        console.log('starting job');
         self.nJobs = 0;
         self.nJobsComplete = 0;
 
@@ -251,7 +379,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
               try {
                 // Reset each player's collaborator list
                 for (const player of self.settings.custom.players) {
-                  console.log('da player', player);
                   self.collaboratorCheckpoints[player.name] = 0;
                 }
                 bwait(self.commands.updatePlayers(self));
@@ -263,7 +390,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                     method: 'GET',
                     uri: player.endpoint,
                     json: true,
-                  }
+                  };
                   let getBotUuidReply;
                   try {
                     getBotUuidReply = bwait(request(getBotUuidParams));
@@ -298,7 +425,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                   };
                   const createJobReply = bwait(request(jobParams));
                   const jobUuid = createJobReply.data.uuid;
-
+                  player.jobUuid = jobUuid;
                   const startJobParams = {
                     method: 'POST',
                     uri: `${player.endpoint.split('/v1/bots/solo')[0]}/v1/jobs/${jobUuid}`,
@@ -310,6 +437,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                   const startJobReply = bwait(request(startJobParams));
                   bwait(Promise.delay(2000));
                 }
+                resolve();
               } catch (ex) {
                 self.logger.error(ex);
               }
