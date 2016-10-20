@@ -17,9 +17,10 @@ export default class Dashboard extends React.Component {
   }
 
   render() {
+    const isConductorBot = this.props.bot.settings.model.toLowerCase().includes('conductor');
     const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
     let conductorPlayers = '';
-    if (this.props.bot.settings.model.toLowerCase().includes('conductor')) {
+    if (isConductorBot) {
       conductorPlayers =
         <div className="container">
           <div className="area row">
@@ -31,38 +32,45 @@ export default class Dashboard extends React.Component {
 
     return (
       <div id="dashboard">
-        <div className="container">
-          <div id="left" className="col-md-6">
-            <div className="area">
-              <JogPanel endpoint={endpoint}/>
-            </div>
-            <div className="area">
-              <HomeAxes endpoint={endpoint} bot={this.props.bot}/>
-            </div>
-          </div>{/* END LEFT */}
-          <div id="right" className="col-md-6">
-            <div className="area">
-              <CurrentJob bot={this.props.bot}/>
-            </div>
-            <div className="area row">
-              <div className="col-sm-6 no-padding">
-                <PositionFeedback bot={this.props.bot}/>
-              </div>
-              <div className="col-sm-6 no-padding">
-                <DisableMotors endpoint={endpoint}/>
-              </div>
-            </div>
-            <div className="area">
-              <Temp bot={this.props.bot}/>
-            </div>
-          </div> {/* END RIGHT */}
-        </div>{/* END CONTAINER */}
-        <div className="container">
-          <div className="area row">
-            <SendGcode endpoint={endpoint} bot={this.props.bot}/>
+        { isConductorBot ?
+          <div className="container">
+            <CurrentJob bot={this.props.bot}/>
           </div>
-        </div>{/* END CONTAINER */}
-        {conductorPlayers}
+          :
+          <div className="container">
+            <div id="left" className="col-md-6">
+              <div className="area">
+                <JogPanel endpoint={endpoint}/>
+              </div>
+              <div className="area">
+                <HomeAxes endpoint={endpoint} bot={this.props.bot}/>
+              </div>
+            </div>
+            <div id="right" className="col-md-6">
+              <div className="area">
+                <CurrentJob bot={this.props.bot}/>
+              </div>
+              <div className="area row">
+                <div className="col-sm-6 no-padding">
+                  <PositionFeedback bot={this.props.bot}/>
+                </div>
+                <div className="col-sm-6 no-padding">
+                  <DisableMotors endpoint={endpoint}/>
+                </div>
+              </div>
+              <div className="area">
+                <Temp bot={this.props.bot}/>
+              </div>
+            </div>
+          </div>
+        }
+        { isConductorBot ? conductorPlayers :
+          <div className="container">
+            <div className="area row">
+              <SendGcode endpoint={endpoint} bot={this.props.bot}/>
+            </div>
+          </div>
+        }
       </div>
     );
   }
