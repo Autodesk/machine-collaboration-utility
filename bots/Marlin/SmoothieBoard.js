@@ -2,11 +2,11 @@ const _ = require('underscore');
 
 const Marlin = require('./Marlin');
 
-const TitanPrometheus = function TitanPrometheus(app) {
+const SmoothieBoard = function SmoothieBoard(app) {
   Marlin.call(this, app);
 
   _.extend(this.settings, {
-    name: 'Titan Prometheus',
+    name: 'SmoothieBoard',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
@@ -103,4 +103,4 @@ const TitanPrometheus = function TitanPrometheus(app) {
   });
 };
 
-module.exports = TitanPrometheus;
+module.exports = SmoothieBoard;

@@ -8,7 +8,7 @@ const ConductorSmoothieBoard = function (app) {
   Conductor.call(this, app);
 
   _.extend(this.settings, {
-    name: 'Conductor Titan Prometheus',
+    name: 'Conductor SmoothieBoard',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
 
