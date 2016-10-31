@@ -1,16 +1,37 @@
-# Hydra-Print
+# Hardware-Hub
 
-An es7 friendly Gcode Client
+A generalized host for communicating with hardware.  
+Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible for other firmware and communication protocols.
 
-The framework is built on the following the following libraries/technologies:
-- Koa 2
-- Koa Bark
-- Sequelize
-- Socket.io
+## How to use
 
-Built and tested using Node V6.2
+### Install Raspberry Pi usb driver libraries (Only necessary if using a Raspberry Pi)
+```
+sudo apt-get install build-essential libudev-dev
+```
 
-Install all dependencies:
+### Install NodeJS (NVM recommended)
+Copy and paste the script below to install NVM (Node Version Manager).
+```
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.32.1/install.sh | bash
+```
+
+Now we're going to run a few steps to get NVM up and running.  
+**Copy and paste** the code below into your terminal. It will do the following:
+- Set nvm to run whenever you open a terminal
+```
+sudo echo ". ~/.nvm/nvm.sh" >> ~/.bashrc
+```
+- Run nvm for this terminal window instance
+```
+. ~/.nvm/nvm.sh
+```
+- Download Node V6 or higher.  
+```
+nvm install v6.9.1
+```
+
+### Install all NodeJS dependencies:
 ```
 npm install
 ```
@@ -52,11 +73,6 @@ PORT=9000
 sudo -iu postgres psql -c "\password postgres"
 ```
 
-## Installing Raspberry Pi usb driver libraries
-```
-sudo apt-get install build-essential libudev-dev
-```
-
 ## Running the app
 #### Run tests  
 ```
@@ -66,5 +82,3 @@ npm test
 ```
 npm start
 ```
-
-All API documentation can be found at localhost:9000/docs
