@@ -79,7 +79,8 @@ const Boot = function Boot(app) {
             commandArray.push('G92 E0');
             commandArray.push(`G1 E${purgeAmount} F100`); // Purge
             commandArray.push(`G1 E${purgeAmount - 2} F3000`); // Retract
-            commandArray.push('G1 Y52 F1000'); // Scrub
+            const xPos = self.settings.name.indexOf('botA') === -1 ? 460 : 40;
+            commandArray.push(`G1 X${xPos} Y52 F1000`); // Scrub
             commandArray.push('G92 E-2'); // Prepare extruder for E0
             commandArray.push('G4 P0'); // Clear motion buffer before saying we're done
           }
