@@ -45,8 +45,8 @@ const Boot = function Boot(app) {
               }
 
               // Park botA on the left, and botB on the right
-              const xPos = self.settings.name.indexOf('botA') === -1 ? 498 : 7;
-              commandArray.push(`G1 X${xPos} Y7 F3000`);
+              const xPos = self.settings.name.indexOf('botA') === -1 ? 498 : 4;
+              commandArray.push(`G1 X${xPos} Y4 F3000`);
               commandArray.push('G4 P0'); // Clear motion buffer before saying we're done
               commandArray.push({
                 postCallback: () => {
@@ -74,10 +74,11 @@ const Boot = function Boot(app) {
         if (self.fsm.current === 'parkedJob') {
           self.fsm.unparkJob();
           const commandArray = [];
+          const purgeAmount = 20;
           if (params.dry === false) {
             commandArray.push('G92 E0');
-            commandArray.push('G1 E12 F100'); // Purge
-            commandArray.push('G1 E10 F3000'); // Retract
+            commandArray.push(`G1 E${purgeAmount} F100`); // Purge
+            commandArray.push(`G1 E${purgeAmount - 2} F3000`); // Retract
             commandArray.push('G1 Y52 F1000'); // Scrub
             commandArray.push('G92 E-2'); // Prepare extruder for E0
             commandArray.push('G4 P0'); // Clear motion buffer before saying we're done
