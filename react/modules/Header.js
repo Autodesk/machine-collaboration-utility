@@ -9,15 +9,15 @@ export default class Header extends React.Component {
     return (
       <div className="header">
         <div>
-          <div className="col-xs-4"><NavLink to="/">
+          <div className="col-xs-8"><NavLink to="/">
             <div className="logo">
               <img src="images/logo.svg"/>
             </div>
             <h2 className="hidden-xs">
-              <span className="bold">Hardware</span><span>Hub</span>
+              <span className="bold">Machine Collaboration Utility</span>
             </h2>
           </NavLink></div>
-          <div className="col-xs-8 float-right">
+          <div className="col-xs-4 float-right">
             <ul>
               <li>
                 <NavLink to="/">
