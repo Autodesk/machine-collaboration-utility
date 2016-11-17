@@ -191,7 +191,7 @@ const koaApp = bsync((config) => {
     app.context.logger.error('server error', error, ctx);
   });
 
-  app.context.logger.info('Hydra-Print has been initialized successfully.');
+  app.context.logger.info('Machine Collaboration Utility has been initialized successfully.');
 
   return app;
 });

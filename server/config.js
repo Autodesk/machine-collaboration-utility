@@ -1,6 +1,6 @@
 module.exports = {
   apiVersion: 'v1',
-  logFileName: 'hydra-print.log',
-  testLogFileName: 'hydra-print-test.log',
+  logFileName: 'mcu.log',
+  testLogFileName: 'mcu-test.log',
   virtualDelay: 1000,
 };
