@@ -1,4 +1,4 @@
-# Hardware-Hub
+# Machine Collaboration Utility
 
 A generalized host for communicating with hardware.  
 Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible for other firmware and communication protocols.
