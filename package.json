@@ -8,6 +8,12 @@
     "start": "node node_modules/gulp/bin/gulp.js",
     "build": "node node_modules/gulp/bin/gulp.js build"
   },
+  "licenses": [
+    {
+      "type": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  ],
   "dependencies": {
     "asyncawait": "^1.0.6",
     "babel-core": "^6.14.0",
