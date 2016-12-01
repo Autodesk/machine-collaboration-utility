@@ -5,6 +5,4 @@ before_script:
 services:
   - postgresql
 env:
-  - username=postgres
-  - password=
-  - dbname=postgres
+  - username=postgres password="" dbname=postgres
