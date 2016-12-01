@@ -2,6 +2,7 @@ language: node_js
 node_js: 6
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
+before_install:
   - sudo apt-get install build-essential libudev-dev
 services:
   - postgresql
