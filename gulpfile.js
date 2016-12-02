@@ -156,7 +156,7 @@ gulp.task('test', ['default'], () => {
     .once('end', () => {
       process.exit();
     });
-  }, 5000);
+  }, 10000);
 });
 
 gulp.task('default', [

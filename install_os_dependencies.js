@@ -2,7 +2,7 @@ const exec = require("child_process").exec;
 
 let hardwareDependencies = null;
 
-if (process.env.CONTINUOUS_INTEGRATION !== true) {
+if (process.env.CONTINUOUS_INTEGRATION !== 'true') {
   hardwareDependencies = require('./hardwareDependencies.json');
 }
 

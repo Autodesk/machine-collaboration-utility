@@ -1,8 +1,6 @@
 require('source-map-support').install();
 require('dotenv').config();
 
-console.log('env', process.env);
-
 const winston = require('winston');
 const path = require('path');
 const bsync = require('asyncawait/async');
