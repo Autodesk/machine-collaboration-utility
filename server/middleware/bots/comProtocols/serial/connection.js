@@ -9,8 +9,9 @@
 var _ = require('underscore'),
     Heartbeat = require('heartbeater');
 
-// loading serialport may fail, so surround it with a try
-var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
+if (process.env.NODE_ENV !== 'test') {
+    var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
+}
 var winston = require('winston');
 var path = require('path');
 
