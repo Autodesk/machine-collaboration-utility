@@ -1,6 +1,7 @@
 language: node_js
 node_js: 6
 before_script:
+  - touch .env
   - psql -c 'create database travis_ci_test;' -U postgres
 services:
   - postgresql
