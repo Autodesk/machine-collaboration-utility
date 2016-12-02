@@ -1,5 +1,9 @@
 require('source-map-support').install();
-require('dotenv').config();
+try {
+  require('dotenv').config();
+} catch(ex) {
+  console.log('No .env file found', ex);
+}
 
 const winston = require('winston');
 const path = require('path');
