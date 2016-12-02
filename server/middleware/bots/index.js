@@ -91,7 +91,8 @@ Bots.prototype.initialize = bsync(function initialize() {
     }
 
     // Start scanning for all bots
-    if (process.env.ONLY_CONDUCT !== 'true') {
+    // Do not use usb if testing
+    if (process.env.ONLY_CONDUCT !== 'true' && process.env.NODE_ENV !== 'test') {
       Promise.delay(1000).then(() => {
         this.setupDiscovery();
       });

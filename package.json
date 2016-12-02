@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "install": "node install_os_dependencies.js",
     "debug": "node node_modules/gulp/bin/gulp.js debug",
     "test": "node node_modules/gulp/bin/gulp.js test",
     "start": "node node_modules/gulp/bin/gulp.js",
@@ -62,7 +63,6 @@
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
     "sequelize": "^3.24.1",
-    "serialport": "^4.0.3",
     "should": "^11.1.0",
     "source-map-loader": "^0.1.5",
     "source-map-support": "^0.4.2",
@@ -70,11 +70,10 @@
     "timer-stopwatch": "^0.2.0",
     "underscore": "^1.8.3",
     "unzip2": "^0.2.5",
-    "usb": "^1.1.2",
     "winston": "^2.2.0"
   },
   "engines": {
-    "node": "^6.4",
+    "node": "^6.9",
     "npm": "^3"
   },
   "devDependencies": {

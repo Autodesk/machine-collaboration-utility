@@ -74,15 +74,22 @@ gulp.task(
     'watch',
   ],
   () => {
-    return nodemon(
-      {
-        script: 'server/index.js',
-        nodeArgs: ['--debug'],
-        ignore: [
-          './uploads',
-        ],
-      }
-    )
+    // Looking to see if we are running 'npm test'
+    const npmArgs = JSON.parse(process.env.npm_config_argv);
+    const testArg = npmArgs.cooked && npmArgs.cooked[0];
+    const nodeArgs = ['--debug'];
+
+    const nodemonArgs = {
+      script: 'server/index.js',
+      nodeArgs: ['--debug'],
+      ignore: ['./uploads'],
+    };
+
+    if (testArg === 'test') {
+      nodemonArgs.env = { NODE_ENV: 'test' };
+    }
+
+    return nodemon(nodemonArgs)
     .on('restart', () => {
       console.log('restarted!');
     });
