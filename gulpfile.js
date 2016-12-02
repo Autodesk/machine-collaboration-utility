@@ -1,4 +1,9 @@
-require('dotenv').config();
+try {
+  require('dotenv').config();
+} catch (ex) {
+  console.log('No .env file found', ex);
+}
+
 
 const gulp = require('gulp');
 const sourcemaps = require('gulp-sourcemaps');
