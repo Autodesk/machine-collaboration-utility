@@ -64,6 +64,9 @@ Bots.prototype.initialize = bsync(function initialize() {
       try {
         // In case the middleware instance is only for Conducting or Serial,
         // Don't or Do, respectively, add Serial printers
+        if (dbBot.dataValues.custom && dbBot.dataValues.custom.length > 0) {
+          dbBot.dataValues.custom = JSON.parse(dbBot.dataValues.custom);
+        }
         if (process.env.ONLY_CONDUCT === 'true') {
           try {
             const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
@@ -170,8 +173,14 @@ Bots.prototype.loadBotPresets = bsync(function loadBotPresets() {
 ******************************************************************************/
 Bots.prototype.createPersistentBot = bsync(function createPersistentBot(inputSettings = {}) {
   const newBot = bwait(this.createBot(inputSettings));
+  const dbBotSettings = Object.assign({}, newBot.settings);
+
+  if (dbBotSettings.custom) {
+    dbBotSettings.custom = JSON.stringify(dbBotSettings.custom);
+  }
+
   // Need to work out caveat for USB printers that don't have a pnpid
-  bwait(this.BotModel.create(newBot.settings));
+  bwait(this.BotModel.create(dbBotSettings));
   return newBot;
 });
 
@@ -218,14 +227,17 @@ Bots.prototype.deleteBot = bsync(function deleteBot(uuid) {
       deleted = true;
     }
   }
+
   if (!deleted) {
     throw `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`;
   }
+
   this.app.io.broadcast('botEvent', {
     uuid,
     event: 'delete',
     data: null,
   });
+
   return `Bot "${uuid}" successfully deleted`;
 });
 

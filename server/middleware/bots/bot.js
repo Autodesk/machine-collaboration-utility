@@ -155,6 +155,7 @@ const Bot = function Bot(app, BotClass, inputSettings = {}) {
  */
 Bot.prototype.getBot = function getBot() {
   const currentJob = this.currentJob === undefined ? undefined : this.currentJob.getJob();
+  console.log('the settings', this.settings);
   return {
     state: (this.fsm !== undefined && this.fsm.current !== undefined) ? this.fsm.current : 'unavailable',
     status: this.status,
@@ -227,6 +228,10 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
     return bot.dataValues.uuid === this.settings.uuid;
   });
   if (dbBot !== undefined) {
+    // crush custom setting object into a string
+    if (settingsToUpdate.custom && typeof settingsToUpdate === 'object') {
+      settingsToUpdate.custom = JSON.stringify(settingsToUpdate.custom);
+    }
     this.logger.info(`About to update bot ${this.settings.name} settings from ${JSON.stringify(this.settings)} to ${JSON.stringify(settingsToUpdate)}`);
     bwait(dbBot.update(settingsToUpdate));
   }

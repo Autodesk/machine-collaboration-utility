@@ -1,9 +1,13 @@
-if(process.env.NODE_ENV !== 'test') {
-  const usb = Promise.promisifyAll(require('usb'));
-  const SerialPort = require('serialport');
+const Promise = require('bluebird');
+
+let usb;
+let SerialPort;
+
+if (process.env.NODE_ENV !== 'test') {
+  usb = Promise.promisifyAll(require('usb'));
+  SerialPort = require('serialport');
 }
 
-const Promise = require('bluebird');
 const _ = require('underscore');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');

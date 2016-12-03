@@ -401,8 +401,9 @@ module.exports = function botsTests() {
       };
       request(requestParams)
       .then((reply) => {
+        console.log('add player reply', reply);
         botUuid = reply.data.settings.uuid;
-        players = reply.data.settings.custom.players;
+        players = JSON.parse(reply.data.settings.custom).players;
         should(reply.status).equal(200);
         should(Array.isArray(players)).equal(true);
         should(players.length).equal(1);
@@ -469,6 +470,7 @@ module.exports = function botsTests() {
         };
         return request(requestParams)
         .then((reply) => {
+          console.log('reply', reply);
           if (reply.data.state !== 'connected') {
             success = false;
           }
