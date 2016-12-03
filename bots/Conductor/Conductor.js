@@ -251,8 +251,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
           }
         }
 
-        console.log('players?', players);
-
         for (const player of players) {
           // Check if a bot exists with that end point
           let created = false;
@@ -337,7 +335,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
           playerArray = self.settings.custom.players;
         }
 
-        console.log('player array', playerArray);
         // Check for duplicate names or endpoints
         for (const player of playerArray) {
           if (player.name === name) {
@@ -349,7 +346,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
         }
 
         playerArray.push({ name, endpoint });
-        console.log('player array', playerArray);
         bwait(self.updateBot({ custom: self.settings.custom }));
         // should update the database version of this
         return self.getBot();
