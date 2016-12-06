@@ -142,6 +142,14 @@ const Marlin = function (app) {
           const conductorCommentResult = conductorComment.exec(line);
           if (conductorCommentResult !== null) {
             switch (conductorCommentResult[1]) {
+              case 'PARK': {
+                self.command.park(self);
+                break;
+              }
+              case 'UNPARK': {
+                self.commands.unpark(self);
+                break;
+              }
               case 'CHECKPOINT': {
                 const botRegex = /^.*bot(\w+) : (\d+)$/;
                 const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
