@@ -1,4 +1,4 @@
-# Machine Collaboration Utility
+# Machine Collaboration Utility  ![mcu build status](https://travis-ci.org/Autodesk/machine-collaboration-utility.svg?branch=master)
 
 A generalized host for communicating with hardware.  
 Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible for other firmware and communication protocols.
