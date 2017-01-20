@@ -49,7 +49,11 @@ export default class Settings extends React.Component {
     for (const [settingKey, setting] of _.pairs(this.state.settings)) {
       try {
         const newValue = event.target[settingKey].value;
-        paramJson[settingKey] = newValue;
+        if (settingKey.indexOf('bedMesh') !== -1) {
+          paramJson[settingKey] = newValue.split(',');
+        } else {
+          paramJson[settingKey] = newValue;
+        }
       } catch (ex) {
         // Value not listed as a part of the input form, don't add it
       }
@@ -67,7 +71,7 @@ export default class Settings extends React.Component {
     const settings = [];
     for (const [settingKey, setting] of _.pairs(this.state.settings)) {
       switch (settingKey) {
-        // Don't use the following settings
+        // Don't populate the following settings
         case 'createdAt':
         case 'updatedAt':
         case 'uuid':

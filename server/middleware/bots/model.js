@@ -24,6 +24,9 @@ module.exports = bsync((app) => {
     offsetZ: Sequelize.FLOAT,
     openString: Sequelize.STRING,
     custom: Sequelize.STRING,
+    bedMeshXPoints: Sequelize.DataTypes.ARRAY(Sequelize.DataTypes.FLOAT),
+    bedMeshYPoints: Sequelize.DataTypes.ARRAY(Sequelize.DataTypes.FLOAT),
+    bedMeshZPoints: Sequelize.DataTypes.ARRAY(Sequelize.DataTypes.FLOAT)
   });
 
   return BotModel;

@@ -291,7 +291,8 @@ Bot.prototype.detect = function detect() {
           this.app,
           this.port,
           this.info.baudrate,
-          openPrime
+          openPrime,
+          this
         );
         validator = this.validateSerialReply;
         break;
@@ -462,6 +463,10 @@ Bot.prototype.addSpeedMultiplier = function addSpeedMultiplier(command) {
 };
 
 Bot.prototype.addFeedMultiplier = function addFeedMultiplier(command) {
+  return command;
+};
+
+Bot.prototype.addBedMeshOffset = function addBedMeshOffset(command) {
   return command;
 };
 

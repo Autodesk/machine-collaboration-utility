@@ -236,6 +236,7 @@ const Marlin = function (app) {
               bwait(self.lr.resume());
             } else {
               command = self.addOffset(command);
+              command = self.addBedMeshOffset(params.gcode);
               command = self.addSpeedMultiplier(command);
               command = self.addFeedMultiplier(command);
 
@@ -387,10 +388,13 @@ const Marlin = function (app) {
       }
     },
     processGcode: bsync((self, params) => {
-      const gcode = self.addOffset(params.gcode);
       if (gcode === undefined) {
         throw '"gcode" is undefined';
       }
+
+      let gcode = self.addOffset(params.gcode);
+      gcode = self.addBedMeshOffset(params.gcode);
+
       const commandArray = [];
 
       return bwait(new Promise((resolve, reject) => {
@@ -411,7 +415,9 @@ const Marlin = function (app) {
       if (self.queue.mQueue.length >= 32) {
         return false;
       }
-      const gcode = self.addOffset(params.gcode);
+      let gcode = self.addOffset(params.gcode);
+      gcode = self.addBedMeshOffset(params.gcode);
+
       if (gcode === undefined) {
         throw '"gcode" is undefined';
       }
