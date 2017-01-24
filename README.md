@@ -5,6 +5,8 @@ Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible fo
 
 ## How to use
 
+Download the Raspberry Pi image [here](https://drive.google.com/file/d/0B7k-k73S74JBaDN5eGozbjkyYWM/view?usp=sharing).  
+
 ### Install Raspberry Pi usb driver libraries (Only necessary if using a Raspberry Pi)
 ```
 sudo apt-get install build-essential libudev-dev
