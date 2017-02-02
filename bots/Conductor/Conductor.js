@@ -40,7 +40,9 @@ const ConductorVirtual = function ConductorVirtual(app) {
         bwait(self.commands.setupConductorArms(self));
 
         // Go through each player and connect it
-        const players = JSON.parse(self.settings.custom).players;
+        const players = self.settings.custom && typeof self.settings.custom === 'object' ?
+        self.settings.custom.players : JSON.parse(self.settings.custom).players;
+
         for (const player of players) {
           const localPlayer = _.find(self.app.context.bots.botList, (bot) => {
             return bot.port === player.endpoint;
@@ -328,15 +330,11 @@ const ConductorVirtual = function ConductorVirtual(app) {
           throw '"endpoint" is undefined';
         }
 
-        let playerArray;
-        if (self.settings.custom && typeof self.settings.custom === 'string') {
-          playerArray = JSON.parse(self.settings.custom).players;
-        } else {
-          playerArray = self.settings.custom.players;
-        }
+        const players = typeof self.settings.custom === 'object' ?
+        self.settings.custom.players : JSON.parse(self.settings.custom).players;
 
         // Check for duplicate names or endpoints
-        for (const player of playerArray) {
+        for (const player of players) {
           if (player.name === name) {
             throw `Duplicate name "${name}".`;
           }
@@ -345,8 +343,10 @@ const ConductorVirtual = function ConductorVirtual(app) {
           }
         }
 
-        playerArray.push({ name, endpoint });
-        bwait(self.updateBot({ custom: self.settings.custom }));
+        players.push({ name, endpoint });
+        const custom = typeof self.settings.custom === 'object' ? self.settings.custom : JSON.parse(self.settings.custom);
+        custom.players = players;
+        bwait(self.updateBot({ custom }));
         // should update the database version of this
         return self.getBot();
       } catch (ex) {
@@ -361,7 +361,10 @@ const ConductorVirtual = function ConductorVirtual(app) {
           throw '"name" is undefined';
         }
 
-        const players = self.settings.custom.players;
+        const custom = typeof self.settings.custom === 'object' ?
+        self.settings.custom : JSON.parse(self.settings.custom);
+        const players = custom.players;
+
         let playerRemoved = false;
         for (let i = 0; i < players.length; i++) {
           const player = players[i];
@@ -375,7 +378,11 @@ const ConductorVirtual = function ConductorVirtual(app) {
         if (!playerRemoved) {
           throw `Player "${name}" could not be found.`;
         }
-        bwait(self.updateBot({ custom: self.settings.custom }));
+
+        // In case JSON was parsed, need to make sure custom player object is set
+        custom.players = players;
+
+        bwait(self.updateBot({ custom }));
         return self.getBot();
       } catch (ex) {
         self.logger.error('error', ex);

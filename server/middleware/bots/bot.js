@@ -228,7 +228,7 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
   });
   if (dbBot !== undefined) {
     // crush custom setting object into a string
-    if (settingsToUpdate.custom && typeof settingsToUpdate === 'object') {
+    if (settingsToUpdate.custom && typeof settingsToUpdate.custom === 'object') {
       settingsToUpdate.custom = JSON.stringify(settingsToUpdate.custom);
     }
     this.logger.info(`About to update bot ${this.settings.name} settings from ${JSON.stringify(this.settings)} to ${JSON.stringify(settingsToUpdate)}`);

@@ -175,7 +175,7 @@ Bots.prototype.createPersistentBot = bsync(function createPersistentBot(inputSet
   const newBot = bwait(this.createBot(inputSettings));
   const dbBotSettings = Object.assign({}, newBot.settings);
 
-  if (dbBotSettings.custom) {
+  if (dbBotSettings.custom && typeof dbBotSettings.custom === 'object') {
     dbBotSettings.custom = JSON.stringify(dbBotSettings.custom);
   }
 
