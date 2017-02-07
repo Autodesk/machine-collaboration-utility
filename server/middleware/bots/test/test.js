@@ -402,7 +402,7 @@ module.exports = function botsTests() {
       request(requestParams)
       .then((reply) => {
         botUuid = reply.data.settings.uuid;
-        players = JSON.parse(reply.data.settings.custom).players;
+        players = reply.data.settings.custom.players;
         should(reply.status).equal(200);
         should(Array.isArray(players)).equal(true);
         should(players.length).equal(1);
