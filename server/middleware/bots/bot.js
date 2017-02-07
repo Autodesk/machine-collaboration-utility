@@ -217,6 +217,11 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
       }
     }
   }
+
+  if (typeof settingsToUpdate.custom === 'object') {
+    settingsToUpdate.custom = JSON.stringify(settingsToUpdate.custom);
+  }
+
   if (settingsToUpdate.endpoint !== undefined) {
     this.setPort(settingsToUpdate.endpoint);
   }
@@ -227,12 +232,13 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
     return bot.dataValues.uuid === this.settings.uuid;
   });
   if (dbBot !== undefined) {
-    // crush custom setting object into a string
-    if (settingsToUpdate.custom && typeof settingsToUpdate.custom === 'object') {
-      settingsToUpdate.custom = JSON.stringify(settingsToUpdate.custom);
-    }
     this.logger.info(`About to update bot ${this.settings.name} settings from ${JSON.stringify(this.settings)} to ${JSON.stringify(settingsToUpdate)}`);
     bwait(dbBot.update(settingsToUpdate));
+  }
+
+  // Revert the custom database field to a json object
+  if (typeof settingsToUpdate.custom === 'string') {
+    settingsToUpdate.custom = JSON.parse(settingsToUpdate.custom);
   }
 
   for (const newSetting in settingsToUpdate) {
