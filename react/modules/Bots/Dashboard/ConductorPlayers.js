@@ -12,10 +12,7 @@ export default class ConductorPlayers extends React.Component {
 
   createPlayerList() {
     const playerList = [];
-
-    const players = this.props.bot.settings.custom && typeof this.props.bot.settings.custom === 'object' ?
-    this.props.bot.settings.custom.players : JSON.parse(this.props.bot.settings.custom).players;
-
+    const players = this.props.bot.settings.custom.players;
     for (const player of players) {
       playerList.push(this.createPlayer(player));
     }

@@ -40,9 +40,8 @@ const ConductorVirtual = function ConductorVirtual(app) {
         bwait(self.commands.setupConductorArms(self));
 
         // Go through each player and connect it
-        const players = self.settings.custom && typeof self.settings.custom === 'object' ?
-        self.settings.custom.players : JSON.parse(self.settings.custom).players;
 
+        const players = self.settings.custom.players;
         for (const player of players) {
           const localPlayer = _.find(self.app.context.bots.botList, (bot) => {
             return bot.port === player.endpoint;
@@ -72,7 +71,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
       try {
         self.fsm.disconnect();
 
-        const players = JSON.parse(self.settings.custom).players;
+        const players = self.settings.custom.players;
         for (const player of players) {
           const connectParams = {
             method: 'POST',
@@ -100,7 +99,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
     pause: function disconnect(self) {
       try {
         self.fsm.stop();
-        const players = JSON.parse(self.settings.custom).players;
+        const players = self.settings.custom.players;
         for (const player of players) {
           if (player.jobUuid !== undefined) {
             // Ping each job for status
@@ -129,7 +128,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
     resume: function disconnect(self) {
       try {
         self.fsm.start();
-        const players = JSON.parse(self.settings.custom).players;
+        const players = self.settings.custom.players;
         for (const player of players) {
           if (player.jobUuid !== undefined) {
             // Ping each job for status
@@ -158,7 +157,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
     cancel: function disconnect(self) {
       try {
         self.fsm.stop();
-        const players = JSON.parse(self.settings.custom).players;
+        const players = self.settings.custom.players;
         for (const player of players) {
           if (player.jobUuid !== undefined) {
             // Ping each job for status
@@ -200,7 +199,10 @@ const ConductorVirtual = function ConductorVirtual(app) {
       let doneConducting = true;
       let accumulatePercentComplete = 0;
       if (self.fsm.current === 'processingJob') {
-        const players = JSON.parse(self.settings.custom).players;
+
+
+        const players = self.settings.custom.players;
+
         for (const player of players) {
           if (player.jobUuid !== undefined) {
             // Ping each job for status
@@ -236,7 +238,11 @@ const ConductorVirtual = function ConductorVirtual(app) {
             data: self.getBot(),
           });
         } else {
-          self.currentJob.percentComplete = Number(accumulatePercentComplete / self.settings.custom.players.length).toFixed(3);
+          if (self.settings.custom.players.length === 0) {
+            self.currentJob.percentComplete = 0;
+          } else {
+            self.currentJob.percentComplete = Number(accumulatePercentComplete / self.settings.custom.players.length).toFixed(3);
+          }
         }
       }
     }),
@@ -244,14 +250,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
     setupConductorArms: bsync((self, params) => {
       try {
         // Sweet through every player
-        let players;
-        if (self.settings.custom) {
-          if (typeof self.settings.custom === 'string') {
-            players = JSON.parse(self.settings.custom).players;
-          } else {
-            players = self.settings.custom.players;
-          }
-        }
+        players = self.settings.custom.players;
 
         for (const player of players) {
           // Check if a bot exists with that end point
@@ -330,11 +329,10 @@ const ConductorVirtual = function ConductorVirtual(app) {
           throw '"endpoint" is undefined';
         }
 
-        const players = typeof self.settings.custom === 'object' ?
-        self.settings.custom.players : JSON.parse(self.settings.custom).players;
+        const playerArray = self.settings.custom.players;
 
         // Check for duplicate names or endpoints
-        for (const player of players) {
+        for (const player of playerArray) {
           if (player.name === name) {
             throw `Duplicate name "${name}".`;
           }
@@ -343,10 +341,9 @@ const ConductorVirtual = function ConductorVirtual(app) {
           }
         }
 
-        players.push({ name, endpoint });
-        const custom = typeof self.settings.custom === 'object' ? self.settings.custom : JSON.parse(self.settings.custom);
-        custom.players = players;
-        bwait(self.updateBot({ custom }));
+        playerArray.push({ name, endpoint });
+        self.settings.custom.players = playerArray;
+        bwait(self.updateBot({ custom: { players: playerArray } }));
         // should update the database version of this
         return self.getBot();
       } catch (ex) {
@@ -361,10 +358,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
           throw '"name" is undefined';
         }
 
-        const custom = typeof self.settings.custom === 'object' ?
-        self.settings.custom : JSON.parse(self.settings.custom);
-        const players = custom.players;
-
+        const players = self.settings.custom.players;
         let playerRemoved = false;
         for (let i = 0; i < players.length; i++) {
           const player = players[i];
@@ -378,11 +372,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
         if (!playerRemoved) {
           throw `Player "${name}" could not be found.`;
         }
-
-        // In case JSON was parsed, need to make sure custom player object is set
-        custom.players = players;
-
-        bwait(self.updateBot({ custom }));
+        bwait(self.updateBot({ custom: self.settings.custom }));
         return self.getBot();
       } catch (ex) {
         self.logger.error('error', ex);
@@ -406,12 +396,13 @@ const ConductorVirtual = function ConductorVirtual(app) {
               self.logger.info('unzipped file', self.settings.custom.players);
               try {
                 // Reset each player's collaborator list
-                for (const player of self.settings.custom.players) {
+                const players = self.settings.custom.players;
+                for (const player of players) {
                   self.collaboratorCheckpoints[player.name] = 0;
                 }
                 bwait(self.commands.updatePlayers(self));
                 self.logger.info('updated the players');
-                for (const player of self.settings.custom.players) {
+                for (const player of players) {
                   // For each player we're going to upload a file, and then create a job
                   // Get the bot's uuid
                   const getBotUuidParams = {
