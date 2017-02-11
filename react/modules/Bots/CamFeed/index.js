@@ -27,12 +27,12 @@ export default class CamFeed extends React.Component {
   render() {
     return (
       <div id="camfeed">
-        <div style={{width: '100%', textAlign: 'center'}}><img src={this.state.camUrl} alt="CamFeed" />
-        </div><div style={{width: '100%'}}>
-        <b>Camera URL:</b>
-        <br />
-        <input type="text" name="camUrlInput" id="camUrlInput" placeholder="Camera URL" value={this.state.input} onChange={this.handleInputChange} />
-        <a href="#" onClick={this.updateUrl}>Update</a>
+        <div style={{width: '100%', textAlign: 'center'}}><img src={this.state.camUrl} alt="CamFeed" /></div>
+        <div style={{width: '100%'}}>
+            <b>Camera URL:</b>
+            <br />
+            <input type="text" name="camUrlInput" id="camUrlInput" placeholder="Camera URL" value={this.state.input} onChange={this.handleInputChange} />
+            <a href="#" onClick={this.updateUrl}>Update</a>
         </div>
      </div>
     );
