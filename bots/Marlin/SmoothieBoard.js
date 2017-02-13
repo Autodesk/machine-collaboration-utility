@@ -1,6 +1,27 @@
 const _ = require('underscore');
-
+const Promise = require('bluebird');
+const bsync = require('asyncawait/async');
+const bwait = require('asyncawait/await');
+const winston = require('winston');
+const path = require('path');
+const request = require('request-promise');
 const Marlin = require('./Marlin');
+const LineByLineReader = Promise.promisifyAll(require('line-by-line'));
+const fs = require('fs');
+
+let serialLogger;
+if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+  // Set up logging for written serial data
+  const serialLogName = path.join(__dirname, '../../verbose-serial.log');
+  serialLogger = new (winston.Logger)({
+    levels: { write: 0, read: 1, info: 2 },
+    transports: [
+      new (winston.transports.Console)(),
+      new (winston.transports.File)({ filename: serialLogName }),
+    ],
+  });
+}
+
 
 const SmoothieBoard = function SmoothieBoard(app) {
   Marlin.call(this, app);
@@ -17,6 +38,233 @@ const SmoothieBoard = function SmoothieBoard(app) {
   });
 
   _.extend(this.commands, {
+    processGcode: bsync((self, params) => {
+      const gcode = self.addOffset(params.gcode);
+      if (gcode === undefined) {
+        throw '"gcode" is undefined';
+      }
+      const commandArray = [];
+
+      return bwait(new Promise((resolve, reject) => {
+        commandArray.push(self.commands.gcodeInitialState(self, params));
+        commandArray.push({
+          code: gcode,
+          processData: (command, reply) => {
+            resolve(reply.replace('\r', ''));
+            return true;
+          },
+        });
+        commandArray.push(self.commands.gcodeFinalState(self, params));
+        if (gcode.includes('G28')) {
+          commandArray.unshift('M42');
+          commandArray.push('M43');
+        }
+
+        self.queue.queueCommands(commandArray);
+      }));
+    }),
+    startJob: bsync(function startJob(self, params) {
+      const job = params.job;
+      self.currentJob = job;
+      self.currentJob.checkpoint = null;
+      self.fsm.start();
+      const filesApp = self.app.context.files;
+      const theFile = filesApp.getFile(job.fileUuid);
+
+      // open the file
+      // start reading line by line...
+      self.lr = new LineByLineReader(theFile.filePath);
+      self.currentLine = 0;
+      bwait(self.lr.pause()); // redundant
+
+      self.lr.on('error', (err) => {
+        self.logger.error('line reader error:', err);
+      });
+
+      // As the buffer reads each line, process it
+      self.lr.on('line', bsync((line) => {
+        try {
+          if (process.env.VERBOSE_SERIAL_LOGGING) {
+            serialLogger.info('About to process line', line);
+          }
+          // pause the line reader immediately
+          // we will resume it as soon as the line is done processing
+          bwait(self.lr.pause());
+          // We only care about the info prior to the first semicolon
+          // NOTE This code is assuming we are processing GCODE
+          // In case of adding support for multiple control formats, this is a good place to start
+
+          // Looking for a comment between 3 brackets and whatever comes after that
+          const conductorComment = /^[\w\d\s]*; <<<(\w+)>>> (.*)$/;
+          const conductorCommentResult = conductorComment.exec(line);
+          if (conductorCommentResult !== null) {
+            switch (conductorCommentResult[1]) {
+              case 'PARK': {
+                self.command.park(self);
+                break;
+              }
+              case 'UNPARK': {
+                self.commands.unpark(self);
+                break;
+              }
+              case 'CHECKPOINT': {
+                const botRegex = /^.*bot(\w+) : (\d+)$/;
+                const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
+                const bot = botAndCheckpoint[1];
+                const checkpoint = parseInt(botAndCheckpoint[2], 10);
+                self.status.checkpoint = parseInt(checkpoint, 10);
+                self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+                if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                  serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+                }
+                self.lr.resume();
+
+                if (Array.isArray(self.currentJob.subscribers)) {
+                  for (const subscriber of self.currentJob.subscribers) {
+                    try {
+                      const updateParams = {
+                        method: 'POST',
+                        uri: subscriber,
+                        body: {
+                          command: 'updateCollaborativeBotCheckpoint',
+                          bot: self.settings.name,
+                          checkpoint: self.status.checkpoint,
+                        },
+                        json: true,
+                      };
+                      try {
+                        request(updateParams);
+                      } catch (ex) {
+                        self.logger.error('Conductor update fail', ex);
+                      }
+                    } catch (ex) {
+                      this.logger.error(`Failed to update endpoint "${subscriber}": ${ex}`);
+                    }
+                  }
+                }
+                // Let conductor know that you've reached the latest checkpoint
+                // Check if precursors are complete
+                break;
+              }
+              case 'PRECURSOR': {
+                const botRegex = /^.*(bot\w+) : (\d+)$/;
+                const botAndCheckpoint = botRegex.exec(conductorCommentResult[2]);
+                const bot = botAndCheckpoint[1];
+                const checkpoint = parseInt(botAndCheckpoint[2], 10);
+                self.status.blocker = { bot, checkpoint };
+                self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
+                if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                  serialLogger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
+                }
+                self.commands.checkPrecursors(self);
+                break;
+              }
+              case 'DRY': {
+                if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                  serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
+                }
+
+                const dry = conductorCommentResult[2].toLowerCase() === 'true';
+
+                // If the printer is currently parked, then purge and unpark it
+                self.queue.queueCommands({
+                  code: 'M400',
+                  postCallback: () => {
+                    if (self.fsm.current === 'parkedJob') {
+                      self.commands.unpark(self, { dry });
+                    }
+                    self.lr.resume();
+                  },
+                });
+                break;
+              }
+              default: {
+                self.logger.error('Unknown comment', conductorCommentResult);
+                break;
+              }
+            }
+          } else {
+            let command = line.split(';')[0];
+            if (command.length <= 0) {
+              // If the line is blank, move on to the next line
+              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+                serialLogger.info('Passed on parsing a blank line', line);
+              }
+              bwait(self.lr.resume());
+            } else {
+              const commandArray = [];
+              command = self.addOffset(command);
+              command = self.addSpeedMultiplier(command);
+              command = self.addFeedMultiplier(command);
+              commandArray.push({
+                code: command,
+                postCallback: bsync(() => {
+                  if (self.currentJob.fsm.current === 'running') {
+                    bwait(self.lr.resume());
+                  }
+                  self.currentLine += 1;
+                  self.currentJob.percentComplete = parseInt((self.currentLine / self.numLines) * 100, 10);
+                }),
+              });
+              if (command.includes('G28')) {
+                commandArray.unshift('M42');
+                commandArray.push('M43');
+              }
+              self.queue.queueCommands(commandArray);
+            }
+          }
+        } catch (ex) {
+          self.logger.error('Line read error', line, ex);
+        }
+      }));
+
+      self.lr.on('end', bsync(() => {
+        self.logger.info('completed reading file,', theFile.filePath, 'is closed now.');
+        bwait(self.lr.close());
+        self.queue.queueCommands({
+          postCallback: bsync(() => {
+            self.currentJob.percentComplete = 100;
+            self.fsm.stop();
+            self.fsm.stopDone();
+            self.currentJob.fsm.runningDone();
+            self.currentJob.stopwatch.stop();
+            self.currentJob = undefined;
+
+            self.status.checkpoint = undefined;
+            self.status.collaborators = {};
+            self.status.blocker = {
+              bot: undefined,
+              checkpoint: undefined,
+            };
+            self.lr = undefined;
+          }),
+        });
+      }));
+
+      // Get the number of lines in the file
+      let numLines = 0;
+      const fsPromise = new Promise((resolve, reject) => {
+        fs.createReadStream(theFile.filePath)
+        .on('data', function readStreamOnData(chunk) {
+          numLines += chunk
+          .toString('utf8')
+          .split(/\r\n|[\n\r\u0085\u2028\u2029]/g)
+          .length - 1;
+        })
+        .on('end', () => {  // done
+          self.numLines = numLines;
+          self.logger.info(`Bot will process file with ${self.numLines} lines.`);
+          resolve();
+        });
+      });
+
+      bwait(fsPromise);
+      if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+        serialLogger.info('Beginning to read a gcode file, line by line');
+      }
+      self.lr.resume();
+      self.fsm.startDone();
+    }),
     park: function park(self, params) {
       try {
         if (self.fsm.current === 'processingJob') {
