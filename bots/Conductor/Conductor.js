@@ -28,7 +28,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
     connectionType: 'conductor',
     fileTypes: ['.esh'],
     conductorPresets: {
-      botModel: 'Virtual',
+      botModel: 'HardwareHub',
     },
   });
 
