@@ -55,11 +55,6 @@ const SmoothieBoard = function SmoothieBoard(app) {
           },
         });
         commandArray.push(self.commands.gcodeFinalState(self, params));
-        if (gcode.includes('G28')) {
-          commandArray.unshift('M42');
-          commandArray.push('M43');
-        }
-
         self.queue.queueCommands(commandArray);
       }));
     }),
@@ -206,10 +201,6 @@ const SmoothieBoard = function SmoothieBoard(app) {
                   self.currentJob.percentComplete = parseInt((self.currentLine / self.numLines) * 100, 10);
                 }),
               });
-              if (command.includes('G28')) {
-                commandArray.unshift('M42');
-                commandArray.push('M43');
-              }
               self.queue.queueCommands(commandArray);
             }
           }
