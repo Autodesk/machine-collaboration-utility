@@ -109,17 +109,29 @@ UsbDiscovery.prototype.detectPort = bsync(function detectPort(port) {
 
   for (const [botPresetKey, botPresets] of _.pairs(this.app.context.bots.botSettingList)) {
     if (botPresets.info.connectionType === 'serial') {
-      if (vid === botPresets.info.vid && pid === botPresets.info.pid) {
-        // Pass the detected preset to populate new settings
-        const persistentCheck = bwait(this.checkForPersistentSettings(port, botPresets));
-        let botObject;
-        if (persistentCheck.original) {
-          botObject = bwait(this.app.context.bots.createPersistentBot(persistentCheck.foundPresets.settings));
-        } else {
-          botObject = bwait(this.app.context.bots.createBot(persistentCheck.foundPresets.settings));
+      for (const vidPid of botPresets.info.vidPid) {
+        // Don't process a greedy, undefined vid pid
+        if (vidPid.vid === -1 && vidPid.pidlin === -1) {
+          return;
         }
-        botObject.setPort(port.comName);
-        botObject.detect();
+
+        // Allow printers to ignore the vendor id or product id by setting to -1
+        if (
+          (vid === vidPid.vid || vidPid.vid === -1) &&
+          (pid === vidPid.pid || vidPid.pid === -1)
+        ) {
+          // Pass the detected preset to populate new settings
+          const persistentCheck = bwait(this.checkForPersistentSettings(port, botPresets));
+          let botObject;
+          if (persistentCheck.original) {
+            botObject = bwait(this.app.context.bots.createPersistentBot(persistentCheck.foundPresets.settings));
+          } else {
+            botObject = bwait(this.app.context.bots.createBot(persistentCheck.foundPresets.settings));
+          }
+          botObject.setPort(port.comName);
+          botObject.detect();
+          return;
+        }
       }
     }
   }

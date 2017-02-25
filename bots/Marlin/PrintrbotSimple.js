@@ -11,8 +11,12 @@ const Printrbot = function (app) {
   });
 
   _.extend(this.info, {
-    vid: 5824,
-    pid: 1155,
+    vidPid: [
+      {
+        vid: 0x16C0,
+        pid: 0x0483,
+      },
+    ],
     baudrate: 230400,
   });
 };

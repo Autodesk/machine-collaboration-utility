@@ -11,12 +11,12 @@ const Boot = function Boot(app) {
   });
 
   _.extend(this.info, {
-    vidPid = [
+    vidPid: [
       {
         vid: 0x0403,
         pid: 0x6001,
-      }
-    ];
+      },
+    ],
     baudrate: 115200,
   });
 

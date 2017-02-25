@@ -81,8 +81,7 @@ const Marlin = function (app) {
 
   _.extend(this.info, {
     connectionType: 'serial',
-    vid: undefined,
-    pid: undefined,
+    vidPid: [],
     baudrate: undefined,
     fileTypes: ['.gcode'],
   });
