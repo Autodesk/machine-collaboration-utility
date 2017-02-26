@@ -14,9 +14,10 @@ const path = require('path');
 const walk = require('fs-walk');
 const winston = require('winston');
 
-const tests = [];
 const config = require('./server/config');
 const npmArgs = JSON.parse(process.env.npm_config_argv);
+
+const tests = [];
 
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);

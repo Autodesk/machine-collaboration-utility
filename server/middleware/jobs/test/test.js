@@ -141,5 +141,29 @@ module.exports = function jobsTests() {
         done();
       });
     });
+
+    it('should clean up', function (done) {
+      // Delete the file that you uploaded
+      const requestParams = {
+        method: 'DELETE',
+        uri: 'http://localhost:9000/v1/files/',
+        body: {
+          uuid: fileUuid,
+        },
+        json: true,
+      };
+      request(requestParams)
+      .then(() => {
+        const deleteBotParams = {
+          method: 'DELETE',
+          uri: `http://localhost:9000/v1/bots/${botUuid}`,
+          json: true,
+        };
+        request(deleteBotParams)
+        .then(() => {
+          done();
+        });
+      });
+    });
   });
 };
