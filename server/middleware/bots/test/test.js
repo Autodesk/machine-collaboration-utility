@@ -567,6 +567,8 @@ module.exports = function botsTests() {
         const finalBots = reply.data;
         const botRemovalPromises = [];
         for (const [botKey, bot] of _.pairs(finalBots)) {
+          // If the bot can't be found in the initial list of bots
+          // Then delete the bot
           if (initialBots[botKey] === undefined) {
             const botPromise = new Promise((resolve, reject) => {
               const deleteBotParams = {
