@@ -22,7 +22,6 @@ if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
   });
 }
 
-
 const SmoothieBoard = function SmoothieBoard(app) {
   Marlin.call(this, app);
 
@@ -32,12 +31,8 @@ const SmoothieBoard = function SmoothieBoard(app) {
   });
 
   _.extend(this.info, {
-    vidPid: [
-      {
-        vid: 0x1D50,
-        pid: 0x6015,
-      },
-    ],
+    vid: 7504,
+    pid: 24597,
     baudrate: 230400,
   });
 
@@ -59,6 +54,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
           },
         });
         commandArray.push(self.commands.gcodeFinalState(self, params));
+
         self.queue.queueCommands(commandArray);
       }));
     }),
@@ -313,14 +309,15 @@ const SmoothieBoard = function SmoothieBoard(app) {
       return self.getBot();
     },
     unpark: function unpark(self, params) {
+      const purgeAmount = 10;
       try {
         if (self.fsm.current === 'parkedJob') {
           self.fsm.unparkJob();
           const commandArray = [];
           if (params.dry === false) {
             commandArray.push('G92 E0');
-            commandArray.push('G1 E12 F100'); // Purge
-            commandArray.push('G1 E10 F3000'); // Retract
+            commandArray.push(`G1 E${purgeAmount} F100`); // Purge
+            commandArray.push(`G1 E${purgeAmount - 2} F3000`); // Retract
             commandArray.push('G1 Y' + (0 + Number(self.settings.offsetY)).toFixed(2) + ' F2000'); // Scrub
             commandArray.push('G92 E-2'); // Prepare extruder for E0
             commandArray.push('M400'); // Clear motion buffer before saying we're done
