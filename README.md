@@ -4,8 +4,8 @@ A generalized host for communicating with hardware.
 Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible for other firmware and communication protocols.
 
 ## How to use
-
-Download the Raspberry Pi image [here](https://drive.google.com/file/d/0B7k-k73S74JBaDN5eGozbjkyYWM/view?usp=sharing).  
+                                       
+Download the Raspberry Pi image [here](https://docs.google.com/uc?export=download&confirm=AluS&id=0B7k-k73S74JBR25yZDNpM1NScjQ).  
 
 ### Install Raspberry Pi usb driver libraries (Only necessary if using a Raspberry Pi)
 ```
