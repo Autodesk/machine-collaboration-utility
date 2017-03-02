@@ -11,6 +11,10 @@ const ip = require('ip');
 
 const DefaultBot = require('../DefaultBot');
 
+function isLocalPlayer(player) {
+  return player.endpoint.includes(ip.address()) || player.endpoint.includes('localhost');
+}
+
 const ConductorVirtual = function ConductorVirtual(app) {
   DefaultBot.call(this, app);
 
@@ -42,18 +46,20 @@ const ConductorVirtual = function ConductorVirtual(app) {
         // Go through each player and connect it
 
         const players = self.settings.custom.players;
+
         for (const player of players) {
-          const localPlayer = _.find(self.app.context.bots.botList, (bot) => {
-            return bot.port === player.endpoint;
-          });
-          if (localPlayer !== undefined) {
-            try {
-              localPlayer.commands.connect(localPlayer);
-            } catch (ex) {
-              self.logger.error(ex);
-            }
-          } else {
-            self.logger.error('Local player not found for endpoint:', playerEndpoint);
+          const connectParams = {
+            method: 'POST',
+            uri: player.endpoint,
+            body: {
+              command: 'connect',
+            },
+            json: true,
+          };
+          try {
+            bwait(request(connectParams));
+          } catch (ex) {
+            self.logger.error('Connect player request fail', ex, connectParams);
           }
         }
 
@@ -84,7 +90,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
           try {
             bwait(request(connectParams));
           } catch (ex) {
-            self.logger.error('Connect player request fail', ex);
+            self.logger.error('Disconnect player request fail', ex);
           }
         }
 
@@ -103,7 +109,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
         for (const player of players) {
           if (player.jobUuid !== undefined) {
             // Ping each job for status
-            const jobEndpoint = player.endpoint.split('bots/solo')[0] + 'jobs/' + player.jobUuid;
+            const jobEndpoint = player.endpoint.split('bots')[0] + 'jobs/' + player.jobUuid;
             const pauseJobParams = {
               method: 'POST',
               uri: jobEndpoint,
@@ -132,7 +138,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
         for (const player of players) {
           if (player.jobUuid !== undefined) {
             // Ping each job for status
-            const jobEndpoint = player.endpoint.split('bots/solo')[0] + 'jobs/' + player.jobUuid;
+            const jobEndpoint = player.endpoint.split('bots')[0] + 'jobs/' + player.jobUuid;
             const resumeJobParams = {
               method: 'POST',
               uri: jobEndpoint,
@@ -161,7 +167,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
         for (const player of players) {
           if (player.jobUuid !== undefined) {
             // Ping each job for status
-            const jobEndpoint = player.endpoint.split('bots/solo')[0] + 'jobs/' + player.jobUuid;
+            const jobEndpoint = player.endpoint.split('bots')[0] + 'jobs/' + player.jobUuid;
             const cancelJobParams = {
               method: 'POST',
               uri: jobEndpoint,
@@ -206,7 +212,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
         for (const player of players) {
           if (player.jobUuid !== undefined) {
             // Ping each job for status
-            const jobEndpoint = player.endpoint.split('bots/solo')[0] + 'jobs/' + player.jobUuid;
+            const jobEndpoint = player.endpoint.split('bots')[0] + 'jobs/' + player.jobUuid;
             const pingJobParams = {
               method: 'GET',
               uri: jobEndpoint,
@@ -250,15 +256,18 @@ const ConductorVirtual = function ConductorVirtual(app) {
     setupConductorArms: bsync((self, params) => {
       try {
         // Sweet through every player
-        players = self.settings.custom.players;
+        const players = self.settings.custom.players;
 
         for (const player of players) {
           // Check if a bot exists with that end point
           let created = false;
           for (const [botUuid, bot] of _.pairs(self.app.context.bots.botList)) {
             if (
-              bot.settings.endpoint === player.endpoint &&
-              bot.settings.name === player.name
+              (
+                bot.settings.endpoint === player.endpoint &&
+                bot.settings.name === player.name
+              ) ||
+              isLocalPlayer(player)
             ) {
               created = true;
             }
@@ -423,7 +432,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                   const formData = { file: fileStream };
                   const fileParams = {
                     method: 'POST',
-                    uri: `${player.endpoint.split('/v1/bots/solo')[0]}/v1/files`,
+                    uri: `${player.endpoint.split('/v1/bots')[0]}/v1/files`,
                     formData,
                     json: true,
                   };
@@ -432,7 +441,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                   // Create and start job
                   const jobParams = {
                     method: 'POST',
-                    uri: `${player.endpoint.split('/v1/bots/solo')[0]}/v1/jobs`,
+                    uri: `${player.endpoint.split('/v1/bots')[0]}/v1/jobs`,
                     body: {
                       botUuid,
                       fileUuid: uploadFileReply.data[0].uuid,
@@ -447,7 +456,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                   player.jobUuid = jobUuid;
                   const startJobParams = {
                     method: 'POST',
-                    uri: `${player.endpoint.split('/v1/bots/solo')[0]}/v1/jobs/${jobUuid}`,
+                    uri: `${player.endpoint.split('/v1/bots')[0]}/v1/jobs/${jobUuid}`,
                     body: {
                       command: 'start',
                     },
