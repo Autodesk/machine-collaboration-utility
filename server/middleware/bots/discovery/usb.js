@@ -23,12 +23,22 @@ const UsbDiscovery = function(app) {
   this.ports = {};
 };
 
+UsbDiscovery.prototype.substituteSerialNumberForPnpId = function(port) {
+  if (port.pnpId === undefined) {
+    if (port.serialNumber !== undefined) {
+      port.pnpId = port.serialNumber;
+    }
+  }
+  return port;
+};
+
 UsbDiscovery.prototype.initialize = bsync(function initialize() {
   const self = this;
   usb.on('attach', bsync(() => {
     // Need to wait arbitrary amount of time for Serialport list to update
     bwait(Promise.delay(100));
     SerialPort.list((err, ports) => {
+      ports = ports.map(this.substituteSerialNumberForPnpId);
       // Compare every available port against every known port
       for (const port of ports) {
         // Ignore ports with undefined vid pids
@@ -48,6 +58,7 @@ UsbDiscovery.prototype.initialize = bsync(function initialize() {
     bwait(Promise.delay(100));
     const portsToRemove = [];
     SerialPort.list(bsync((err, ports) => {
+      ports = ports.map(this.substituteSerialNumberForPnpId);
       // Go through every known port
       for (const [portKey, listedPort] of _.pairs(self.ports)) {
         const foundPort = ports.find((port) => {
@@ -90,6 +101,7 @@ UsbDiscovery.prototype.initialize = bsync(function initialize() {
 
   // Scan through all known serial ports and check if any of them are bots
   SerialPort.list((err, ports) => {
+    ports = ports.map(this.substituteSerialNumberForPnpId);
     for (const port of ports) {
       if (port.vendorId !== undefined && port.productId !== undefined) {
         // Add each known serial port to the list
