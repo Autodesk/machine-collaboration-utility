@@ -49,7 +49,7 @@ const Boot = function Boot(app) {
               }
 
               // Park bot1 on the left, and bot2 on the right
-              const xPos = self.settings.name.indexOf('bot1') === -1 ? 498 : 4;
+              const xPos = self.settings.name.includes('bot1') ? 4 : 498;
               commandArray.push(`G1 X${xPos} Y4 F3000`);
               commandArray.push('G4 P0'); // Clear motion buffer before saying we're done
               commandArray.push({
@@ -83,7 +83,7 @@ const Boot = function Boot(app) {
             commandArray.push('G92 E0');
             commandArray.push(`G1 E${purgeAmount} F100`); // Purge
             commandArray.push(`G1 E${purgeAmount - 2} F3000`); // Retract
-            const xPos = self.settings.name.indexOf('bot1') === -1 ? 460 : 40;
+            const xPos = self.settings.name.includes('bot1') ? 40 : 460;
             commandArray.push(`G1 X${xPos} Y52 F1000`); // Scrub
             commandArray.push('G92 E-2'); // Prepare extruder for E0
             commandArray.push('G4 P0'); // Clear motion buffer before saying we're done
