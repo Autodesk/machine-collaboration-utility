@@ -66,7 +66,16 @@ export default class Bots extends React.Component {
     const botLinkList = [];
     botLinkList.push(<Button key="createBot" className="add-bot" onClick={this.toggleModal}>+</Button>);
 
-    for(const [botUuid, bot] of _.pairs(this.props.bots)) {
+    const botListArray = _.pairs(this.props.bots);
+
+    // Sort the bots alphabetically, but capital letters go before lower case letters
+    botListArray.sort((a, b) => {
+      return a[1].settings.name > b[1].settings.name;
+    });
+
+    // Sort the bots in alphabetical order
+
+    for (const [botUuid, bot] of botListArray) {
       const botElement = <NavLink key={botUuid} className="bot-tabs" to={`/${botUuid}`}>{bot.settings.name}</NavLink>;
       botLinkList.push(botElement);
     };

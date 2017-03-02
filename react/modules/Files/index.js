@@ -116,9 +116,17 @@ export default class Files extends React.Component {
   }
 
   render() {
-    const files = _.pairs(this.props.files).map(([fileKey, file]) => {
+    const fileListArray = _.pairs(this.props.files);
+
+    // Sort the files so the most recently used is first
+    fileListArray.sort((a, b) => {
+      return new Date(a[1].dateChanged).getTime() > new Date(b[1].dateChanged).getTime();
+    });
+
+    const files = fileListArray.map(([fileKey, file]) => {
       return <File key={file.uuid} file={file} handleProcessFile={this.handleProcessFile}/>;
     });
+
     return (<div>
       {this.renderModal()}
       <div id="files" className="container">
