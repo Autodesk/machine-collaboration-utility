@@ -16,7 +16,6 @@ function requireBot(nextState, replaceState) {
 module.exports = (
   <Route path="/" component={App}>
     <Route path="/files" component={Files} />
-    <Route path="/jobs" component={Jobs} />
     <Route path="" component={Bots}>
       <Route path=":id" component={Bots} />
     </Route>

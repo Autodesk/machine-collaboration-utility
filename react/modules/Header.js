@@ -28,14 +28,6 @@ export default class Header extends React.Component {
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/jobs">
-                  <span className="hidden-xs">Jobs</span>
-                  <span className="hidden-sm hidden-md hidden-lg">
-                    <i className="fa fa-tasks"></i>
-                  </span>
-                </NavLink>
-              </li>
-              <li>
                 <NavLink to="/files">
                   <span className="hidden-xs">Files</span>
                   <span className="hidden-sm hidden-md hidden-lg">
