@@ -21,6 +21,7 @@ export default class Settings extends React.Component {
 
     this.updateBotSettings = this.updateBotSettings.bind(this);
     this.deleteBot = this.deleteBot.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -63,6 +64,12 @@ export default class Settings extends React.Component {
     }
   }
 
+  handleInputChange(e) {
+    const settings = Object.assign({}, this.state.settings);
+    settings[e.target.name] = e.target.value;
+    this.setState({ settings });
+  }
+
   renderSettingsForm() {
     const settings = [];
     for (const [settingKey, setting] of _.pairs(this.state.settings)) {
@@ -99,9 +106,9 @@ export default class Settings extends React.Component {
       <div key={settingKey} className="row">
         <div key={`${settingKey}label`} className="settings-label col-md-4">{settingKey}</div>
         <div className="col-md-4">
-          <input key={`${settingKey}input`} type="textarea" name={settingKey} defaultValue={settingValue}/>
+          <input onChange={this.handleInputChange} key={`${settingKey}input`} type="textarea" name={settingKey} value={settingValue}/>
         </div>
-        <div className="current-value col-md-4">{settingValue}</div>
+        <div className="current-value col-md-4">{this.props.bot.settings[settingKey]}</div>
       </div>
     );
   }
