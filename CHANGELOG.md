@@ -16,3 +16,6 @@
   * "Jobs" is removed rom the UI until functionality is worked out
   * Bots are listed alphabetically
   * Files are listed with the most recently modified first
+
+## 1.0.2 (2017-03-02)
+  Fixed updating settings on the wrong bot, bug.
