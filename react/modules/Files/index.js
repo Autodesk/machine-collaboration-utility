@@ -64,9 +64,6 @@ export default class Files extends React.Component {
 
   createBotList() {
     const options = [];
-    if (this.props.conducting) {
-      options.unshift(<option key={-1} value={-1}>Conductor</option>);
-    }
     _.pairs(this.props.bots).map(([botUuid, bot]) => {
       // Only allow jobs to be stared on a bot in the state "connected"
       if (bot.state !== 'connected') {
