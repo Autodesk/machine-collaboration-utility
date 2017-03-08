@@ -161,6 +161,7 @@ Bot.prototype.getBot = function getBot() {
     port: this.port,
     settings: this.settings,
     subscribers: this.subscribers,
+    info: this.info,
     currentJob,
   };
 };

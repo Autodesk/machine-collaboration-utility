@@ -69,6 +69,18 @@ export default class Files extends React.Component {
       if (bot.state !== 'connected') {
         return;
       }
+
+      // If the bot specifies an array of supported file fileTypes
+      // Then make sure the selected file is consumable by the bot
+      if (bot.info.fileTypes.length > 0) {
+        const supportedFileList = bot.info.fileTypes.filter(filetype => {
+          return this.state.fileName && this.state.fileName.indexOf(filetype) !== -1;
+        });
+        if (supportedFileList.length <= 0) {
+          return;
+        }
+      }
+
       options.push(<option key={botUuid} value={botUuid}>{bot.settings.name}</option>);
     });
     return (
@@ -97,7 +109,7 @@ export default class Files extends React.Component {
     return (
     <Modal show={this.state.showModal} onHide={this.close}>
       <Modal.Header closeButton>
-        <Modal.Title>Modal heading</Modal.Title>
+        <Modal.Title>Select bot to process file</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div>{this.state.fileUuid}</div>
