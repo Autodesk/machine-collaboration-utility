@@ -15,7 +15,7 @@
 
 var SerialConnection = require('./connection');
 
-var SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr) {
+var SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr, bot) {
   this.mComName = inComName;
   this.mBaud = inBaud;
   this.mOpenPrimeStr = inOpenPrimeStr;
@@ -24,6 +24,7 @@ var SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr) {
   this.app = app;
   this.io = app.io;
   this.logger = app.context.logger;
+  this.bot = bot;
 };
 
 /**
@@ -50,10 +51,13 @@ SerialCommandExecutor.prototype.open = function (inDoneFunc) {
     this.mComName,
     this.mBaud,
     this.mOpenPrimeStr,
+    this.bot,
     function (inData) {
       // console.log('Serial Port Initial Data', inData);
     },
-    function () { inDoneFunc(true); }
+    function () {
+      inDoneFunc(true);
+    }
   );
   // ****** WHAT TO DO IF OPEN FAILS???? ********//
   this.mCommandsProcessed = 0;

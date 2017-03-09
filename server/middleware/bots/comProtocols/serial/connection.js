@@ -40,19 +40,6 @@ var path = require('path');
 
 let serialLogger;
 
-if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-  // Set up logging for written serial data
-  const serialLogName = path.join(__dirname, '../../../../../verbose-serial.log');
-  serialLogger = new (winston.Logger)({
-    levels: { write: 0, read: 1, info: 2 },
-    transports: [
-      new (winston.transports.Console)(),
-      new (winston.transports.File)({ filename: serialLogName }),
-    ],
-  });
-  serialLogger.info('started logging');
-}
-
 const roundAxis = function roundAxis(command, axis, self) {
   let roundedCommand = command;
   try {
@@ -96,9 +83,25 @@ var SerialConnection = function(
   inComName,
   inBaud,
   inOpenPrimeStr,
+  inBot,
   inInitDataFunc,
   inConnectedFunc
 ) {
+  // Set up serial logger
+  if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+    // Set up logging for written serial data
+    const serialLogName = path.join(__dirname, `../../../../../${inBot.settings.name}-verbose-serial.log`);
+    serialLogger = new (winston.Logger)({
+      levels: { write: 0, read: 1, info: 2 },
+      transports: [
+        new (winston.transports.Console)(),
+        new (winston.transports.File)({ filename: serialLogName }),
+      ],
+    });
+    serialLogger.info('started logging');
+  }
+
+
     this.app = app;
     this.io = app.io;
     this.logger = app.context.logger;
@@ -173,6 +176,8 @@ var SerialConnection = function(
             }
         }
     });
+
+
 };
 
 
