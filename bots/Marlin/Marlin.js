@@ -10,19 +10,6 @@ const winston = require('winston');
 
 const DefaultBot = require('../DefaultBot');
 
-let serialLogger;
-if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-  // Set up logging for written serial data
-  const serialLogName = path.join(__dirname, '../../verbose-serial.log');
-  serialLogger = new (winston.Logger)({
-    levels: { write: 0, read: 1, info: 2 },
-    transports: [
-      new (winston.transports.Console)(),
-      new (winston.transports.File)({ filename: serialLogName }),
-    ],
-  });
-}
-
 function updateSubscribers(self) {
   if (Array.isArray(this.subscribers)) {
     Promise.map(this.subscribers, bsync((subscriber) => {
@@ -49,6 +36,26 @@ function updateSubscribers(self) {
 const Marlin = function (app) {
   DefaultBot.call(this, app);
 
+  _.extend(this.settings, {
+    name: 'Marlin',
+    model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
+  });
+
+  this.serialLogger = undefined;
+  // Set up serial logger
+  if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+    // Set up logging for written serial data
+    const serialLogName = path.join(__dirname, `../../${this.settings.name}-verbose-serial.log`);
+    this.serialLogger = new (winston.Logger)({
+      levels: { write: 0, read: 1, info: 2 },
+      transports: [
+        new (winston.transports.Console)(),
+        new (winston.transports.File)({ filename: serialLogName }),
+      ],
+    });
+    this.serialLogger.info('started logging');
+  }
+
   this.status = {
     position: {
       x: undefined,
@@ -73,11 +80,6 @@ const Marlin = function (app) {
       checkpoint: undefined,
     },
   };
-
-  _.extend(this.settings, {
-    name: 'Marlin',
-    model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
-  });
 
   _.extend(this.info, {
     connectionType: 'serial',
@@ -127,7 +129,7 @@ const Marlin = function (app) {
       self.lr.on('line', bsync((line) => {
         try {
           if (process.env.VERBOSE_SERIAL_LOGGING) {
-            serialLogger.info('About to process line', line);
+            self.serialLogger.info('About to process line', line);
           }
           // pause the line reader immediately
           // we will resume it as soon as the line is done processing
@@ -157,7 +159,7 @@ const Marlin = function (app) {
                 self.status.checkpoint = parseInt(checkpoint, 10);
                 self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+                  self.serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
                 }
                 self.lr.resume();
 
@@ -196,14 +198,14 @@ const Marlin = function (app) {
                 self.status.blocker = { bot, checkpoint };
                 self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  serialLogger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
+                  self.serialLogger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
                 }
                 self.commands.checkPrecursors(self);
                 break;
               }
               case 'DRY': {
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
+                  self.serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
                 }
 
                 const dry = conductorCommentResult[2].toLowerCase() === 'true';
@@ -230,7 +232,7 @@ const Marlin = function (app) {
             if (command.length <= 0) {
               // If the line is blank, move on to the next line
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                serialLogger.info('Passed on parsing a blank line', line);
+                self.serialLogger.info('Passed on parsing a blank line', line);
               }
               bwait(self.lr.resume());
             } else {
@@ -297,7 +299,7 @@ const Marlin = function (app) {
 
       bwait(fsPromise);
       if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-        serialLogger.info('Beginning to read a gcode file, line by line');
+        self.serialLogger.info('Beginning to read a gcode file, line by line');
       }
       self.lr.resume();
       self.fsm.startDone();
@@ -510,7 +512,7 @@ const Marlin = function (app) {
         // If the precursor is complete then move on
         if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
           if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-            serialLogger.info(`Just exceeded blocker. ${JSON.stringify(self.status)}`);
+            self.serialLogger.info(`Just exceeded blocker. ${JSON.stringify(self.status)}`);
           }
           self.status.blocker = undefined;
           self.lr.resume();
@@ -527,8 +529,8 @@ const Marlin = function (app) {
     }),
     updateCollaboratorCheckpoints: (self, params) => {
       if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-        serialLogger.info('Old collaborater params', JSON.stringify(self.status.collaborators));
-        serialLogger.info('New collaborater params', JSON.stringify(params.collaborators));
+        self.serialLogger.info('Old collaborater params', JSON.stringify(self.status.collaborators));
+        self.serialLogger.info('New collaborater params', JSON.stringify(params.collaborators));
       }
       self.status.collaborators = params.collaborators;
 

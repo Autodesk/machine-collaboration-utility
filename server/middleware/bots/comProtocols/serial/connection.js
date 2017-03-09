@@ -38,7 +38,6 @@ var path = require('path');
  * Return: N/A
  */
 
-let serialLogger;
 
 const roundAxis = function roundAxis(command, axis, self) {
   let roundedCommand = command;
@@ -87,18 +86,19 @@ var SerialConnection = function(
   inInitDataFunc,
   inConnectedFunc
 ) {
+  this.serialLogger = undefined;
   // Set up serial logger
   if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
     // Set up logging for written serial data
     const serialLogName = path.join(__dirname, `../../../../../${inBot.settings.name}-verbose-serial.log`);
-    serialLogger = new (winston.Logger)({
+    this.serialLogger = new (winston.Logger)({
       levels: { write: 0, read: 1, info: 2 },
       transports: [
         new (winston.transports.Console)(),
         new (winston.transports.File)({ filename: serialLogName }),
       ],
     });
-    serialLogger.info('started logging');
+    this.serialLogger.info('started logging');
   }
 
 
@@ -142,7 +142,7 @@ var SerialConnection = function(
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                serialLogger.log('read', data);
+                that.serialLogger.log('read', data);
               }
               this.returnString += data;
               if (data.includes('ok')) {
@@ -171,7 +171,7 @@ var SerialConnection = function(
             if (that.mOpenPrimeStr && (that.mOpenPrimeStr !== '')) {
                 that.mPort.write(that.mOpenPrimeStr + '\n');
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  serialLogger.log('write', that.mOpenPrimeStr + '\n');
+                  that.serialLogger.log('write', that.mOpenPrimeStr + '\n');
                 }
             }
         }
@@ -227,7 +227,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
             }
             this.mPort.write(gcode);
             if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-              serialLogger.log('write', gcode);
+              this.serialLogger.log('write', gcode);
             }
             commandSent = true;
         } catch (inError) {
@@ -299,7 +299,7 @@ SerialConnection.prototype.heartbeat = function () {
         // Issue the M115
         this.mPort.write('M115\n'); // can't use 'send()' until connected
         if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-          serialLogger.log('write', 'M115\n');
+          this.serialLogger.log('write', 'M115\n');
         }
         // logger.info('Wrote M115 to serialport');
         this.mState = SerialConnection.State.M115_SENT;

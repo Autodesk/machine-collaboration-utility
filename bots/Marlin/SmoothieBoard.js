@@ -9,19 +9,6 @@ const Marlin = require('./Marlin');
 const LineByLineReader = Promise.promisifyAll(require('line-by-line'));
 const fs = require('fs');
 
-let serialLogger;
-if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-  // Set up logging for written serial data
-  const serialLogName = path.join(__dirname, '../../verbose-serial.log');
-  serialLogger = new (winston.Logger)({
-    levels: { write: 0, read: 1, info: 2 },
-    transports: [
-      new (winston.transports.Console)(),
-      new (winston.transports.File)({ filename: serialLogName }),
-    ],
-  });
-}
-
 const SmoothieBoard = function SmoothieBoard(app) {
   Marlin.call(this, app);
 
@@ -29,6 +16,22 @@ const SmoothieBoard = function SmoothieBoard(app) {
     name: 'SmoothieBoard',
     model: __filename.split(`${__dirname}/`)[1].split('.js')[0],
   });
+
+  this.serialLogger = undefined;
+  // Set up serial logger
+  if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+    // Set up logging for written serial data
+    const serialLogName = path.join(__dirname, `../../${this.settings.name}-verbose-serial.log`);
+    this.serialLogger = new (winston.Logger)({
+      levels: { write: 0, read: 1, info: 2 },
+      transports: [
+        new (winston.transports.Console)(),
+        new (winston.transports.File)({ filename: serialLogName }),
+      ],
+    });
+    this.serialLogger.info('started logging');
+  }
+
 
   _.extend(this.info, {
     vidPid: [
@@ -84,7 +87,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
       self.lr.on('line', bsync((line) => {
         try {
           if (process.env.VERBOSE_SERIAL_LOGGING) {
-            serialLogger.info('About to process line', line);
+            self.serialLogger.info('About to process line', line);
           }
           // pause the line reader immediately
           // we will resume it as soon as the line is done processing
@@ -114,7 +117,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
                 self.status.checkpoint = parseInt(checkpoint, 10);
                 self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+                  self.serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
                 }
                 self.lr.resume();
 
@@ -153,14 +156,14 @@ const SmoothieBoard = function SmoothieBoard(app) {
                 self.status.blocker = { bot, checkpoint };
                 self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  serialLogger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
+                  self.serialLogger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
                 }
                 self.commands.checkPrecursors(self);
                 break;
               }
               case 'DRY': {
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
+                  self.serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
                 }
 
                 const dry = conductorCommentResult[2].toLowerCase() === 'true';
@@ -187,7 +190,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
             if (command.length <= 0) {
               // If the line is blank, move on to the next line
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                serialLogger.info('Passed on parsing a blank line', line);
+                self.serialLogger.info('Passed on parsing a blank line', line);
               }
               bwait(self.lr.resume());
             } else {
@@ -255,7 +258,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
 
       bwait(fsPromise);
       if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-        serialLogger.info('Beginning to read a gcode file, line by line');
+        self.serialLogger.info('Beginning to read a gcode file, line by line');
       }
       self.lr.resume();
       self.fsm.startDone();
