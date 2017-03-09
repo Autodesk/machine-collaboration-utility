@@ -4,7 +4,11 @@ import request from 'superagent';
 export default class CamFeed extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {input:"http://0.0.0.0:8080/?action=stream", camUrl: "http://0.0.0.0:8080/?action=stream"};
+    //get LAN ip
+    var NetworkInfo = require('react-native-network-info');
+    var ip_bad = NetworkInfo.getIPAddress()
+    var ip = "192.168.168.7";
+    this.state = {input:"http://",ip,":8080/?action=stream", camUrl: "http://",ip,":8080/?action=stream"};
     this.updateUrl = this.updateUrl.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
   }
