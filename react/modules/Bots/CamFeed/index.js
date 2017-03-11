@@ -18,10 +18,29 @@ export default class CamFeed extends React.Component {
                     tilt: 0,
                     zoom: 0
                  };
+
+    //this.getSetCam = this.getSetCam.bind(this);
+    //this.getSetCam();
     this.updateUrl = this.updateUrl.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.controlCam = this.controlCam.bind(this);
     this.zoomCam = this.zoomCam.bind(this);
+  }
+
+  //Cross Site scripting doesn't allow this stuff. This may need a micro service to relay
+  getSetCam(){
+    request.get("http://"+this.ip+":8080/input_0.json", function(err, res){
+        console.log(res);
+        if (!err) {
+            var dict = {};
+            res["controls"].forEach(
+                function(result){
+                    dict[result["name"].split(" ")[0].replace(',','').toLowerCase()] = result["value"];
+                    }
+            );
+            this.setState(prevState => (dict));
+        } 
+    });
   }
 
   controlCam(e) {
