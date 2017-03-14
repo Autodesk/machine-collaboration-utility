@@ -23,7 +23,7 @@ module.exports = bsync((app) => {
     offsetY: Sequelize.FLOAT,
     offsetZ: Sequelize.FLOAT,
     openString: Sequelize.STRING,
-    custom: Sequelize.STRING,
+    custom: Sequelize.TEXT,
   });
 
   return BotModel;
