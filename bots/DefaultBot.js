@@ -99,6 +99,7 @@ const DefaultBot = function DefaultBot(app) {
           bwait(self.fsm.stopDone());
           bwait(self.currentJob.fsm.runningDone());
           bwait(self.currentJob.stopwatch.stop());
+          self.currentJob = undefined;
         }),
       });
     }));
