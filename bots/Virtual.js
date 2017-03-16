@@ -12,6 +12,7 @@ const Virtual = function (app) {
 
   _.extend(this.info, {
     connectionType: 'virtual',
+    fileTypes: ['.gcode'],
   });
 };
 
