@@ -1,6 +1,6 @@
 {
   "name": "machine-collaboration-utility",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "scripts": {
     "install": "node install_os_dependencies.js",

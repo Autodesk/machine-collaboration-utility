@@ -19,3 +19,13 @@
 
 ## 1.0.2 (2017-03-02)
   Fixed updating settings on the wrong bot, bug.
+
+## 1.0.3 (2017-03-16)
+  Database and UI updates
+  
+### Improvements
+  * Updated bot "custom" field from 255 characters to unlimited characters
+  * Added per-bot verbose serial logging
+  * Default bot will reset its current job referece once it completes said job
+  * Created UI tweak to allow kicking off a file to filter the available bots
+  * Fixed bug with creating a virtual bot
