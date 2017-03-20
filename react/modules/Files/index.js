@@ -80,12 +80,11 @@ export default class Files extends React.Component {
 
     // Create a job
     const requestParams = {
+      command: 'startJob',
       fileUuid: this.state.fileUuid,
-      botUuid,
-      startJob: true,
     };
 
-    request.post('/v1/jobs')
+    request.post(`/v1/bots/${botUuid}`)
     .send(requestParams)
     .set('Accept', 'application/json')
     .end();
