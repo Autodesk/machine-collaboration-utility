@@ -7,7 +7,7 @@
  * with responses.
  ******************************************************************************/
 const _ = require('underscore');
-const Promise = require('bluebird');
+const delay = require('bluebird').delay;
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 let logger;
@@ -79,17 +79,23 @@ VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
     this.nBufferedCommands++;
     switch (commandPrefix) {
       case 'G4':
-        if (inCommandStr.indexOf('G4 P') !== -1) {
-          bwait(Promise.delay(parseInt(inCommandStr.split('G4 P').pop().split('\n').shift(), 10)));
+        try {
+          if (inCommandStr.indexOf('G4 P') !== -1) {
+            const delayTime = parseInt(inCommandStr.split('G4 P').pop().split('\n').shift(), 10);
+            bwait(delay(delayTime));
+          }
+          reply = 'ok';
+        } catch (ex) {
+          console.log(ex);
         }
-        reply = 'ok';
         break;
       case 'G1':
-        bwait(Promise.delay(100));
+        bwait(delay(100));
         reply = 'ok';
         break;
       default:
         this.logger.error('command not supported');
+        break;
     }
     this.nBufferedCommands--;
     this.mDataFunc(reply);
@@ -112,7 +118,7 @@ VirtualConnection.prototype.close = function close() {
 };
 
 VirtualConnection.prototype.waitForBufferToClear = bsync(function waitForBufferToClear() {
-  bwait(Promise.delay(100));
+  bwait(delay(100));
   if (this.nBufferedCommands >= this.bufferSize) {
     bwait(this.waitForBufferToClear());
   }
