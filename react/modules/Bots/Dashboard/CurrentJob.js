@@ -47,13 +47,13 @@ export default class CurrentJob extends React.Component {
       return <Button className="pause-resume" disabled>Pause/Resume</Button>;
     }
 
-    switch (this.props.bot.currentJob.state) {
+    switch (this.props.bot.state) {
       case 'paused':
-        return <Button onClick={ () => { this.sendCommand('resume') } }>Resume</Button>;
-      case 'running':
-        return <Button onClick={ () => { this.sendCommand('pause') } }>Pause</Button>;
+        return <Button onClick={() => { this.sendCommand('resume'); }}>Resume</Button>;
+      case 'executingJob':
+        return <Button onClick={() => { this.sendCommand('pause'); }}>Pause</Button>;
       default:
-        return <Button disabled>{this.props.bot.currentJob.state}</Button>;
+        return <Button className="pause-resume" disabled>Pause/Resume</Button>;
     }
   }
 
