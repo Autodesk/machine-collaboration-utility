@@ -183,17 +183,6 @@ const processBotCommand = (self) => {
         throw '"command" is undefined';
       }
 
-      // The commands pause, resume, and cancel must be processed through the job api
-      switch (command) {
-        case 'pause':
-        case 'resume':
-        case 'cancel':
-          command = `${command}Job`;
-          break;
-        default:
-          break;
-      }
-
       const params = {};
       for (const [paramKey, param] of _.pairs(ctx.request.body)) {
         if (paramKey !== 'command') {
