@@ -230,7 +230,6 @@ module.exports = function botsTests() {
         body: { command: 'pause' },
         json: true,
       };
-      console.log('about to pause a job', requestParams);
       request(requestParams)
       .then((jobPauseReply) => {
         should(jobPauseReply.data.state).equal('paused');

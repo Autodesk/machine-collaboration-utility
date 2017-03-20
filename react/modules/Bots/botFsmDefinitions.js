@@ -51,6 +51,7 @@ const fsmEvents = [
 
   // PROCESSING JOB events
   { from: 'startingJob',         to: 'executingJob',        name: 'startDone'          },
+  { from: 'startingJob',         to: 'idle',                name: 'startJobFail'       },
   { from: 'executingJob',        to: 'pausing',             name: 'pause'              },
   { from: 'executingJob',        to: 'parking',             name: 'park'               },
   { from: 'executingJob',        to: 'completingJob',       name: 'complete'           },

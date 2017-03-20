@@ -70,7 +70,6 @@ VirtualConnection.prototype.setErrorFunc = function setErrorFunc(inErrorFunc) {
  * Return: N/A
  */
 VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
-  console.log('about to send', inCommandStr);
   if (_.isFunction(this.mDataFunc)) {
     const commandPrefix = inCommandStr.split(' ').shift();
     let reply = 'ok';

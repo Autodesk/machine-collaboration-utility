@@ -8,6 +8,85 @@ const path = require('path');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 
+const setupFileExecutor = bsync(function setupFileExecutor(self) {
+  const filesApp = self.app.context.files;
+  const theFile = filesApp.getFile(self.currentJob.fileUuid);
+
+  const lr = new LineByLineReader(theFile.filePath);
+  self.currentLine = 0;
+  lr.pause(); // redundant
+
+  lr.on('error', (err) => {
+    self.logger.error('line reader error:', err);
+  });
+
+  // As the buffer reads each line, process it
+  lr.on('line', bsync((line) => {
+    // pause the line reader immediately
+    // we will resume it as soon as the line is done processing
+    lr.pause();
+    // We only care about the info prior to the first semicolon
+    // NOTE This code is assuming we are processing GCODE
+    // In case of adding support for multiple contrl formats, this is a good place to start
+
+    let command = line.split(';')[0];
+    if (command.length <= 0) {
+      // If the line is blank, move on to the next line
+      lr.resume();
+    } else {
+      command = self.addOffset(command);
+      command = self.addSpeedMultiplier(command);
+      command = self.addFeedMultiplier(command);
+
+      self.queue.queueCommands({
+        code: command,
+        postCallback: bsync(() => {
+          if (self.currentJob.fsm.current === 'running') {
+            lr.resume();
+          }
+          self.currentLine += 1;
+          self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
+        }),
+      });
+    }
+  }));
+
+  lr.on('end', bsync(() => {
+    self.logger.info('completed reading file,', theFile.filePath, 'is closed now.');
+    lr.close();
+    self.queue.queueCommands({
+      postCallback: bsync(() => {
+        self.currentJob.percentComplete = 100;
+        self.fsm.complete();
+        self.currentJob.complete();
+        self.currentJob = undefined;
+        // Could do some sort of completion routine here
+        self.fsm.completeDone();
+      }),
+    });
+  }));
+
+  // Get the number of lines in the file
+  let numLines = 0;
+  const fsPromise = new Promise((resolve, reject) => {
+    fs.createReadStream(theFile.filePath)
+    .on('data', function readStreamOnData(chunk) {
+      numLines += chunk
+      .toString('utf8')
+      .split(/\r\n|[\n\r\u0085\u2028\u2029]/g)
+      .length - 1;
+    })
+    .on('end', () => {  // done
+      self.numLines = numLines;
+      self.logger.info(`Bot will process file with ${self.numLines} lines.`);
+      resolve();
+    });
+  });
+
+  bwait(fsPromise);
+  return lr;
+});
+
 const DefaultBot = function DefaultBot(app) {
   this.app = app;
   this.logger = app.context.logger;
@@ -85,95 +164,39 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.startJob = function startJob(self, params) {
-    const job = params.job;
-    self.currentJob = job;
-
+  this.commands.startJob = bsync(function startJob(self, params) {
     if (self.fsm.current !== 'idle') {
       throw new Error(`Cannot start job from state "${self.fsm.current}"`);
     }
-
+    if (self.currentJob !== undefined) {
+      throw new Error(`Bot should not currently have a job associated with it.`);
+    }
+    if (params.fileUuid === undefined) {
+      throw new Error('A "fileUuid" must be specified when starting a job.');
+    }
     self.fsm.startJob();
-    const filesApp = self.app.context.files;
-    const theFile = filesApp.getFile(job.fileUuid);
+    try {
+      // Create a job
+      const jobMiddleware = self.app.context.jobs;
+      const botUuid = self.settings.uuid;
+      const fileUuid = params.fileUuid;
+      self.currentJob = bwait(jobMiddleware.createJob(botUuid, fileUuid));
+
+      // set up the file executor
+      const lr = bwait(setupFileExecutor(self));
+
+      // Start consuming the file
+      lr.resume();
+      self.fsm.startDone();
+    } catch (ex) {
+      self.startJobFail();
+    }
 
     // open the file
     // start reading line by line...
-    self.lr = new LineByLineReader(theFile.filePath);
-    self.currentLine = 0;
-    bwait(self.lr.pause()); // redundant
-
-    self.lr.on('error', (err) => {
-      self.logger.error('line reader error:', err);
-    });
-
-    // As the buffer reads each line, process it
-    self.lr.on('line', bsync((line) => {
-      // pause the line reader immediately
-      // we will resume it as soon as the line is done processing
-      bwait(self.lr.pause());
-      // We only care about the info prior to the first semicolon
-      // NOTE This code is assuming we are processing GCODE
-      // In case of adding support for multiple contrl formats, this is a good place to start
-
-      let command = line.split(';')[0];
-      if (command.length <= 0) {
-        // If the line is blank, move on to the next line
-        bwait(self.lr.resume());
-      } else {
-        command = self.addOffset(command);
-        command = self.addSpeedMultiplier(command);
-        command = self.addFeedMultiplier(command);
-
-        self.queue.queueCommands({
-          code: command,
-          postCallback: bsync(() => {
-            if (self.currentJob.fsm.current === 'running') {
-              bwait(self.lr.resume());
-            }
-            self.currentLine += 1;
-            self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
-          }),
-        });
-      }
-    }));
-
-    self.lr.on('end', bsync(() => {
-      self.logger.info('completed reading file,', theFile.filePath, 'is closed now.');
-      bwait(self.lr.close());
-      self.queue.queueCommands({
-        postCallback: bsync(() => {
-          self.currentJob.percentComplete = 100;
-          self.fsm.complete();
-          self.currentJob.complete();
-          self.currentJob = undefined;
-          // Could do some sort of completion routine here
-          self.fsm.completeDone();
-        }),
-      });
-    }));
-
-    // Get the number of lines in the file
-    let numLines = 0;
-    const fsPromise = new Promise((resolve, reject) => {
-      fs.createReadStream(theFile.filePath)
-      .on('data', function readStreamOnData(chunk) {
-        numLines += chunk
-        .toString('utf8')
-        .split(/\r\n|[\n\r\u0085\u2028\u2029]/g)
-        .length - 1;
-      })
-      .on('end', () => {  // done
-        self.numLines = numLines;
-        self.logger.info(`Bot will process file with ${self.numLines} lines.`);
-        resolve();
-      });
-    });
-
-    bwait(fsPromise);
     self.lr.resume();
     self.fsm.startDone();
-  };
+  });
 
   this.commands.park = function park(self, params) {
     if (self.fsm.current !== 'executingJob') {
