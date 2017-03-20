@@ -181,20 +181,20 @@ Job.prototype.getJob = function getJob() {
   * Start processing a job
   *
   */
-Job.prototype.start = (function start() {
+Job.prototype.start = function start() {
   if (this.fsm.current !== 'ready') {
     throw new Error(`Cannot start job from state ${this.fsm.current}`);
   }
 
   try {
     this.started = new Date().getTime();
-    bwait(this.stopwatch.start());
+    this.stopwatch.start();
     this.fsm.start();
   } catch (ex) {
     const errorMessage = `Job start failure ${ex}`;
     this.logger.error(errorMessage);
   }
-});
+};
 
  /**
   * pause()
