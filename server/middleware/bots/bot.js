@@ -20,10 +20,6 @@ const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots
  * This is a Bot class representing hardware that can process jobs.
  * All commands to the bot are passed to it's queue and processed sequentially
  *
- * The bot's state machine abstracts any job states (i.e. pause/resume/cancel)
- * to be handled by the Job API. In other words, in order to pause/resume/cancel a bot,
- * you must send that command to the job. This will pass down events accordingly to the bot
- *
  * @param {Object} app - The parent Koa app.
  * @param {string} settings - The settings, as retreived from the database.
  *
