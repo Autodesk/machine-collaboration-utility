@@ -62,6 +62,13 @@ const setupFileExecutor = bsync(function setupFileExecutor(self) {
         self.currentJob = undefined;
         // Could do some sort of completion routine here
         self.fsm.completeDone();
+        setTimeout(() => {
+          self.app.io.broadcast('botEvent', {
+            uuid: self.settings.uuid,
+            event: 'update',
+            data: self.getBot(),
+          });
+        }, 2000);
       }),
     });
   }));
@@ -175,6 +182,7 @@ const DefaultBot = function DefaultBot(app) {
       throw new Error('A "fileUuid" must be specified when starting a job.');
     }
     self.fsm.startJob();
+    let lr;
     try {
       // Create a job
       const jobMiddleware = self.app.context.jobs;
@@ -183,19 +191,14 @@ const DefaultBot = function DefaultBot(app) {
       self.currentJob = bwait(jobMiddleware.createJob(botUuid, fileUuid));
 
       // set up the file executor
-      const lr = bwait(setupFileExecutor(self));
-
+      lr = bwait(setupFileExecutor(self));
+      self.currentJob.start();
       // Start consuming the file
       lr.resume();
       self.fsm.startDone();
     } catch (ex) {
       self.startJobFail();
     }
-
-    // open the file
-    // start reading line by line...
-    self.lr.resume();
-    self.fsm.startDone();
   });
 
   this.commands.park = function park(self, params) {
