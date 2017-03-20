@@ -54,6 +54,7 @@ Jobs.prototype.initialize = bsync(function initialize() {
       bwait(this.app.context.db.sync({ force: true }));
       jobs = bwait(this.JobModel.findAll());
     }
+
     for (const job of jobs) {
       const id = job.dataValues.id;
       const botUuid = job.dataValues.botUuid;
@@ -77,6 +78,7 @@ Jobs.prototype.initialize = bsync(function initialize() {
         initialState: state,
         id,
       });
+
       bwait(jobObject.initialize());
       jobObject.percentComplete = job.dataValues.percentComplete;
       jobObject.started = job.dataValues.started;

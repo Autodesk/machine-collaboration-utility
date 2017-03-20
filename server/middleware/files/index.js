@@ -2,7 +2,7 @@ const router = require('koa-router')();
 const path = require('path');
 const fs = require('fs-promise');
 const walk = require('fs-walk');
-const uuidGenerator = require('node-uuid');
+const uuidGenerator = require('uuid/v4');
 const winston = require('winston');
 const _ = require('underscore');
 const bsync = require('asyncawait/async');
@@ -130,7 +130,7 @@ Files.prototype.setupRouter = bsync(function setupRouter() {
 Files.prototype.createFile = bsync(function createFile(file, userPath, userUuid) {
   let fileObject;
   if (userPath === undefined) {
-    const uuid = bwait(uuidGenerator.v1());
+    const uuid = uuidGenerator();
     const name = file.name;
     const fileStats = bwait(fs.stat(file.path));
     const dateChanged = fileStats.ctime;

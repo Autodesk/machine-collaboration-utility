@@ -234,7 +234,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
           self.fsm.stop();
           self.fsm.stopDone();
           self.currentJob.percentComplete = 100;
-          self.currentJob.fsm.runningDone();
+          self.currentJob.fsm.complete();
           self.currentJob.stopwatch.stop();
           self.currentJob = undefined;
           bwait(Promise.delay(2000));

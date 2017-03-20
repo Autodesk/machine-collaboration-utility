@@ -195,7 +195,6 @@ Bots.prototype.createBot = function createBot(inputSettings = {}) {
   this.botPresetList[inputSettings.model];
   // Mixin all input settings into the bot object
   const newBot = new Bot(this.app, botPresets, inputSettings);
-  newBot.commands.initialize(newBot);
 
   // Add the bot to the list
   this.botList[newBot.settings.uuid] = newBot;
@@ -229,7 +228,9 @@ Bots.prototype.deleteBot = bsync(function deleteBot(uuid) {
   }
 
   if (!deleted) {
-    throw `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`;
+    throw new Error(
+      `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`
+    );
   }
 
   this.app.io.broadcast('botEvent', {

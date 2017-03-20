@@ -52,7 +52,6 @@
     "koa-socket": "^4.4.0",
     "koa-static": "^2.0.0",
     "line-by-line": "^0.1.5",
-    "node-uuid": "^1.4.7",
     "pg": "^6.1.0",
     "react": "^15.3.1",
     "react-bootstrap": "^0.30.3",
@@ -70,6 +69,7 @@
     "timer-stopwatch": "^0.2.0",
     "underscore": "^1.8.3",
     "unzip2": "^0.2.5",
+    "uuid": "^3.0.1",
     "winston": "^2.2.0"
   },
   "engines": {

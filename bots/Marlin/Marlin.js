@@ -265,7 +265,7 @@ const Marlin = function (app) {
             self.currentJob.percentComplete = 100;
             self.fsm.stop();
             self.fsm.stopDone();
-            self.currentJob.fsm.runningDone();
+            self.currentJob.fsm.complete();
             self.currentJob.stopwatch.stop();
             self.currentJob = undefined;
 

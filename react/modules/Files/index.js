@@ -43,7 +43,7 @@ export default class Files extends React.Component {
     const options = [];
     _.pairs(this.props.bots).forEach(([botUuid, bot]) => {
       // Only allow jobs to be stared on a bot in the state "connected"
-      if (bot.state !== 'connected') {
+      if (bot.state !== 'idle') {
         return;
       }
 

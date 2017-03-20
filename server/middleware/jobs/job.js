@@ -1,10 +1,11 @@
 const Promise = require('bluebird');
-const uuidGenerator = require('node-uuid');
+const uuidGenerator = require('uuid/v4');
 const StateMachine = require('javascript-state-machine');
 const Stopwatch = require('timer-stopwatch');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 
+const jobFsmDefinitions = require('../../../react/modules/Jobs/jobFsmDefinitions');
 const jobModel = require('./model');
 
 /**
@@ -28,7 +29,7 @@ const Job = function Job(jobParams) {
   this.app = jobParams.app;
   this.botUuid = jobParams.botUuid;
   this.fileUuid = jobParams.fileUuid;
-  this.uuid = jobParams.jobUuid !== undefined ? jobParams.jobUuid : uuidGenerator.v1();
+  this.uuid = jobParams.jobUuid !== undefined ? jobParams.jobUuid : uuidGenerator();
 
   this.initialState = jobParams.initialState;
   this.id = jobParams.id;
@@ -48,38 +49,31 @@ Job.prototype.initialize = bsync(function initialize() {
 
   this.JobModel = bwait(jobModel(this.app));
   if (this.botUuid === undefined) {
-    throw '"botUuid" is not defined';
+    throw new Error('"botUuid" is not defined');
   }
 
-  const cancelable = ['running', 'paused', 'starting', 'pausing', 'resuming'];
+  let initialState;
+  if (self.initialState === 'complete' || self.initialState === 'canceled') {
+    initialState = self.initialState;
+  } else if (self.initialState === undefined) {
+    initialState = 'initializing';
+  } else {
+    // If a job was canceled while running, set it to canceled
+    // TODO Update it permanently to have a state of canceled in the database
+    initialState = 'canceled';
+  }
+
   const fsmSettings = {
-    initial: self.initialState === undefined ? 'ready' : self.initialState,
+    initial: initialState,
     error: (eventName, from, to, args, errorCode, errorMessage) => {
       const fsmError = `Invalid job ${self.uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
       self.logger.error(fsmError);
-      throw fsmError;
+      throw new Error(fsmError);
     },
-    events: [
-      /* eslint-disable no-multi-spaces */
-      { name: 'start',       from: 'ready',       to: 'starting'    },
-      { name: 'startFail',   from: 'starting',    to: 'ready'       },
-      { name: 'startDone',   from: 'starting',    to: 'running'     },
-      { name: 'pause',       from: 'running',     to: 'pausing'     },
-      { name: 'pause',       from: 'paused',      to: 'paused'      },
-      { name: 'pauseFail',   from: 'pausing',     to: 'running'     },
-      { name: 'pauseDone',   from: 'pausing',     to: 'paused'      },
-      { name: 'resume',      from: 'paused',      to: 'resuming'    },
-      { name: 'resume',      from: 'running',     to: 'running'     },
-      { name: 'resumeFail',  from: 'resuming',    to: 'paused'      },
-      { name: 'resumeDone',  from: 'resuming',    to: 'running'     },
-      { name: 'runningDone', from: 'running',     to: 'complete'    },
-      { name: 'cancel',      from: cancelable,    to: 'canceling'   },
-      { name: 'cancelFail',  from: 'canceling',   to: 'canceled'    },
-      /* eslint-enable no-multi-spaces */
-    ],
+    events: jobFsmDefinitions.fsmEvents,
     callbacks: {
       onenterstate: bsync((event, from, to) => {
-        self.logger.info(`Bot ${self.botUuid} Job ${self.uuid} event ${event}: Transitioning from ${from} to ${to}.`);
+        self.logger.info(`Job ${self.uuid} Bot ${self.botUuid} event ${event}: Transitioning from ${from} to ${to}.`);
         if (from !== 'none') {
           if (event.indexOf('Done') !== -1) {
             try {
@@ -124,6 +118,9 @@ Job.prototype.initialize = bsync(function initialize() {
       data: this.getJob(),
     });
   });
+  if (this.fsm.current === 'initializing') {
+    this.fsm.initializationDone();
+  }
 });
 
 /**
@@ -190,15 +187,17 @@ Job.prototype.getJob = function getJob() {
   *
   */
 Job.prototype.start = bsync(function start() {
-  this.fsm.start();
+  if (this.fsm.current !== 'ready') {
+    throw new Error(`Cannot start job from state ${this.fsm.current}`);
+  }
+
   const bot = this.app.context.bots.botList[this.botUuid];
   try {
     bwait(bot.processCommand('startJob', { job: this }));
     this.started = new Date().getTime();
     bwait(this.stopwatch.start());
-    this.fsm.startDone();
+    this.fsm.start();
   } catch (ex) {
-    this.fsm.startFail();
     const errorMessage = `Job start failure ${ex}`;
     this.logger.error(errorMessage);
   }
@@ -214,14 +213,16 @@ Job.prototype.pause = bsync(function pause(params) {
   if (this.fsm.current === 'paused') {
     return;
   }
-  this.fsm.pause();
+  if (this.fsm.current !== 'running') {
+    throw new Error(`Cannot pause job from state ${this.fsm.current}`);
+  }
   const bot = this.app.context.bots.botList[this.botUuid];
   try {
+    console.log('about to pause the bot', bot.getBot());
     bwait(bot.commands.pause(bot, params));
     bwait(this.stopwatch.stop());
-    bwait(this.fsm.pauseDone());
+    this.fsm.pause();
   } catch (ex) {
-    bwait(this.fsm.pauseFail());
     const errorMessage = `Job pause failure ${ex}`;
     this.logger.error(errorMessage);
   }
@@ -237,14 +238,15 @@ Job.prototype.resume = bsync(function resume(params) {
   if (this.fsm.current === 'running') {
     return;
   }
-  this.fsm.resume();
+  if (this.fsm.current !== 'paused') {
+    throw new Error(`Cannot resume job from state ${this.fsm.current}`);
+  }
   const bot = this.app.context.bots.botList[this.botUuid];
   try {
     bwait(bot.commands.resume(bot, params));
     bwait(this.stopwatch.start());
-    this.fsm.resumeDone();
+    this.fsm.resume();
   } catch (ex) {
-    this.fsm.resumeFail();
     const errorMessage = `Job resume failure ${ex}`;
     this.logger.error(errorMessage);
   }
@@ -257,7 +259,9 @@ Job.prototype.resume = bsync(function resume(params) {
  *
  */
 Job.prototype.cancel = bsync(function cancel(params) {
-  this.fsm.cancel();
+  if (!jobFsmDefinitions.metaStates.processingJob.includes(this.fsm.current)) {
+    throw new Error(`Cannot cancel job from state "${this.fsm.current}"`);
+  }
   const bot = this.app.context.bots.botList[this.botUuid];
   try {
     try {
@@ -265,13 +269,25 @@ Job.prototype.cancel = bsync(function cancel(params) {
     } catch (ex) {
       this.logger.error('Bot can\'t be cancelled', ex);
     }
-    bwait(this.stopwatch.stop());
-    bwait(this.fsm.cancelDone());
+    this.stopwatch.stop();
+    this.fsm.cancel();
   } catch (ex) {
     const errorMessage = `Job stop failure ${ex}`;
     this.logger.error(errorMessage);
-    bwait(this.fsm.cancelFail());
   }
 });
+
+Job.prototype.complete = function complete() {
+  this.fsm.completeJob();
+  this.stopwatch.stop();
+  const bot = this.app.context.bots.botList[this.botUuid];
+  setTimeout(() => {
+    this.app.io.broadcast('botEvent', {
+      uuid: this.botUuid,
+      event: 'update',
+      data: bot.getBot(),
+    });
+  }, 2000);
+};
 
 module.exports = Job;
