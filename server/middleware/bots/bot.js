@@ -106,7 +106,7 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
   // we don't throw an error
   const settingsToUpdate = {};
 
-  for (const [settingKey, settingValue] of Object.entries(newSettings)) {
+  for (const [settingKey, settingValue] of _.pairs(newSettings)) {
     if (this.settings[settingKey] !== undefined) {
       settingsToUpdate[settingKey] = settingValue;
     }
@@ -132,7 +132,7 @@ Bot.prototype.updateBot = bsync(function updateBot(newSettings) {
     settingsToUpdate.custom = JSON.parse(settingsToUpdate.custom);
   }
 
-  for (const [settingKey, settingValue] of Object.entries(settingsToUpdate)) {
+  for (const [settingKey, settingValue] of _.pairs(settingsToUpdate)) {
     if (this.settings[settingKey] !== undefined) {
       this.settings[settingKey] = settingValue;
     }
