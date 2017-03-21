@@ -383,17 +383,135 @@ const DefaultBot = function DefaultBot(app) {
   };
 
   this.commands.updateRoutine = function updateRoutine(self, params) {
-    if (self.fsm.current === 'connected') {
+    self.status = {
+      position: {
+        x: undefined,
+        y: undefined,
+        z: undefined,
+        e: undefined,
+      },
+      sensors: {
+        t0: {
+          temperature: undefined,
+          setpoint: undefined,
+        },
+        b0: {
+          temperature: undefined,
+          setpoint: undefined,
+        },
+      },
+      checkpoint: self.status && self.status.checkpoint,
+      collaborators: self.status.collaborators || {},
+      blocker: self.status.blocker || undefined,
+    };
+
+    if (botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
       const commandArray = [];
       commandArray.push({
         code: 'M114',
         processData: (command, reply) => {
+          const newPosition = {
+            x: undefined,
+            y: undefined,
+            z: undefined,
+            e: undefined,
+          };
+          try {
+            newPosition.x = Number(Number(reply.split('X:')[1].split('Y')[0]) - Number(self.settings.offsetX)).toFixed(3);
+            newPosition.y = Number(Number(reply.split('Y:')[1].split('Z')[0]) - Number(self.settings.offsetY)).toFixed(3);
+            newPosition.z = Number(Number(reply.split('Z:')[1].split('E')[0]) - Number(self.settings.offsetZ)).toFixed(3);
+            newPosition.e = reply.split('E:')[1].split(' ')[0];
+            self.status.position = newPosition;
+            return true;
+          } catch (ex) {
+            self.logger.error('Failed to set position', reply, ex);
+          }
+        },
+      });
+      commandArray.push({
+        code: 'M105',
+        processData: (command, reply) => {
+          self.status.sensors.t0 = {
+            temperature: '?',
+            setpoint: '?',
+          };
+          self.status.sensors.b0 = {
+            temperature: '?',
+            setpoint: '?',
+          };
+
+          try {
+            self.status.sensors.t0.temperature = reply.split('T:')[1].split(' ')[0];
+            self.status.sensors.t0.setpoint = reply.split('T:')[1].split('/')[1].split(' ')[0];
+          } catch (ex) {
+            // this.logger.info('Failed to parse nozzle temp');
+          }
+
+          try {
+            self.status.sensors.b0.temperature = reply.split('B:')[1].split(' ')[0];
+            self.status.sensors.b0.setpoint = reply.split('B:')[1].split('/')[1].split(' ')[0];
+          } catch (ex) {
+            // this.logger.info('Failed to parse bed temp');
+          }
+
+          self.app.io.broadcast('botEvent', {
+            uuid: self.settings.uuid,
+            event: 'update',
+            data: self.getBot(),
+          });
           return true;
         },
       });
       self.queue.queueCommands(commandArray);
     }
   };
+
+  this.commands.jog = function jog(self, params) {
+    const commandArray = [];
+    commandArray.push({
+      code: 'M114',
+      processData: (command, reply) => {
+        const currentLocation = {};
+        currentLocation.x = Number(reply.split('X:')[1].split('Y')[0]);
+        currentLocation.y = Number(reply.split('Y:')[1].split('Z')[0]);
+        currentLocation.z = Number(reply.split('Z:')[1].split('E')[0]);
+        currentLocation.e = Number(reply.split('E:')[1].split(' ')[0]);
+        const newPosition = currentLocation[params.axis] + params.amount;
+        let feedRate;
+        if (params.feedRate) {
+          feedRate = params.feedRate;
+        } else {
+          feedRate = self.settings[`jog${params.axis.toUpperCase()}Speed`];
+        }
+        let jogGcode = `G1 ${params.axis.toUpperCase()}${newPosition} F${feedRate}`;
+        self.queue.prependCommands(jogGcode);
+        return true;
+      },
+    });
+    self.queue.queueCommands(commandArray);
+    return self.getBot();
+  };
+
+  this.commands.processGcode = bsync((self, params) => {
+    const gcode = self.addOffset(params.gcode);
+    if (gcode === undefined) {
+      throw new Error('"gcode" is undefined');
+    }
+    const commandArray = [];
+
+    return bwait(new Promise((resolve, reject) => {
+      commandArray.push({
+        code: gcode,
+        processData: (command, reply) => {
+          resolve(reply.replace('\r', ''));
+          return true;
+        },
+      });
+
+      self.queue.queueCommands(commandArray);
+    }));
+  });
+
 
   // // In order to start processing a job, the job's file is opened and then
   // // processed one line at a time
