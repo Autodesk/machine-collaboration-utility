@@ -21,7 +21,7 @@ export default class CurrentJob extends React.Component {
   }
 
   cancelJob() {
-    request.post(`/v1/jobs/${this.props.bot.currentJob.uuid}`)
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
     .send({ command: 'cancel' })
     .set('Accept', 'application/json')
     .end();

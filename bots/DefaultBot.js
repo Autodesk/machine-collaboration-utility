@@ -1,12 +1,12 @@
 const Promise = require('bluebird');
 const LineByLineReader = Promise.promisifyAll(require('line-by-line'));
 const fs = require('fs');
-const _ = require('underscore');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 const path = require('path');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
 const setupFileExecutor = bsync(function setupFileExecutor(self) {
   const filesApp = self.app.context.files;
@@ -41,11 +41,14 @@ const setupFileExecutor = bsync(function setupFileExecutor(self) {
       self.queue.queueCommands({
         code: command,
         postCallback: bsync(() => {
-          if (self.currentJob.fsm.current === 'running') {
-            lr.resume();
+          // Note, canceling a job will clear the current job value
+          if (self.currentJob) {
+            if (self.currentJob.fsm.current === 'running') {
+              lr.resume();
+            }
+            self.currentLine += 1;
+            self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
           }
-          self.currentLine += 1;
-          self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
         }),
       });
     }
@@ -182,7 +185,7 @@ const DefaultBot = function DefaultBot(app) {
       throw new Error('A "fileUuid" must be specified when starting a job.');
     }
     self.fsm.startJob();
-    let lr;
+
     try {
       // Create a job
       const jobMiddleware = self.app.context.jobs;
@@ -191,10 +194,10 @@ const DefaultBot = function DefaultBot(app) {
       self.currentJob = bwait(jobMiddleware.createJob(botUuid, fileUuid));
 
       // set up the file executor
-      lr = bwait(setupFileExecutor(self));
+      self.currentJob.lr = bwait(setupFileExecutor(self));
       self.currentJob.start();
       // Start consuming the file
-      lr.resume();
+      self.currentJob.lr.resume();
       self.fsm.startDone();
     } catch (ex) {
       self.startJobFail();
@@ -241,7 +244,7 @@ const DefaultBot = function DefaultBot(app) {
     return self.getBot();
   };
 
-  this.commands.pause = function pause(self, params) {
+  this.commands.pause = bsync(function pause(self, params) {
     if (self.currentJob === undefined) {
       throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
     }
@@ -254,32 +257,110 @@ const DefaultBot = function DefaultBot(app) {
 
     const commandArray = [];
 
+    // Pause the bot
+    self.fsm.pause();
+
     // Pause the job
     commandArray.push({
+      postCallback: bsync(() => {
+        bwait(self.currentJob.pause());
+      }),
+    });
+
+    // Move the gantry wherever you want
+    commandArray.push({ delay: 1000 });
+
+    // confirm the bot is now paused
+    commandArray.push({
       postCallback: () => {
-        self.currentJob.fsm.pause();
+        self.fsm.pauseDone();
+      },
+    });
+
+    self.queue.queueCommands(commandArray);
+    return self.getBot();
+  });
+
+  this.commands.resume = function resume(self, params) {
+    if (self.currentJob === undefined) {
+      throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
+    }
+    if (self.fsm.current !== 'paused') {
+      throw new Error(`Cannot resume bot from state "${self.fsm.current}"`);
+    }
+    if (self.currentJob.fsm.current !== 'paused') {
+      throw new Error(`Cannot resume job from state "${self.currentJob.fsm.current}"`);
+    }
+
+    const commandArray = [];
+
+    // Resume the bot
+    self.fsm.resume();
+
+    // Resume the job
+    commandArray.push({
+      postCallback: bsync(() => {
+        bwait(self.currentJob.resume());
+      }),
+    });
+
+    // Move the gantry wherever you want
+    commandArray.push({ delay: 1000 });
+
+    // confirm the bot is now resumed
+    commandArray.push({
+      postCallback: () => {
+        self.fsm.resumeDone();
+      },
+    });
+
+    self.queue.queueCommands(commandArray);
+    self.currentJob.lr.resume();
+    return self.getBot();
+  };
+
+  this.commands.cancel = function cancel(self, params) {
+    if (self.currentJob === undefined) {
+      throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
+    }
+    if (!botFsmDefinitions.metaStates.processingJob.includes(self.fsm.current)) {
+      throw new Error(`Cannot cancel bot from state "${self.fsm.current}"`);
+    }
+    if (!jobFsmDefinitions.metaStates.processingJob.includes(self.currentJob.fsm.current)) {
+      throw new Error(`Cannot cancel job from state "${self.currentJob.fsm.current}"`);
+    }
+
+    const commandArray = [];
+
+    // cancel the bot
+    self.fsm.cancel();
+
+    // cancel the job
+    commandArray.push({
+      postCallback: () => {
+        self.currentJob.cancel();
       },
     });
 
     // Move the gantry wherever you want
     commandArray.push({ delay: 1000 });
 
-    self.queue.queueCommands(commandArray);
+    // confirm the bot is now canceled
+    commandArray.push({
+      postCallback: () => {
+        self.fsm.cancelDone();
+        self.currentJob = undefined;
+        self.app.io.broadcast('botEvent', {
+          uuid: self.settings.uuid,
+          event: 'update',
+          data: self.getBot(),
+        });
+      },
+    });
 
-    bwait(self.currentJob.pause(params));
+    self.queue.queueCommands(commandArray);
     return self.getBot();
   };
-
-  this.commands.resumeJob = bsync(function resumeJob(self, params) {
-    if (self.currentJob === undefined) {
-      throw `Bot ${self.settings.name} is not currently processing a job`;
-    }
-    bwait(self.currentJob.resume(params));
-    return self.getBot();
-  });
-
-  this.commands.resume = function resume() {};
-  this.commands.cancel = function cancel() {};
 
   this.commands.toggleUpdater = function toggleUpdater(self, params) {
     const update = params.update;

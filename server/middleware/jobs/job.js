@@ -247,7 +247,7 @@ Job.prototype.resume = function resume() {
  * Cancel the processing of a job
  *
  */
-Job.prototype.cancel = function cancel(params) {
+Job.prototype.cancel = function cancel() {
   const processingJobStates = jobFsmDefinitions.metaStates.processingJob;
   if (!processingJobStates.includes(this.fsm.current)) {
     throw new Error(`Cannot cancel job from state "${this.fsm.current}"`);

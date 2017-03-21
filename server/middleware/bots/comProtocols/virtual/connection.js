@@ -79,15 +79,11 @@ VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
     this.nBufferedCommands++;
     switch (commandPrefix) {
       case 'G4':
-        try {
-          if (inCommandStr.indexOf('G4 P') !== -1) {
-            const delayTime = parseInt(inCommandStr.split('G4 P').pop().split('\n').shift(), 10);
-            bwait(delay(delayTime));
-          }
-          reply = 'ok';
-        } catch (ex) {
-          console.log(ex);
+        if (inCommandStr.indexOf('G4 P') !== -1) {
+          const delayTime = parseInt(inCommandStr.split('G4 P').pop().split('\n').shift(), 10);
+          bwait(delay(delayTime));
         }
+        reply = 'ok';
         break;
       case 'G1':
         bwait(delay(100));
