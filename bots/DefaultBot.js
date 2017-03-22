@@ -142,16 +142,17 @@ const DefaultBot = function DefaultBot(app) {
 
   this.commands.connect = function connect(self, params) {
     try {
-      if (self.fsm.current === 'ready') {
-        self.fsm.connect();
-        self.queue.queueCommands({
-          open: true,
-          postCallback: () => {
-            self.commands.toggleUpdater(self, { update: true });
-            self.fsm.connectDone();
-          },
-        });
+      if (self.fsm.current !== 'ready') {
+        throw new Error(`Cannot connect from state "${self.fsm.current}"`);
       }
+      self.fsm.connect();
+      self.queue.queueCommands({
+        open: true,
+        postCallback: () => {
+          self.commands.toggleUpdater(self, { update: true });
+          self.fsm.connectDone();
+        },
+      });
     } catch (ex) {
       self.fsm.connectFail();
     }
@@ -200,8 +201,9 @@ const DefaultBot = function DefaultBot(app) {
       self.currentJob.lr.resume();
       self.fsm.startDone();
     } catch (ex) {
-      self.startJobFail();
+      self.fsm.startJobFail();
     }
+    return self.getBot();
   });
 
   this.commands.park = function park(self, params) {
@@ -510,6 +512,35 @@ const DefaultBot = function DefaultBot(app) {
 
       self.queue.queueCommands(commandArray);
     }));
+  });
+
+  this.commands.updateCollaboratorCheckpoints = function updateCollaboratorCheckpoints(self, params) {
+    self.status.collaborators = params.collaborators;
+
+    self.commands.checkPrecursors(self);
+  };
+
+  this.commands.checkPrecursors = bsync(function checkPrecursors(self, params) {
+    if (
+      self.status.blocker !== undefined &&
+      self.status.blocker.bot !== undefined &&
+      self.status.blocker.checkpoint !== undefined
+    ) {
+      const blockingBotCurrentCheckpoint = self.status.collaborators[self.status.blocker.bot];
+      // If the precursor is complete then move on
+      if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
+        self.status.blocker = undefined;
+        self.lr.resume();
+      } else {
+        // If the precursor is not complete, then park
+        self.queue.queueCommands({
+          code: 'M400',
+          postCallback: () => {
+            self.commands.park(self);
+          },
+        });
+      }
+    }
   });
 
 

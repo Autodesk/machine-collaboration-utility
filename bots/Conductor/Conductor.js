@@ -10,6 +10,7 @@ const path = require('path');
 const ip = require('ip');
 
 const DefaultBot = require('../DefaultBot');
+const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 
 function isLocalPlayer(player) {
   return player.endpoint.includes(ip.address()) || player.endpoint.includes('localhost');
@@ -40,6 +41,9 @@ const ConductorVirtual = function ConductorVirtual(app) {
   _.extend(this.commands, {
     connect: bsync(function connect(self) {
       try {
+        if (self.fsm.current !== 'ready') {
+          throw new Error(`Cannot connect from state "${self.fsm.current}"`);
+        }
         self.fsm.connect();
         bwait(self.commands.setupConductorArms(self));
 
@@ -102,65 +106,79 @@ const ConductorVirtual = function ConductorVirtual(app) {
         self.fsm.disconnectFail();
       }
     },
-    pause: function disconnect(self) {
+
+    pause: async function pause(self, params) {
+      // TODO should not be able to pause unless all players are running
+      if (self.currentJob === undefined) {
+        throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
+      }
+      if (self.fsm.current !== 'executingJob') {
+        throw new Error(`Cannot pause bot from state "${self.fsm.current}"`);
+      }
+      if (self.currentJob.fsm.current !== 'running') {
+        throw new Error(`Cannot pause job from state "${self.currentJob.fsm.current}"`);
+      }
+
       try {
-        self.fsm.stop();
+        self.fsm.pause();
         const players = self.settings.custom.players;
         for (const player of players) {
-          if (player.jobUuid !== undefined) {
-            // Ping each job for status
-            const jobEndpoint = player.endpoint.split('bots')[0] + 'jobs/' + player.jobUuid;
-            const pauseJobParams = {
-              method: 'POST',
-              uri: jobEndpoint,
-              body: {
-                command: 'pause',
-              },
-              json: true,
-            };
-            try {
-              const pauseJobReply = bwait(request(pauseJobParams));
-            } catch (ex) {
-              self.logger.error('Pause fail', ex);
-            }
-          }
+          // Ping each job for status
+          const pauseJobParams = {
+            method: 'POST',
+            uri: player.endpoint,
+            body: { command: 'pause' },
+            json: true,
+          };
+          const pauseJobReply = await request(pauseJobParams)
+          .catch(ex => {
+            self.logger.error('Pause fail', ex);
+          });
         }
-        self.fsm.stopDone();
+        self.currentJob.fsm.pause();
+        self.fsm.pauseDone();
       } catch (ex) {
         self.logger.error(ex);
-        self.fsm.stopFail();
       }
+      return self.getBot();
     },
-    resume: function disconnect(self) {
+
+    resume: async function resume(self) {
+      // TODO should not be able to resume unless all players are paused
+      if (self.currentJob === undefined) {
+        throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
+      }
+      if (self.fsm.current !== 'paused') {
+        throw new Error(`Cannot resume bot from state "${self.fsm.current}"`);
+      }
+      if (self.currentJob.fsm.current !== 'paused') {
+        throw new Error(`Cannot resume job from state "${self.currentJob.fsm.current}"`);
+      }
       try {
-        self.fsm.start();
+        self.fsm.resume();
         const players = self.settings.custom.players;
         for (const player of players) {
-          if (player.jobUuid !== undefined) {
-            // Ping each job for status
-            const jobEndpoint = player.endpoint.split('bots')[0] + 'jobs/' + player.jobUuid;
-            const resumeJobParams = {
-              method: 'POST',
-              uri: jobEndpoint,
-              body: {
-                command: 'resume',
-              },
-              json: true,
-            };
-            try {
-              const resumeJobReply = bwait(request(resumeJobParams));
-            } catch (ex) {
-              self.logger.error('Resume fail', ex);
-            }
-          }
+          // Ping each job for status
+          const resumeParams = {
+            method: 'POST',
+            uri: player.endpoint,
+            body: { command: 'resume' },
+            json: true,
+          };
+          const resumeReply = await request(resumeParams)
+          .catch(ex => {
+            self.logger.error('Resume conductor player fail', ex);
+          });
         }
-        self.fsm.startDone();
+        self.currentJob.fsm.resume();
+        self.fsm.resumeDone();
       } catch (ex) {
         self.logger.error(ex);
-        self.fsm.startFail();
       }
+      return self.getBot();
     },
-    cancel: function disconnect(self) {
+
+    cancel: function cancel(self) {
       try {
         self.fsm.stop();
         const players = self.settings.custom.players;
@@ -189,69 +207,99 @@ const ConductorVirtual = function ConductorVirtual(app) {
         self.fsm.startFail();
       }
     },
+
     startJob: bsync(function startJob(self, params) {
+      if (self.fsm.current !== 'idle') {
+        throw new Error(`Cannot start job from state "${self.fsm.current}"`);
+      }
+      if (self.currentJob !== undefined) {
+        throw new Error(`Bot should not currently have a job associated with it.`);
+      }
+      if (params.fileUuid === undefined) {
+        throw new Error('A "fileUuid" must be specified when starting a job.');
+      }
+      self.fsm.startJob();
+
       try {
-        const job = params.job;
-        self.currentJob = job;
-        self.fsm.start();
-        bwait(self.commands.uploadAndSetupPlayerJobs(self, job));
+        // Create a job
+        const jobMiddleware = self.app.context.jobs;
+        const botUuid = self.settings.uuid;
+        const fileUuid = params.fileUuid;
+        self.currentJob = bwait(jobMiddleware.createJob(botUuid, fileUuid));
+
+        // set up the file executor
+        bwait(self.commands.uploadAndSetupPlayerJobs(self));
         self.logger.info('All files uploaded and set up');
+        self.currentJob.start();
+        // Start consuming the file
         self.fsm.startDone();
       } catch (ex) {
-        self.logger.error(`Conductor failed to start job: ${ex}`);
+        self.fsm.startJobFail();
       }
+
+      return self.getBot();
     }),
+
     updateRoutine: bsync(function updateRoutine(self, params) {
       let doneConducting = true;
       let accumulatePercentComplete = 0;
-      if (self.fsm.current === 'processingJob') {
 
-
+      // If we're connected
+      if (botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
         const players = self.settings.custom.players;
 
         for (const player of players) {
-          if (player.jobUuid !== undefined) {
-            // Ping each job for status
-            const jobEndpoint = player.endpoint.split('bots')[0] + 'jobs/' + player.jobUuid;
-            const pingJobParams = {
-              method: 'GET',
-              uri: jobEndpoint,
-              json: true,
-            };
-            try {
-              const pingReply = bwait(request(pingJobParams));
-              if (pingReply.data.state !== 'complete') {
+          // Ping each player for status
+          const pingJobParams = {
+            method: 'GET',
+            uri: player.endpoint,
+            json: true,
+          };
+          try {
+            const pingReply = bwait(request(pingJobParams));
+            if (botFsmDefinitions.metaStates.processingJob.includes(self.fsm.current)) {
+              if (botFsmDefinitions.metaStates.processingJob.includes(pingReply.data.state)) {
+                accumulatePercentComplete += pingReply.data.currentJob.percentComplete == undefined ?
+                  0 : pingReply.data.currentJob.percentComplete;
                 doneConducting = false;
+              } else {
+                accumulatePercentComplete += 100;
               }
-              accumulatePercentComplete += pingReply.data.percentComplete == undefined ? 0 : pingReply.data.percentComplete;
-            } catch (ex) {
-              doneConducting = false;
+              // Add the job's percent complete to the running total
             }
+          } catch (ex) {
+            doneConducting = false;
           }
         }
-        // If current job is not complete, we're not done conducting'
-        if (doneConducting) {
-          self.fsm.stop();
-          self.fsm.stopDone();
-          self.currentJob.percentComplete = 100;
-          self.currentJob.fsm.complete();
-          self.currentJob.stopwatch.stop();
-          self.currentJob = undefined;
-          bwait(Promise.delay(2000));
-          self.app.io.broadcast('botEvent', {
-            uuid: self.settings.uuid,
-            event: 'update',
-            data: self.getBot(),
-          });
-        } else {
-          if (self.settings.custom.players.length === 0) {
-            self.currentJob.percentComplete = 0;
+
+        // If still processing job, but done conducting, then complete and cleanup
+        if (botFsmDefinitions.metaStates.processingJob.includes(self.fsm.current)) {
+          if (doneConducting) {
+            self.fsm.complete();
+            self.currentJob.percentComplete = 100;
+            self.currentJob.fsm.completeJob();
+            self.currentJob.stopwatch.stop();
+            self.currentJob = undefined;
+            self.fsm.completeDone();
+            bwait(Promise.delay(2000));
+            self.app.io.broadcast('botEvent', {
+              uuid: self.settings.uuid,
+              event: 'update',
+              data: self.getBot(),
+            });
           } else {
-            self.currentJob.percentComplete = Number(accumulatePercentComplete / self.settings.custom.players.length).toFixed(3);
+            console.log('player length', self.settings.custom.players.length);
+            console.log('percent done', accumulatePercentComplete);
+            if (self.settings.custom.players.length === 0) {
+              self.currentJob.percentComplete = 0;
+            } else {
+              self.currentJob.percentComplete = Number(accumulatePercentComplete / self.settings.custom.players.length).toFixed(3);
+            }
           }
         }
       }
     }),
+
     // If the database doesn't yet have printers for the endpoints, create them
     setupConductorArms: bsync((self, params) => {
       try {
@@ -388,7 +436,9 @@ const ConductorVirtual = function ConductorVirtual(app) {
         return ex;
       }
     }),
-    uploadAndSetupPlayerJobs: bsync(function(self, job) {
+
+    uploadAndSetupPlayerJobs: bsync(function(self) {
+      const job = self.currentJob;
       try {
         self.nJobs = 0;
         self.nJobsComplete = 0;
@@ -420,11 +470,13 @@ const ConductorVirtual = function ConductorVirtual(app) {
                     json: true,
                   };
                   let getBotUuidReply;
+
                   try {
                     getBotUuidReply = bwait(request(getBotUuidParams));
                   } catch (ex) {
                     throw `nope: ${ex}`;
                   }
+
                   const botUuid = getBotUuidReply.data.settings.uuid;
                   // Upload a file
                   const testFilePath = theFile.filePath.split('.')[0] + '/' + player.name + '.gcode';
@@ -441,9 +493,9 @@ const ConductorVirtual = function ConductorVirtual(app) {
                   // Create and start job
                   const jobParams = {
                     method: 'POST',
-                    uri: `${player.endpoint.split('/v1/bots')[0]}/v1/jobs`,
+                    uri: player.endpoint,
                     body: {
-                      botUuid,
+                      command: 'startJob',
                       fileUuid: uploadFileReply.data[0].uuid,
                       subscribers: [
                         `http://${ip.address()}:${process.env.PORT}/v1/bots/${self.settings.uuid}`,
@@ -451,18 +503,7 @@ const ConductorVirtual = function ConductorVirtual(app) {
                     },
                     json: true,
                   };
-                  const createJobReply = bwait(request(jobParams));
-                  const jobUuid = createJobReply.data.uuid;
-                  player.jobUuid = jobUuid;
-                  const startJobParams = {
-                    method: 'POST',
-                    uri: `${player.endpoint.split('/v1/bots')[0]}/v1/jobs/${jobUuid}`,
-                    body: {
-                      command: 'start',
-                    },
-                    json: true,
-                  };
-                  const startJobReply = bwait(request(startJobParams));
+                  const startJobReply = bwait(request(jobParams));
                   bwait(Promise.delay(2000));
                 }
                 resolve();

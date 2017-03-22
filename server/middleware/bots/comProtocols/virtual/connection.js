@@ -132,10 +132,8 @@ VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
 
     this.bot.sendGcode(gcode)
     .then(reply => {
-      console.log('reply', reply);
       this.processData(reply);
     });
-    console.log('just sent', gcode);
 
     commandSent = true;
   } catch (inError) {

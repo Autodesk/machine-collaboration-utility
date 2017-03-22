@@ -154,7 +154,7 @@ module.exports = function botsTests() {
       });
     });
 
-    it('should setup a job and a file', function (done) {
+    it('should upload a file', function (done) {
       // Upload a file
       const testFilePath = path.join(__dirname, 'pause.gcode');
       const fileStream = fs.createReadStream(testFilePath);
@@ -203,128 +203,100 @@ module.exports = function botsTests() {
       });
     });
 
-    it('should start a job', function (done) {
-      const requestParams = {
+    it('should start a job', async function () {
+      // Upload a file
+      const testFilePath = path.join(__dirname, 'pause.gcode');
+      const fileStream = fs.createReadStream(testFilePath);
+
+      const formData = { file: fileStream };
+      const fileParams = {
         method: 'POST',
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-        body: { command: 'start' },
+        uri: 'http://localhost:9000/v1/files',
+        formData,
         json: true,
       };
-      request(requestParams)
-      .then((startJobReply) => {
-        should(startJobReply.data.state).equal('running');
-        should(startJobReply.status).equal(200);
-        should(startJobReply.query).equal('Process Job Command');
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
-    });
+      const fileReply = await request(fileParams);
+      const fileUuid = fileReply.data[0].uuid;
 
-    it('should pause a job', function (done) {
       const requestParams = {
         method: 'POST',
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'startJob',
+          fileUuid,
+        },
+        json: true,
+      };
+      const startJobReply = await request(requestParams)
+      .catch((err) => {
+        logger.error(err);
+      });
+
+      should(startJobReply.data.state).equal('executingJob');
+      should(startJobReply.status).equal(200);
+      should(startJobReply.query).equal('Process Bot Command');
+    });
+
+    it('should pause a job', async function () {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
         body: { command: 'pause' },
         json: true,
       };
-      request(requestParams)
-      .then((jobPauseReply) => {
-        should(jobPauseReply.data.state).equal('paused');
-        should(jobPauseReply.status).equal(200);
-        should(jobPauseReply.query).equal('Process Job Command');
-        done();
-      })
+
+      const pauseReply = await request(requestParams)
       .catch((err) => {
         logger.error(err);
-        done();
       });
+
+      should(pauseReply.data.state).equal('pausing');
+      should(pauseReply.status).equal(200);
+      should(pauseReply.query).equal('Process Bot Command');
     });
 
-    it('pause should be idempotent', function (done) {
-      const requestParams = {
-        method: 'POST',
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-        body: { command: 'pause' },
-        json: true,
-      };
-      request(requestParams)
-      .then((jobPauseReply) => {
-        should(jobPauseReply.data.state).equal('paused');
-        should(jobPauseReply.status).equal(200);
-        should(jobPauseReply.query).equal('Process Job Command');
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
-    });
-
-    it('should resume a job', function (done) {
-      const requestParams = {
-        method: 'POST',
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-        body: { command: 'resume' },
-        json: true,
-      };
-      request(requestParams)
-      .then((jobResumeReply) => {
-        should(jobResumeReply.data.state).equal('running');
-        should(jobResumeReply.status).equal(200);
-        should(jobResumeReply.query).equal('Process Job Command');
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
-    });
-
-    it('resume should be idempotent', function (done) {
-      const requestParams = {
-        method: 'POST',
-        uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-        body: { command: 'resume' },
-        json: true,
-      };
-      request(requestParams)
-      .then((jobResumeReply) => {
-        should(jobResumeReply.data.state).equal('running');
-        should(jobResumeReply.status).equal(200);
-        should(jobResumeReply.query).equal('Process Job Command');
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
-    });
-
-    it('should cancel a job', function (done) {
+    it('should resume a job', async function () {
       this.timeout(10000);
-      Promise.delay(5000)
-      .then(() => {
-        const requestParams = {
-          method: 'POST',
-          uri: `http://localhost:9000/v1/jobs/${job.uuid}`,
-          body: { command: 'cancel' },
-          json: true,
-        };
-        request(requestParams)
-        .then((jobCancelReply) => {
-          should(jobCancelReply.data.state).equal('canceled');
-          should(jobCancelReply.status).equal(200);
-          should(jobCancelReply.query).equal('Process Job Command');
-          done();
-        })
-        .catch((err) => {
-          logger.error(err);
-          done();
-        });
+      await Promise.delay(5000);
+
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: { command: 'resume' },
+        json: true,
+      };
+
+      const resumeReply = await request(requestParams)
+      .catch((err) => {
+        logger.error(err);
       });
+
+      should(resumeReply.data.state).equal('resuming');
+      should(resumeReply.status).equal(200);
+      should(resumeReply.query).equal('Process Bot Command');
+    });
+
+    it('should cancel a job', async function () {
+      this.timeout(10000);
+      await Promise.delay(5000)
+
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: { command: 'cancel' },
+        json: true,
+      };
+
+      const cancelReply = await request(requestParams)
+      .catch((err) => {
+        logger.error(err);
+      });
+
+      console.log('cancelReply', cancelReply);
+
+      should(cancelReply.data.state).equal('cancelingJob');
+      should(cancelReply.status).equal(200);
+      should(cancelReply.query).equal('Process Bot Command');
     });
 
     it('should clean up by deleting the file, virtual bot, and jobs', function (done) {
@@ -351,6 +323,7 @@ module.exports = function botsTests() {
           json: true,
         };
         request(deleteFileParams)
+        /// TODO fix the cleanup of jobs
         .then(() => {
           // Delete the job
           const deleteJobParams = {
@@ -376,9 +349,11 @@ module.exports = function botsTests() {
 
   describe('Conductor unit test', function () {
     let conductorUuid;
-    let virtualBot;
+    let virtualBot1;
+    let virtualBot2;
     let players;
     let initialBots;
+    let jobUuid;
 
     it('should keep track of the bots initially available', function(done) {
       const requestParams = {
@@ -421,12 +396,13 @@ module.exports = function botsTests() {
         uri: 'http://localhost:9000/v1/bots/',
         body: {
           model: 'Virtual',
+          name: 'bot1',
         },
         json: true,
       };
       request(requestParams)
       .then((reply) => {
-        virtualBot = reply.data;
+        virtualBot1 = reply.data;
         should(reply.status).equal(201);
         should(reply.query).equal('Create Bot');
         done();
@@ -443,8 +419,8 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
           command: 'addPlayer',
-          name: virtualBot.settings.name,
-          endpoint: `http://localhost:9000/v1/bots/${virtualBot.settings.uuid}`,
+          name: virtualBot1.settings.name,
+          endpoint: `http://localhost:9000/v1/bots/${virtualBot1.settings.uuid}`,
         },
         json: true,
       };
@@ -470,8 +446,8 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
           command: 'addPlayer',
-          name: virtualBot.settings.name,
-          endpoint: `http://localhost:9000/v1/bots/${virtualBot.settings.uuid}`,
+          name: virtualBot1.settings.name,
+          endpoint: `http://localhost:9000/v1/bots/${virtualBot1.settings.uuid}`,
         },
         json: true,
       };
@@ -483,6 +459,30 @@ module.exports = function botsTests() {
       .catch((err) => {
         logger.error(err);
         done();
+      });
+    });
+
+    it('should add a second virtual bot', async function () {
+      const reply = await request({
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/bots/',
+        body: {
+          model: 'Virtual',
+          name: 'bot2',
+        },
+        json: true,
+      });
+      virtualBot2 = reply.data;
+
+      await request({
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        body: {
+          command: 'addPlayer',
+          name: virtualBot2.settings.name,
+          endpoint: `http://localhost:9000/v1/bots/${virtualBot2.settings.uuid}`,
+        },
+        json: true,
       });
     });
 
@@ -531,13 +531,118 @@ module.exports = function botsTests() {
       });
     });
 
+    it('should start printing a .esh file', async function() {
+      this.timeout(10000);
+      // Upload a file
+      const testFilePath = path.join(__dirname, 'test-cubes.esh');
+      const fileStream = fs.createReadStream(testFilePath);
+
+      const formData = { file: fileStream };
+      const fileParams = {
+        method: 'POST',
+        uri: 'http://localhost:9000/v1/files',
+        formData,
+        json: true,
+      };
+      const fileReply = await request(fileParams);
+      const file = fileReply.data[0];
+
+      // Kick off the job
+      const startReply = await request({
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        body: {
+          command: 'startJob',
+          fileUuid: file.uuid,
+        },
+        json: true,
+      })
+      .catch(err => {
+        console.log('start printing .esh error', err);
+      });
+
+      console.log('start reply', startReply);
+      jobUuid = startReply.data.currentJob.uuid;
+
+      should(startReply.data.state).equal('executingJob');
+      should(startReply.status).equal(200);
+      should(startReply.query).equal('Process Bot Command');
+    });
+
+    it('should pause printing a .esh file', async function() {
+      this.timeout(20000);
+      await Promise.delay(10000);
+
+
+      const pauseReply = await request({
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        body: { command: 'pause' },
+        json: true,
+      })
+      .catch(err => {
+        console.log('pause printing .esh error', err);
+      });
+
+      should(pauseReply.data.state).equal('paused');
+      should(pauseReply.status).equal(200);
+      should(pauseReply.query).equal('Process Bot Command');
+    });
+
+    it('should resume printing a .esh file', async function() {
+      this.timeout(20000);
+      await Promise.delay(10000);
+
+      const resumeReply = await request({
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        body: { command: 'resume' },
+        json: true,
+      })
+      .catch(err => {
+        console.log('resume printing .esh error', err);
+      });
+
+      should(resumeReply.data.state).equal('executingJob');
+      should(resumeReply.status).equal(200);
+      should(resumeReply.query).equal('Process Bot Command');
+    });
+
+    it('should complete printing a .esh file', async function() {
+      this.timeout(60000);
+      await Promise.delay(50000);
+
+      const getJobReply = await request({
+        method: 'GET',
+        uri: `http://localhost:9000/v1/jobs/${jobUuid}`,
+        json: true,
+      });
+
+      should(getJobReply.data.state).equal('complete');
+      should(getJobReply.data.percentComplete).equal(100);
+      should(getJobReply.status).equal(200);
+      should(getJobReply.data.botUuid).equal(conductorUuid);
+    });
+
+    it('should start printing another .esh file', async function() {
+      should(true).equal(false);
+    });
+
+    it('should cancel printing a .esh file', async function() {
+      should(true).equal(false);
+    });
+
+    it('should disconnect the conductor', async function() {
+      should(true).equal(false);
+    });
+
     it('should remove a player from the conductor', function (done) {
       const requestParams = {
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
           command: 'removePlayer',
-          name: virtualBot.settings.name,
+          name: virtualBot1.settings.name,
         },
         json: true,
       };
