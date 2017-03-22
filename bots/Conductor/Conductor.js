@@ -11,6 +11,7 @@ const ip = require('ip');
 
 const DefaultBot = require('../DefaultBot');
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
 function isLocalPlayer(player) {
   return player.endpoint.includes(ip.address()) || player.endpoint.includes('localhost');
@@ -78,6 +79,9 @@ const ConductorVirtual = function ConductorVirtual(app) {
       }
     }),
     disconnect: function disconnect(self) {
+      if (!botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
+        throw new Error(`Cannot disconnect from state "${self.fsm.current}"`);
+      }
       try {
         self.fsm.disconnect();
 
@@ -97,7 +101,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
             self.logger.error('Disconnect player request fail', ex);
           }
         }
-
         // TODO actually check this
         self.commands.toggleUpdater(self, { update: false });
         self.fsm.disconnectDone();
@@ -105,6 +108,8 @@ const ConductorVirtual = function ConductorVirtual(app) {
         self.logger.error(ex);
         self.fsm.disconnectFail();
       }
+
+      return self.getBot();
     },
 
     pause: async function pause(self, params) {
@@ -179,33 +184,41 @@ const ConductorVirtual = function ConductorVirtual(app) {
     },
 
     cancel: function cancel(self) {
+      if (!botFsmDefinitions.metaStates.processingJob.includes(self.fsm.current)) {
+        throw new Error(`Cannot cancel Conductor from state "${self.fsm.current}"`);
+      }
+      if (self.currentJob === undefined) {
+        throw new Error(`Conductor should currently have a job associated with it.`);
+      }
+      if (!jobFsmDefinitions.metaStates.processingJob.includes(self.currentJob.fsm.current)) {
+        throw new Error(`Cannot cancel Conductor job from state ${self.currentJob.fsm.current}`);
+      }
       try {
-        self.fsm.stop();
+        self.fsm.cancel();
         const players = self.settings.custom.players;
         for (const player of players) {
-          if (player.jobUuid !== undefined) {
-            // Ping each job for status
-            const jobEndpoint = player.endpoint.split('bots')[0] + 'jobs/' + player.jobUuid;
-            const cancelJobParams = {
-              method: 'POST',
-              uri: jobEndpoint,
-              body: {
-                command: 'cancel',
-              },
-              json: true,
-            };
-            try {
-              const cancelJobReply = bwait(request(cancelJobParams));
-            } catch (ex) {
-              self.logger.error('Cancel fail', ex);
-            }
+           // Cancel each bot
+          const cancelJobParams = {
+            method: 'POST',
+            uri: player.endpoint,
+            body: {
+              command: 'cancel',
+            },
+            json: true,
+          };
+          try {
+            const cancelJobReply = bwait(request(cancelJobParams));
+          } catch (ex) {
+            self.logger.error('Cancel fail', ex);
           }
         }
-        self.fsm.stopDone();
+        self.currentJob.fsm.cancel();
+        self.currentJob = undefined;
+        self.fsm.cancelDone();
       } catch (ex) {
         self.logger.error(ex);
-        self.fsm.startFail();
       }
+      return self.getBot();
     },
 
     startJob: bsync(function startJob(self, params) {
@@ -288,8 +301,6 @@ const ConductorVirtual = function ConductorVirtual(app) {
               data: self.getBot(),
             });
           } else {
-            console.log('player length', self.settings.custom.players.length);
-            console.log('percent done', accumulatePercentComplete);
             if (self.settings.custom.players.length === 0) {
               self.currentJob.percentComplete = 0;
             } else {

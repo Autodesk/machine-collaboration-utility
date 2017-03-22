@@ -292,8 +292,6 @@ module.exports = function botsTests() {
         logger.error(err);
       });
 
-      console.log('cancelReply', cancelReply);
-
       should(cancelReply.data.state).equal('cancelingJob');
       should(cancelReply.status).equal(200);
       should(cancelReply.query).equal('Process Bot Command');
@@ -348,6 +346,7 @@ module.exports = function botsTests() {
   });
 
   describe('Conductor unit test', function () {
+    let fileUuid;
     let conductorUuid;
     let virtualBot1;
     let virtualBot2;
@@ -474,7 +473,7 @@ module.exports = function botsTests() {
       });
       virtualBot2 = reply.data;
 
-      await request({
+      const addSecondPlayerReply = await request({
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
@@ -484,6 +483,9 @@ module.exports = function botsTests() {
         },
         json: true,
       });
+
+      // Update the "players" variable when you add another player
+      players = addSecondPlayerReply.data.settings.custom.players;
     });
 
     it('should create and connect all of the conductor\'s players', function (done) {
@@ -545,7 +547,7 @@ module.exports = function botsTests() {
         json: true,
       };
       const fileReply = await request(fileParams);
-      const file = fileReply.data[0];
+      fileUuid = fileReply.data[0].uuid;
 
       // Kick off the job
       const startReply = await request({
@@ -553,7 +555,7 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
           command: 'startJob',
-          fileUuid: file.uuid,
+          fileUuid,
         },
         json: true,
       })
@@ -561,10 +563,10 @@ module.exports = function botsTests() {
         console.log('start printing .esh error', err);
       });
 
-      console.log('start reply', startReply);
       jobUuid = startReply.data.currentJob.uuid;
 
       should(startReply.data.state).equal('executingJob');
+      should(startReply.data.currentJob.state).equal('running');
       should(startReply.status).equal(200);
       should(startReply.query).equal('Process Bot Command');
     });
@@ -625,18 +627,66 @@ module.exports = function botsTests() {
     });
 
     it('should start printing another .esh file', async function() {
-      should(true).equal(false);
+      this.timeout(10000);
+
+      // Kick off the job
+      const startReply = await request({
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        body: {
+          command: 'startJob',
+          fileUuid,
+        },
+        json: true,
+      })
+      .catch(err => {
+        console.log('start printing .esh error', err);
+      });
+
+      jobUuid = startReply.data.currentJob.uuid;
+
+      should(startReply.data.state).equal('executingJob');
+      should(startReply.data.currentJob.state).equal('running');
+      should(startReply.status).equal(200);
+      should(startReply.query).equal('Process Bot Command');
     });
 
     it('should cancel printing a .esh file', async function() {
-      should(true).equal(false);
+      const cancelReply = await request({
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        body: { command: 'cancel' },
+        json: true,
+      })
+      .catch(err => {
+        console.log('cancel printing .esh error', err);
+      });
+
+      // TODO, check in on the job and verify that it is currently in a state of canceled
+      should(cancelReply.data.state).equal('idle');
+      should(cancelReply.status).equal(200);
+      should(cancelReply.query).equal('Process Bot Command');
     });
 
     it('should disconnect the conductor', async function() {
-      should(true).equal(false);
+      const disconnectReply = await request({
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        body: {
+          command: 'disconnect'
+        },
+        json: true,
+      })
+      .catch(err => {
+        console.log('disconnec conductor error', err);
+      });
+
+      should(disconnectReply.data.state).equal('ready');
+      should(disconnectReply.status).equal(200);
+      should(disconnectReply.query).equal('Process Bot Command');
     });
 
-    it('should remove a player from the conductor', function (done) {
+    it('should remove a player from the conductor', async function () {
       const requestParams = {
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
@@ -646,60 +696,51 @@ module.exports = function botsTests() {
         },
         json: true,
       };
-      request(requestParams)
-      .then((reply) => {
-        const replyPlayers = reply.data.settings.custom.players;
-        should(reply.status).equal(200);
-        should(Array.isArray(players)).equal(true);
-        should(replyPlayers.length).equal(players.length - 1);
-        should(reply.query).equal('Process Bot Command');
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
+      const removePlayerReply = await request(requestParams)
+      .catch(err => {
+        console.log('remove conductor player error', err);
       });
+
+      const replyPlayers = removePlayerReply.data.settings.custom.players;
+      should(removePlayerReply.status).equal(200);
+      should(Array.isArray(replyPlayers)).equal(true);
+      should(replyPlayers.length).equal(players.length - 1);
+      should(removePlayerReply.query).equal('Process Bot Command');
     });
 
-    it('should clean up by removing all of the bots that were added', function (done) {
+    it('should clean up by removing all of the bots that were added', async function () {
       const requestParams = {
         method: 'GET',
         uri: 'http://localhost:9000/v1/bots/',
         json: true,
       };
-      request(requestParams)
-      .then((reply) => {
-        const finalBots = reply.data;
-        const botRemovalPromises = [];
-        for (const [botKey, bot] of _.pairs(finalBots)) {
-          // If the bot can't be found in the initial list of bots
-          // Then delete the bot
-          if (initialBots[botKey] === undefined) {
-            const botPromise = new Promise((resolve, reject) => {
-              const deleteBotParams = {
-                method: 'DELETE',
-                uri: `http://localhost:9000/v1/bots/${botKey}`,
-                json: true,
-              };
+      const getBotsReply = await request(requestParams);
 
-              request(deleteBotParams)
-              .then(() => {
-                resolve();
-              })
-              .catch(() => {
-                reject();
-              });
+      const finalBots = getBotsReply.data;
+      const botRemovalPromises = [];
+      for (const [botKey, bot] of _.pairs(finalBots)) {
+        // If the bot can't be found in the initial list of bots
+        // Then delete the bot
+        if (initialBots[botKey] === undefined) {
+          const botPromise = new Promise(async (resolve, reject) => {
+            const deleteBotParams = {
+              method: 'DELETE',
+              uri: `http://localhost:9000/v1/bots/${botKey}`,
+              json: true,
+            };
+
+            await request(deleteBotParams)
+            .catch(() => {
+              reject();
             });
 
-            botRemovalPromises.push(botPromise);
-          }
-        }
+            resolve();
+          });
 
-        Promise.all(botRemovalPromises)
-        .then(() => {
-          done();
-        });
-      });
+          botRemovalPromises.push(botPromise);
+        }
+      }
+      await Promise.all(botRemovalPromises);
     });
   });
 };
