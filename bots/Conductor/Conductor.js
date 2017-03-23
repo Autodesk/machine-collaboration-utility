@@ -281,13 +281,14 @@ const ConductorVirtual = function ConductorVirtual(app) {
               // Add the job's percent complete to the running total
             }
           } catch (ex) {
+            console.log('Ping player error', ex);
             doneConducting = false;
           }
         }
 
         // If still processing job, but done conducting, then complete and cleanup
         if (botFsmDefinitions.metaStates.processingJob.includes(self.fsm.current)) {
-          if (doneConducting) {
+          if (doneConducting && self.fsm.current === 'executingJob') {
             self.fsm.complete();
             self.currentJob.percentComplete = 100;
             self.currentJob.fsm.completeJob();
