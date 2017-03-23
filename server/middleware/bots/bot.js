@@ -172,65 +172,66 @@ Bot.prototype.processCommand = bsync(function processCommand(command, params) {
 });
 
 // Set up the appropriate command executor and validator for a given connection type
-Bot.prototype.discover = function discover() {
+Bot.prototype.discover = function discover(params = {}) {
+  if (this.info.connectionType !== 'serial' || params.serial === true) {
+    this.fsm.discover();
+    try {
+      let executor;
+      let validator;
+      // Set up the validator and executor
+      switch (this.info.connectionType) {
+        case 'serial': {
+          const openPrime = this.settings.openString == undefined ? 'M501' : this.settings.openString;
+          executor = new SerialCommandExecutor(
+            this.app,
+            this.port,
+            this.info.baudrate,
+            openPrime,
+            this
+          );
+          validator = this.validateSerialReply;
+          break;
+        }
+        case 'hardwarehub': {
+          executor = new HardwareHubExecutor(
+            this.app,
+            this.port
+          );
+          validator = this.validateHardwareHubReply;
+          break;
+        }
+        case 'virtual':
+        case 'conductor': {
+          executor = new VirtualExecutor(this.app);
+          validator = this.validateSerialReply;
+          break;
+        }
+        case 'telnet': {
+          executor = new TelnetExecutor(
+            this.app,
+            this.port
+          );
+          validator = this.validateSerialReply;
+          break;
+        }
+        default: {
+          const errorMessage = `connectionType "${this.info.connectionType}" is not supported.`;
+          throw new Error(errorMessage);
+        }
+      }
 
-  this.fsm.discover();
-  try {
-    let executor;
-    let validator;
-    // Set up the validator and executor
-    switch (this.info.connectionType) {
-      case 'serial': {
-        const openPrime = this.settings.openString == undefined ? 'M501' : this.settings.openString;
-        executor = new SerialCommandExecutor(
-          this.app,
-          this.port,
-          this.info.baudrate,
-          openPrime,
-          this
-        );
-        validator = this.validateSerialReply;
-        break;
-      }
-      case 'hardwarehub': {
-        executor = new HardwareHubExecutor(
-          this.app,
-          this.port
-        );
-        validator = this.validateHardwareHubReply;
-        break;
-      }
-      case 'virtual':
-      case 'conductor': {
-        executor = new VirtualExecutor(this.app);
-        validator = this.validateSerialReply;
-        break;
-      }
-      case 'telnet': {
-        executor = new TelnetExecutor(
-          this.app,
-          this.port
-        );
-        validator = this.validateSerialReply;
-        break;
-      }
-      default: {
-        const errorMessage = `connectionType "${this.info.connectionType}" is not supported.`;
-        throw new Error(errorMessage);
-      }
+      // Set up the bot's command queue
+      this.queue = new CommandQueue(
+        executor,
+        this.expandCode,
+        _.bind(validator, this)
+      );
+
+      this.fsm.initializationDone();
+    } catch (ex) {
+      this.logger.error(ex);
+      this.fsm.initializationFail();
     }
-
-    // Set up the bot's command queue
-    this.queue = new CommandQueue(
-      executor,
-      this.expandCode,
-      _.bind(validator, this)
-    );
-
-    this.fsm.initializationDone();
-  } catch (ex) {
-    this.logger.error(ex);
-    this.fsm.initializationFail();
   }
 };
 

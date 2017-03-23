@@ -543,6 +543,20 @@ const DefaultBot = function DefaultBot(app) {
     }
   });
 
+  this.commands.unplug = function unplug(self, params) {
+    self.fsm.unplug();
+    if (self.currentJob) {
+      try {
+        self.currentJob.cancel();
+        self.currentJob = undefined;
+      } catch (ex) {
+        this.logger.error('job cancel error', ex);
+      }
+      self.currentJob = undefined;
+    }
+    return self.getBot();
+  };
+
 
   // // In order to start processing a job, the job's file is opened and then
   // // processed one line at a time
@@ -727,18 +741,6 @@ const DefaultBot = function DefaultBot(app) {
   //   return self.getBot();
   // };
 
-  // this.commands.unplug = function unplug(self, params) {
-  //   self.fsm.unplug();
-  //   if (self.currentJob) {
-  //     try {
-  //       self.currentJob.cancel();
-  //     } catch (ex) {
-  //       this.logger.error('job cancel error', ex);
-  //     }
-  //     self.currentJob = undefined;
-  //   }
-  //   return self.getBot();
-  // };
 
   // this.commands.resume = function resume(self, params) {
   //   if (self.fsm.current === 'parked') {
