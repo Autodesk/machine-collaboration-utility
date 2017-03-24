@@ -35,8 +35,6 @@ const setupFileExecutor = bsync(function setupFileExecutor(self) {
       lr.resume();
     } else {
       command = self.addOffset(command);
-      command = self.addSpeedMultiplier(command);
-      command = self.addFeedMultiplier(command);
 
       self.queue.queueCommands({
         code: command,
@@ -593,8 +591,6 @@ const DefaultBot = function DefaultBot(app) {
   //       bwait(self.lr.resume());
   //     } else {
   //       command = self.addOffset(command);
-  //       command = self.addSpeedMultiplier(command);
-  //       command = self.addFeedMultiplier(command);
 
   //       self.queue.queueCommands({
   //         code: command,
