@@ -87,7 +87,9 @@ export default class Files extends React.Component {
     request.post(`/v1/bots/${botUuid}`)
     .send(requestParams)
     .set('Accept', 'application/json')
-    .end();
+    .end((err, reply) => {
+      console.log(err, reply);
+    });
     this.close();
   }
 

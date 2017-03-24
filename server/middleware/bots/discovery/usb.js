@@ -141,7 +141,7 @@ UsbDiscovery.prototype.detectPort = bsync(function detectPort(port) {
             botObject = bwait(this.app.context.bots.createBot(persistentCheck.foundPresets.settings));
           }
           botObject.setPort(port.comName);
-          botObject.discover({ serial: true });
+          botObject.discover({ realHardware: true });
           return;
         }
       }

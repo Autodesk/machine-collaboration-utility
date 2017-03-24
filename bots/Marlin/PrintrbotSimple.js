@@ -16,6 +16,10 @@ const Printrbot = function (app) {
         vid: 0x16C0,
         pid: 0x0483,
       },
+      {
+        vid: 0x2974,
+        pid: 0x0620,
+      },
     ],
     baudrate: 230400,
   });
