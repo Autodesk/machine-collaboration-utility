@@ -86,7 +86,7 @@ gulp.task(
 
     const nodemonArgs = {
       script: 'server/index.js',
-      nodeArgs: ['--debug'],
+      // nodeArgs: ['--debug'],
       ignore: ['./uploads'],
     };
 

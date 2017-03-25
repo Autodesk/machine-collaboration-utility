@@ -21,11 +21,16 @@ const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots
  * All commands to the bot are passed to it's queue and processed sequentially
  *
  * @param {Object} app - The parent Koa app.
- * @param {string} settings - The settings, as retreived from the database.
+ * @param {Object} inputSettings - Details about the bot which are stored and can be changed
+ * @param {Object} info - Details about the bot which are static
+ * @param {Object} commands - Functions which can be executed by the bot
  *
  */
 class Bot {
-  constructor(app, inputSettings = {}, info = {}, commands = {}) {
+  constructor(app, presets, inputSettings) {
+    this.app = app;
+    this.logger = app.context.logger;
+
     this.queue = undefined;
     this.currentJob = undefined;
     this.lr = undefined; // buffered file line reader
@@ -45,16 +50,25 @@ class Bot {
       },
     };
 
-    this.settings = inputSettings;
+    // Since we will edit settings, we want a clone of the default settings
+    this.settings = Object.assign({}, presets.settings);
+    _.extend(this.settings, inputSettings);
+
     if (this.settings.uuid === undefined) {
       this.settings.uuid = uuidGenerator();
     }
 
-    this.info = info;
+    this.info = presets.info;
 
-    this.commands = commands;
+    this.commands = presets.commands;
 
-    this.fsm = StateMachine.create({
+    this.fsm = this.createStateMachine();
+
+    this.discover();
+  }
+
+  createStateMachine() {
+    const fsm = StateMachine.create({
       initial: 'uninitialized',
       error: (one, two) => {
         const errorMessage = `Invalid ${this.settings.name} bot state change action "${one}". State at "${two}".`;
@@ -77,8 +91,7 @@ class Bot {
         },
       },
     });
-
-    this.discover();
+    return fsm;
   }
 
   /*
@@ -89,10 +102,10 @@ class Bot {
     return {
       state: (this.fsm !== undefined && this.fsm.current !== undefined) ? this.fsm.current : 'unavailable',
       status: this.status,
-      port: this.port,
       settings: this.settings,
-      subscribers: this.subscribers,
       info: this.info,
+      port: this.port,
+      subscribers: this.subscribers,
       currentJob,
     };
   }
@@ -170,6 +183,7 @@ class Bot {
       throw new Error(`Command ${command} not supported.`);
     }
 
+    // TODO Consider always returning get bot plus any info or error, instead
     try {
       const reply = await commandObj(this, params);
       return reply;

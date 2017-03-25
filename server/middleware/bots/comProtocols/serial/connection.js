@@ -145,7 +145,6 @@ var SerialConnection = function(
         } else {
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
-              console.log('data', data);
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
                 that.serialLogger.log('read', data);
               }

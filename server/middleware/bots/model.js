@@ -4,8 +4,8 @@ const bwait = require('asyncawait/await');
 
 module.exports = bsync((app) => {
   const BotModel = app.context.db.define('Bot', {
-    model: Sequelize.STRING,
     name: Sequelize.STRING,
+    model: Sequelize.STRING,
     uuid: Sequelize.UUID,
 
     // The identifier is either an ip address endpoint or a pnpid

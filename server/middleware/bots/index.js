@@ -1,9 +1,9 @@
 const router = require('koa-router')();
 const fs = require('fs-promise');
 const path = require('path');
-const walk = require('fs-walk');
-const _ = require('underscore');
 const Promise = require('bluebird');
+const walk = Promise.promisify(require('fs-walk').walkSync);
+const _ = require('lodash');
 
 const botsRoutes = require('./routes');
 const botModel = require('./model');
@@ -44,7 +44,7 @@ class Bots {
   async initialize() {
     try {
       // Set up the router
-      await this.loadBotPresets();
+      this.loadBotPresetList();
       await this.setupRouter();
 
       // Set up the bot database model
@@ -166,26 +166,25 @@ class Bots {
     // });
   }
 
-  async loadBotPresets () {
-    const botsPresetsPath = path.join(__dirname, '../../../bots');
-    walk.walkSync(botsPresetsPath, (basedir, filename, stat) => {
+  loadBotPresetList () {
+    const botsPresetListPath = path.join(__dirname, '../../../bots');
+    walk(botsPresetListPath, (basedir, filename, stat) => {
       if (stat.isDirectory()) {
+        return;
+      }
+      if (!filename.includes('.bot.js')) {
         return;
       }
       const presetType = filename.split('.')[0];
       const presetPath = `${basedir}/${filename}`;
-      const BotPresetClass = require(presetPath);
-      this.botPresetList[presetType] = BotPresetClass;
-      this.botSettingList[presetType] = new BotPresetClass(this.app);
+      const BotPreset = require(presetPath);
+
+      this.botPresetList[presetType] = BotPreset;
+    })
+    .catch(err => {
+      this.logger.error('Error loading bot preset list', err);
     });
-    // const botPresets = bwait(fs.readdir(botsPresetsPath));
-    // for (const botPresetFile of botPresets) {
-    //   const presetType = botPresetFile.split('.')[0];
-    //   const presetPath = `${botsPresetsPath}/${botPresetFile}`;
-    //   const BotPresetClass = require(presetPath);
-    //   this.botPresetList[presetType] = BotPresetClass;
-    //   this.botSettingList[presetType] = new BotPresetClass(this.app);
-    // }
+
     this.logger.info('done loading presets');
   }
 
@@ -213,7 +212,7 @@ class Bots {
       inputSettings.model === undefined ||
       this.botPresetList[inputSettings.model] === undefined
     ) ?
-    this.botPresetList['DefaultBot'] :
+    this.botPresetList['Default'] :
     this.botPresetList[inputSettings.model];
     // Mixin all input settings into the bot object
     const newBot = new Bot(this.app, botPresets, inputSettings);
@@ -277,7 +276,7 @@ class Bots {
   */
   getBots() {
     const filteredBots = {};
-    for (const [botKey, bot] of _.pairs(this.botList)) {
+    for (const [botKey, bot] of _.entries(this.botList)) {
       filteredBots[botKey] = bot.getBot();
     }
     return filteredBots;
@@ -290,13 +289,21 @@ class Bots {
     return this.botList[uuid].getBot();
   }
 
+  // Return the list, but only the info and settings. no commands
   getBotPresets() {
-    return this.botSettingList;
+    const presetList = {};
+    _.entries(this.botPresetList).forEach(([presetKey, preset]) => {
+      presetList[presetKey] = {
+        info: preset.info,
+        settings: preset.settings,
+      };
+    });
+    return presetList;
   }
 
   findBotByName(name) {
     let botByName = undefined;
-    for (const [botKey, bot] of _.pairs(this.botList)) {
+    for (const [botKey, bot] of _.entries(this.botList)) {
       if (bot.settings.name === name) {
         botByName = bot;
         break;
@@ -310,7 +317,7 @@ class Bots {
   // return the first connected bot
   soloBot() {
     let uuid = undefined;
-    for (const [botKey, bot] of _.pairs(this.botList)) {
+    for (const [botKey, bot] of _.entries(this.botList)) {
       if (bot.fsm.current !== 'unavailable') {
         uuid = bot.settings.uuid;
         break;

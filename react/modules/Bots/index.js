@@ -4,7 +4,7 @@ import FormGroup from 'react-bootstrap/lib/FormGroup';
 import Radio from 'react-bootstrap/lib/Radio';
 import Button from 'react-bootstrap/lib/Button';
 import request from 'superagent';
-import _ from 'underscore';
+import _ from 'lodash';
 
 import Bot from './Bot';
 import NavLink from '../NavLink';
@@ -23,7 +23,7 @@ export default class Bots extends React.Component {
     this.state = {
       showModal: false,
       selectedBot: this.findSelectedBot(props),
-      selectedPreset: props.botPresets['Virtual'],
+      selectedPreset: props.botPresets['Default'],
     };
   }
 
@@ -66,7 +66,7 @@ export default class Bots extends React.Component {
     const botLinkList = [];
     botLinkList.push(<Button key="createBot" className="add-bot" onClick={this.toggleModal}>+</Button>);
 
-    const botListArray = _.pairs(this.props.bots);
+    const botListArray = _.entries(this.props.bots);
 
     // Sort the bots alphabetically, but capital letters go before lower case letters
     botListArray.sort((a, b) => {
@@ -94,7 +94,7 @@ export default class Bots extends React.Component {
   }
 
   createPresetList() {
-    const options = _.pairs(this.props.botPresets).map(([botPresetKey, botPreset]) => {
+    const options = _.entries(this.props.botPresets).map(([botPresetKey, botPreset]) => {
       switch (botPreset.info.connectionType) {
         case undefined:
         case 'serial':
@@ -127,47 +127,44 @@ export default class Bots extends React.Component {
   }
 
   createNewBotForm() {
-    return (<div>
+    try {
+      return (<div>
 
-      <input type="hidden" name={'model'} value={this.state.selectedPreset.settings.model} />
+        <input type="hidden" name={'model'} value={this.state.selectedPreset.settings.model} />
 
-      <label htmlFor={'name'}>Name</label>
-      <input onChange={this.updateText} type="textarea" name={'name'} value={this.state.selectedPreset.settings.name} />
-      <br/>
+        <label htmlFor={'name'}>Name</label>
+        <input onChange={this.updateText} type="textarea" name={'name'} value={this.state.selectedPreset.settings.name} />
+        <br/>
 
-      {this.renderEndpoint(this.state.selectedPreset.info.connectionType)}
+        {this.renderEndpoint(this.state.selectedPreset.info.connectionType)}
 
-      <label htmlFor={'jogXSpeed'}>Jog Speed X</label>
-      <input onChange={this.updateText} type="textarea" name={'jogXSpeed'} value={this.state.selectedPreset.settings.jogXSpeed} />
-      <br/>
+        <label htmlFor={'jogXSpeed'}>Jog Speed X</label>
+        <input onChange={this.updateText} type="textarea" name={'jogXSpeed'} value={this.state.selectedPreset.settings.jogXSpeed} />
+        <br/>
 
-      <label htmlFor={'jogYSpeed'}>Jog Speed Y</label>
-      <input onChange={this.updateText} type="textarea" name={'jogYSpeed'} value={this.state.selectedPreset.settings.jogYSpeed} />
-      <br/>
+        <label htmlFor={'jogYSpeed'}>Jog Speed Y</label>
+        <input onChange={this.updateText} type="textarea" name={'jogYSpeed'} value={this.state.selectedPreset.settings.jogYSpeed} />
+        <br/>
 
-      <label htmlFor={'jogZSpeed'}>Jog Speed Z</label>
-      <input onChange={this.updateText} type="textarea" name={'jogZSpeed'} value={this.state.selectedPreset.settings.jogZSpeed} />
-      <br/>
+        <label htmlFor={'jogZSpeed'}>Jog Speed Z</label>
+        <input onChange={this.updateText} type="textarea" name={'jogZSpeed'} value={this.state.selectedPreset.settings.jogZSpeed} />
+        <br/>
 
-      <label htmlFor={'jogESpeed'}>Jog Speed E</label>
-      <input onChange={this.updateText} type="textarea" name={'jogESpeed'} value={this.state.selectedPreset.settings.jogESpeed} />
-      <br/>
+        <label htmlFor={'jogESpeed'}>Jog Speed E</label>
+        <input onChange={this.updateText} type="textarea" name={'jogESpeed'} value={this.state.selectedPreset.settings.jogESpeed} />
+        <br/>
 
-      <label htmlFor={'tempE'}>Default Extruder Temp</label>
-      <input onChange={this.updateText} type="textarea" name={'tempE'} value={this.state.selectedPreset.settings.tempE} />
-      <br/>
+        <label htmlFor={'tempE'}>Default Extruder Temp</label>
+        <input onChange={this.updateText} type="textarea" name={'tempE'} value={this.state.selectedPreset.settings.tempE} />
+        <br/>
 
-      <label htmlFor={'tempB'}>Default Bed Temp</label>
-      <input onChange={this.updateText} type="textarea" name={'tempB'} value={this.state.selectedPreset.settings.tempB} />
-      <br/>
-
-      <input type="hidden" name={'speedRatio'} value={this.state.selectedPreset.settings.speedRatio} />
-      <input type="hidden" name={'eRatio'} value={this.state.selectedPreset.settings.eRatio} />
-      <input type="hidden" name={'offsetX'} value={this.state.selectedPreset.settings.offsetX} />
-      <input type="hidden" name={'offsetY'} value={this.state.selectedPreset.settings.offsetY} />
-      <input type="hidden" name={'offsetZ'} value={this.state.selectedPreset.settings.offsetZ} />
-
-    </div>);
+        <label htmlFor={'tempB'}>Default Bed Temp</label>
+        <input onChange={this.updateText} type="textarea" name={'tempB'} value={this.state.selectedPreset.settings.tempB} />
+        <br/>
+      </div>);
+    } catch (ex) {
+      return '';
+    }
   }
 
   addBot(event) {
@@ -184,11 +181,6 @@ export default class Bots extends React.Component {
     .send({ jogESpeed: parseInt(event.target.jogESpeed.value, 10) })
     .send({ tempE: parseInt(event.target.tempE.value, 10) })
     .send({ tempB: parseInt(event.target.tempB.value, 10) })
-    .send({ speedRatio: Number(event.target.speedRatio.value).toPrecision(5) })
-    .send({ eRatio: Number(event.target.eRatio.value).toPrecision(5) })
-    .send({ offsetX: Number(event.target.offsetX.value).toPrecision(5) })
-    .send({ offsetY: Number(event.target.offsetY.value).toPrecision(5) })
-    .send({ offsetZ: Number(event.target.offsetZ.value).toPrecision(5) })
     .set('Accept', 'application/json')
     .end();
   }
