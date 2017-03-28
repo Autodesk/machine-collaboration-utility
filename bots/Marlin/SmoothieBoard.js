@@ -181,6 +181,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
                 break;
               }
               default: {
+                self.lr.resume();
                 self.logger.error('Unknown comment', conductorCommentResult);
                 break;
               }
@@ -286,13 +287,13 @@ const SmoothieBoard = function SmoothieBoard(app) {
               const commandArray = [];
               commandArray.push('G92 E0');
               commandArray.push('G1 E-2 F3000'); // Retract
-              if (zPosition < 400) {
+              if (zPosition < 500) {
                 commandArray.push(`G1 Z${(zPosition + parkLift).toFixed(2)} F1000`);
               }
               if (Number(yPosition - self.settings.offsetY) > 0) {
                 commandArray.push('G1 Y' + (0 + Number(self.settings.offsetY) ).toFixed(2) + ' F10000'); // Scrub
               }
-              commandArray.push('G1 Y' + (-40.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Drag Y across the purge
+              commandArray.push('G1 Y' + (-50.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Drag Y across the purge
               commandArray.push('M400'); // Clear motion buffer before saying we're done
               commandArray.push({
                 postCallback: () => {
