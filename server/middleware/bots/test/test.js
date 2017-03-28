@@ -1,6 +1,6 @@
 /* global describe, it */
 const should = require('should');
-const _ = require('underscore');
+const _ = require('lodash');
 const request = require('request-promise');
 const fs = require('fs-promise');
 const path = require('path');
@@ -611,8 +611,8 @@ module.exports = function botsTests() {
     });
 
     it('should complete printing a .esh file', async function() {
-      this.timeout(60000);
-      await Promise.delay(50000);
+      this.timeout(80000);
+      await Promise.delay(70000);
 
       const getJobReply = await request({
         method: 'GET',
@@ -718,7 +718,7 @@ module.exports = function botsTests() {
 
       const finalBots = getBotsReply.data;
       const botRemovalPromises = [];
-      for (const [botKey, bot] of _.pairs(finalBots)) {
+      for (const [botKey, bot] of _.entries(finalBots)) {
         // If the bot can't be found in the initial list of bots
         // Then delete the bot
         if (initialBots[botKey] === undefined) {

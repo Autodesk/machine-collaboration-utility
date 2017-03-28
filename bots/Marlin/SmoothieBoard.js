@@ -1,4 +1,4 @@
-const _ = require('underscore');
+const _ = require('lodash');
 const Promise = require('bluebird');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');

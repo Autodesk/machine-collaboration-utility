@@ -4,7 +4,7 @@ const fs = require('fs-promise');
 const walk = require('fs-walk');
 const uuidGenerator = require('uuid/v4');
 const winston = require('winston');
-const _ = require('underscore');
+const _ = require('lodash');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 
@@ -173,7 +173,7 @@ Files.prototype.createFile = bsync(function createFile(file, userPath, userUuid)
  */
 Files.prototype.getFiles = function getFiles() {
   const fileList = {};
-  _.pairs(this.fileList).forEach(([fileKey, file]) => {
+  _.entries(this.fileList).forEach(([fileKey, file]) => {
     fileList[fileKey] = file;
   });
   return fileList;

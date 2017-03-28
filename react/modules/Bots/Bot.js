@@ -5,7 +5,7 @@ import Tab from 'react-bootstrap/lib/Tab';
 import Tabs from 'react-bootstrap/lib/Tabs';
 import request from 'superagent';
 import { Link } from 'react-router';
-import _ from 'underscore';
+import _ from 'lodash';
 
 import Dashboard from './Dashboard';
 import Terminal from './Terminal';

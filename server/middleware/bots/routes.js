@@ -1,5 +1,5 @@
 const Response = require('../helpers/response');
-const _ = require('underscore');
+const _ = require('lodash');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 
@@ -184,7 +184,7 @@ const processBotCommand = (self) => {
       }
 
       const params = {};
-      for (const [paramKey, param] of _.pairs(ctx.request.body)) {
+      for (const [paramKey, param] of _.entries(ctx.request.body)) {
         if (paramKey !== 'command') {
           params[paramKey] = param;
         }

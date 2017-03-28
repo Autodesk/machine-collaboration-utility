@@ -212,7 +212,7 @@ class Bots {
       inputSettings.model === undefined ||
       this.botPresetList[inputSettings.model] === undefined
     ) ?
-    this.botPresetList['Default'] :
+    this.botPresetList['Virtual'] :
     this.botPresetList[inputSettings.model];
     // Mixin all input settings into the bot object
     const newBot = new Bot(this.app, botPresets, inputSettings);

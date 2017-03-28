@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const StateMachine = require('javascript-state-machine');
-const _ = require('underscore');
+const _ = require('lodash');
 const request = require('request-promise');
 const uuidGenerator = require('uuid/v4');
 const ip = require('ip');
@@ -31,39 +31,19 @@ class Bot {
     this.app = app;
     this.logger = app.context.logger;
 
-    this.queue = undefined;
-    this.currentJob = undefined;
-    this.lr = undefined; // buffered file line reader
-    this.currentLine = undefined;
-    this.isDry = false;  // keep track of if we need to purge
-
-    // TODO allow the bot model to determine the status variables
-    this.status = {
-      sensors: {
-        t0: undefined,
-      },
-      position: {
-        x: undefined,
-        y: undefined,
-        z: undefined,
-        e: undefined,
-      },
-    };
-
     // Since we will edit settings, we want a clone of the default settings
     this.settings = Object.assign({}, presets.settings);
     _.extend(this.settings, inputSettings);
-
-    if (this.settings.uuid === undefined) {
-      this.settings.uuid = uuidGenerator();
-    }
+    // Add a UUID if one doesn't exist yet
+    this.settings.uuid = this.settings.uuid || uuidGenerator();
 
     this.info = presets.info;
 
     this.commands = presets.commands;
 
-    this.fsm = this.createStateMachine();
+    this.commands.initialize(this);
 
+    this.fsm = this.createStateMachine();
     this.discover();
   }
 
@@ -119,7 +99,7 @@ class Bot {
     // we don't throw an error, we just ignore them
     const settingsToUpdate = {};
 
-    _.pairs(newSettings).forEach(([settingKey, settingValue]) => {
+    _.entries(newSettings).forEach(([settingKey, settingValue]) => {
       if (this.settings[settingKey] !== undefined) {
         settingsToUpdate[settingKey] = settingValue;
       }
@@ -147,7 +127,7 @@ class Bot {
     }
 
     // pass the new settings to the bot's setting object
-    _.pairs(settingsToUpdate).forEach(([settingKey, settingValue]) => {
+    _.entries(settingsToUpdate).forEach(([settingKey, settingValue]) => {
       if (this.settings[settingKey] !== undefined) {
         this.settings[settingKey] = settingValue;
       }

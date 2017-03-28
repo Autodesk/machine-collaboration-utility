@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs-promise');
 const LineByLineReader = require('line-by-line');
 
 const setupFileExecutor = async function setupFileExecutor(self) {

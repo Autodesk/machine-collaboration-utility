@@ -1,6 +1,6 @@
 import React from 'react';
 import request from 'superagent';
-import _ from 'underscore';
+import _ from 'lodash';
 
 export default class PositionFeedback extends React.Component {
   constructor(props) {

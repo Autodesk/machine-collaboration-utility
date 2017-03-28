@@ -3,7 +3,7 @@
  *
  * A class to manage opening, maintaining, and closing an http connection.
  ******************************************************************************/
-var _ = require('underscore'),
+var _ = require('lodash'),
     Heartbeat = require('heartbeater');
 let logger;
 

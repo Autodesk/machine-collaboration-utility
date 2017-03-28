@@ -8,7 +8,7 @@ if (process.env.NODE_ENV !== 'test') {
   SerialPort = require('serialport');
 }
 
-const _ = require('underscore');
+const _ = require('lodash');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 
@@ -60,7 +60,7 @@ UsbDiscovery.prototype.initialize = bsync(function initialize() {
     SerialPort.list(bsync((err, ports) => {
       ports = ports.map(this.substituteSerialNumberForPnpId);
       // Go through every known port
-      for (const [portKey, listedPort] of _.pairs(self.ports)) {
+      for (const [portKey, listedPort] of _.entries(self.ports)) {
         const foundPort = ports.find((port) => {
           return (
             port.comName === listedPort.comName &&
@@ -119,7 +119,7 @@ UsbDiscovery.prototype.detectPort = bsync(function detectPort(port) {
   const vid = parseInt(port.vendorId, 16);
   const pid = parseInt(port.productId, 16);
 
-  for (const [botPresetKey, botPresets] of _.pairs(this.app.context.bots.botSettingList)) {
+  for (const [botPresetKey, botPresets] of _.entries(this.app.context.bots.botSettingList)) {
     if (botPresets.info.connectionType === 'serial') {
       for (const vidPid of botPresets.info.vidPid) {
         // Don't process a greedy, undefined vid pid

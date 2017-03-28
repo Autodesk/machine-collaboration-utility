@@ -1,6 +1,6 @@
 const Response = require('../helpers/response');
 const Promise = require('bluebird');
-const _ = require('underscore');
+const _ = require('lodash');
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
 
@@ -38,7 +38,7 @@ const deleteAllJobs = (self) => {
   self.router.delete(`${self.routeEndpoint}/all/`, bsync((ctx) => {
     try {
       bwait(Promise.map(
-        _.pairs(self.jobList),
+        _.entries(self.jobList),
         bsync(([jobKey, job]) => {
           bwait(self.deleteJob(jobKey));
         }),

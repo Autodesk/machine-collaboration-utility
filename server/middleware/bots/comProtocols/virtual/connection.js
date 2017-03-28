@@ -6,7 +6,7 @@
  * stream following open so that we settle into a clean state to match commands
  * with responses.
  ******************************************************************************/
-const _ = require('underscore');
+const _ = require('lodash');
 const delay = require('bluebird').delay;
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');

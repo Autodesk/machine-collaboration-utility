@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const _ = require('underscore');
+const _ = require('lodash');
 const LineByLineReader = Promise.promisifyAll(require('line-by-line'));
 const fs = require('fs');
 const bsync = require('asyncawait/async');

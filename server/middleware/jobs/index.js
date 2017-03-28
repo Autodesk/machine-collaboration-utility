@@ -1,7 +1,7 @@
 const router = require('koa-router')();
 const bsync = require('asyncawait/async');
 const bwait = require('asyncawait/await');
-const _ = require('underscore');
+const _ = require('lodash');
 
 const jobsRouter = require('./routes');
 const Job = require('./job');
@@ -190,7 +190,7 @@ Jobs.prototype.getJob = function getJob(jobUuid) {
  */
 Jobs.prototype.getJobs = function getJobs() {
   const jobList = {};
-  _.pairs(this.jobList).map(([jobKey, job]) => {
+  _.entries(this.jobList).map(([jobKey, job]) => {
     jobList[jobKey] = job.getJob();
   });
   return jobList;

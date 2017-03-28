@@ -6,7 +6,7 @@
  * stream following open so that we settle into a clean state to match commands
  * with responses.
  ******************************************************************************/
-var _ = require('underscore'),
+var _ = require('lodash'),
     Heartbeat = require('heartbeater');
 
 if (process.env.NODE_ENV !== 'test') {

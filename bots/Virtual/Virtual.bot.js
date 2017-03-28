@@ -6,22 +6,23 @@ const path = require('path');
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
-const discover = require('./commands/discover.command.js');
-const connect = require('./commands/connect.command.js');
-const disconnect = require('./commands/disconnect.command.js');
-const startJob = require('./commands/startJob.command.js');
-const pause = require('./commands/pause.command.js');
-const resume = require('./commands/resume.command.js');
-const cancel = require('./commands/cancel.command.js');
-const park = require('./commands/park.command.js');
-const unpark = require('./commands/unpark.command.js');
-const toggleUpdater = require('./commands/toggleUpdater.command.js');
-const updateRoutine = require('./commands/updateRoutine.command.js');
-const jog = require('./commands/jog.command.js');
-const processGcode = require('./commands/processGcode.command.js');
-const addSubscriber = require('./commands/addSubscriber.command.js');
-const updateCollaboratorCheckpoints = require('./commands/updateCollaboratorCheckpoints.command.js');
-const unplug = require('./commands/unplug.command.js')
+const initialize = require('./commands/initialize');
+const discover = require('./commands/discover');
+const connect = require('./commands/connect');
+const disconnect = require('./commands/disconnect');
+const startJob = require('./commands/startJob');
+const pause = require('./commands/pause');
+const resume = require('./commands/resume');
+const cancel = require('./commands/cancel');
+const park = require('./commands/park');
+const unpark = require('./commands/unpark');
+const toggleUpdater = require('./commands/toggleUpdater');
+const updateRoutine = require('./commands/updateRoutine');
+const jog = require('./commands/jog');
+const processGcode = require('./commands/processGcode');
+const addSubscriber = require('./commands/addSubscriber');
+const updateCollaboratorCheckpoints = require('./commands/updateCollaboratorCheckpoints');
+const unplug = require('./commands/unplug');
 
 const info = {
   connectionType: 'virtual',
@@ -45,6 +46,7 @@ const settings = {
 };
 
 const commands = {
+  initialize,
   discover,
   connect,
   disconnect,
