@@ -163,21 +163,24 @@ const SmoothieBoard = function SmoothieBoard(app) {
               }
               case 'DRY': {
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  self.serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
+                  serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
                 }
 
                 const dry = conductorCommentResult[2].toLowerCase() === 'true';
 
-                // If the printer is currently parked, then purge and unpark it
-                self.queue.queueCommands({
-                  code: 'M400',
-                  postCallback: () => {
-                    if (self.fsm.current === 'parkedJob') {
-                      self.commands.unpark(self, { dry });
-                    }
-                    self.lr.resume();
-                  },
-                });
+                if (!dry) {
+                  self.queue.queueCommands({
+                    code: 'M400',
+                    postCallback: () => {
+                      if (self.fsm.current === 'parkedJob') {
+                        self.commands.unpark(self);
+                      }
+                      self.lr.resume();
+                    },
+                  });
+                } else {
+                  self.lr.resume();
+                }
                 break;
               }
               default: {
