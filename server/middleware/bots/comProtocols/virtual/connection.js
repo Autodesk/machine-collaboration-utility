@@ -130,8 +130,10 @@ VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
     // TODO add GCODE Validation regex
     // Add a line break if it isn't in there yet
 
+    console.log('Sent: ', gcode);
     this.bot.sendGcode(gcode)
     .then(reply => {
+      console.log('Reply:', reply);
       this.processData(reply);
     });
 

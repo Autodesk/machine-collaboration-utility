@@ -7,6 +7,9 @@ const processingJob = [
   'parking',
   'parked',
   'unparking',
+  'parkedPausing',
+  'parkedPaused',
+  'parkedResume',
 ];
 
 const connected = [
@@ -58,8 +61,11 @@ const fsmEvents = [
   { from: 'pausing',             to: 'paused',              name: 'pauseDone'          },
   { from: 'paused',              to: 'resuming',            name: 'resume'             },
   { from: 'resuming',            to: 'executingJob',        name: 'resumeDone'         },
-  { from: 'parking',             to: 'parked',              name: 'park'               },
+  { from: 'parking',             to: 'parked',              name: 'parkDone'           },
   { from: 'parked',              to: 'unparking',           name: 'unpark'             },
+  { from: 'parked',              to: 'parkedPausing',       name: 'parkedPause'        },
+  { from: 'parkedPausing',       to: 'parkedPaused',        name: 'parkedPauseDone'    },
+  { from: 'parkedPaused',        to: 'parked',              name: 'parkedResume'       },
   { from: 'unparking',           to: 'executingJob',        name: 'unparkDone'         },
 
   // META STATE events

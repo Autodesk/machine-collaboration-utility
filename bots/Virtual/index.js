@@ -30,7 +30,7 @@ const info = {
 };
 
 const settings = {
-  model: __filename.split(`${__dirname}/`)[1].split('.bot.js')[0],
+  model: __dirname.split('/')[__dirname.split('/').length - 1],
   name: 'Virtual Bot',
   endpoint: false,
   jogXSpeed: 2000,

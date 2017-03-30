@@ -11,15 +11,13 @@ module.exports = async function pause(self, params) {
 
   const commandArray = [];
 
-  // Pause the bot
-  console.log('paused the bot', self.settings.name);
-  self.fsm.pause();
-
   // Pause the job
   commandArray.push({
-    postCallback: async () => {
-      console.log('paused the job');
-      await self.currentJob.pause();
+    postCallback: () => {
+      self.fsm.pause();
+      console.log('pausing job', self.currentJob.getJob());
+      self.currentJob.pause();
+      console.log('paused job', self.currentJob.getJob());
     },
   });
 
@@ -29,7 +27,6 @@ module.exports = async function pause(self, params) {
   // confirm the bot is now paused
   commandArray.push({
     postCallback: () => {
-      console.log('pause done');
       self.fsm.pauseDone();
     },
   });

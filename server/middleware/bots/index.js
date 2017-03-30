@@ -2,7 +2,6 @@ const router = require('koa-router')();
 const fs = require('fs-promise');
 const path = require('path');
 const Promise = require('bluebird');
-const walk = Promise.promisify(require('fs-walk').walkSync);
 const _ = require('lodash');
 
 const botsRoutes = require('./routes');
@@ -44,7 +43,7 @@ class Bots {
   async initialize() {
     try {
       // Set up the router
-      this.loadBotPresetList();
+      await this.loadBotPresetList();
       await this.setupRouter();
 
       // Set up the bot database model
@@ -145,47 +144,21 @@ class Bots {
     });
   }
 
-  /*
-  * Scan through and initialize every discovery type
-  */
-  async setupComProtocols () {
-    // const comProtocolDirectory = path.join(__dirname, './comProtocols');
-    // const comProtocolTypes = bwait(fs.readdir(comProtocolDirectory));
-    // discoveryTypes.forEach((discoveryFile) => {
-    //   // Scan through all of the comProtocol types.
-    //   if (discoveryFile.includes('.map') || !discoveryFile.includes('executor')) {
-    //     return;
-    //   }
-
-    //   const comType = discoveryFile.split('.')[0];
-    //   const discoveryPath = path.join(__dirname, `./discovery/${discoveryFile}`);
-    //   const DiscoveryClass = require(discoveryPath);
-    //   const discoveryObject = new DiscoveryClass(this.app);
-    //   discoveryObject.initialize();
-    //   this.logger.info(`${discoveryType} discovery initialized`);
-    // });
-  }
-
-  loadBotPresetList () {
-    const botsPresetListPath = path.join(__dirname, '../../../bots');
-    walk(botsPresetListPath, (basedir, filename, stat) => {
-      if (stat.isDirectory()) {
-        return;
-      }
-      if (!filename.includes('.bot.js')) {
-        return;
-      }
-      const presetType = filename.split('.')[0];
-      const presetPath = `${basedir}/${filename}`;
-      const BotPreset = require(presetPath);
-
-      this.botPresetList[presetType] = BotPreset;
-    })
-    .catch(err => {
-      this.logger.error('Error loading bot preset list', err);
+  async loadBotPresetList () {
+    const botDirectory = path.join(process.env.PWD, './bots');
+    const files = await fs.readdir(botDirectory);
+    const botPresets = await Promise.filter(files, async (file) => {
+      const stat = await fs.stat(path.join(botDirectory, file));
+      return stat.isDirectory();
     });
 
-    this.logger.info('done loading presets');
+    botPresets.forEach(botPreset => {
+      const presetPath = path.join(botDirectory, botPreset);
+      const BotPreset = require(presetPath);
+      this.botPresetList[botPreset] = BotPreset;
+    });
+
+    this.logger.info('Done loading presets');
   }
 
 
@@ -225,6 +198,7 @@ class Bots {
       event: 'new',
       data: newBot.getBot(),
     });
+
     return newBot;
   }
 

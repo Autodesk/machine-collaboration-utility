@@ -14,7 +14,6 @@ module.exports = async function updateCollaboratorCheckpoints(self, params) {
     } else {
       // If the precursor is not complete, then park
       self.queue.queueCommands({
-        code: 'M400',
         postCallback: () => {
           self.commands.park(self);
         },

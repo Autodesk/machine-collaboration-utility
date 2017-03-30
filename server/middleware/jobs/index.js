@@ -99,11 +99,12 @@ Jobs.prototype.initialize = bsync(function initialize() {
  * @param {String} botUuid - The bot to be associated with the job
  * @param {String} fileUuid - The file to be associated with the job
  * @param {String} jobUuid - An option, the Job UUID can be passed by a user
+ * @param {Array} subscribers - Optionally pass an array of subscirbers updates whenever job events occur
  *
  * @returns {Object} - A new Jobs server object
  */
 Jobs.prototype.createJob = bsync(
-  function createJob(botUuid, fileUuid, jobUuid) {
+  function createJob(botUuid, fileUuid, jobUuid, subscribers) {
     // Do not allow for duplicate uuid's.
     // If you pass a uuid, you are deleting the existing job
     // Note this is a bit wreckless, consider restructuring logic
@@ -117,6 +118,7 @@ Jobs.prototype.createJob = bsync(
       botUuid,
       fileUuid,
       jobUuid,
+      subscribers,
     });
 
     const dbJob = bwait(this.JobModel.create({

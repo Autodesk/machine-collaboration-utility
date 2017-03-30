@@ -307,21 +307,21 @@ class Bot {
    *
    * Takes a gcode command and offsets per the bots settings, if a G0 or G1 command is issued
    *
-   * Args:   command - The command to be offset
-   * Return: offsetCommand - The offset command
+   * Args:   gcodeObject - The command to be offset
+   * Return: offsetObject - The offset gcode Object
    */
-  addOffset(command) {
-    let offsetCommand = command;
-    try {
-      if (offsetCommand.indexOf('G1') !== -1 || offsetCommand.indexOf('G0') !== -1) {
-        offsetCommand = this.offsetAxis(offsetCommand, 'X');
-        offsetCommand = this.offsetAxis(offsetCommand, 'Y');
-        offsetCommand = this.offsetAxis(offsetCommand, 'Z');
+  addOffset(gcodeObject) {
+    if (gcodeObject.command === 'G0' || gcodeObject.command === 'G1') {
+      if (gcodeObject.args.x) {
+        gcodeObject.args.x += Number(this.settings.offsetX);
       }
-    } catch (ex) {
-      this.logger.error('index of error on bot AddOffset', ex, command);
+      if (gcodeObject.args.y) {
+        gcodeObject.args.y += Number(this.settings.offsetY);
+      }
+      if (gcodeObject.args.z) {
+        gcodeObject.args.z += Number(this.settings.offsetZ);
+      }
     }
-    return offsetCommand;
   }
 
 

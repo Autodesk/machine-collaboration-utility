@@ -5,7 +5,7 @@ const _ = require('lodash');
 const path = require('path');
 const ip = require('ip');
 
-const VirtualBot = require('../Virtual/Virtual.bot');
+const VirtualBot = require('../Virtual');
 
 const initialize = require('./commands/initialize');
 const connect = require('./commands/connect');
@@ -31,7 +31,7 @@ const info = {
 };
 
 const settings = {
-  model: __filename.split(`${__dirname}/`)[1].split('.bot.js')[0],
+  model: __dirname.split('/')[__dirname.split('/').length - 1],
   name: 'Conductor',
   custom: {
     players: [],

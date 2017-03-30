@@ -102,6 +102,7 @@ UsbDiscovery.prototype.initialize = bsync(function initialize() {
   // Scan through all known serial ports and check if any of them are bots
   SerialPort.list((err, ports) => {
     ports = ports.map(this.substituteSerialNumberForPnpId);
+    console.log('ports!', ports);
     for (const port of ports) {
       if (port.vendorId !== undefined && port.productId !== undefined) {
         // Add each known serial port to the list
