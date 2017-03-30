@@ -163,7 +163,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
               }
               case 'DRY': {
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
+                  self.serialLogger.info('Just received a "dry" metacommand', self.fsm.current, JSON.stringify(conductorCommentResult));
                 }
 
                 const dry = conductorCommentResult[2].toLowerCase() === 'true';
