@@ -171,12 +171,13 @@ const SmoothieBoard = function SmoothieBoard(app) {
                 if (!dry) {
                   self.queue.queueCommands({
                     code: 'M400',
-                    postCallback: () => {
+                    postCallback: bsync(() => {
                       if (self.fsm.current === 'parkedJob') {
                         self.commands.unpark(self);
                       }
+                      bwait(Promise.delay(100));
                       self.lr.resume();
-                    },
+                    }),
                   });
                 } else {
                   self.lr.resume();
