@@ -193,6 +193,13 @@ const SmoothieBoard = function SmoothieBoard(app) {
               }
               bwait(self.lr.resume());
             } else {
+              if (self.fsm.current === 'parked') {
+                const yRegex = / Y[+-]?\d+(\.\d+)?/;
+                const regResult = command.match(yRegex);
+                if (regResult != undefined) {
+                  command = command.replace(yRegex, '');
+                }
+              }
               const commandArray = [];
               command = self.addOffset(command);
               command = self.addSpeedMultiplier(command);
