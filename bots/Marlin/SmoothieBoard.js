@@ -193,7 +193,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
               }
               bwait(self.lr.resume());
             } else {
-              if (self.fsm.current === 'parked') {
+              if (self.fsm.current === 'parkedJob') {
                 const yRegex = / Y[+-]?\d+(\.\d+)?/;
                 const regResult = command.match(yRegex);
                 if (regResult != undefined) {
