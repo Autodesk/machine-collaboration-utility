@@ -85,7 +85,6 @@ class Bot {
       settings: this.settings,
       info: this.info,
       port: this.port,
-      subscribers: this.subscribers,
       currentJob,
     };
   }

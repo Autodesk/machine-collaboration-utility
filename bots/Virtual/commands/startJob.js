@@ -4,34 +4,7 @@ const gcodeToObject = require('gcode-json-converter').gcodeToObject;
 const objectToGcode = require('gcode-json-converter').objectToGcode;
 const _ = require('lodash');
 const Promise = require('bluebird');
-
-async function checkPrecursors(self, params) {
-  if (
-    self.status.blocker !== undefined &&
-    self.status.blocker.bot !== undefined &&
-    self.status.blocker.checkpoint !== undefined
-  ) {
-    self.logger.info('Checking precursors for bot', self.getBot());
-    const blockingBotCurrentCheckpoint = self.status.collaborators[self.status.blocker.bot];
-    // If the precursor is complete then move on
-    if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
-      self.status.blocker = undefined;
-      self.lr.resume();
-    } else {
-      // If the precursor is not complete, then park
-      self.queue.queueCommands({
-        postCallback: () => {
-          if (self.fsm.current === 'executingJob') {
-            self.commands.park(self);
-          } else {
-            self.logger.error(`Cannot park from state "${self.fsm.current}"`);
-          }
-        },
-      });
-    }
-  }
-}
-
+const request = require('request-promise');
 
 async function processCommentTag(gcodeObject, self) {
   switch(gcodeObject.metaComment.command) {
@@ -63,7 +36,7 @@ async function processCommentTag(gcodeObject, self) {
             },
             json: true,
           };
-          console.log('updating!');
+
           await request(updateParams)
           .catch((error) => {
             self.logger.error('Conductor update fail', ex);
@@ -83,7 +56,7 @@ async function processCommentTag(gcodeObject, self) {
       const checkpoint = parseInt(gcodeObject.metaComment.args[bot]);
       self.status.blocker = { bot, checkpoint };
       self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
-      checkPrecursors(self);
+      self.commands.checkPrecursors(self);
       break;
     }
     case 'dry': {
@@ -106,7 +79,6 @@ async function processCommentTag(gcodeObject, self) {
           },
         },
       ]);
-      console.log('just queued dry commands', gcodeObject, self.fsm.current);
       break;
     }
     default: {
@@ -152,7 +124,7 @@ async function processLine(line, self) {
   }
 }
 
-async function processFileEnd(self) {
+async function processFileEnd(self, theFile) {
   self.logger.info('Completed reading file,', theFile.filePath, 'is closed now.');
   self.lr.close();
   self.queue.queueCommands({
@@ -210,7 +182,7 @@ const setupFileExecutor = async function setupFileExecutor(self) {
   });
 
   self.lr.on('end', () => {
-    processFileEnd(self);
+    processFileEnd(self, theFile);
   });
 
   self.numLines = await getNLinesInFile(theFile)
@@ -236,7 +208,9 @@ module.exports = async function startJob(self, params) {
     const jobMiddleware = self.app.context.jobs;
     const botUuid = self.settings.uuid;
     const fileUuid = params.fileUuid;
-    self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid)
+    const subscribers = params.subscribers;
+
+    self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid, null, subscribers)
     .catch(error => {
       throw new Error('Create job error', error);
     });

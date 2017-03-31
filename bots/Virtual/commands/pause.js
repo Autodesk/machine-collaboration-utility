@@ -32,6 +32,5 @@ module.exports = async function pause(self, params) {
   });
 
   self.queue.queueCommands(commandArray);
-  console.log('just queued the pause commands');
   return self.getBot();
 };

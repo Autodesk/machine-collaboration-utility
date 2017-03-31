@@ -20,7 +20,7 @@ const toggleUpdater = require('./commands/toggleUpdater');
 const updateRoutine = require('./commands/updateRoutine');
 const jog = require('./commands/jog');
 const processGcode = require('./commands/processGcode');
-const addSubscriber = require('./commands/addSubscriber');
+const checkPrecursors = require('./commands/checkPrecursors');
 const updateCollaboratorCheckpoints = require('./commands/updateCollaboratorCheckpoints');
 const unplug = require('./commands/unplug');
 
@@ -60,7 +60,7 @@ const commands = {
   updateRoutine,
   jog,
   processGcode,
-  addSubscriber,
+  checkPrecursors,
   updateCollaboratorCheckpoints,
   unplug,
 };

@@ -16,6 +16,7 @@ const resume = require('./commands/resume');
 const cancel = require('./commands/cancel');
 const updateRoutine = require('./commands/updateRoutine');
 const updateCollaborativeBotCheckpoint = require('./commands/updateCollaborativeBotCheckpoint');
+const updatePlayers = require('./commands/updatePlayers');
 const addPlayer = require('./commands/addPlayer');
 const removePlayer = require('./commands/removePlayer');
 
@@ -48,6 +49,7 @@ const commands = {
   cancel,
   updateRoutine,
   updateCollaborativeBotCheckpoint,
+  updatePlayers,
   addPlayer,
   removePlayer,
 }

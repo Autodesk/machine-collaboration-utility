@@ -108,7 +108,7 @@ Jobs.prototype.createJob = bsync(
     // Do not allow for duplicate uuid's.
     // If you pass a uuid, you are deleting the existing job
     // Note this is a bit wreckless, consider restructuring logic
-    if (this.jobList[jobUuid] !== undefined) {
+    if (jobUuid && this.jobList[jobUuid] !== undefined) {
       // Delete the job from the database and the jobs object
       bwait(this.deleteJob(jobUuid));
     }

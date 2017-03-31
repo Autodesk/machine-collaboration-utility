@@ -36,25 +36,6 @@ module.exports = async function startJob(self, params) {
   return self.getBot();
 };
 
-async function updatePlayers(self) {
-  try {
-    for (const player of self.settings.custom.players) {
-      const updatePlayerParams = {
-        method: 'POST',
-        uri: player.endpoint,
-        body: {
-          command: 'updateCollaboratorCheckpoints',
-          collaborators: self.collaboratorCheckpoints,
-        },
-        json: true,
-      };
-      const updateCollaboratorReply = await request(updatePlayerParams);
-    }
-  } catch (ex) {
-    self.logger.error(ex);
-  }
-}
-
 async function uploadAndSetupPlayerJobs(self) {
   const job = self.currentJob;
   try {
@@ -79,7 +60,7 @@ async function uploadAndSetupPlayerJobs(self) {
               self.collaboratorCheckpoints[player.name] = 0;
             }
 
-            await updatePlayers(self);
+            await self.commands.updatePlayers(self);
             self.logger.info('updated the players');
             for (const player of players) {
               // For each player we're going to upload a file, and then create a job
