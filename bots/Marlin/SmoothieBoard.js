@@ -340,12 +340,8 @@ const SmoothieBoard = function SmoothieBoard(app) {
         } else {
           self.logger.error('Cannot unpark from state', self.fsm.current);
         }
-        commandArray.push({
-          postCallback: () => {
-            self.lr.resume();
-          }
-        });
         self.queue.queueCommands(commandArray);
+        self.lr.resume();
       } catch (ex) {
         self.logger.error('unparkjob error', ex);
         if (self.fsm.current === 'unparkingJob') {
