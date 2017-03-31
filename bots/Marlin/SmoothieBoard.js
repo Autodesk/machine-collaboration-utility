@@ -322,9 +322,9 @@ const SmoothieBoard = function SmoothieBoard(app) {
     unpark: function unpark(self, params) {
       const purgeAmount = 10;
       try {
+        const commandArray = [];
         if (self.fsm.current === 'parkedJob') {
           self.fsm.unparkJob();
-          const commandArray = [];
           commandArray.push('G92 E0');
           commandArray.push('G1 E12 F100'); // Purge
           commandArray.push('G1 E10 F3000'); // Retract
@@ -334,14 +334,18 @@ const SmoothieBoard = function SmoothieBoard(app) {
           commandArray.push({
             postCallback: () => {
               self.fsm.unparkJobDone();
-              self.lr.resume();
             },
           });
           self.logger.info('unparking', JSON.stringify(commandArray));
-          self.queue.queueCommands(commandArray);
         } else {
           self.logger.error('Cannot unpark from state', self.fsm.current);
         }
+        commandArray.push({
+          postCallback: () => {
+            self.lr.resume();
+          }
+        });
+        self.queue.queueCommands(commandArray);
       } catch (ex) {
         self.logger.error('unparkjob error', ex);
         if (self.fsm.current === 'unparkingJob') {
