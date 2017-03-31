@@ -100,6 +100,9 @@ const SmoothieBoard = function SmoothieBoard(app) {
           const conductorComment = /^[\w\d\s]*; <<<(\w+)>>> (.*)$/;
           const conductorCommentResult = conductorComment.exec(line);
           if (conductorCommentResult !== null) {
+            if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+              self.serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+            }
             switch (conductorCommentResult[1]) {
               case 'PARK': {
                 self.command.park(self);
@@ -169,15 +172,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
                 const dry = conductorCommentResult[2].toLowerCase() === 'true';
 
                 if (!dry) {
-                  self.queue.queueCommands({
-                    code: 'M400',
-                    postCallback: () => {
-                      if (self.fsm.current === 'parkedJob') {
-                        self.commands.unpark(self);
-                      }
-                      // self.lr.resume();
-                    },
-                  });
+                  self.commands.unpark(self);
                 } else {
                   self.lr.resume();
                 }
@@ -341,7 +336,9 @@ const SmoothieBoard = function SmoothieBoard(app) {
           self.logger.error('Cannot unpark from state', self.fsm.current);
         }
         self.queue.queueCommands(commandArray);
+        self.logger.info('Just queued unpark commands');
         self.lr.resume();
+        self.logger.info('Just kicked off a line after unpark');
       } catch (ex) {
         self.logger.error('unparkjob error', ex);
         if (self.fsm.current === 'unparkingJob') {
