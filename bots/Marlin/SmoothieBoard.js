@@ -101,7 +101,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
           const conductorCommentResult = conductorComment.exec(line);
           if (conductorCommentResult !== null) {
             if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-              self.serialLogger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+              self.logger.info('Comment Tag', line);
             }
             switch (conductorCommentResult[1]) {
               case 'PARK': {
