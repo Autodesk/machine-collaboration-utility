@@ -171,13 +171,12 @@ const SmoothieBoard = function SmoothieBoard(app) {
                 if (!dry) {
                   self.queue.queueCommands({
                     code: 'M400',
-                    postCallback: bsync(() => {
+                    postCallback: () => {
                       if (self.fsm.current === 'parkedJob') {
                         self.commands.unpark(self);
                       }
-                      bwait(Promise.delay(100));
-                      self.lr.resume();
-                    }),
+                      // self.lr.resume();
+                    },
                   });
                 } else {
                   self.lr.resume();
@@ -297,7 +296,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
               if (Number(yPosition - self.settings.offsetY) > 0) {
                 commandArray.push('G1 Y' + (0 + Number(self.settings.offsetY) ).toFixed(2) + ' F10000'); // Scrub
               }
-              commandArray.push('G1 Y' + (-50.0 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Drag Y across the purge
+              commandArray.push('G1 Y' + (-52.5 + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Drag Y across the purge
               commandArray.push('M400'); // Clear motion buffer before saying we're done
               commandArray.push({
                 postCallback: () => {
@@ -335,6 +334,7 @@ const SmoothieBoard = function SmoothieBoard(app) {
           commandArray.push({
             postCallback: () => {
               self.fsm.unparkJobDone();
+              self.lr.resume();
             },
           });
           self.logger.info('unparking', JSON.stringify(commandArray));
