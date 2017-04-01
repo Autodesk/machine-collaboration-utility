@@ -1,8 +1,12 @@
+const path = require('path');
+const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
+
 module.exports = async function pause(self, params) {
   if (self.currentJob === undefined) {
     throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
   }
-  if (self.fsm.current !== 'executingJob') {
+  if (!botFsmDefinitions.metaStates.pausable.includes(self.fsm.current)) {
     throw new Error(`Cannot pause bot from state "${self.fsm.current}"`);
   }
   if (self.currentJob.fsm.current !== 'running') {
@@ -14,10 +18,9 @@ module.exports = async function pause(self, params) {
   // Pause the job
   commandArray.push({
     postCallback: () => {
+      self.pausableState = self.fsm.current;
       self.fsm.pause();
-      console.log('pausing job', self.currentJob.getJob());
       self.currentJob.pause();
-      console.log('paused job', self.currentJob.getJob());
     },
   });
 

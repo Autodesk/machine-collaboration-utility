@@ -13,6 +13,7 @@ module.exports = async function pause(self, params) {
   }
 
   try {
+    self.pausableState = self.fsm.current;
     self.fsm.pause();
     const players = self.settings.custom.players;
     for (const player of players) {

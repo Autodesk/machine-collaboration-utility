@@ -1,12 +1,20 @@
 const delay = require('bluebird').delay;
 
 module.exports = function park(self, params) {
-  if (self.fsm.current !== 'executingJob') {
-    throw new Error(`Cannot park from state "${self.fsm.current}"`);
-  }
-
-  self.fsm.park();
   try {
+    // idempotent
+    if (self.fsm.current === 'parked' || self.fsm.current === 'parking') {
+      return self.getBot();
+    } else {
+      console.log('ok bud', self.fsm.current);
+    }
+
+    if (self.fsm.current !== 'executingJob') {
+      throw new Error(`Cannot park from state "${self.fsm.current}"`);
+    }
+
+    self.fsm.park();
+
     const commandArray = ['M400'];
     commandArray.push({
       postCallback: async () => {

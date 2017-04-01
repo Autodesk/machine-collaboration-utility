@@ -3,7 +3,12 @@ module.exports = function initialize(self, params) {
   self.currentJob = undefined;
   self.lr = undefined; // buffered file line reader
   self.currentLine = undefined;
-  self.isDry = false;  // keep track of if we need to purge
+
+  // placeholder for storing which possible state to return to after pausing
+  self.pausableState = undefined;
+
+  // placeholder for storing which possible state to return to after receiving a job warning
+  self.jobWarningState = undefined;
 
   self.status = {
     position: {

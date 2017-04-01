@@ -1,4 +1,5 @@
 const request = require('request-promise');
+const Promise = require('bluebird');
 
 module.exports = async function resume(self) {
   try {
@@ -16,7 +17,7 @@ module.exports = async function resume(self) {
     self.fsm.resume();
 
     const players = self.settings.custom.players;
-    players.forEach(async (player) => {
+    await Promise.map(players, async (player) => {
       // Ping each job for status
       const resumeParams = {
         method: 'POST',
@@ -32,7 +33,13 @@ module.exports = async function resume(self) {
     });
 
     self.currentJob.fsm.resume();
-    self.fsm.resumeDone();
+    function capitalizeFirstLetter(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    let command = 'resumeJob' + capitalizeFirstLetter(self.pausableState);
+    // Resume the bot
+    self.fsm[command]();
   } catch (ex) {
     self.logger.error(ex);
   }

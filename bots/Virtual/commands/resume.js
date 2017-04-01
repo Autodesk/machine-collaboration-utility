@@ -1,3 +1,7 @@
+const path = require('path');
+const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
+
 module.exports = function resume(self, params) {
   try {
     if (self.currentJob === undefined) {
@@ -15,6 +19,7 @@ module.exports = function resume(self, params) {
 
     commandArray.push({
       postCallback: () => {
+
         // Resume the bot
         self.fsm.resume();
         // Resume the job
@@ -28,7 +33,13 @@ module.exports = function resume(self, params) {
     // confirm the bot is now resumed
     commandArray.push({
       postCallback: () => {
-        self.fsm.resumeDone();
+        function capitalizeFirstLetter(string) {
+          return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        let command = 'resumeJob' + capitalizeFirstLetter(self.pausableState);
+        // Resume the bot
+        self.fsm[command]();
       },
     });
 

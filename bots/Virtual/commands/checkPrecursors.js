@@ -14,6 +14,11 @@ module.exports = function checkPrecursors(self, params) {
       // If the precursor is not complete, then park
       self.queue.queueCommands({
         postCallback: () => {
+          // Idempotent park
+          if (self.fsm.current === 'parked' || self.fsm.current === 'parking') {
+            return;
+          }
+
           if (self.fsm.current === 'executingJob') {
             self.commands.park(self);
           } else {
