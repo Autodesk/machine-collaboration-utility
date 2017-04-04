@@ -11,8 +11,6 @@ const Sequelize = require('sequelize');
 const router = require('koa-router')();
 const _ = require('lodash');
 const stringify = require('json-stringify-safe');
-const bsync = require('asyncawait/async');
-const bwait = require('asyncawait/await');
 const Promise = require('bluebird');
 const exec = require('child_process').exec;
 
@@ -66,7 +64,7 @@ function renderPage(appHtml, jsVariables = {}) {
   *
   * @returns {koa object} - App to be used by the server
   */
-const koaApp = bsync((config) => {
+async function koaApp(config) {
   // Setup logger
   const filename = path.join(__dirname, `../${config.logFileName}`);
   const logger = new (winston.Logger)({
@@ -103,7 +101,7 @@ const koaApp = bsync((config) => {
   // check database connection
   let err;
   try {
-    err = bwait(sequelize.authenticate());
+    err = await sequelize.authenticate();
   } catch (ex) {
     app.context.logger.error('Sequelize authentication error', ex);
   }
@@ -119,21 +117,21 @@ const koaApp = bsync((config) => {
   // add custom middleware here
   const files = new Files(app, `/${config.apiVersion}/files`);
   try {
-    bwait(files.initialize());
+    await files.initialize();
   } catch (ex) {
     app.context.logger.error('"Files" middleware initialization error', ex);
   }
 
   const jobs = new Jobs(app, `/${config.apiVersion}/jobs`);
   try {
-    bwait(jobs.initialize());
+    await jobs.initialize();
   } catch (ex) {
     app.context.logger.error('"Jobs" middleware initialization error', ex);
   }
 
   const bots = new Bots(app, `/${config.apiVersion}/bots`);
   try {
-    bwait(bots.initialize());
+    await bots.initialize();
   } catch (ex) {
     app.context.logger.error('"Bots" middleware initialization error', ex);
   }
@@ -194,6 +192,6 @@ const koaApp = bsync((config) => {
   app.context.logger.info('Machine Collaboration Utility has been initialized successfully.');
 
   return app;
-});
+}
 
 module.exports = koaApp;

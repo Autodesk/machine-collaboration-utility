@@ -5,8 +5,6 @@ module.exports = function park(self, params) {
     // idempotent
     if (self.fsm.current === 'parked' || self.fsm.current === 'parking') {
       return self.getBot();
-    } else {
-      console.log('ok bud', self.fsm.current);
     }
 
     if (self.fsm.current !== 'executingJob') {

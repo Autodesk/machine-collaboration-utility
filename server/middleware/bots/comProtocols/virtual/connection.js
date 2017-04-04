@@ -8,8 +8,6 @@
  ******************************************************************************/
 const _ = require('lodash');
 const delay = require('bluebird').delay;
-const bsync = require('asyncawait/async');
-const bwait = require('asyncawait/await');
 const MCE = require('motion-controller-emulator');
 
 const roundAxis = function roundAxis(command, axis, self) {
@@ -121,7 +119,7 @@ VirtualConnection.prototype.processData = function processData(inData) {
  * Args:   inCommandStr - string to send
  * Return: N/A
  */
-VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
+VirtualConnection.prototype.send = function send(inCommandStr) {
   let gcode = roundGcode(inCommandStr).split('\n')[0];
   let error;
   let commandSent = false;
@@ -143,7 +141,7 @@ VirtualConnection.prototype.send = bsync(function send(inCommandStr) {
   if (!commandSent) {
     // logger.error('Cannot send commands if not connected:', this.mState, error);
   }
-});
+};
 
 /**
  * close()

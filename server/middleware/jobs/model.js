@@ -1,6 +1,4 @@
 const Sequelize = require('sequelize');
-const bsync = require('asyncawait/async');
-const bwait = require('asyncawait/await');
 
 /**
  * initializeJobModel()
@@ -11,9 +9,9 @@ const bwait = require('asyncawait/await');
  *
  * @returns {Object}
  */
-const initializeJobModel = bsync((app) => {
+const initializeJobModel = async (app) => {
   // Define the model for a job
-  const JobModel = bwait(app.context.db.define('Job', {
+  const JobModel = await app.context.db.define('Job', {
     uuid: Sequelize.STRING,
     botUuid: Sequelize.STRING,
     fileUuid: Sequelize.STRING,
@@ -21,9 +19,9 @@ const initializeJobModel = bsync((app) => {
     started: Sequelize.STRING,
     elapsed: Sequelize.STRING,
     percentComplete: Sequelize.FLOAT,
-  }));
+  });
 
   return JobModel;
-});
+};
 
 module.exports = initializeJobModel;

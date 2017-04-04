@@ -2,8 +2,6 @@ const convert = require('koa-convert');
 const body = require('koa-body');
 const fs = require('fs-promise');
 const Promise = require('bluebird');
-const bsync = require('asyncawait/async');
-const bwait = require('asyncawait/await');
 
 const Response = require('../helpers/response');
 
@@ -21,7 +19,7 @@ const uploadFile = (self) => {
   self.router.post(
     `${self.routeEndpoint}/`,
     convert(body({ multipart: true, formidable: { uploadDir: self.uploadDir } })),
-    bsync((ctx) => {
+    async (ctx) => {
       const uploadedFiles = [];
       try {
         const files = ctx.request.body.files;
@@ -31,24 +29,24 @@ const uploadFile = (self) => {
         }
         // Rename each file to be its filename plus a uuid
         // Iterate through every single file in the 'files' object
-        bwait(Promise.map(
+        await Promise.map(
           Object.keys(files),
-          bsync((theFile) => {
+          async (theFile) => {
             // If multiple files are passed with the same key, they are an Array
             if (Array.isArray(files[theFile])) {
-              bwait(Promise.map(
+              await Promise.map(
                 files[theFile],
-                bsync((file) => {
-                  uploadedFiles.push(bwait(self.createFile(file)));
-                }),
+                async (file) => {
+                  uploadedFiles.push(await self.createFile(file));
+                },
                 { concurrency: 5 }
-              ));
+              );
             } else {
-              uploadedFiles.push(bwait(self.createFile(files[theFile])));
+              uploadedFiles.push(await self.createFile(files[theFile]));
             }
-          }),
+          },
           { concurrency: 5 }
-        ));
+        );
         ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, uploadedFiles);
       } catch (ex) {
@@ -56,7 +54,7 @@ const uploadFile = (self) => {
         ctx.body = new Response(ctx, requestDescription, ex);
         self.logger.error(ex);
       }
-    })
+    }
   );
 };
 
@@ -70,14 +68,14 @@ const uploadFile = (self) => {
  */
 const deleteFile = (self) => {
   const requestDescription = 'Delete File';
-  self.router.delete(self.routeEndpoint, bsync((ctx) => {
+  self.router.delete(self.routeEndpoint, async (ctx) => {
     try {
       const fileUuid = ctx.request.body.uuid;
       if (fileUuid === undefined) {
         const errorMessage = '"uuid" of file is not provided';
         throw errorMessage;
       }
-      const reply = bwait(self.deleteFile(fileUuid));
+      const reply = await self.deleteFile(fileUuid);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
@@ -85,7 +83,7 @@ const deleteFile = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 /**
@@ -98,7 +96,7 @@ const deleteFile = (self) => {
  */
 const getFiles = (self) => {
   const requestDescription = 'Get Files';
-  self.router.get(`${self.routeEndpoint}/`, bsync((ctx) => {
+  self.router.get(`${self.routeEndpoint}/`, async (ctx) => {
     try {
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, self.fileList);
@@ -107,7 +105,7 @@ const getFiles = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 /**
@@ -120,7 +118,7 @@ const getFiles = (self) => {
  */
 const getFile = (self) => {
   const requestDescription = 'Get File';
-  self.router.get(`${self.routeEndpoint}/:uuid`, bsync((ctx) => {
+  self.router.get(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       // Parse the file's uuid
       const fileUuid = ctx.params.uuid;
@@ -141,7 +139,7 @@ const getFile = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 /**
@@ -153,7 +151,7 @@ const getFile = (self) => {
  *
  */
 const downloadFile = (self) => {
-  self.router.get(`${self.routeEndpoint}/:uuid/download`, bsync((ctx) => {
+  self.router.get(`${self.routeEndpoint}/:uuid/download`, async (ctx) => {
     const requestDescription = 'Download File';
     try {
       // Parse the file's uuid
@@ -176,7 +174,7 @@ const downloadFile = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 /**
@@ -189,11 +187,11 @@ const downloadFile = (self) => {
  */
 const deleteAllFiles = (self) => {
   const requestDescription = 'Delete All Files';
-  self.router.delete(`${self.routeEndpoint}/all/`, bsync((ctx) => {
+  self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
     try {
       for (const file in self.fileList) {
         if (self.fileList.hasOwnProperty(file)) {
-          bwait(self.deleteFile(self.fileList[file].uuid));
+          await self.deleteFile(self.fileList[file].uuid);
         }
       }
       const status = 'All files deleted';
@@ -204,7 +202,7 @@ const deleteAllFiles = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 const filesRoutes = (self) => {
