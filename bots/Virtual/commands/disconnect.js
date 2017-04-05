@@ -3,9 +3,10 @@ module.exports = function disconnect(self, params) {
   try {
     self.queue.queueCommands({
       close: true,
-      postCallback: () => {
+      processData: () => {
         self.commands.toggleUpdater(self, { update: false });
         self.fsm.disconnectDone();
+        return true;
       },
     });
   } catch (ex) {

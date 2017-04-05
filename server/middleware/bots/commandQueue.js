@@ -66,7 +66,7 @@
  * command.  With no rawCode to execute, this is simply a callback sychronized
  * between commands (with the expected node event queue delays)
  ******************************************************************************/
-const _ = require('lodash');
+const _ = require('underscore');
 const Heartbeat = require('heartbeater');
 let logger;
 

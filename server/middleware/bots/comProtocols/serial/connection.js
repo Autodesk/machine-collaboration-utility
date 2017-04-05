@@ -184,8 +184,6 @@ var SerialConnection = function(
             }
         }
     });
-
-
 };
 
 

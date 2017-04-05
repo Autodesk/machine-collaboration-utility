@@ -11,18 +11,18 @@ module.exports = function park(self, params) {
       throw new Error(`Cannot park from state "${self.fsm.current}"`);
     }
 
-    self.fsm.park();
-
     const commandArray = ['M400'];
     commandArray.push({
-      postCallback: async () => {
+      processData: async () => {
+        self.fsm.park();
         console.log('parking', self.settings.name);
         await delay(1000);
         self.fsm.parkDone();
+        return true;
       },
     });
-    console.log('queueing park command');
     self.queue.queueCommands(commandArray);
+    console.log('just queued park, 1 second, park done');
   } catch (ex) {
     self.fsm.parkFail();
   }

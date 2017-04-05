@@ -18,12 +18,12 @@ module.exports = function resume(self, params) {
     const commandArray = [];
 
     commandArray.push({
-      postCallback: () => {
-
+      processData: () => {
         // Resume the bot
         self.fsm.resume();
         // Resume the job
         self.currentJob.resume();
+        return true;
       },
     });
 
@@ -32,19 +32,21 @@ module.exports = function resume(self, params) {
 
     // confirm the bot is now resumed
     commandArray.push({
-      postCallback: () => {
+      processData: () => {
         function capitalizeFirstLetter(string) {
           return string.charAt(0).toUpperCase() + string.slice(1);
         }
 
-        let command = 'resumeJob' + capitalizeFirstLetter(self.pausableState);
+        let command = 'resume' + capitalizeFirstLetter(self.pausableState);
         // Resume the bot
+        console.log('the command', command);
         self.fsm[command]();
+        self.lr.resume();
+        return true;
       },
     });
 
     self.queue.queueCommands(commandArray);
-    self.lr.resume();
   } catch (ex) {
     console.log('wtf', ex);
   }

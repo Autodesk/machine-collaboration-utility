@@ -13,10 +13,10 @@ module.exports = function checkPrecursors(self, params) {
     } else {
       // If the precursor is not complete, then park
       self.queue.queueCommands({
-        postCallback: () => {
+        processData: () => {
           // Idempotent park
           if (self.fsm.current === 'parked' || self.fsm.current === 'parking') {
-            return;
+            return true;
           }
 
           if (self.fsm.current === 'executingJob') {
@@ -24,6 +24,7 @@ module.exports = function checkPrecursors(self, params) {
           } else {
             self.logger.error(`Cannot park from state "${self.fsm.current}"`);
           }
+          return true;
         },
       });
     }

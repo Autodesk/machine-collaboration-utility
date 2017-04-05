@@ -66,16 +66,18 @@ async function processCommentTag(gcodeObject, self) {
       self.queue.queueCommands([
         'M400',
         {
-          postCallback: () => {
+          processData: () => {
             if (self.fsm.current === 'parked') {
               // should start unparking and then resume reading lines
               self.commands.unpark(self, { dry });
             }
+            return true;
           },
         },
         {
-          postCallback: () => {
+          processData: () => {
             self.lr.resume();
+            return true;
           },
         },
       ]);
@@ -110,15 +112,16 @@ async function processLine(line, self) {
 
     self.queue.queueCommands({
       code: objectToGcode(gcodeObject, { comment: false }),
-      postCallback: async () => {
+      processData: () => {
         // Note, canceling a job will clear the current job value
         if (self.currentJob) {
+          self.currentLine += 1;
+          self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
           if (self.currentJob.fsm.current === 'running') {
             self.lr.resume();
           }
-          self.currentLine += 1;
-          self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
         }
+        return true;
       },
     });
   }
@@ -128,7 +131,7 @@ async function processFileEnd(self, theFile) {
   self.logger.info('Completed reading file,', theFile.filePath, 'is closed now.');
   self.lr.close();
   self.queue.queueCommands({
-    postCallback: async () => {
+    processData: () => {
       self.currentJob.percentComplete = 100;
       self.fsm.complete();
       self.currentJob.complete();
@@ -142,6 +145,7 @@ async function processFileEnd(self, theFile) {
           data: self.getBot(),
         });
       }, 2000);
+      return true;
     },
   });
 }

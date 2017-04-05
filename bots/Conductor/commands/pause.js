@@ -1,4 +1,5 @@
 const request = require('request-promise');
+const Promise = require('bluebird');
 
 module.exports = async function pause(self, params) {
   // TODO should not be able to pause unless all players are running
@@ -16,20 +17,24 @@ module.exports = async function pause(self, params) {
     self.pausableState = self.fsm.current;
     self.fsm.pause();
     const players = self.settings.custom.players;
-    for (const player of players) {
+    await Promise.map(players, async (player) => {
       // Ping each job for status
-      const pauseJobParams = {
+      const pauseParams = {
         method: 'POST',
         uri: player.endpoint,
         body: { command: 'pause' },
         json: true,
       };
-      const pauseJobReply = await request(pauseJobParams)
+
+      const pauseReply = await request(pauseParams)
       .catch(ex => {
         self.logger.error('Pause fail', ex);
       });
-    }
-    self.currentJob.fsm.pause();
+
+      console.log('Paused bot', player, pauseReply);
+    });
+
+    self.currentJob.pause();
     self.fsm.pauseDone();
   } catch (ex) {
     self.logger.error(ex);

@@ -8,10 +8,11 @@ module.exports = function unpark(self, params) {
 
     const commandArray = [];
     commandArray.push({
-      postCallback: async() => {
+      processData: async() => {
         self.fsm.unpark();
         await delay(1000);
         self.fsm.unparkDone();
+        return true;
       },
     });
     self.queue.queueCommands(commandArray);

@@ -73,8 +73,11 @@ const VirtualConnection = function VirtualConnection(app, connectedFunc) {
   this.mDataFunc = connectedFunc;
   this.returnString = '';
 
-  this.bot.open()
+  this.bot.open(function(input) {
+    console.log('woooo!', input);
+  })
   .then(() => {
+    console.log('connected func');
     connectedFunc(this);
   });
 };
