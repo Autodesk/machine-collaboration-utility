@@ -21,9 +21,8 @@ module.exports = function cancel(self, params) {
 
     // cancel the job
     commandArray.push({
-      processData: () => {
+      postCallback: () => {
         self.currentJob.cancel();
-        return true;
       },
     });
 
@@ -32,7 +31,7 @@ module.exports = function cancel(self, params) {
 
     // confirm the bot is now canceled
     commandArray.push({
-      processData: () => {
+      postCallback: () => {
         self.fsm.cancelDone();
         self.currentJob = undefined;
         self.app.io.broadcast('botEvent', {
@@ -40,7 +39,6 @@ module.exports = function cancel(self, params) {
           event: 'update',
           data: self.getBot(),
         });
-        return true;
       },
     });
 

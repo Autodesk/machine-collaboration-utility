@@ -13,9 +13,8 @@ function checkPrecursors(self, params) {
       // If the precursor is not complete, then park
       self.queue.queueCommands({
         code: 'M400',
-        processData: () => {
+        postCallback: () => {
           self.commands.park(self);
-          return true;
         },
       });
     }

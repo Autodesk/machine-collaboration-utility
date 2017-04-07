@@ -42,10 +42,10 @@ module.exports = function updateRoutine(self, params) {
           newPosition.z = Number(Number(reply.split('Z:')[1].split('E')[0]) - Number(self.settings.offsetZ)).toFixed(3);
           newPosition.e = reply.split('E:')[1].split(' ')[0];
           self.status.position = newPosition;
-          return true;
         } catch (ex) {
           self.logger.error('Failed to set position', reply, ex);
         }
+        return true;
       },
     });
     commandArray.push({

@@ -349,7 +349,7 @@ CommandQueue.prototype.nextCommand = function () {
  * Args:   N/A
  * Return: N/A
  */
-CommandQueue.prototype.sendCommand = function () {
+CommandQueue.prototype.sendCommand = async function () {
     var command, rawCode, executorWillProcess;
 
     if (!this.mCurrentCommand) {
@@ -390,8 +390,8 @@ CommandQueue.prototype.sendCommand = function () {
         var that = this;
         var delayTimer = new Heartbeat();
         delayTimer.interval(command.delay);
-        delayTimer.add(function () {
-                that.commandProcessed(command);
+        delayTimer.add(async function () {
+                await that.commandProcessed(command);
                 delayTimer.clear();
             });
         delayTimer.start();
@@ -404,14 +404,14 @@ CommandQueue.prototype.sendCommand = function () {
         var doneFunc = _.bind(this.commandProcessed, this, command);
         this.mExecutor.execute(rawCode, dataFunc, doneFunc);
         if (command.noData) {
-            this.commandProcessed(command);
+            await this.commandProcessed(command);
         }
     } else {
         // Unless our executor will process the command response, move on.
         // open(), close() and execute() wait on the executor and execute() is
         // only called if the command has a rawCode.  delay will process the
         // command after its timeout expiration.
-        this.commandProcessed(command);
+        await this.commandProcessed(command);
     }
 };
 
@@ -428,7 +428,7 @@ CommandQueue.prototype.sendCommand = function () {
  *         inData    - data of the command response
  * Return: N/A
  */
-CommandQueue.prototype.processData = function (inCommand, inData) {
+CommandQueue.prototype.processData = async function (inCommand, inData) {
     if (!this.mCurrentCommand || (inCommand.commandId != this.mCommandId)) {
         // logger.warn('Command ' + inCommand.commandId +
         //             ' is no longer receiving data, ignoring:', inData.toString());
@@ -443,7 +443,7 @@ CommandQueue.prototype.processData = function (inCommand, inData) {
     }
 
     if (commandComplete) {
-        this.commandProcessed(inCommand);
+        await this.commandProcessed(inCommand);
     }
 };
 
@@ -459,7 +459,7 @@ CommandQueue.prototype.processData = function (inCommand, inData) {
  * Args:   inCommand - command we have finished processing
  * Return: N/A
  */
-CommandQueue.prototype.commandProcessed = function(inCommand) {
+CommandQueue.prototype.commandProcessed = async function(inCommand) {
     if (inCommand.commandId !== this.mCommandId) {
         // logger.error('Command ids are out of sync. commandProcessed(' +
         //              inCommand.commandId + ') ' +
@@ -469,7 +469,7 @@ CommandQueue.prototype.commandProcessed = function(inCommand) {
     // Now call our postCallback
     if (this.mCurrentCommand && _.isFunction(this.mCurrentCommand.postCallback)) {
         // logger.debug('calling postCallback:');
-        this.mCurrentCommand.postCallback(inCommand);
+        await this.mCurrentCommand.postCallback(inCommand);
     }
 
     this.mCurrentCommand = undefined;
@@ -487,7 +487,7 @@ CommandQueue.prototype.commandProcessed = function(inCommand) {
  *         inSuccess  - true if the open command succeeded
  * Return: N/A
  */
-CommandQueue.prototype.openProcessed = function (inCommand, inSuccess) {
+CommandQueue.prototype.openProcessed = async function (inCommand, inSuccess) {
     if (inCommand.commandId !== this.mCommandId) {
         // logger.error('openProcessed (' + inCommand.commandId + ') mismatch:', this.mCommandId);
     }
@@ -498,7 +498,7 @@ CommandQueue.prototype.openProcessed = function (inCommand, inSuccess) {
         // logger.error('executor open() failed');
     }
 
-    this.commandProcessed(inCommand);
+    await this.commandProcessed(inCommand);
 };
 
 
@@ -512,7 +512,7 @@ CommandQueue.prototype.openProcessed = function (inCommand, inSuccess) {
  * Args:   inCommand  - the open command being processed
  * Return: N/A
  */
-CommandQueue.prototype.closeProcessed = function (inCommand, inSuccess) {
+CommandQueue.prototype.closeProcessed = async function (inCommand, inSuccess) {
     if (inCommand.commandId !== this.mCommandId) {
         // logger.error('closeProcessed (' + inCommand.commandId + ') mismatch:', this.mCommandId);
     }
@@ -523,7 +523,7 @@ CommandQueue.prototype.closeProcessed = function (inCommand, inSuccess) {
         // logger.error('executor close() failed');
     }
 
-    this.commandProcessed(inCommand);
+    await this.commandProcessed(inCommand);
 };
 
 module.exports = CommandQueue;

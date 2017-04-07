@@ -13,16 +13,16 @@ module.exports = function park(self, params) {
 
     const commandArray = ['M400'];
     commandArray.push({
-      processData: async () => {
+      postCallback: async () => {
+        if (self.fsm.current === 'parked') {
+          return;
+        }
         self.fsm.park();
-        console.log('parking', self.settings.name);
         await delay(1000);
         self.fsm.parkDone();
-        return true;
       },
     });
     self.queue.queueCommands(commandArray);
-    console.log('just queued park, 1 second, park done');
   } catch (ex) {
     self.fsm.parkFail();
   }

@@ -8,9 +8,8 @@ module.exports = async function processGcode(self, params) {
   return await new Promise((resolve, reject) => {
     commandArray.push({
       code: gcode,
-      processData: (command, reply) => {
+      postCallback: (command, reply) => {
         resolve(reply.replace('\r', ''));
-        return true;
       },
     });
 

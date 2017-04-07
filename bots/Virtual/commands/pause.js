@@ -17,32 +17,35 @@ module.exports = async function pause(self, params) {
 
     const commandArray = [];
 
+    const pauseEndCommand = {
+      postCallback: () => {
+        self.fsm.pauseDone();
+      },
+    };
+
+    const pauseMovementCommand = {
+      delay: 1000,
+      postCallback: () => {
+        self.queue.prependCommands(pauseEndCommand);
+      }
+    };
+
     const pausePromise = new Promise((resolve, reject) => {
+      console.log('starting a promise');
       // Pause the job
-      commandArray.push({
-        processData: () => {
+      self.queue.prependCommands({
+        postCallback: () => {
           // This line of code is not being reached.
           self.fsm.pause();
           self.currentJob.pause();
           // Note, we don't return the pause request until the initial pause command is processed by the queue
+          self.queue.prependCommands(pauseMovementCommand);
           resolve(self.getBot());
           return true;
         },
       });
 
-      // Move the gantry wherever you want
-      commandArray.push({ delay: 1000 });
-
-      // confirm the bot is now paused
-      commandArray.push({
-        processData: () => {
-          self.fsm.pauseDone();
-          return true
-        },
-      });
-
       self.queue.prependCommands(commandArray);
-      console.log('just queued pause, 1 second, pause done');
       self.pausableState = self.fsm.current;
     });
 
