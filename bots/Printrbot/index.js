@@ -28,7 +28,6 @@ const settings = {
 };
 
 const commands = {
-
 };
 
 module.exports = {

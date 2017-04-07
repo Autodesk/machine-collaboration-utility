@@ -167,7 +167,6 @@ class Job {
     *
     */
   pause() {
-    console.log('pausing job', this.getJob());
     if (this.fsm.current === 'paused') {
       return;
     }

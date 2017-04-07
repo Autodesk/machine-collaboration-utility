@@ -5,7 +5,7 @@ module.exports = function initialize(self, params) {
   self.currentLine = undefined;
 
   // placeholder for storing which possible state to return to after pausing
-  self.pausableState = undefined;
+  self.pauseableState = undefined;
 
   // placeholder for storing which possible state to return to after receiving a job warning
   self.jobWarningState = undefined;

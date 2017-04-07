@@ -7,6 +7,7 @@ const Promise = require('bluebird');
 const request = require('request-promise');
 
 async function processCommentTag(gcodeObject, self) {
+
   switch(gcodeObject.metaComment.command) {
     case 'forcePark': {}
     case 'park': {
@@ -44,7 +45,9 @@ async function processCommentTag(gcodeObject, self) {
         });
       }
 
-      self.lr.resume();
+      if (self.fsm.current === 'executingJob') {
+        self.lr.resume();
+      }
 
       // Let conductor know that you've reached the latest checkpoint
       // Check if precursors are complete
@@ -71,13 +74,13 @@ async function processCommentTag(gcodeObject, self) {
               // should start unparking and then resume reading lines
               self.commands.unpark(self, { dry });
             }
-            return true;
           },
         },
         {
           postCallback: () => {
-            self.lr.resume();
-            return true;
+            if (self.fsm.current === 'executingJob') {
+              self.lr.resume();
+            }
           },
         },
       ]);
@@ -105,8 +108,10 @@ async function processLine(line, self) {
     await processCommentTag(gcodeObject, self);
     // Process the metaComment
   } else if (gcodeObject.command == undefined && Object.keys(gcodeObject.args).length === 0) {
-    // If the command is blank, move on to the next line
-    self.lr.resume();
+      // If the command is blank, move on to the next line
+      if (self.fsm.current === 'executingJob') {
+        self.lr.resume();
+      }
   } else {
     self.addOffset(gcodeObject);
 

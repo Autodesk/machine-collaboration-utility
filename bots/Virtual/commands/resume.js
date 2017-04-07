@@ -3,7 +3,6 @@ const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
 module.exports = async function resume(self, params) {
-  let resumePromise = self.getBot();
   try {
     if (self.currentJob === undefined) {
       throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
@@ -18,13 +17,13 @@ module.exports = async function resume(self, params) {
 
     const commandArray = [];
 
-    const resumeCommand = {
+    const resumeDoneCommand = {
       postCallback: () => {
         function capitalizeFirstLetter(string) {
           return string.charAt(0).toUpperCase() + string.slice(1);
         }
 
-        let command = 'resume' + capitalizeFirstLetter(self.pausableState);
+        const command = 'resume' + capitalizeFirstLetter(self.pauseableState);
         // Resume the bot
         self.fsm[command]();
         self.lr.resume();
@@ -32,29 +31,44 @@ module.exports = async function resume(self, params) {
     };
 
     const resumeMotion = {
+      preCallback: () => {
+        self.logger.debug('Starting resume motion');
+      },
       delay: 1000,
       postCallback: () => {
-        self.queue.prependCommands(resumeCommand);
+        self.queue.prependCommands(resumeDoneCommand);
+        self.logger.debug('Done with resume motion');
       }
     };
 
-    resumePromise = new Promise((resolve, reject) => {
-      self.queue.queueCommands({
+    const resumeStartCommand = {
+      postCallback: () => {
+        self.logger.debug('starting resume commands');
+        self.queue.prependCommands(resumeMotion);
+        // Resume the job
+        self.currentJob.resume();
+      },
+    }
 
+    if (self.fsm.current === 'pausing') {
+      commandArray.push({
         postCallback: () => {
-          self.queue.prependCommands(resumeMotion);
-
-          // Resume the bot
           self.fsm.resume();
-          // Resume the job
-          self.currentJob.resume();
-          resolve(self.getBot());
-        },
+        }
       });
-    });
+    }
+
+    commandArray.push(resumeStartCommand);
+    self.queue.queueCommands(commandArray);
+
+    // Queue the resume command if currently 'pausing'
+    if (self.fsm.current === 'paused') {
+      // Resume the bot
+      self.fsm.resume();
+    }
 
   } catch (ex) {
-    console.log('wtf', ex);
+    self.logger.error('Resume error', ex);
   }
-  return await resumePromise;
+  return self.getBot();
 };

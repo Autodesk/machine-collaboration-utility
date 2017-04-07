@@ -73,11 +73,8 @@ const VirtualConnection = function VirtualConnection(app, connectedFunc) {
   this.mDataFunc = connectedFunc;
   this.returnString = '';
 
-  this.bot.open(function(input) {
-    console.log('woooo!', input);
-  })
+  this.bot.open(() => {})
   .then(() => {
-    console.log('connected func');
     connectedFunc(this);
   });
 };
@@ -133,8 +130,10 @@ VirtualConnection.prototype.send = function send(inCommandStr) {
 
     this.bot.sendGcode(gcode)
     .then(reply => {
+      self.logger.silly('reply:', reply);
       this.processData(reply);
     });
+    self.logger.silly('sent :', gcode);
 
     commandSent = true;
   } catch (inError) {

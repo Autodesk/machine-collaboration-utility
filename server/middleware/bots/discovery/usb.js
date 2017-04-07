@@ -117,7 +117,8 @@ UsbDiscovery.prototype.detectPort = async function detectPort(port) {
   const vid = parseInt(port.vendorId, 16);
   const pid = parseInt(port.productId, 16);
 
-  for (const [botPresetKey, botPresets] of _.entries(this.app.context.bots.botSettingList)) {
+  for (const [botPresetKey, botPresets] of _.entries(this.app.context.bots.botPresetList)) {
+
     if (botPresets.info.connectionType === 'serial') {
       for (const vidPid of botPresets.info.vidPid) {
         // Don't process a greedy, undefined vid pid

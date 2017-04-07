@@ -14,7 +14,7 @@ module.exports = async function pause(self, params) {
   }
 
   try {
-    self.pausableState = self.fsm.current;
+    self.pauseableState = self.fsm.current;
     self.fsm.pause();
     const players = self.settings.custom.players;
     await Promise.map(players, async (player) => {
@@ -31,7 +31,7 @@ module.exports = async function pause(self, params) {
         self.logger.error('Pause fail', ex);
       });
 
-      console.log('Paused bot', player, pauseReply);
+      self.logger.info('Paused bot', player, pauseReply);
     });
 
     self.currentJob.pause();

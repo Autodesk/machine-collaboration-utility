@@ -155,6 +155,7 @@ class Bots {
     botPresets.forEach(botPreset => {
       const presetPath = path.join(botDirectory, botPreset);
       const BotPreset = require(presetPath);
+
       this.botPresetList[botPreset] = BotPreset;
     });
 

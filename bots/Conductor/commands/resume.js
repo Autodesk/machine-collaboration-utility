@@ -37,7 +37,7 @@ module.exports = async function resume(self) {
       return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
-    let command = 'resume' + capitalizeFirstLetter(self.pausableState);
+    let command = 'resume' + capitalizeFirstLetter(self.pauseableState);
     // Resume the bot
     self.fsm[command]();
   } catch (ex) {
