@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.2">
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>184</x>
+      <y>264</y>
+      <w>736</w>
+      <h>280</h>
+    </coordinates>
+    <panel_attributes>Created
+-
+layer=0
+bg=#dddddd
+valign=top
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>160</x>
+      <y>416</y>
+      <w>16</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>type=initial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>160</x>
+      <y>416</y>
+      <w>56</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;50.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>400</x>
+      <y>368</y>
+      <w>112</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>Ready
+-
+layer=1
+bg=#dddddd
+valign=top
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>560</x>
+      <y>352</y>
+      <w>72</w>
+      <h>128</h>
+    </coordinates>
+    <panel_attributes>Running
+-
+layer=2
+bg=#dddddd
+valign=top
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>520</x>
+      <y>328</y>
+      <w>256</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>Processing Job
+-
+layer=1
+bg=#dddddd
+valign=top
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>200</x>
+      <y>328</y>
+      <w>96</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>Initializing
+-
+layer=1
+bg=#dddddd
+valign=top
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>832</x>
+      <y>424</y>
+      <w>80</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>Canceled
+-
+layer=1
+bg=#dddddd
+valign=top
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>832</x>
+      <y>288</y>
+      <w>80</w>
+      <h>128</h>
+    </coordinates>
+    <panel_attributes>Complete
+-
+layer=1
+bg=#dddddd
+valign=top
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>624</x>
+      <y>440</y>
+      <w>88</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>pause
+fg=blue
+layer=2
+lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;90.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>288</x>
+      <y>384</y>
+      <w>128</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>initialization
+done
+fg=blue
+lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;140.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>504</x>
+      <y>384</y>
+      <w>72</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>start
+fg=blue
+layer=2
+lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;70.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>696</x>
+      <y>392</y>
+      <w>64</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>Paused
+-
+layer=2
+bg=#dddddd
+valign=top
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>624</x>
+      <y>416</y>
+      <w>88</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>resume
+fg=blue
+layer=2
+lt=-&gt;</panel_attributes>
+    <additional_attributes>90.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>768</x>
+      <y>440</y>
+      <w>80</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>cancel
+fg=blue
+layer=2
+lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;80.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>624</x>
+      <y>360</y>
+      <w>224</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>complete Job
+fg=blue
+layer=2
+lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;260.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>160</x>
+      <y>416</y>
+      <w>688</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0;840.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>160</x>
+      <y>304</y>
+      <w>688</w>
+      <h>136</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;150.0;10.0;10.0;840.0;10.0</additional_attributes>
+  </element>
+</diagram>
