@@ -9,6 +9,11 @@ const winston = require('winston');
 const path = require('path');
 const http = require('http');
 
+if (process.env.PWD === undefined) {
+  process.env.PWD = path.join(__dirname, '../');
+}
+
+
 const config = require('./config');
 const koaApp = require('./koaApp');
 
