@@ -35,7 +35,7 @@ module.exports = async function resume(self, params) {
         code: self.pausedPosition === undefined ? 'M114' : `G92 E${self.pausedPosition.e}`,
       },
       {
-        code: self.pausedPosition === undefined ? 'M114' : `G1 X${self.pausedPosition.x} Y${self.pausedPosition.y} Z${self.pausedPosition.z}`
+        code: self.pausedPosition === undefined ? 'M114' : `G1 X${self.pausedPosition.x} Y${self.pausedPosition.y} Z${self.pausedPosition.z} F2000`
       },
       {
         preCallback: () => {
