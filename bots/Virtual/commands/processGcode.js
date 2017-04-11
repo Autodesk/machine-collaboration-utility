@@ -1,18 +1,29 @@
+const gcodeToObject = require('gcode-json-converter').gcodeToObject;
+const objectToGcode = require('gcode-json-converter').objectToGcode;
+
 module.exports = async function processGcode(self, params) {
-  const gcode = self.addOffset(params.gcode);
-  if (gcode === undefined) {
-    throw new Error('"gcode" is undefined');
-  }
-  const commandArray = [];
+  try {
+    if (params.gcode === undefined) {
+      throw new Error('"gcode" is undefined');
+    }
+    const gcodeObject = gcodeToObject(params.gcode);
+    self.addOffset(gcodeObject);
 
-  return await new Promise((resolve, reject) => {
-    commandArray.push({
-      code: gcode,
-      postCallback: (command, reply) => {
-        resolve(reply.replace('\r', ''));
-      },
+    const commandArray = [];
+
+    return await new Promise((resolve, reject) => {
+      commandArray.push({
+        code: objectToGcode(gcodeObject, {comment: false}),
+        postCallback: (command, reply) => {
+          resolve(reply);
+        },
+      });
+      self.queue.queueCommands(commandArray);
+    })
+    .catch((ex) => {
+      self.logger.error('Awaiting error', ex);
     });
-
-    self.queue.queueCommands(commandArray);
-  });
+  } catch (ex) {
+    self.logger.error(ex);
+  }
 };
