@@ -36,14 +36,23 @@ module.exports = async function pause(self, params) {
       },
     };
 
+    const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
     const pauseMovementCommand = {
+      // When pausing capture the position so that we can come back to it
       preCallback: () => {
         self.logger.debug('Starting pause movements');
       },
-      delay: 10000,
-      postCallback: () => {
-        self.logger.debug('Completed pause movements');
+      code: 'M114',
+      processData: (command, data) => {
+        const parsedPosition = data.match(m114Regex);
+        self.pausedPosition = {
+          x: parsedPosition[1],
+          y: parsedPosition[3],
+          z: parsedPosition[5],
+          e: parsedPosition[7]
+        }
         self.queue.prependCommands(pauseEndCommand);
+        return true;
       }
     };
 

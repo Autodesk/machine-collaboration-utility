@@ -30,16 +30,25 @@ module.exports = async function resume(self, params) {
       },
     };
 
-    const resumeMotion = {
-      preCallback: () => {
-        self.logger.debug('Starting resume motion');
+    const resumeMotion = [
+      {
+        code: self.pausedPosition === undefined ? 'M114' : `G92 E${self.pausedPosition.e}`,
       },
-      delay: 1000,
-      postCallback: () => {
-        self.queue.prependCommands(resumeDoneCommand);
-        self.logger.debug('Done with resume motion');
+      {
+        code: self.pausedPosition === undefined ? 'M114' : `G1 X${self.pausedPosition.x} Y${self.pausedPosition.y} Z${self.pausedPosition.z}`
+      },
+      {
+        preCallback: () => {
+          self.logger.debug('Starting resume motion');
+        },
+        code: 'M400',
+        postCallback: () => {
+          self.pausedPosition = undefined;
+          self.queue.prependCommands(resumeDoneCommand);
+          self.logger.debug('Done with resume motion');
+        }
       }
-    };
+    ];
 
     const resumeStartCommand = {
       postCallback: () => {
