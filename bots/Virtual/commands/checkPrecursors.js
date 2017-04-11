@@ -10,7 +10,15 @@ module.exports = function checkPrecursors(self) {
     if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
       self.status.blocker = undefined;
       if (self.fsm.current === 'executingJob' || self.fsm.current === 'parked') {
+      // If ready to accept new lines of code, then do so immediately
         self.lr.resume();
+      } else if (self.fsm.current === 'parking') {
+      // If not ready for a new line yet, queue to resume after done parking
+        self.queue.queueCommands({
+          postCallback: () => {
+            self.lr.resume();
+          }
+        });
       }
     } else {
       // If the precursor is not complete, then park
