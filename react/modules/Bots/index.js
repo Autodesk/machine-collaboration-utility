@@ -205,7 +205,7 @@ export default class Bots extends React.Component {
     }
     // if the bot doesn't exist, we want to redirect the user...
     // if the user hasn't selected a bot, redirect them to the first available bot
-    const daBot = selectedBot === undefined ? '' : <Bot currentJob={currentJob} botPresets={this.props.botPresets} bot={selectedBot}/>;
+    const daBot = selectedBot === undefined ? '' : <Bot updateBot={this.props.updateBot} currentJob={currentJob} botPresets={this.props.botPresets} bot={selectedBot}/>;
 
     return (
       <div>

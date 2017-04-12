@@ -4,8 +4,9 @@ import React from 'react';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
 import _ from 'lodash';
-
+import * as DeepEqual from 'deep-equal';
 import Header from './modules/Header';
+const equal = DeepEqual.default;
 
 export default class App extends React.Component {
   constructor(props) {
@@ -22,6 +23,7 @@ export default class App extends React.Component {
 
     this.openDropzone = this.openDropzone.bind(this);
     this.restart = this.restart.bind(this);
+    this.updateBot = this.updateBot.bind(this);
   }
 
   // Add any conductor's players to the list of bots
@@ -73,7 +75,9 @@ export default class App extends React.Component {
               fileTypes: ['.gcode'],
             },
           };
-          bots[player.name] = newBot;
+          if (!bots.hasOwnProperty(player.name)) {
+            bots[player.name] = newBot;
+          }
         });
       }
     });
@@ -91,23 +95,31 @@ export default class App extends React.Component {
     }, 10000);
   }
 
+  updateBot(bot) {
+    if (!equal(bot, this.state.bots[bot.settings.name])) {
+      const bots = Object.assign({}, this.state.bots);
+      bots[bot.settings.name] = bot;
+      this.setState({ bots });
+    }
+  }
+
   componentDidMount() {
     // Don't notice socket event on the server side
     if (require('is-browser')) {
       this.socket = io();
       this.socket.on('botEvent', (bot) => {
-        let newBots = this.state.bots;
+        let bots = this.state.bots;
         switch (bot.event) {
           case 'update':
           case 'new':
-            newBots[bot.uuid] = bot.data;
-            newBots = this.appendConductorPlayers(newBots);
-            this.setState({ bots: newBots });
+            bots[bot.uuid] = bot.data;
+            bots = this.appendConductorPlayers(bots);
+            this.setState({ bots });
             break;
           case 'delete':
-            delete newBots[bot.uuid];
-            newBots = this.appendConductorPlayers(newBots);
-            this.setState({ bots: newBots });
+            delete bots[bot.uuid];
+            bots = this.appendConductorPlayers(bots);
+            this.setState({ bots });
             break;
           default:
             break;
@@ -177,7 +189,7 @@ export default class App extends React.Component {
     };
     const childrenComponents = React.Children.map(this.props.children, child => {
       // mapping through all of the children components in order to inject HardwareHub app objects
-      return React.cloneElement(child, Object.assign({}, this.state, { dropzoneOpener: this.openDropzone }));
+      return React.cloneElement(child, Object.assign({}, this.state, { dropzoneOpener: this.openDropzone, updateBot: this.updateBot }));
     });
     return (
       <Dropzone

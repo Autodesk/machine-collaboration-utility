@@ -5,6 +5,7 @@ const unzip = require('unzip2');
 const delay = Promise.delay;
 
 module.exports = async function startJob(self, params) {
+  self.logger.info('Executing function "startJob"', self.getBot());
   try {
     if (self.fsm.current !== 'idle') {
       throw new Error(`Cannot start job from state "${self.fsm.current}"`);
@@ -16,23 +17,27 @@ module.exports = async function startJob(self, params) {
       throw new Error('A "fileUuid" must be specified when starting a job.');
     }
     self.fsm.startJob();
+    try {
 
-    // Create a job
-    const jobMiddleware = self.app.context.jobs;
-    const botUuid = self.settings.uuid;
-    const fileUuid = params.fileUuid;
-    self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid);
+      // Create a job
+      const jobMiddleware = self.app.context.jobs;
+      const botUuid = self.settings.uuid;
+      const fileUuid = params.fileUuid;
+      self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid);
 
-    // set up the file executor
-    await uploadAndSetupPlayerJobs(self);
-    self.logger.info('All files uploaded and set up');
-    self.currentJob.start();
-    // Start consuming the file
-    self.fsm.startDone();
+      // set up the file executor
+      await uploadAndSetupPlayerJobs(self);
+      self.logger.info('All files uploaded and set up');
+      self.currentJob.start();
+      // Start consuming the file
+      self.fsm.startDone();
+    } catch (ex) {
+      self.logger.error('Conductor Start Job Fail', ex);
+      self.fsm.startJobFail();
+    }
   } catch (ex) {
-    self.fsm.startJobFail();
+    self.logger.error('Double start command error', ex);
   }
-
   return self.getBot();
 };
 
@@ -104,6 +109,7 @@ async function uploadAndSetupPlayerJobs(self) {
                 },
                 json: true,
               };
+              self.logger.info('Conductor player start params', jobParams);
               const startJobReply = await request(jobParams);
               await delay(2000);
             }

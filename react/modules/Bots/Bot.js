@@ -20,7 +20,7 @@ export default class Bot extends React.Component {
     this.state = {
       showModal: false,
       selectedTab: 1,
-      bot: this.props.bot,
+      updateInterval: null,
     };
   }
 
@@ -30,15 +30,27 @@ export default class Bot extends React.Component {
     });
   }
 
-  componentWillMount() {
+  componentWillReceiveProps(nextProps) {
+    if (this.props.bot.settings.uuid !== nextProps.bot.settings.uuid) {
+      if (this.state.updateInterval) {
+        clearInterval(this.state.updateInterval);
+      }
+    }
+    // kick off update interval
+    this.setupUpdater(nextProps);
+  }
+
+// create function to start update interval
+  setupUpdater(props) {
     const self = this;
 
     // If we have a conductor player, update the info for that player every 5 seconds
-    if (this.state.bot.info.connectionType === 'player' && require('is-browser')) {
-      function updateBot() {
-        request.get(self.state.bot.settings.endpoint)
+    // kick off update interval
+    if (props.bot.info.connectionType === 'player' && require('is-browser')) {
+      function getBot() {
+        request.get(props.bot.settings.endpoint)
         .end((err, response) => {
-          if (err) {
+          if (err || response.body.data == undefined) {
             return;
           }
 
@@ -46,13 +58,23 @@ export default class Bot extends React.Component {
           const bot = response.body.data;
           // Make sure to keep the existing connectionType and enpoint for this bot's state
 
-          bot.settings.endpoint = self.state.bot.settings.endpoint;
+          bot.settings.endpoint = props.bot.settings.endpoint;
           bot.info.connectionType = 'player';
-          self.setState({ bot });
+          props.updateBot(bot);
         });
       }
-      const updateBotInterval = setInterval(updateBot, 5000);
-      updateBot();
+      this.state.updateInterval = setInterval(getBot, 5000);
+      getBot();
+    }
+  }
+
+  componentWillMount() {
+    this.setupUpdater(this.props);
+  }
+
+  componentWillUnmount() {
+    if (this.state.updateInterval) {
+      clearInterval(this.state.updateInterval);
     }
   }
 
@@ -65,13 +87,13 @@ export default class Bot extends React.Component {
       <div className="container">
         <Tabs id="bot-pages" activeKey={this.state.selectedTab} onSelect={this.tabSelectEvent}>
           <Tab eventKey={1} title="Dashboard">
-            <Dashboard endpoint={endpoint} bot={this.state.bot}/>
+            <Dashboard endpoint={endpoint} bot={this.props.bot}/>
           </Tab>
           <Tab eventKey={2} title="Terminal">
-            <Terminal endpoint={endpoint} bot={this.state.bot}/>
+            <Terminal endpoint={endpoint} bot={this.props.bot}/>
           </Tab>
           <Tab eventKey={3} title="Settings">
-            <Settings endpoint={endpoint} bot={this.state.bot}/>
+            <Settings endpoint={endpoint} bot={this.props.bot}/>
           </Tab>
         </Tabs>
       </div>

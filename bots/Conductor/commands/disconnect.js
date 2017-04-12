@@ -3,6 +3,35 @@ const path = require('path');
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
+async function checkDisconnection(self) {
+  // ping each bot
+  // If they're all connected, then we are done connecting
+  let disconnectionDone = true;
+  await Promise.map(self.settings.custom.players, async (player) => {
+    const checkParams = {
+      method: 'GET',
+      uri: player.endpoint,
+      json: true,
+    };
+    const reply = await request(checkParams);
+    if (
+      botFsmDefinitions.metaStates.connected.includes(reply.data.state)
+      ||
+      reply.data.state === 'disconnecting'
+    ) {
+      disconnectionDone = false;
+    }
+  });
+
+  if (disconnectionDone) {
+    // Then you're done
+    self.fsm.disconnectDone();
+  } else {
+    await Promise.delay(2000);
+    checkDisconnection(self);
+  }
+}
+
 module.exports = async function disconnect(self, params) {
   try {
     if (!botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
@@ -30,7 +59,7 @@ module.exports = async function disconnect(self, params) {
 
     // TODO actually check this
     self.commands.toggleUpdater(self, { update: false });
-    self.fsm.disconnectDone();
+    checkDisconnection(self);
   } catch (ex) {
     self.logger.error(ex);
     self.fsm.disconnectFail();

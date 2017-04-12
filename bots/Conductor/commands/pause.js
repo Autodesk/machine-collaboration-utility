@@ -1,4 +1,41 @@
 const request = require('request-promise');
+const path = require('path');
+
+const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
+
+async function checkPause(self) {
+  // ping each bot
+  // If they're all connected, then we are done connecting
+  let pauseDone = true;
+  await Promise.map(self.settings.custom.players, async (player) => {
+    const checkParams = {
+      method: 'GET',
+      uri: player.endpoint,
+      json: true,
+    };
+    const reply = await request(checkParams)
+    .catch(ex => {
+      self.logger.error('Check pause player error', ex);
+    });
+
+    if (reply.data.state !== 'paused') {
+      pauseDone = false;
+    }
+  })
+  .catch(ex => {
+    self.logger.error('Get players pause info error', ex);
+  });
+
+  if (pauseDone) {
+    self.currentJob.pause();
+    self.fsm.pauseDone();
+  } else {
+    await Promise.delay(2000);
+    checkPause(self);
+  }
+}
+
 
 module.exports = async function pause(self, params) {
   // TODO should not be able to pause unless all players are running
@@ -30,11 +67,9 @@ module.exports = async function pause(self, params) {
         self.logger.error('Pause fail', ex);
       });
 
+      checkPause(self);
       self.logger.info('Paused bot', player, pauseReply);
     });
-
-    self.currentJob.pause();
-    self.fsm.pauseDone();
   } catch (ex) {
     self.logger.error(ex);
   }

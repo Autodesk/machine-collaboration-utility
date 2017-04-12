@@ -70,25 +70,31 @@ export default class Files extends React.Component {
     );
   }
 
-  startJob() {
-    // Grab the currently selected value from the select form
-    // If the value is undefined, or not a UUID, then ditch the "Start" sequence
+  async startJob() {
+    // // Grab the currently selected value from the select form
     const botUuid = document.getElementById('process-file-modal').value;
-    if (botUuid == undefined || botUuid.length !== 36) {
+    if (botUuid == undefined) {
       return;
     }
 
-    // Create a job
+    // TODO, upload the file before requesting the job to start, if kicking off a remote job
+
+    // // Create a job
     const requestParams = {
       command: 'startJob',
       fileUuid: this.state.fileUuid,
     };
 
+    //
     request.post(`/v1/bots/${botUuid}`)
     .send(requestParams)
     .set('Accept', 'application/json')
     .end((err, reply) => {
+      console.log('started job', botUuid, fileUuid);
       console.log(err, reply);
+    })
+    .catch(err => {
+      console.log('request error', err);
     });
     this.close();
   }

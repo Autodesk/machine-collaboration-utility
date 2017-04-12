@@ -1,4 +1,45 @@
 const request = require('request-promise');
+const path = require('path');
+
+const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
+
+async function checkResume(self) {
+  // ping each bot
+  // If they're all connected, then we are done connecting
+  let resumeDone = true;
+  await Promise.map(self.settings.custom.players, async (player) => {
+    const checkParams = {
+      method: 'GET',
+      uri: player.endpoint,
+      json: true,
+    };
+    const reply = await request(checkParams)
+    .catch(ex => {
+      self.logger.error('Get bot resume info error', ex);
+    });
+
+    if (!botFsmDefinitions.metaState.pauseable.includes(reply.data.state)) {
+      resumeDone = false;
+    }
+  })
+  .catch(ex => {
+    self.logger.error('Get players resume info error', ex);
+  });
+
+  if (resume) {
+    function capitalizeFirstLetter(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    let command = 'resume' + capitalizeFirstLetter(self.pauseableState);
+    // Resume the bot
+    self.fsm[command]();
+  } else {
+    await Promise.delay(2000);
+    checkResume(self);
+  }
+}
 
 module.exports = async function resume(self) {
   try {
@@ -32,13 +73,8 @@ module.exports = async function resume(self) {
     });
 
     self.currentJob.fsm.resume();
-    function capitalizeFirstLetter(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    }
 
-    let command = 'resume' + capitalizeFirstLetter(self.pauseableState);
-    // Resume the bot
-    self.fsm[command]();
+    checkResume(self);
   } catch (ex) {
     self.logger.error(ex);
   }

@@ -93,6 +93,11 @@ export default class Settings extends React.Component {
             break;
           }
         default:
+          if (this.props.bot.info.connectionType === 'player' && require('is-browser')) {
+            if (settingKey === 'name' || settingKey === 'endpoint') {
+              break;
+            }
+          }
           settings.push(this.renderSettingInput(settingKey, setting));
       }
     }

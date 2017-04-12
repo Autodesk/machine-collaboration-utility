@@ -23,7 +23,7 @@ export default class Dashboard extends React.Component {
       conductorPlayers =
         <div className="container">
           <div className="area row">
-            <ConductorPlayers bot={this.props.bot}/>
+            <ConductorPlayers endpoint={this.props.endpoint} bot={this.props.bot}/>
           </div>
         </div>
         ;

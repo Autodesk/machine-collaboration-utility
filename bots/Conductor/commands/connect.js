@@ -1,6 +1,10 @@
 const _ = require('lodash');
 const ip = require('ip');
 const request = require('request-promise');
+const path = require('path');
+
+const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
 // Criteria to be a local player
 // 1. Must have an identical ip address or be 'localhost'
@@ -10,6 +14,33 @@ function isLocalPlayer(player) {
     (player.endpoint.includes('localhost') || player.endpoint.includes(ip.address())) &&
     (player.endpoint.includes(String(process.env.PORT)) || process.env.PORT === '80')
   );
+}
+
+async function checkConnection(self) {
+  // ping each bot
+  // If they're all connected, then we are done connecting
+  let connectionDone = true;
+  await Promise.map(self.settings.custom.players, async (player) => {
+    const checkParams = {
+      method: 'GET',
+      uri: player.endpoint,
+      json: true,
+    };
+    const reply = await request(checkParams);
+    if (!botFsmDefinitions.metaStates.connected.includes(reply.data.state)) {
+      connectionDone = false;
+    }
+  });
+
+  if (connectionDone) {
+    // Then enable the conductor updater function
+    self.commands.toggleUpdater(self, { update: true });
+    // Then you're done
+    self.fsm.connectDone();
+  } else {
+    await Promise.delay(2000);
+    checkConnection(self);
+  }
 }
 
 module.exports = async function connect(self, params) {
@@ -37,12 +68,7 @@ module.exports = async function connect(self, params) {
         self.logger.error('Connect player request fail', ex, connectParams);
       }
     }
-
-    // Then enable the conductor updater function
-    self.commands.toggleUpdater(self, { update: true });
-
-    // Then you're done
-    self.fsm.connectDone();
+    checkConnection(self);
   } catch (ex) {
     self.logger.error(ex);
     self.fsm.connectFail();
