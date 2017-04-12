@@ -44,13 +44,19 @@ export default class Settings extends React.Component {
 
   updateBotSettings(event) {
     event.preventDefault();
-    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
-    let update = request.put(endpoint);
+    let update = request.put(this.props.endpoint);
     const paramJson = {};
     for (const [settingKey, setting] of _.entries(this.state.settings)) {
+      // add the setting if we aren't a player,
+      // or if we are a player and the setting is neither "name" nor "endpoint"
       try {
-        const newValue = event.target[settingKey].value;
-        paramJson[settingKey] = newValue;
+        if (
+          this.props.bot.info.connectionType !== 'player' ||
+          ( settingKey !== 'name' && settingKey !== 'endpoint')
+        ) {
+          const newValue = event.target[settingKey].value;
+          paramJson[settingKey] = newValue;
+        }
       } catch (ex) {
         // Value not listed as a part of the input form, don't add it
       }

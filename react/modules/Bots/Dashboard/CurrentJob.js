@@ -14,14 +14,14 @@ export default class CurrentJob extends React.Component {
   }
 
   sendCommand(command) {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    request.post(this.props.endpoint)
     .send({ command })
     .set('Accept', 'application/json')
     .end();
   }
 
   cancelJob() {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    request.post(this.props.endpoint)
     .send({ command: 'cancel' })
     .set('Accept', 'application/json')
     .end();

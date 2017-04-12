@@ -3,6 +3,7 @@
 import React from 'react';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
+import _ from 'lodash';
 
 import Header from './modules/Header';
 
@@ -14,10 +15,69 @@ export default class App extends React.Component {
     } catch (ex) {
       this.state = props.params;
     }
+
+    this.state.bots = this.appendConductorPlayers(this.state.bots);
+
     this.state.restartWidth = '50px';
 
     this.openDropzone = this.openDropzone.bind(this);
     this.restart = this.restart.bind(this);
+  }
+
+  // Add any conductor's players to the list of bots
+  appendConductorPlayers(bots) {
+    // Append Conductor bots here
+    _.entries(bots).forEach(([uuid, bot]) => {
+      if (bot.settings.custom && Array.isArray(bot.settings.custom.players)) {
+        bot.settings.custom.players.forEach(player => {
+          const newBot = {
+            state: 'uninitialized',
+            status: {
+              position: {
+                x: 0,
+                y: 0,
+                z: 0,
+                e: 0
+              },
+              sensors: {
+                t0: {
+                  temperature: 0,
+                  setpoint: 0,
+                },
+                b0: {
+                  temperature: 0,
+                  setpoint: 0,
+                }
+              },
+            },
+            settings: {
+              model: 'Player',
+              name: player.name,
+              endpoint: player.endpoint,
+              jogXSpeed: 2000,
+              jogYSpeed: 2000,
+              jogZSpeed: 1000,
+              jogESpeed: 120,
+              tempE: 200,
+              tempB: 0,
+              offsetX: 0,
+              offsetY: 0,
+              offsetZ: 0,
+              openString: null,
+              custom: null,
+              id: player.name,
+              uuid: player.name,
+            },
+            info: {
+              connectionType: 'player',
+              fileTypes: ['.gcode'],
+            },
+          };
+          bots[player.name] = newBot;
+        });
+      }
+    });
+    return bots;
   }
 
   restart() {
@@ -36,15 +96,17 @@ export default class App extends React.Component {
     if (require('is-browser')) {
       this.socket = io();
       this.socket.on('botEvent', (bot) => {
-        const newBots = this.state.bots;
+        let newBots = this.state.bots;
         switch (bot.event) {
-          case 'new':
           case 'update':
+          case 'new':
             newBots[bot.uuid] = bot.data;
+            newBots = this.appendConductorPlayers(newBots);
             this.setState({ bots: newBots });
             break;
           case 'delete':
             delete newBots[bot.uuid];
+            newBots = this.appendConductorPlayers(newBots);
             this.setState({ bots: newBots });
             break;
           default:

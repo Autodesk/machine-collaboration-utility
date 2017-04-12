@@ -18,7 +18,6 @@ export default class Dashboard extends React.Component {
 
   render() {
     const isConductorBot = this.props.bot.settings.model.toLowerCase().includes('conductor');
-    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
     let conductorPlayers = '';
     if (isConductorBot) {
       conductorPlayers =
@@ -34,32 +33,32 @@ export default class Dashboard extends React.Component {
       <div id="dashboard">
         { isConductorBot ?
           <div className="container">
-            <CurrentJob bot={this.props.bot}/>
+            <CurrentJob endpoint={this.props.endpoint} bot={this.props.bot}/>
           </div>
           :
           <div className="container">
             <div id="left" className="col-md-6">
               <div className="area">
-                <JogPanel endpoint={endpoint}/>
+                <JogPanel endpoint={this.props.endpoint}/>
               </div>
               <div className="area">
-                <HomeAxes endpoint={endpoint} bot={this.props.bot}/>
+                <HomeAxes endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
             </div>
             <div id="right" className="col-md-6">
               <div className="area">
-                <CurrentJob bot={this.props.bot}/>
+                <CurrentJob endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
               <div className="area row">
                 <div className="col-sm-6 no-padding">
-                  <PositionFeedback bot={this.props.bot}/>
+                  <PositionFeedback endpoint={this.props.endpoint} bot={this.props.bot}/>
                 </div>
                 <div className="col-sm-6 no-padding">
-                  <DisableMotors endpoint={endpoint}/>
+                  <DisableMotors endpoint={this.props.endpoint}/>
                 </div>
               </div>
               <div className="area">
-                <Temp bot={this.props.bot}/>
+                <Temp endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
             </div>
           </div>
@@ -67,7 +66,7 @@ export default class Dashboard extends React.Component {
         { isConductorBot ? conductorPlayers :
           <div className="container">
             <div className="area row">
-              <SendGcode endpoint={endpoint} bot={this.props.bot}/>
+              <SendGcode endpoint={this.props.endpoint} bot={this.props.bot}/>
             </div>
           </div>
         }
