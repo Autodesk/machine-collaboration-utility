@@ -60,8 +60,8 @@ module.exports = async function park(self, params) {
       commandArray.push('G1 Y' + (0 + Number(self.settings.offsetY) ).toFixed(2) + ' F10000'); // Scrub
     }
     commandArray.push('G1 Y' + (yPark + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Drag Y across the purge
+    commandArray.push('M400'); // Clear motion buffer before saying we're done
     commandArray.push({
-      code: 'M400', // Clear motion buffer before saying we're done
       postCallback: () => {
         self.logger.debug('Done with park movements');
         self.queue.prependCommands(parkEndCommand);
