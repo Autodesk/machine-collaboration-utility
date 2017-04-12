@@ -1,7 +1,6 @@
 const convert = require('koa-convert');
 const body = require('koa-body');
 const fs = require('fs-promise');
-const Promise = require('bluebird');
 
 const Response = require('../helpers/response');
 

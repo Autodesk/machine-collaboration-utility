@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const StateMachine = require('javascript-state-machine');
 const _ = require('lodash');
 const request = require('request-promise');

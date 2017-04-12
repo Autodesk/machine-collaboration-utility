@@ -1,7 +1,6 @@
 const router = require('koa-router')();
 const fs = require('fs-promise');
 const path = require('path');
-const Promise = require('bluebird');
 const _ = require('lodash');
 
 const botsRoutes = require('./routes');

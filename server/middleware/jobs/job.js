@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const uuidGenerator = require('uuid/v4');
 const StateMachine = require('javascript-state-machine');
 const Stopwatch = require('timer-stopwatch');

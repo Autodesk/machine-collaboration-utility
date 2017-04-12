@@ -1,5 +1,3 @@
-const Promise = require('bluebird');
-
 let usb;
 let SerialPort;
 

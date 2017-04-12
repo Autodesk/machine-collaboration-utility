@@ -4,7 +4,6 @@ const _ = require('lodash');
 const request = require('request-promise');
 const fs = require('fs-promise');
 const path = require('path');
-const Promise = require('bluebird');
 const winston = require('winston');
 const config = require('../../../config');
 

@@ -1,5 +1,4 @@
 const request = require('request-promise');
-const Promise = require('bluebird');
 
 module.exports = async function pause(self, params) {
   // TODO should not be able to pause unless all players are running

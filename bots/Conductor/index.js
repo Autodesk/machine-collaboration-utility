@@ -1,6 +1,5 @@
 const util = require('util');
 const request = require('request-promise');
-const Promise = require('bluebird');
 const _ = require('lodash');
 const path = require('path');
 const ip = require('ip');

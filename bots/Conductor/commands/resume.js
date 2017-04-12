@@ -1,5 +1,4 @@
 const request = require('request-promise');
-const Promise = require('bluebird');
 
 module.exports = async function resume(self) {
   try {

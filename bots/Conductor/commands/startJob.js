@@ -2,7 +2,7 @@ const fs = require('fs-promise');
 const request = require('request-promise');
 const ip = require('ip');
 const unzip = require('unzip2');
-const delay = require('bluebird').delay;
+const delay = Promise.delay;
 
 module.exports = async function startJob(self, params) {
   try {

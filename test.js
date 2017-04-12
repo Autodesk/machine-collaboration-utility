@@ -9,7 +9,7 @@ require('source-map-support').install();
  * To run tests use 'npm test'
  * If you want to run an individual test, use npm test --yourtest
  ******************************************************************************/
-
+global.Promise = require('bluebird');
 const path = require('path');
 const walk = require('fs-walk');
 const winston = require('winston');

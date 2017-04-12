@@ -1,5 +1,4 @@
 const Response = require('../helpers/response');
-const Promise = require('bluebird');
 const _ = require('lodash');
 
  /**

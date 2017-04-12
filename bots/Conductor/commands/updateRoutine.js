@@ -1,6 +1,6 @@
 const path = require('path');
 const request = require('request-promise');
-const delay = require('bluebird').delay;
+const delay = Promise.delay;
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));

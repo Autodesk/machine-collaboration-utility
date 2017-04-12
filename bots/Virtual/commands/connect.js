@@ -1,4 +1,4 @@
-const delay = require('bluebird').delay;
+const delay = Promise.delay;
 
 module.exports = function connect(self, params) {
   try {

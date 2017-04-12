@@ -3,7 +3,6 @@ const LineByLineReader = require('line-by-line');
 const gcodeToObject = require('gcode-json-converter').gcodeToObject;
 const objectToGcode = require('gcode-json-converter').objectToGcode;
 const _ = require('lodash');
-const Promise = require('bluebird');
 const request = require('request-promise');
 
 async function processCommentTag(gcodeObject, self) {

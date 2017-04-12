@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const LineByLineReader = Promise.promisifyAll(require('line-by-line'));
 const fs = require('fs');
 const path = require('path');

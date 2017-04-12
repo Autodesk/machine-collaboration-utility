@@ -11,7 +11,6 @@ const Sequelize = require('sequelize');
 const router = require('koa-router')();
 const _ = require('lodash');
 const stringify = require('json-stringify-safe');
-const Promise = require('bluebird');
 const exec = require('child_process').exec;
 
 const React = require('react');
