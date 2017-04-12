@@ -7,7 +7,7 @@
  * with responses.
  ******************************************************************************/
 const _ = require('lodash');
-const delay = require('bluebird').delay;
+const delay = Promise.delay;
 const MCE = require('motion-controller-emulator');
 
 const roundAxis = function roundAxis(command, axis, self) {
@@ -130,7 +130,7 @@ VirtualConnection.prototype.send = function send(inCommandStr) {
 
     this.bot.sendGcode(gcode)
     .then(reply => {
-      self.logger.silly('reply:', reply);
+      this.logger.silly('reply:', reply);
       this.processData(reply);
     });
     self.logger.silly('sent :', gcode);

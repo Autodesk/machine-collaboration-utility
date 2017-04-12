@@ -7,8 +7,6 @@ module.exports = async function park(self, params) {
     if (self.fsm.current !== 'executingJob') {
       throw new Error(`Cannot park from state "${self.fsm.current}"`);
     }
-    const commandArray = [];
-
     // We want park to happen in a very specific order
     // 1. Start park from the state machine immediately
     // 2. Allow for park movements / macros / etc
