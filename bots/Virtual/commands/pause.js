@@ -36,14 +36,6 @@ module.exports = async function pause(self, params) {
       },
     };
 
-    let pausedPosition = {
-      x: undefined,
-      y: undefined,
-      z: undefined,
-      e: undefined,
-    };
-    let liftString = '';
-
     const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
     const pauseMovementCommand = [
       'M400',
@@ -56,32 +48,15 @@ module.exports = async function pause(self, params) {
         processData: (command, data) => {
           const parsedPosition = data.match(m114Regex);
           self.pausedPosition = {
-            x: Number(parsedPosition[1]) - Number(self.settings.offsetX),
-            y: Number(parsedPosition[3]) - Number(self.settings.offsetY),
-            z: Number(parsedPosition[5]) - Number(self.settings.offsetZ),
-            e: Number(parsedPosition[7])
+            x: parsedPosition[1],
+            y: parsedPosition[3],
+            z: parsedPosition[5],
+            e: parsedPosition[7]
           }
-          return true;
-        }
-      },
-      // add in height handling
-      {
-        preCallback: () => {
-          pausedPosition = self.pausedPosition;
-          liftString = `G1 Z${pausedPosition.z + 10}`;
-          self.logger.debug('Just parsed', pausedPosition, liftString);
-        },
-        code: liftString,
-        processData: (command, reply) => {
-          self.logger.debug('Pause jog', command, reply);
-          return true;
-        },
-      },
-      {
-        postCallback: () => {
           self.queue.prependCommands(pauseEndCommand);
+          return true;
         }
-      },
+      }
     ];
 
     // Pause the job
@@ -95,21 +70,10 @@ module.exports = async function pause(self, params) {
       },
     });
 
-    if (self.fsm.current === 'blocking' || self.fsm.current === 'unblocking') {
-      commandArray.unshift({
-        postCallback: () => {
-          self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
-          self.pauseableState = self.fsm.current;
-          self.fsm.pause();
-        }
-      });
-      self.queue.queueCommands(commandArray);
-    } else {
-      self.queue.prependCommands(commandArray);
-      self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
-      self.pauseableState = self.fsm.current;
-      self.fsm.pause();
-    }
+    self.queue.prependCommands(commandArray);
+    self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
+    self.pauseableState = self.fsm.current;
+    self.fsm.pause();
   } catch (ex) {
     self.logger.error('Pause error', ex);
   }

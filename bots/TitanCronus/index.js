@@ -5,6 +5,8 @@ const VirtualBot = require('../Virtual');
 const connect = require('./commands/connect');
 const block = require('./commands/block');
 const unblock = require('./commands/unblock');
+const pause = require('./commands/pause');
+const resume = require('./commands/resume');
 
 const info = {
   connectionType: 'serial',
@@ -27,6 +29,8 @@ const commands = {
   connect,
   block,
   unblock,
+  pause,
+  resume,
 };
 
 module.exports = {
