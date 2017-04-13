@@ -56,7 +56,7 @@ module.exports = async function pause(self, params) {
           return true;
         }
       },
-      `G1 Z${self.pausedPosition + 10}`,
+      `G1 Z${self.pausedPosition.z + 10}`,
       {
         postCallback: () => {
           self.queue.prependCommands(pauseEndCommand);
