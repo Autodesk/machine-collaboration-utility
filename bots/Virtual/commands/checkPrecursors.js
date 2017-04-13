@@ -9,11 +9,11 @@ module.exports = function checkPrecursors(self) {
     // If the precursor is complete then move on
     if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
       self.status.blocker = undefined;
-      if (self.fsm.current === 'executingJob' || self.fsm.current === 'parked') {
+      if (self.fsm.current === 'executingJob' || self.fsm.current === 'blocked') {
       // If ready to accept new lines of code, then do so immediately
         self.lr.resume();
-      } else if (self.fsm.current === 'parking') {
-      // If not ready for a new line yet, queue to resume after done parking
+      } else if (self.fsm.current === 'blocking') {
+      // If not ready for a new line yet, queue to resume after done blocking
         self.queue.queueCommands({
           postCallback: () => {
             self.lr.resume();
@@ -21,18 +21,18 @@ module.exports = function checkPrecursors(self) {
         });
       }
     } else {
-      // If the precursor is not complete, then park
+      // If the precursor is not complete, then block
       self.queue.queueCommands({
         postCallback: () => {
-          // Idempotent park
-          if (self.fsm.current === 'parked' || self.fsm.current === 'parking') {
+          // Idempotent block
+          if (self.fsm.current === 'blocked' || self.fsm.current === 'blocking') {
             return;
           }
 
           if (self.fsm.current === 'executingJob') {
-            self.commands.park(self);
+            self.commands.block(self);
           } else {
-            self.logger.error(`Cannot park from state "${self.fsm.current}"`);
+            self.logger.error(`Cannot block from state "${self.fsm.current}"`);
           }
         },
       });

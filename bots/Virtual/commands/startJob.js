@@ -8,12 +8,15 @@ const request = require('request-promise');
 async function processCommentTag(gcodeObject, self) {
 
   switch(gcodeObject.metaComment.command) {
-    case 'forcePark':
-    case 'park':
-      self.commands.park(self);
+    case 'forceblock': {
+
+    }
+    case 'block': {
+      self.commands.block(self);
       break;
-    case 'unpark': {
-      self.commands.unpark(self);
+    }
+    case 'unblock': {
+      self.commands.unblock(self);
       break;
     }
     case 'checkpoint': {
@@ -21,7 +24,6 @@ async function processCommentTag(gcodeObject, self) {
         self.status.checkpoint = parseInt(checkpoint);
         self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
       });
-
 
       if (Array.isArray(self.currentJob.subscribers)) {
         await Promise.map(self.currentJob.subscribers, async (subscriber) => {
@@ -64,12 +66,12 @@ async function processCommentTag(gcodeObject, self) {
       const dry = gcodeObject.metaComment.args.dry;
       self.logger.debug(`About to purge: ${dry} ${typeof dry} `);
 
-      // If the printer is currently parked, then purge and unpark it
+      // If the printer is currently blocked, then purge and unblock it
       self.queue.queueCommands([
         'M400',
         {
           postCallback: () => {
-            self.commands.unpark(self, { dry });
+            self.commands.unblock(self, { dry });
           },
         },
         // {

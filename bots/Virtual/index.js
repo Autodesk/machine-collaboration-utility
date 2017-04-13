@@ -13,8 +13,8 @@ const startJob = require('./commands/startJob');
 const pause = require('./commands/pause');
 const resume = require('./commands/resume');
 const cancel = require('./commands/cancel');
-const park = require('./commands/park');
-const unpark = require('./commands/unpark');
+const block = require('./commands/block');
+const unblock = require('./commands/unblock');
 const toggleUpdater = require('./commands/toggleUpdater');
 const updateRoutine = require('./commands/updateRoutine');
 const jog = require('./commands/jog');
@@ -53,8 +53,8 @@ const commands = {
   pause,
   resume,
   cancel,
-  park,
-  unpark,
+  block,
+  unblock,
   toggleUpdater,
   updateRoutine,
   jog,

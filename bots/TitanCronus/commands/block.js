@@ -2,31 +2,31 @@ const path = require('path');
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
-module.exports = async function park(self, params) {
+module.exports = async function block(self, params) {
   try {
-    if (self.fsm.current === 'parked') {
+    if (self.fsm.current === 'blocked') {
       return self.lr.resume();
     }
 
     if (self.fsm.current !== 'executingJob') {
-      throw new Error(`Cannot park from state "${self.fsm.current}"`);
+      throw new Error(`Cannot block from state "${self.fsm.current}"`);
     }
-    // We want park to happen in a very specific order
-    // 1. Start park from the state machine immediately
-    // 2. Allow for park movements / macros / etc
-    // 3. Complete state machine park transition by signaling that park is complete
+    // We want block to happen in a very specific order
+    // 1. Start block from the state machine immediately
+    // 2. Allow for block movements / macros / etc
+    // 3. Complete state machine block transition by signaling that block is complete
     //
     // In order to accomplish this, we must prepend the current commands in the queue
-    // We call the state machine command "park"
+    // We call the state machine command "block"
     // In the postCallback of 1, we prepend 2 to the queue
     // Then in the postCallback of 2, we prepend 3 to the queue
     //
     // This comes across a bit backwards, but the ordering is necessary in order to prevent
     // transitioning to an incorrect state
 
-    const parkEndCommand = {
+    const blockEndCommand = {
       postCallback: () => {
-        self.fsm.parkDone();
+        self.fsm.blockDone();
       },
     };
 
@@ -42,7 +42,7 @@ module.exports = async function park(self, params) {
     const commandArray = [];
     commandArray.push({
       preCallback: () => {
-        self.logger.debug('Starting park movements');
+        self.logger.debug('Starting block movements');
       },
       code: 'M114',
       processData: (command, reply) => {
@@ -67,17 +67,17 @@ module.exports = async function park(self, params) {
     commandArray.push('M400'); // Clear motion buffer before saying we're done
     commandArray.push({
       postCallback: () => {
-        self.logger.debug('Done with park movements');
-        self.queue.prependCommands(parkEndCommand);
+        self.logger.debug('Done with block movements');
+        self.queue.prependCommands(blockEndCommand);
       }
     });
 
     self.queue.prependCommands(commandArray);
 
-    self.logger.debug('Just queued park', self.getBot().settings.name, self.fsm.current);
-    self.fsm.park();
+    self.logger.debug('Just queued block', self.getBot().settings.name, self.fsm.current);
+    self.fsm.block();
   } catch (ex) {
-    self.logger.error('Park error', ex);
+    self.logger.error('block error', ex);
   }
 
   return self.getBot();

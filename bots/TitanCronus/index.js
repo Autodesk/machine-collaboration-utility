@@ -3,8 +3,8 @@ const _ = require('lodash');
 const VirtualBot = require('../Virtual');
 
 const connect = require('./commands/connect');
-const park = require('./commands/park');
-const unpark = require('./commands/unpark');
+const block = require('./commands/block');
+const unblock = require('./commands/unblock');
 
 const info = {
   connectionType: 'serial',
@@ -25,8 +25,8 @@ const settings = {
 
 const commands = {
   connect,
-  park,
-  unpark,
+  block,
+  unblock,
 };
 
 module.exports = {
