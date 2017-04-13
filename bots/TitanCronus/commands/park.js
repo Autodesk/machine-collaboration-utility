@@ -43,7 +43,7 @@ module.exports = async function park(self, params) {
       code: 'M114',
       processData: (command, reply) => {
         const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
-        const parsedPosition = data.match(m114Regex);
+        const parsedPosition = reply.match(m114Regex);
         currentPosition.x = parsedPosition[1];
         currentPosition.y = parsedPosition[3];
         currentPosition.z = parsedPosition[5];
