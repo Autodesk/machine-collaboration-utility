@@ -48,16 +48,20 @@ module.exports = async function pause(self, params) {
         processData: (command, data) => {
           const parsedPosition = data.match(m114Regex);
           self.pausedPosition = {
-            x: parsedPosition[1],
-            y: parsedPosition[3],
-            z: parsedPosition[5],
-            e: parsedPosition[7]
+            x: Number(parsedPosition[1]) - Number(self.settings.offsetX),
+            y: Number(parsedPosition[3]) - Number(self.settings.offsetY),
+            z: Number(parsedPosition[5]) - Number(self.settings.offsetZ),
+            e: Number(parsedPosition[7])
           }
-          self.queue.prependCommands(pauseEndCommand);
           return true;
         }
       },
       `G1 Z${self.pausedPosition + 10}`,
+      {
+        postCallback: () => {
+          self.queue.prependCommands(pauseEndCommand);
+        }
+      },
     ];
 
     // Pause the job

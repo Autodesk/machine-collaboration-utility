@@ -48,22 +48,22 @@ module.exports = async function block(self, params) {
       processData: (command, reply) => {
         const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
         const parsedPosition = reply.match(m114Regex);
-        currentPosition.x = parsedPosition[1];
-        currentPosition.y = parsedPosition[3];
-        currentPosition.z = parsedPosition[5];
-        currentPosition.e = parsedPosition[7];
+        currentPosition.x = Number(parsedPosition[1]) - Number(self.settings.offsetX);
+        currentPosition.y = Number(parsedPosition[3]) - Number(self.settings.offsetY);
+        currentPosition.z = Number(parsedPosition[5]) - Number(self.settings.offsetZ);
+        currentPosition.e = Number(parsedPosition[7]);
         return true;
       }
     });
     commandArray.push('G92 E0'); // Reset extrusion
     commandArray.push('G1 E-2 F3000'); // Retract
-    if (currentPosition.z < 500) {
-      commandArray.push(`G1 Z${(currentPosition.z + parkLift).toFixed(2)} F1000`);
+    if (currentPosition.z < 500 - parkLift) {
+      commandArray.push(`G1 Z${(currentPosition.z + Number(self.settings.offsetZ) + parkLift).toFixed(2)} F1000`);
     }
-    if (Number(currentPosition.y - self.settings.offsetY) > 0) {
-      commandArray.push('G1 Y' + (0 + Number(self.settings.offsetY) ).toFixed(2) + ' F10000'); // Scrub
+    if (currentPosition.y > 0) {
+      commandArray.push('G1 Y' + Number(self.settings.offsetY).toFixed(2) + ' F10000'); // Scrub
     }
-    commandArray.push('G1 Y' + (yPark + Number(self.settings.offsetY) ).toFixed(2) + ' F2000'); // Drag Y across the purge
+    commandArray.push('G1 Y' + (yPark + Number(self.settings.offsetY)).toFixed(2) + ' F2000'); // Drag Y across the purge
     commandArray.push({
       code: 'M400', // Clear motion buffer before saying we're done
       postCallback: () => {
