@@ -8,7 +8,7 @@ const request = require('request-promise');
 async function processCommentTag(gcodeObject, self) {
 
   switch(gcodeObject.metaComment.command) {
-    case 'forcePark': {}
+    // case 'forcePark': {}
     case 'park': {
       self.commands.park(self);
       break;

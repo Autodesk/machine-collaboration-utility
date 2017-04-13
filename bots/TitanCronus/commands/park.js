@@ -4,6 +4,10 @@ const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs
 
 module.exports = async function park(self, params) {
   try {
+    if (self.fsm.current === 'parked') {
+      return self.lr.resume();
+    }
+
     if (self.fsm.current !== 'executingJob') {
       throw new Error(`Cannot park from state "${self.fsm.current}"`);
     }
