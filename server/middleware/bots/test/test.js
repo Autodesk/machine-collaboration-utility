@@ -531,7 +531,8 @@ module.exports = function botsTests() {
     });
 
     it('should start printing a .esh file', async function() {
-      this.timeout(10000);
+      this.timeout(15000);
+      await Promise.delay(5000);
       // Upload a file
       const testFilePath = path.join(__dirname, 'test-cubes.esh');
       const fileStream = fs.createReadStream(testFilePath);

@@ -56,7 +56,8 @@ module.exports = async function pause(self, params) {
           self.queue.prependCommands(pauseEndCommand);
           return true;
         }
-      }
+      },
+      `G1 Z${self.pausedPosition + 10}`,
     ];
 
     // Pause the job
@@ -70,10 +71,21 @@ module.exports = async function pause(self, params) {
       },
     });
 
-    self.queue.prependCommands(commandArray);
-    self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
-    self.pauseableState = self.fsm.current;
-    self.fsm.pause();
+    if (self.fsm.current === 'blocking' || self.fsm.current === 'unblocking') {
+      commandArray.unshift({
+        postCallback: () => {
+          self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
+          self.pauseableState = self.fsm.current;
+          self.fsm.pause();
+        }
+      });
+      self.queue.queueCommands(commandArray);
+    } else {
+      self.queue.prependCommands(commandArray);
+      self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
+      self.pauseableState = self.fsm.current;
+      self.fsm.pause();
+    }
   } catch (ex) {
     self.logger.error('Pause error', ex);
   }
