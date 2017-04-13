@@ -62,7 +62,8 @@ async function processCommentTag(gcodeObject, self) {
       break;
     }
     case 'dry': {
-      const dry = String(gcodeObject.metaComment.args.dry) === 'true';
+      const dry = gcodeObject.metaComment.args.dry;
+      self.logger.debug(`About to purge: ${dry} ${typeof dry}`);
 
       // If the printer is currently parked, then purge and unpark it
       self.queue.queueCommands([
@@ -87,7 +88,7 @@ async function processCommentTag(gcodeObject, self) {
     }
     default: {
       self.lr.resume();
-      self.logger.error('Unknown comment', conductorCommentResult);
+      self.logger.error('Unknown comment', gcodeObject.metaComment.command);
       break;
     }
   }
