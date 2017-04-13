@@ -86,6 +86,7 @@ async function processCommentTag(gcodeObject, self) {
       break;
     }
     default: {
+      self.lr.resume();
       self.logger.error('Unknown comment', conductorCommentResult);
       break;
     }
