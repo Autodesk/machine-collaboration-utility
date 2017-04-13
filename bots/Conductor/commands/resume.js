@@ -19,7 +19,7 @@ async function checkResume(self) {
       self.logger.error('Get bot resume info error', ex);
     });
 
-    if (!botFsmDefinitions.metaState.pauseable.includes(reply.data.state)) {
+    if (!botFsmDefinitions.metaStates.pauseable.includes(reply.data.state)) {
       resumeDone = false;
     }
   })
