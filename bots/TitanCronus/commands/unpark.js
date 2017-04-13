@@ -9,7 +9,6 @@ module.exports = async function unpark(self, params) {
     }
 
     const purgeAmount = 10;
-    const commandArray = [];
 
     const unparkDoneCommand = {
       postCallback: () => {
@@ -21,7 +20,7 @@ module.exports = async function unpark(self, params) {
     const unparkMotionArray = [];
     unparkMotionArray.push({
       preCallback: () => {
-        self.logger.debug('Starting unpark motion');
+        self.logger.debug('Starting unpark motion', params);
       },
     });
 
@@ -40,6 +39,7 @@ module.exports = async function unpark(self, params) {
       }
     });
 
+    const commandArray = [];
     if (self.fsm.current === 'parking') {
       commandArray.push({
         postCallback: () => {

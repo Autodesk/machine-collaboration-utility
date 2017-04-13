@@ -63,26 +63,23 @@ async function processCommentTag(gcodeObject, self) {
     }
     case 'dry': {
       const dry = gcodeObject.metaComment.args.dry;
-      self.logger.debug(`About to purge: ${dry} ${typeof dry}`);
+      self.logger.debug(`About to purge: ${dry} ${typeof dry} `);
 
       // If the printer is currently parked, then purge and unpark it
       self.queue.queueCommands([
         'M400',
         {
           postCallback: () => {
-            if (self.fsm.current === 'parked') {
-              // should start unparking and then resume reading lines
-              self.commands.unpark(self, { dry });
-            }
+            self.commands.unpark(self, { dry });
           },
         },
-        {
-          postCallback: () => {
-            if (self.fsm.current === 'executingJob') {
-              self.lr.resume();
-            }
-          },
-        },
+        // {
+        //   postCallback: () => {
+        //     if (self.fsm.current === 'executingJob') {
+        //       self.lr.resume();
+        //     }
+        //   },
+        // },
       ]);
       break;
     }
