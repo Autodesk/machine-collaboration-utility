@@ -42,6 +42,8 @@ module.exports = async function pause(self, params) {
       z: undefined,
       e: undefined,
     };
+    let liftString = '';
+
     const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
     const pauseMovementCommand = [
       'M400',
@@ -66,8 +68,14 @@ module.exports = async function pause(self, params) {
       {
         preCallback: () => {
           pausedPosition = self.pausedPosition;
+          liftString = `G1 Z${pausedPosition.z + 10}`;
+          self.logger.debug('Just parsed', pausedPosition, liftString);
         },
-        code: `G1 Z${pausedPosition.z + 10}`,
+        code: liftString,
+        processData: (command, reply) => {
+          self.logger.debug('Pause jog', command, reply);
+          return true;
+        },
       },
       {
         postCallback: () => {
