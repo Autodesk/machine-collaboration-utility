@@ -29,7 +29,15 @@ function purgeCommands() {
 module.exports = async function unblock(self, params) {
   try {
     if (self.fsm.current === 'executingJob') {
-      self.queue.queueCommands(purgeCommands);
+      const commandArray = [
+        ...purgeCommands(),
+        {
+          postCallback: () => {
+            self.lr.resume();
+          }
+        }
+      ]
+      self.queue.queueCommands(commandArray);
     } else {
       if (!(self.fsm.current === 'blocked' || self.fsm.current === 'blocking')) {
         throw new Error(`Cannot unblock from state "${self.fsm.current}"`);
