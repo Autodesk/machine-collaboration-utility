@@ -30,7 +30,7 @@ module.exports = async function unblock(self, params) {
   try {
     if (self.fsm.current === 'executingJob') {
       const commandArray = [
-        ...purgeCommands(self),
+        purgeCommands(self),
         {
           postCallback: () => {
             self.lr.resume();
