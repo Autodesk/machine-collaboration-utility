@@ -62,7 +62,7 @@ async function processCommentTag(gcodeObject, self) {
       break;
     }
     case 'dry': {
-      const dry = gcodeObject.metaComment.args.dry;
+      const dry = String(gcodeObject.metaComment.args.dry) === 'true';
 
       // If the printer is currently parked, then purge and unpark it
       self.queue.queueCommands([
