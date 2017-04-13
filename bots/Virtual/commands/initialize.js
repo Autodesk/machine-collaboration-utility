@@ -8,6 +8,9 @@ module.exports = function initialize(self, params) {
   self.pauseableState = undefined;
   self.pausedPosition = undefined;
 
+  // Set "parked" flag to false initially
+  self.parked = false;
+
   // placeholder for storing which possible state to return to after receiving a job warning
   self.jobWarningState = undefined;
 
