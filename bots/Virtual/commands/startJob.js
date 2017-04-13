@@ -76,13 +76,6 @@ async function processCommentTag(gcodeObject, self) {
             self.commands.unblock(self, { dry });
           },
         },
-        // {
-        //   postCallback: () => {
-        //     if (self.fsm.current === 'executingJob') {
-        //       self.lr.resume();
-        //     }
-        //   },
-        // },
       ]);
       break;
     }
