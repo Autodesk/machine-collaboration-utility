@@ -3,7 +3,7 @@ const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
 // Returns an array of purge commands
-function purgeCommands() {
+function purgeCommands(self) {
   const commandArray = [];
   const purgeAmount = 10;
   commandArray.push('G92 E0');
@@ -30,7 +30,7 @@ module.exports = async function unblock(self, params) {
   try {
     if (self.fsm.current === 'executingJob') {
       const commandArray = [
-        ...purgeCommands(),
+        ...purgeCommands(self),
         {
           postCallback: () => {
             self.lr.resume();
@@ -58,7 +58,7 @@ module.exports = async function unblock(self, params) {
       });
 
       if (params.dry === false) {
-        commandArray.push(purgeCommands());
+        commandArray.push(purgeCommands(self));
       }
 
       const unblockDoneCommand = {
