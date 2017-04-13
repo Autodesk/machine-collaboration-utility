@@ -36,6 +36,12 @@ module.exports = async function pause(self, params) {
       },
     };
 
+    let pausedPosition = {
+      x: undefined,
+      y: undefined,
+      z: undefined,
+      e: undefined,
+    };
     const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
     const pauseMovementCommand = [
       'M400',
@@ -56,7 +62,13 @@ module.exports = async function pause(self, params) {
           return true;
         }
       },
-      `G1 Z${self.pausedPosition.z + 10}`,
+      // add in height handling
+      {
+        preCallback: () => {
+          pausedPosition = self.pausedPosition;
+        },
+        code: `G1 Z${pausedPosition.z + 10}`,
+      },
       {
         postCallback: () => {
           self.queue.prependCommands(pauseEndCommand);
