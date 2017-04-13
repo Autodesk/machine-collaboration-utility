@@ -26,7 +26,9 @@ module.exports = async function resume(self, params) {
         const command = 'resume' + capitalizeFirstLetter(self.pauseableState);
         // Resume the bot
         self.fsm[command]();
-        self.lr.resume();
+        if (self.pauseableState === 'executingJob') {
+          self.lr.resume();
+        }
       },
     };
 
