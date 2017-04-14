@@ -7,7 +7,7 @@ module.exports = async function unblock(self, params) {
   try {
     if (self.fsm.current === 'executingJob') {
       const commandArray = [
-        purgeCommands(self),
+        generateUnparkCommands(self),
         {
           postCallback: () => {
             self.lr.resume();
@@ -35,7 +35,7 @@ module.exports = async function unblock(self, params) {
       });
 
       if (params.dry === false) {
-        commandArray.push(purgeCommands(self));
+        commandArray.push(generateUnparkCommands(self));
       }
 
       const unblockDoneCommand = {
