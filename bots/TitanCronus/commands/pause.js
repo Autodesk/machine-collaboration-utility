@@ -1,6 +1,7 @@
 const path = require('path');
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
+const generateParkCommands = require('./generateParkCommands');
 
 module.exports = async function pause(self, params) {
   try {
@@ -36,47 +37,12 @@ module.exports = async function pause(self, params) {
     };
 
     const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
-    const pauseMovementCommand = {
-      code: 'M400',
+    const parkCommands = generateParkCommands(self);
+    parkCommands.push({
       postCallback: () => {
-        self.queue.prependCommands({
-          // When pausing capture the position so that we can come back to it
-          preCallback: () => {
-            self.logger.debug('Starting pause movements');
-          },
-          code: 'M114',
-          processData: (command, data) => {
-            const parsedPosition = data.match(m114Regex);
-            self.pausedPosition = {
-              x: Number(parsedPosition[1]),
-              y: Number(parsedPosition[3]),
-              z: Number(parsedPosition[5]),
-              e: Number(parsedPosition[7])
-            }
-            return true;
-          },
-          postCallback: () => {
-            const yPark = -50;
-            const parkArray = [];
-            if (self.pausedPosition.z < 500) {
-              parkArray.push(`G1 Z${self.pausedPosition.z + 10}`);
-            }
-            if (self.pausedPosition.y > self.settings.offsetY) {
-              parkArray.push('G1 Y' + self.settings.offsetY.toFixed(2) + ' F10000'); // Scrub
-            }
-            parkArray.push('G1 Y' + (yPark + Number(self.settings.offsetY)).toFixed(2) + ' F2000'); // Drag Y across the purge
-            parkArray.push('M400');
-            parkArray.push({
-              postCallback: () => {
-                self.parked = true;
-                self.queue.prependCommands(pauseEndCommand);
-              }
-            });
-            self.queue.prependCommands(parkArray);
-          }
-        });
+        self.queue.prependCommands(pauseEndCommand);
       }
-    };
+    });
 
     // Pause the job
     commandArray.push({
@@ -85,7 +51,7 @@ module.exports = async function pause(self, params) {
         // This line of code is not being reached.
         self.currentJob.pause();
         // Note, we don't return the pause request until the initial pause command is processed by the queue
-        self.queue.prependCommands(pauseMovementCommand);
+        self.queue.prependCommands(parkCommands);
       },
     });
 

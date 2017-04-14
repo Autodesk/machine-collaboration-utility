@@ -1,6 +1,7 @@
 const path = require('path');
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
+const generateParkCommands = require('./generateParkCommands');
 
 module.exports = async function block(self, params) {
   try {
@@ -30,50 +31,14 @@ module.exports = async function block(self, params) {
       },
     };
 
-    const parkLift = 10;
-    const yPark = -50;
-    const currentPosition = {
-      x: undefined,
-      y: undefined,
-      z: undefined,
-      e: undefined,
-    };
-
-    const commandArray = [];
-    commandArray.push({
-      preCallback: () => {
-        self.logger.debug('Starting block movements');
-      },
-      code: 'M114',
-      processData: (command, reply) => {
-        const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
-        const parsedPosition = reply.match(m114Regex);
-        currentPosition.x = Number(parsedPosition[1]) - Number(self.settings.offsetX);
-        currentPosition.y = Number(parsedPosition[3]) - Number(self.settings.offsetY);
-        currentPosition.z = Number(parsedPosition[5]) - Number(self.settings.offsetZ);
-        currentPosition.e = Number(parsedPosition[7]);
-        return true;
-      }
-    });
-    commandArray.push('G92 E0'); // Reset extrusion
-    commandArray.push('G1 E-2 F3000'); // Retract
-    if (currentPosition.z < 500 - parkLift) {
-      commandArray.push(`G1 Z${(currentPosition.z + Number(self.settings.offsetZ) + parkLift).toFixed(2)} F1000`);
-    }
-    if (currentPosition.y > 0) {
-      commandArray.push('G1 Y' + Number(self.settings.offsetY).toFixed(2) + ' F10000'); // Scrub
-    }
-    commandArray.push('G1 Y' + (yPark + Number(self.settings.offsetY)).toFixed(2) + ' F2000'); // Drag Y across the purge
-    commandArray.push({
-      code: 'M400', // Clear motion buffer before saying we're done
+    const parkCommands = generateParkCommands(self);
+    parkCommands.push({
       postCallback: () => {
-        self.parked = true;
-        self.logger.debug('Done with block movements');
         self.queue.prependCommands(blockEndCommand);
       }
     });
 
-    self.queue.prependCommands(commandArray);
+    self.queue.prependCommands(parkCommands);
 
     self.logger.debug('Just queued block', self.getBot().settings.name, self.fsm.current);
     self.fsm.block();
