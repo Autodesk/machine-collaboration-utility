@@ -22,15 +22,16 @@ module.exports = function generateParkCommands(self) {
       currentPosition.y = Number(parsedPosition[3]);
       currentPosition.z = Number(parsedPosition[5]);
       currentPosition.e = Number(parsedPosition[7]);
+      self.pausedPosition = Object.assign({}, currentPosition);
       return true;
     }
   });
   commandArray.push('G92 E0'); // Reset extrusion
   commandArray.push('G1 E-2 F3000'); // Retract
-  if (currentPosition.z < 500 - parkLift) {
-    commandArray.push(`G1 Z${(currentPosition.z + parkLift).toFixed(2)} F1000`);
+  if (self.pausedPosition.z < 500 - parkLift) {
+    commandArray.push(`G1 Z${(self.pausedPosition + parkLift).toFixed(2)} F1000`);
   }
-  if (currentPosition.y > Number(self.settings.offsetY)) {
+  if (self.pausedPosition.y > Number(self.settings.offsetY)) {
     commandArray.push('G1 Y' + Number(self.settings.offsetY).toFixed(2) + ' F10000'); // Scrub
   }
   commandArray.push('G1 Y' + Number(yPark + self.settings.offsetY).toFixed(2) + ' F2000'); // Drag Y across the purge
