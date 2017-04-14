@@ -33,7 +33,7 @@ module.exports = function generateParkCommands(self) {
   if (currentPosition.y > Number(self.settings.offsetY)) {
     commandArray.push('G1 Y' + Number(self.settings.offsetY).toFixed(2) + ' F10000'); // Scrub
   }
-  commandArray.push('G1 Y' + yPark + ' F2000'); // Drag Y across the purge
+  commandArray.push('G1 Y' + Number(yPark + self.settings.offsetY).toFixed(2) + ' F2000'); // Drag Y across the purge
   commandArray.push({
     code: 'M400', // Clear motion buffer before saying we're done
     postCallback: () => {
