@@ -26,15 +26,17 @@ module.exports = function generateParkCommands(self) {
       return true;
     }
   });
+
+  const offsetY = Number(Number(self.settings.offsetY).toFixed(2));
   commandArray.push('G92 E0'); // Reset extrusion
   commandArray.push('G1 E-2 F3000'); // Retract
   if (self.pausedPosition.z < 500 - parkLift) {
-    commandArray.push(`G1 Z${(self.pausedPosition + parkLift).toFixed(2)} F1000`);
+    commandArray.push(`G1 Z${(self.pausedPosition.z + parkLift).toFixed(2)} F1000`);
   }
-  if (self.pausedPosition.y > Number(self.settings.offsetY)) {
-    commandArray.push('G1 Y' + Number(self.settings.offsetY).toFixed(2) + ' F10000'); // Scrub
+  if (self.pausedPosition.y > offsetY) {
+    commandArray.push('G1 Y' + offsetY + ' F10000'); // Scrub
   }
-  commandArray.push('G1 Y' + Number(yPark + self.settings.offsetY).toFixed(2) + ' F2000'); // Drag Y across the purge
+  commandArray.push('G1 Y' + Number(yPark + offsetY).toFixed(2) + ' F2000'); // Drag Y across the purge
   commandArray.push({
     code: 'M400', // Clear motion buffer before saying we're done
     postCallback: () => {
