@@ -204,33 +204,35 @@ module.exports = async function startJob(self, params) {
       throw new Error('A "fileUuid" must be specified when starting a job.');
     }
     self.fsm.startJob();
+    try {
+      // Create a job
+      const jobMiddleware = self.app.context.jobs;
+      const botUuid = self.settings.uuid;
+      const fileUuid = params.fileUuid;
+      const subscribers = params.subscribers;
 
-    // Create a job
-    const jobMiddleware = self.app.context.jobs;
-    const botUuid = self.settings.uuid;
-    const fileUuid = params.fileUuid;
-    const subscribers = params.subscribers;
+      self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid, null, subscribers)
+      .catch(error => {
+        throw new Error('Create job error', error);
+      });
 
-    self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid, null, subscribers)
-    .catch(error => {
-      throw new Error('Create job error', error);
-    });
+      // set up the file executor
+      await setupFileExecutor(self)
+      .catch(error => {
+        throw new Error('Setup file executor error', error);
+      });
 
-    // set up the file executor
-    await setupFileExecutor(self)
-    .catch(error => {
-      throw new Error('Setup file executor error', error);
-    });
+      self.currentJob.start();
 
-    self.currentJob.start();
+      // Start consuming the file
+      self.lr.resume();
 
-    // Start consuming the file
-    self.lr.resume();
-
-    self.fsm.startDone();
+      self.fsm.startDone();
+    } catch (ex) {
+      self.fsm.startJobFail();
+    }
   } catch (ex) {
     self.logger.error('Start job fail', ex);
-    self.fsm.startJobFail();
   }
   return self.getBot();
 };
