@@ -28,22 +28,20 @@ module.exports = async function pause(self, params) {
     //
     // This comes across a bit backwards, but the ordering is necessary in order to prevent
     // transitioning to an incorrect state
-    const commandArray = [];
-
-    const pauseEndCommand = {
-      postCallback: () => {
-        self.fsm.pauseDone();
-      },
-    };
 
     const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
     const parkCommands = generateParkCommands(self);
     parkCommands.push({
       postCallback: () => {
-        self.queue.prependCommands(pauseEndCommand);
+        self.queue.prependCommands({
+          postCallback: () => {
+            self.fsm.pauseDone();
+          },
+        });
       }
     });
 
+    const commandArray = [];
     // Pause the job
     commandArray.push({
       postCallback: () => {
@@ -58,17 +56,17 @@ module.exports = async function pause(self, params) {
     if (self.fsm.current === 'blocking' || self.fsm.current === 'unblocking') {
       commandArray.unshift({
         postCallback: () => {
-          self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
-          self.pauseableState = self.fsm.current;
           self.fsm.pause();
+          self.pauseableState = self.fsm.current;
+          self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
         }
       });
       self.queue.queueCommands(commandArray);
     } else {
+      self.fsm.pause();
+      self.pauseableState = self.fsm.current;
       self.queue.prependCommands(commandArray);
       self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
-      self.pauseableState = self.fsm.current;
-      self.fsm.pause();
     }
   } catch (ex) {
     self.logger.error('Pause error', ex);
