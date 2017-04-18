@@ -6,7 +6,6 @@ if (process.env.CONTINUOUS_INTEGRATION !== 'true') {
   hardwareDependencies = require('./hardwareDependencies.json');
 }
 
-  // Mac dependencies
 if (hardwareDependencies) {
   for (var package in hardwareDependencies.dependencies) {
     var oscmd   = "npm install " + package;
