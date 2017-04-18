@@ -34,10 +34,10 @@ module.exports = async function resume(self, params) {
 
     const resumeMotion = [
       {
-        code: self.pausedPosition === undefined ? 'M114' : `G92 E${self.pausedPosition.e}`,
+        code: self.parkedPosition === undefined ? 'M114' : `G92 E${self.parkedPosition.e}`,
       },
       {
-        code: self.pausedPosition === undefined ? 'M114' : `G1 X${self.pausedPosition.x} Y${self.pausedPosition.y} Z${self.pausedPosition.z} F2000`
+        code: self.parkedPosition === undefined ? 'M114' : `G1 X${self.parkedPosition.x} Y${self.parkedPosition.y} Z${self.parkedPosition.z} F2000`
       },
       {
         preCallback: () => {
@@ -45,7 +45,7 @@ module.exports = async function resume(self, params) {
         },
         code: 'M400',
         postCallback: () => {
-          self.pausedPosition = undefined;
+          self.parkedPosition = undefined;
           self.queue.prependCommands(resumeDoneCommand);
           self.logger.debug('Done with resume motion');
         }

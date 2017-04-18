@@ -47,7 +47,7 @@ module.exports = async function pause(self, params) {
         code: 'M114',
         processData: (command, data) => {
           const parsedPosition = data.match(m114Regex);
-          self.pausedPosition = {
+          self.parkedPosition = {
             x: parsedPosition[1],
             y: parsedPosition[3],
             z: parsedPosition[5],

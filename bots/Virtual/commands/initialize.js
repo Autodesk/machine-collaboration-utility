@@ -6,7 +6,7 @@ module.exports = function initialize(self, params) {
 
   // placeholder for storing which possible state to return to after pausing
   self.pauseableState = undefined;
-  self.pausedPosition = undefined;
+  self.parkedPosition = undefined;
 
   // Set "parked" flag to false initially
   self.parked = false;
