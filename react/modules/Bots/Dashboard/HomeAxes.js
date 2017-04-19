@@ -39,7 +39,6 @@ export default class HomeAxes extends React.Component {
   render() {
     return (
       <div>
-        <h3>HOME</h3>
         <div className="row">
           <div className="area-padding max-area-width">
             <div className="col-xs-3 no-padding">

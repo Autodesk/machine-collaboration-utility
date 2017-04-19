@@ -44,6 +44,9 @@ export default class Dashboard extends React.Component {
               <div className="area">
                 <HomeAxes endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
+              <div className="area">
+                <SendGcode endpoint={this.props.endpoint} bot={this.props.bot}/>
+              </div>
             </div>
             <div id="right" className="col-md-6">
               <div className="area">
@@ -60,13 +63,6 @@ export default class Dashboard extends React.Component {
               <div className="area">
                 <Temp endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
-            </div>
-          </div>
-        }
-        { isConductorBot ? conductorPlayers :
-          <div className="container">
-            <div className="area row">
-              <SendGcode endpoint={this.props.endpoint} bot={this.props.bot}/>
             </div>
           </div>
         }
