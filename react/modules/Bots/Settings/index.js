@@ -1,6 +1,6 @@
 import React from 'react';
 import request from 'superagent';
-import _ from 'underscore';
+import _ from 'lodash';
 import Button from 'react-bootstrap/lib/Button';
 
 export default class Settings extends React.Component {
@@ -9,7 +9,7 @@ export default class Settings extends React.Component {
 
     // Replace any undefined or null with a blank string
     const settings = props.bot.settings;
-    for (const [settingKey, setting] of _.pairs(settings)) {
+    for (const [settingKey, setting] of _.entries(settings)) {
       if (setting == undefined) {
         settings[settingKey] = '';
       }
@@ -28,7 +28,7 @@ export default class Settings extends React.Component {
     const settings = nextProps.bot.settings;
     let updateSettings = false;
 
-    for (const [settingKey, setting] of _.pairs(settings)) {
+    for (const [settingKey, setting] of _.entries(settings)) {
       const newSetting = setting == undefined ? '' : setting;
       const oldSetting = this.props.bot.settings[settingKey] == undefined ? '' : this.props.bot.settings[settingKey];
       if (newSetting !== oldSetting) {
@@ -44,13 +44,19 @@ export default class Settings extends React.Component {
 
   updateBotSettings(event) {
     event.preventDefault();
-    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
-    let update = request.put(endpoint);
+    let update = request.put(this.props.endpoint);
     const paramJson = {};
-    for (const [settingKey, setting] of _.pairs(this.state.settings)) {
+    for (const [settingKey, setting] of _.entries(this.state.settings)) {
+      // add the setting if we aren't a player,
+      // or if we are a player and the setting is neither "name" nor "endpoint"
       try {
-        const newValue = event.target[settingKey].value;
-        paramJson[settingKey] = newValue;
+        if (
+          this.props.bot.info.connectionType !== 'player' ||
+          ( settingKey !== 'name' && settingKey !== 'endpoint')
+        ) {
+          const newValue = event.target[settingKey].value;
+          paramJson[settingKey] = newValue;
+        }
       } catch (ex) {
         // Value not listed as a part of the input form, don't add it
       }
@@ -72,7 +78,7 @@ export default class Settings extends React.Component {
 
   renderSettingsForm() {
     const settings = [];
-    for (const [settingKey, setting] of _.pairs(this.state.settings)) {
+    for (const [settingKey, setting] of _.entries(this.state.settings)) {
       switch (settingKey) {
         // Don't use the following settings
         case 'createdAt':
@@ -87,6 +93,11 @@ export default class Settings extends React.Component {
             break;
           }
         default:
+          if (this.props.bot.info.connectionType === 'player' && require('is-browser')) {
+            if (settingKey === 'name' || settingKey === 'endpoint') {
+              break;
+            }
+          }
           settings.push(this.renderSettingInput(settingKey, setting));
       }
     }

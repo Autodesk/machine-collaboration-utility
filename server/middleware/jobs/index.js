@@ -1,7 +1,5 @@
 const router = require('koa-router')();
-const bsync = require('asyncawait/async');
-const bwait = require('asyncawait/await');
-const _ = require('underscore');
+const _ = require('lodash');
 
 const jobsRouter = require('./routes');
 const Job = require('./job');
@@ -38,22 +36,23 @@ const Jobs = function(app, routeEndpoint) {
  * - Setting up the database model for a Job
  * - Loading all jobs saved in the database
  */
-Jobs.prototype.initialize = bsync(function initialize() {
+Jobs.prototype.initialize = async function initialize() {
   try {
-    bwait(this.setupRouter());
+    await this.setupRouter();
     // initial setup of the db
-    this.JobModel = bwait(jobModel(this.app));
+    this.JobModel = await jobModel(this.app);
 
     // load all existing jobs from the database
     let jobs;
     try {
-      jobs = bwait(this.JobModel.findAll());
+      jobs = await this.JobModel.findAll();
     } catch (ex) {
       // In case of first boot, or schema changing, sync the database
       // WARNING this will drop all entries from the table
-      bwait(this.app.context.db.sync({ force: true }));
-      jobs = bwait(this.JobModel.findAll());
+      await this.app.context.db.sync({ force: true });
+      jobs = await this.JobModel.findAll();
     }
+
     for (const job of jobs) {
       const id = job.dataValues.id;
       const botUuid = job.dataValues.botUuid;
@@ -77,7 +76,8 @@ Jobs.prototype.initialize = bsync(function initialize() {
         initialState: state,
         id,
       });
-      bwait(jobObject.initialize());
+
+      await jobObject.initialize();
       jobObject.percentComplete = job.dataValues.percentComplete;
       jobObject.started = job.dataValues.started;
       jobObject.elapsed = job.dataValues.elapsed;
@@ -87,7 +87,7 @@ Jobs.prototype.initialize = bsync(function initialize() {
   } catch (ex) {
     this.logger.error('Jobs initialization error', ex);
   }
-});
+};
 
 /**
  * createJob()
@@ -101,48 +101,47 @@ Jobs.prototype.initialize = bsync(function initialize() {
  *
  * @returns {Object} - A new Jobs server object
  */
-Jobs.prototype.createJob = bsync(
-  function createJob(botUuid, fileUuid, jobUuid, subscribers) {
-    // Do not allow for duplicate uuid's.
-    // If you pass a uuid, you are deleting the existing job
-    if (this.jobList[jobUuid] !== undefined) {
-      // Delete the job from the database and the jobs object
-      bwait(this.deleteJob(jobUuid));
-    }
-
-    const jobObject = new Job({
-      app: this.app,
-      botUuid,
-      fileUuid,
-      jobUuid,
-      subscribers,
-    });
-
-    const dbJob = bwait(this.JobModel.create({
-      uuid: jobObject.uuid,
-      botUuid,
-      fileUuid,
-      state: null,
-      started: null,
-      elapsed: null,
-      percentComplete: null,
-    }));
-    // HACK. The job's id cannot be known until it is added to the database
-    jobObject.id = dbJob.dataValues.id;
-
-    bwait(jobObject.initialize());
-    const jobJson = jobObject.getJob();
-
-    this.jobList[jobObject.uuid] = jobObject;
-    this.logger.info('jobEvent', jobJson);
-    this.app.io.broadcast('jobEvent', {
-      uuid: jobObject.uuid,
-      event: 'new',
-      data: jobObject.getJob(),
-    });
-    return jobObject;
+Jobs.prototype.createJob = async function createJob(botUuid, fileUuid, jobUuid, subscribers) {
+  // Do not allow for duplicate uuid's.
+  // If you pass a uuid, you are deleting the existing job
+  // Note this is a bit wreckless, consider restructuring logic
+  if (jobUuid && this.jobList[jobUuid] !== undefined) {
+    // Delete the job from the database and the jobs object
+    await this.deleteJob(jobUuid);
   }
-);
+
+  const jobObject = new Job({
+    app: this.app,
+    botUuid,
+    fileUuid,
+    jobUuid,
+    subscribers,
+  });
+
+  const dbJob = await this.JobModel.create({
+    uuid: jobObject.uuid,
+    botUuid,
+    fileUuid,
+    state: null,
+    started: null,
+    elapsed: null,
+    percentComplete: null,
+  });
+  // The job's id cannot be known until it is added to the database
+  jobObject.id = dbJob.dataValues.id;
+
+  await jobObject.initialize();
+  const jobJson = jobObject.getJob();
+
+  this.jobList[jobObject.uuid] = jobObject;
+  this.logger.info('jobEvent', jobJson);
+  this.app.io.broadcast('jobEvent', {
+    uuid: jobObject.uuid,
+    event: 'new',
+    data: jobObject.getJob(),
+  });
+  return jobObject;
+};
 
 /**
  * setupRouter()
@@ -150,11 +149,11 @@ Jobs.prototype.createJob = bsync(
  * Set up the jobs' instance's router
  *
  */
-Jobs.prototype.setupRouter = bsync(function setupRouter() {
+Jobs.prototype.setupRouter = async function setupRouter() {
   try {
     // Populate this.router with all routes
     // Then register all routes with the app
-    bwait(jobsRouter(this));
+    await jobsRouter(this);
 
     // Register all router routes with the app
     this.app.use(this.router.routes()).use(this.router.allowedMethods());
@@ -162,7 +161,7 @@ Jobs.prototype.setupRouter = bsync(function setupRouter() {
   } catch (ex) {
     this.logger.error('Jobs router setup error', ex);
   }
-});
+};
 
 /**
  * getJob()
@@ -189,7 +188,7 @@ Jobs.prototype.getJob = function getJob(jobUuid) {
  */
 Jobs.prototype.getJobs = function getJobs() {
   const jobList = {};
-  _.pairs(this.jobList).map(([jobKey, job]) => {
+  _.entries(this.jobList).map(([jobKey, job]) => {
     jobList[jobKey] = job.getJob();
   });
   return jobList;
@@ -205,13 +204,13 @@ Jobs.prototype.getJobs = function getJobs() {
  *
  * @returns {String} - Desciption of operation success
  */
-Jobs.prototype.deleteJob = bsync(function deleteJob(jobUuid) {
+Jobs.prototype.deleteJob = async function deleteJob(jobUuid) {
   const theJob = this.jobList[jobUuid];
   if (theJob === undefined) {
     throw `Job ${jobUuid} does not exist`;
   }
-  const dbJob = bwait(this.JobModel.findById(theJob.id));
-  bwait(dbJob.destroy());
+  const dbJob = await this.JobModel.findById(theJob.id);
+  await dbJob.destroy();
   delete this.jobList[jobUuid];
   this.logger.info(`Job ${jobUuid} deleted`);
   try {
@@ -224,6 +223,6 @@ Jobs.prototype.deleteJob = bsync(function deleteJob(jobUuid) {
     this.logger.error('Socket error', ex);
   }
   return `Job ${jobUuid} deleted`;
-});
+};
 
 module.exports = Jobs;

@@ -3,11 +3,8 @@ const should = require('should');
 const request = require('request-promise');
 const fs = require('fs-promise');
 const path = require('path');
-const Promise = require('bluebird');
 const winston = require('winston');
 const config = require('../../../config');
-const bsync = require('asyncawait/async');
-const bwait = require('asyncawait/await');
 
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);

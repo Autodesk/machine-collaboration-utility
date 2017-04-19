@@ -2,7 +2,7 @@
 import React from 'react';
 import Modal from 'react-bootstrap/lib/Modal';
 import request from 'superagent';
-import _ from 'underscore';
+import _ from 'lodash';
 
 import File from './File';
 
@@ -41,9 +41,9 @@ export default class Files extends React.Component {
 
   createBotList() {
     const options = [];
-    _.pairs(this.props.bots).forEach(([botUuid, bot]) => {
+    _.entries(this.props.bots).forEach(([botUuid, bot]) => {
       // Only allow jobs to be stared on a bot in the state "connected"
-      if (bot.state !== 'connected') {
+      if (bot.state !== 'idle') {
         return;
       }
 
@@ -70,25 +70,32 @@ export default class Files extends React.Component {
     );
   }
 
-  startJob() {
-    // Grab the currently selected value from the select form
-    // If the value is undefined, or not a UUID, then ditch the "Start" sequence
+  async startJob() {
+    // // Grab the currently selected value from the select form
     const botUuid = document.getElementById('process-file-modal').value;
-    if (botUuid == undefined || botUuid.length !== 36) {
+    if (botUuid == undefined) {
       return;
     }
 
-    // Create a job
+    // TODO, upload the file before requesting the job to start, if kicking off a remote job
+
+    // // Create a job
     const requestParams = {
+      command: 'startJob',
       fileUuid: this.state.fileUuid,
-      botUuid,
-      startJob: true,
     };
 
-    request.post('/v1/jobs')
+    //
+    request.post(`/v1/bots/${botUuid}`)
     .send(requestParams)
     .set('Accept', 'application/json')
-    .end();
+    .end((err, reply) => {
+      console.log('started job', botUuid, fileUuid);
+      console.log(err, reply);
+    })
+    .catch(err => {
+      console.log('request error', err);
+    });
     this.close();
   }
 
@@ -112,7 +119,7 @@ export default class Files extends React.Component {
   }
 
   render() {
-    const fileListArray = _.pairs(this.props.files);
+    const fileListArray = _.entries(this.props.files);
 
     // Sort the files so the most recently used is first
     fileListArray.sort((a, b) => {

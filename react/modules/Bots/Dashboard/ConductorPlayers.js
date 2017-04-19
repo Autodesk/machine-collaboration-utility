@@ -1,6 +1,6 @@
 import React from 'react';
 import request from 'superagent';
-import _ from 'underscore';
+import _ from 'lodash';
 
 export default class ConductorPlayers extends React.Component {
   constructor(props) {
@@ -33,7 +33,7 @@ export default class ConductorPlayers extends React.Component {
 
   addPlayer(event) {
     event.preventDefault();
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    request.post(this.props.endpoint)
     .send({ command: 'addPlayer' })
     .send({ name: event.target.name.value })
     .send({ endpoint: event.target.endpoint.value })
@@ -42,7 +42,7 @@ export default class ConductorPlayers extends React.Component {
   }
 
   removePlayer(name) {
-    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    request.post(this.props.endpoint)
     .send({ command: 'removePlayer' })
     .send({ name })
     .set('Accept', 'application/json')

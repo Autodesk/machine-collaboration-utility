@@ -5,11 +5,16 @@ try {
   console.log('No .env file found', ex);
 }
 
+global.Promise = require('bluebird');
+
 const winston = require('winston');
 const path = require('path');
-const bsync = require('asyncawait/async');
-const bwait = require('asyncawait/await');
 const http = require('http');
+
+if (process.env.PWD === undefined) {
+  process.env.PWD = path.join(__dirname, '../');
+}
+
 
 const config = require('./config');
 const koaApp = require('./koaApp');
@@ -46,11 +51,10 @@ process.on('uncaughtException', (err) => {
 });
 
 
-// Set up the app
-try {
-  bsync(() => {
+async function setupApp() {
+  try {
     // Create a new app object and set it up
-    const app = bwait(koaApp(config));
+    const app = await koaApp(config);
     const server = http.createServer(app.callback());
 
     /**
@@ -65,9 +69,9 @@ try {
     server.on('error', onError);
     server.on('listening', onListening);
     app.context.logger.info('Server initialized');
-  })();
-} catch (ex) {
-  app.context.logger.error('Catchall Server Error Handler', ex);
+  } catch (ex) {
+    app.context.logger.error('Catchall Server Error Handler', ex);
+  }
 }
 
 /**
@@ -123,3 +127,5 @@ function onListening() {
     : 'port ' + addr.port;
   debugInstance('Listening on ' + bind);
 }
+
+setupApp();

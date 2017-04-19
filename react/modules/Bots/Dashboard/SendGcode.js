@@ -22,13 +22,12 @@ export default class SendGcode extends React.Component {
   render() {
     return (
       <div className="send-gcode">
-        <h3>SEND GCODE</h3>
         <form onSubmit={this.processGcode}>
           <div className="row">
-            <div className="col-sm-9">
+            <div className="col-sm-7">
               <input type="text" name="gcode"/>
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-5">
               <input type="submit" value="SEND GCODE" />
             </div>
           </div>

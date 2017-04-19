@@ -1,5 +1,5 @@
 import React from 'react';
-import _ from 'underscore';
+import _ from 'lodash';
 
 import Job from './Job';
 
@@ -16,7 +16,7 @@ export default class Jobs extends React.Component {
   }
 
   render() {
-    const jobs = _.pairs(this.state.jobs).map(([jobKey, job]) => {
+    const jobs = _.entries(this.state.jobs).map(([jobKey, job]) => {
       return <Job key={job.uuid} job={job}/>;
     });
     return (<div className="container">

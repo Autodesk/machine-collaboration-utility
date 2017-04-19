@@ -13,12 +13,11 @@ export default class Temp extends React.Component {
   setNozzleTemp(event) {
     event.preventDefault();
 
-    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
     const temp = Number(event.target.setpoint.value);
 
     // Don't update the temp unless the value passed is a number 0 or greater
     if (!Number.isNaN(temp) && temp >= 0) {
-      request.post(endpoint)
+      request.post(this.props.endpoint)
       .send({ command: 'processGcode' })
       .send({ gcode: `M104 S${event.target.setpoint.value}` })
       .set('Accept', 'application/json')
@@ -29,12 +28,11 @@ export default class Temp extends React.Component {
   setBedTemp(event) {
     event.preventDefault();
 
-    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
     const temp = Number(event.target.setpoint.value);
 
     // Don't update the temp unless the value passed is a number 0 or greater
     if (!Number.isNaN(temp) && temp >= 0) {
-      request.post(endpoint)
+      request.post(this.props.endpoint)
       .send({ command: 'processGcode' })
       .send({ gcode: `M140 S${event.target.setpoint.value}` })
       .set('Accept', 'application/json')
@@ -43,9 +41,7 @@ export default class Temp extends React.Component {
   }
 
   processGcode(gcode) {
-    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
-
-    request.post(endpoint)
+    request.post(this.props.endpoint)
     .send({ command: 'processGcode' })
     .send({ gcode })
     .set('Accept', 'application/json')

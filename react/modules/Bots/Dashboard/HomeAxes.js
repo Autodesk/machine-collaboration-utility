@@ -1,6 +1,6 @@
 import React from 'react';
 import request from 'superagent';
-import _ from 'underscore';
+import _ from 'lodash';
 
 export default class HomeAxes extends React.Component {
   constructor(props) {
@@ -31,13 +31,14 @@ export default class HomeAxes extends React.Component {
     .send({ command: 'processGcode' })
     .send({ gcode })
     .set('Accept', 'application/json')
-    .end();
+    .end((err, response) => {
+      // debugger;
+    });
   }
 
   render() {
     return (
       <div>
-        <h3>HOME</h3>
         <div className="row">
           <div className="area-padding max-area-width">
             <div className="col-xs-3 no-padding">

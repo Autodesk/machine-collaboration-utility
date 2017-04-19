@@ -6,7 +6,7 @@
  * stream following open so that we settle into a clean state to match commands
  * with responses.
  ******************************************************************************/
-var _ = require('underscore'),
+var _ = require('lodash'),
     Heartbeat = require('heartbeater');
 
 if (process.env.NODE_ENV !== 'test') {
@@ -133,6 +133,10 @@ var SerialConnection = function(
     this.mHeartbeat.start();
     this.returnString = '';
 
+    // Variables used for repeating a command if no reply is received
+    this.timeoutAmount = 10 * 60 * 1000; // aka wait 10 minutes before sending again
+    this.timeout = undefined; // The timeout function we will use to send the command again
+
     // Open our port and register our stub handers
     this.mPort.open(function(error) {
         that.logger.info('Serial port opened');
@@ -144,11 +148,15 @@ var SerialConnection = function(
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
                 that.serialLogger.log('read', data);
               }
-              this.returnString += data;
+              that.returnString += data;
               if (data.includes('ok')) {
+                  if (that.timeout !== undefined) {
+                      clearTimeout(that.timeout);
+                      that.timeout = undefined;
+                  }
                 if (_.isFunction(that.mDataFunc)) {
-                  that.mDataFunc(String(this.returnString));
-                  this.returnString = '';
+                  that.mDataFunc(String(that.returnString));
+                  that.returnString = '';
                 }
                 that.io.broadcast('botReply', data);
               }
@@ -176,8 +184,6 @@ var SerialConnection = function(
             }
         }
     });
-
-
 };
 
 
@@ -214,20 +220,29 @@ SerialConnection.prototype.setErrorFunc = function (inErrorFunc) {
  * Return: N/A
  */
 SerialConnection.prototype.send = function (inCommandStr) {
+    const that = this;
     let gcode = roundGcode(inCommandStr);
     var error = undefined;
     var commandSent = false;
 
-    if (this.mState === SerialConnection.State.CONNECTED) {
+    if (that.mState === SerialConnection.State.CONNECTED) {
         try {
             // TODO add GCODE Validation regex
             // Add a line break if it isn't in there yet
             if (gcode.indexOf('\n') === -1) {
               gcode += '\n';
             }
-            this.mPort.write(gcode);
+            that.mPort.write(gcode);
+
+            function sendAgain() {
+              that.serialLogger.log('ComError', gcode);
+              that.mPort.write(gcode);
+            }
+            // Prepare to send the gcode line again in <t> milliseconds
+            that.timeout = setTimeout(sendAgain, that.timeoutAmount);
+
             if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-              this.serialLogger.log('write', gcode);
+              that.serialLogger.log('write', gcode);
             }
             commandSent = true;
         } catch (inError) {
@@ -266,8 +281,8 @@ SerialConnection.prototype.close = function () {
 
 // constants
 SerialConnection.HEART_BEAT_INTERVAL = 2000;
-SerialConnection.WAIT_COUNT = 20;
-SerialConnection.MAX_RETRIES = 4;
+SerialConnection.WAIT_COUNT = 5;
+SerialConnection.MAX_RETRIES = 10;
 SerialConnection.State = {
     OPENED        : 'opened',
     DATA_EXPECTED : 'data is expected',

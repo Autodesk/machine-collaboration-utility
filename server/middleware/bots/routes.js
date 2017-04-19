@@ -1,7 +1,5 @@
 const Response = require('../helpers/response');
-const _ = require('underscore');
-const bsync = require('asyncawait/async');
-const bwait = require('asyncawait/await');
+const _ = require('lodash');
 
 /**
  * Handle all logic at this endpoint for reading all of the bots
@@ -26,12 +24,12 @@ const getBots = (self) => {
  */
 const deleteAllBots = (self) => {
   const requestDescription = 'Delete All Bots';
-  self.router.delete(`${self.routeEndpoint}/all/`, bsync((ctx) => {
+  self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
     try {
       for (const uuid in self.botList) {
         if (self.botList.hasOwnProperty(uuid)) {
           try {
-            bwait(self.deleteBot(uuid));
+            await self.deleteBot(uuid);
           } catch (ex) {
             self.logger.error(`Delete bot ${uuid} error: ${ex}`);
           }
@@ -45,7 +43,7 @@ const deleteAllBots = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 /**
@@ -53,9 +51,9 @@ const deleteAllBots = (self) => {
  */
 const createBot = (self) => {
   const requestDescription = 'Create Bot';
-  self.router.post(`${self.routeEndpoint}/`, bsync((ctx) => {
+  self.router.post(`${self.routeEndpoint}/`, async (ctx) => {
     try {
-      const newBot = bwait(self.createPersistentBot(ctx.request.body));
+      const newBot = await self.createPersistentBot(ctx.request.body);
       const reply = newBot.getBot();
       ctx.status = 201;
       ctx.body = new Response(ctx, requestDescription, reply);
@@ -64,7 +62,7 @@ const createBot = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 /**
@@ -72,7 +70,7 @@ const createBot = (self) => {
  */
 const updateBot = (self) => {
   const requestDescription = 'Update Bot Settings';
-  self.router.put(`${self.routeEndpoint}/:uuid`, bsync((ctx) => {
+  self.router.put(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       let uuid = ctx.params.uuid;
       if (uuid === undefined) {
@@ -91,7 +89,7 @@ const updateBot = (self) => {
       }
 
       const botSettings = ctx.request.body;
-      const reply = bwait(bot.updateBot(botSettings));
+      const reply = await bot.updateBot(botSettings);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
@@ -99,7 +97,7 @@ const updateBot = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 /**
@@ -107,14 +105,14 @@ const updateBot = (self) => {
  */
 const deleteBot = (self) => {
   const requestDescription = 'Delete Bot';
-  self.router.delete(`${self.routeEndpoint}/:uuid`, bsync((ctx) => {
+  self.router.delete(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       const uuid = ctx.params.uuid;
       if (uuid === undefined) {
         throw '"uuid" is undefined.';
       }
 
-      const reply = bwait(self.deleteBot(uuid));
+      const reply = await self.deleteBot(uuid);
       // const reply = 'Bot successfully deleted';
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, reply);
@@ -123,7 +121,7 @@ const deleteBot = (self) => {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
     }
-  }));
+  });
 };
 
 /**
@@ -160,7 +158,7 @@ const getBot = (self) => {
  */
 const processBotCommand = (self) => {
   const requestDescription = 'Process Bot Command';
-  self.router.post(`${self.routeEndpoint}/:uuid`, bsync((ctx) => {
+  self.router.post(`${self.routeEndpoint}/:uuid`, async (ctx) => {
     try {
       let uuid = ctx.params.uuid;
       if (uuid === undefined) {
@@ -183,24 +181,13 @@ const processBotCommand = (self) => {
         throw '"command" is undefined';
       }
 
-      // The commands pause, resume, and cancel must be processed through the job api
-      switch (command) {
-        case 'pause':
-        case 'resume':
-        case 'cancel':
-          command = `${command}Job`;
-          break;
-        default:
-          break;
-      }
-
       const params = {};
-      for (const [paramKey, param] of _.pairs(ctx.request.body)) {
+      for (const [paramKey, param] of _.entries(ctx.request.body)) {
         if (paramKey !== 'command') {
           params[paramKey] = param;
         }
       }
-      const commandReply = bwait(bot.processCommand(command, params));
+      const commandReply = await bot.processCommand(command, params);
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, commandReply);
     } catch (ex) {
@@ -208,7 +195,7 @@ const processBotCommand = (self) => {
       ctx.body = new Response(ctx, requestDescription, ex);
       self.logger.error(ex);
     }
-  }));
+  });
 };
 
 const botRoutes = (self) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import request from 'superagent';
-import _ from 'underscore';
+import _ from 'lodash';
 
 export default class PositionFeedback extends React.Component {
   constructor(props) {
@@ -10,8 +10,6 @@ export default class PositionFeedback extends React.Component {
   }
 
   zeroAxis(inputAxes) {
-    const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
-
     const axes = { x: false, y: false, z: false };
     _.extend(axes, inputAxes);
     let gcode = '';
@@ -23,7 +21,7 @@ export default class PositionFeedback extends React.Component {
       gcode = 'G92 Z0';
     }
 
-    request.post(endpoint)
+    request.post(this.props.endpoint)
     .send({ command: 'processGcode' })
     .send({ gcode })
     .set('Accept', 'application/json')
