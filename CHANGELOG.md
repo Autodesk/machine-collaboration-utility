@@ -42,3 +42,8 @@
   * Refactored command queue to process async functions
   * Removed "HardwareHub" style printer
   * Standard file consumption now set up through "Virtual Bot" "StartJob" command
+
+## 1.1.1 (2017-04-20)
+  Patched bug with conductor resume function  
+  Updated linter and refactored portions of bot middleware based on linter suggestions  
+  Bumped Travis to node v7  
