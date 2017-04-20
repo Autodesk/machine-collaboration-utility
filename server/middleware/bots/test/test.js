@@ -570,9 +570,8 @@ module.exports = function botsTests() {
     });
 
     it('should pause printing a .esh file', async function() {
-      this.timeout(20000);
-      await Promise.delay(10000);
-
+      this.timeout(10000);
+      await Promise.delay(5000);
 
       const pauseReply = await request({
         method: 'POST',
@@ -584,14 +583,31 @@ module.exports = function botsTests() {
         console.log('pause printing .esh error', err);
       });
 
-      should(pauseReply.data.state).equal('paused');
+      should(pauseReply.data.state).equal('pausing');
       should(pauseReply.status).equal(200);
       should(pauseReply.query).equal('Process Bot Command');
     });
 
+    it('should finish pausing', async function() {
+      this.timeout(25000);
+      await Promise.delay(20000);
+
+      const getReply = await request({
+        method: 'GET',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        json: true,
+      })
+      .catch(err => {
+        console.log('pause printing .esh error', err);
+      });
+
+      should(getReply.data.state).equal('paused');
+      should(getReply.status).equal(200);
+    });
+
     it('should resume printing a .esh file', async function() {
-      this.timeout(20000);
-      await Promise.delay(10000);
+      this.timeout(10000);
+      await Promise.delay(5000);
 
       const resumeReply = await request({
         method: 'POST',
@@ -603,9 +619,26 @@ module.exports = function botsTests() {
         console.log('resume printing .esh error', err);
       });
 
-      should(resumeReply.data.state).equal('executingJob');
+      should(resumeReply.data.state).equal('resuming');
       should(resumeReply.status).equal(200);
       should(resumeReply.query).equal('Process Bot Command');
+    });
+
+    it('should finish resuming', async function() {
+      this.timeout(20000);
+      await Promise.delay(15000);
+
+      const getReply = await request({
+        method: 'GET',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        json: true,
+      })
+      .catch(err => {
+        console.log('resuming printing .esh error', err);
+      });
+
+      should(getReply.data.state).equal('executingJob');
+      should(getReply.status).equal(200);
     });
 
     it('should complete printing a .esh file', async function() {
@@ -661,9 +694,27 @@ module.exports = function botsTests() {
       });
 
       // TODO, check in on the job and verify that it is currently in a state of canceled
-      should(cancelReply.data.state).equal('idle');
+      should(cancelReply.data.state).equal('cancelingJob');
       should(cancelReply.status).equal(200);
       should(cancelReply.query).equal('Process Bot Command');
+    });
+
+    it('should finish canceling a .esh file', async function() {
+      this.timeout(40000);
+      await Promise.delay(30000);
+
+      const getReply = await request({
+        method: 'GET',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        json: true,
+      })
+      .catch(err => {
+        console.log('get conductor error', err);
+      });
+
+      // TODO, check in on the job and verify that it is currently in a state of canceled
+      should(getReply.data.state).equal('idle');
+      should(getReply.status).equal(200);
     });
 
     it('should disconnect the conductor', async function() {
@@ -679,9 +730,26 @@ module.exports = function botsTests() {
         console.log('disconnec conductor error', err);
       });
 
-      should(disconnectReply.data.state).equal('ready');
+      should(disconnectReply.data.state).equal('disconnecting');
       should(disconnectReply.status).equal(200);
       should(disconnectReply.query).equal('Process Bot Command');
+    });
+
+    it('should finish disconnecting the conductor', async function() {
+      this.timeout(10000)
+      await Promise.delay(5000);
+
+      const getReply = await request({
+        method: 'GET',
+        uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
+        json: true,
+      })
+      .catch(err => {
+        console.log('disconnec conductor error', err);
+      });
+
+      should(getReply.data.state).equal('ready');
+      should(getReply.status).equal(200);
     });
 
     it('should remove a player from the conductor', async function () {
