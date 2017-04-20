@@ -188,7 +188,7 @@ export default class App extends React.Component {
       height: '100%',
     };
     const childrenComponents = React.Children.map(this.props.children, child => {
-      // mapping through all of the children components in order to inject HardwareHub app objects
+      // mapping through all of the children components in order to inject server app objects
       return React.cloneElement(child, Object.assign({}, this.state, { dropzoneOpener: this.openDropzone, updateBot: this.updateBot }));
     });
     return (

@@ -8,7 +8,6 @@ const gcodeToObject = require('gcode-json-converter').gcodeToObject;
 const objectToGcode = require('gcode-json-converter').objectToGcode;
 
 const SerialCommandExecutor = require('./comProtocols/serial/executor');
-const HardwareHubExecutor = require('./comProtocols/hardwarehub/executor');
 const TelnetExecutor = require('./comProtocols/telnet/executor');
 const VirtualExecutor = require('./comProtocols/virtual/executor');
 const CommandQueue = require('./commandQueue');
@@ -192,14 +191,6 @@ class Bot {
             validator = this.validateSerialReply;
             break;
           }
-          case 'hardwarehub': {
-            executor = new HardwareHubExecutor(
-              this.app,
-              this.port
-            );
-            validator = this.validateHardwareHubReply;
-            break;
-          }
           case 'virtual':
           case 'conductor': {
             executor = new VirtualExecutor(this.app);
@@ -262,26 +253,6 @@ class Bot {
       ok = _.last(lines).indexOf('ok') !== -1;
     } catch (ex) {
       this.logger.error('Bot validate serial reply error', reply, ex);
-    }
-    return ok;
-  }
-
-  /**
-   * validateHttpReply()
-   *
-   * Confirms if a reply contains 'ok' as its last line.  Parses out DOS newlines.
-   * If the bot is streaming, it will reply with "true" instead of the actual text
-   *
-   * Args:   reply - The reply from a bot after sending a command
-   * Return: true if the last line was 'ok'
-   */
-  validateHardwareHubReply(command, reply) {
-    let ok = true;
-    if (reply.status !== 200) {
-      ok = false;
-    }
-    if (String(reply.data) === 'false') {
-      ok = false;
     }
     return ok;
   }

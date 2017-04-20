@@ -16,7 +16,6 @@
     }
   ],
   "dependencies": {
-    "asyncawait": "^1.0.6",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
     "babel-polyfill": "^6.13.0",
@@ -77,8 +76,8 @@
     "winston": "^2.2.0"
   },
   "engines": {
-    "node": "^6.9",
-    "npm": "^3"
+    "node": "^7.9",
+    "npm": "^4"
   },
   "devDependencies": {
     "babel-eslint": "^6.1.2",

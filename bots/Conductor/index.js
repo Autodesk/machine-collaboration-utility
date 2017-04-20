@@ -25,9 +25,6 @@ const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs
 const info = {
   connectionType: 'conductor',
   fileTypes: ['.esh'],
-  conductorPresets: {
-    botModel: 'HardwareHub',
-  },
 };
 
 const settings = {
