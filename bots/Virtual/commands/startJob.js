@@ -7,7 +7,7 @@ const request = require('request-promise');
 
 async function processCommentTag(gcodeObject, self) {
 
-  switch(gcodeObject.metaComment.command) {
+  switch(gcodeObject.commentTag.command) {
     case 'forcePark': {
       self.parked = true;
       self.lr.resume();
@@ -22,7 +22,7 @@ async function processCommentTag(gcodeObject, self) {
       break;
     }
     case 'checkpoint': {
-      _.entries(gcodeObject.metaComment.args).forEach(([bot, checkpoint]) => {
+      _.entries(gcodeObject.commentTag.args).forEach(([bot, checkpoint]) => {
         self.status.checkpoint = parseInt(checkpoint);
         self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
       });
@@ -57,15 +57,15 @@ async function processCommentTag(gcodeObject, self) {
     }
     case 'precursor': {
       // Assuming that there's only one precursor per line
-      const bot = Object.keys(gcodeObject.metaComment.args)[0];
-      const checkpoint = parseInt(gcodeObject.metaComment.args[bot]);
+      const bot = Object.keys(gcodeObject.commentTag.args)[0];
+      const checkpoint = parseInt(gcodeObject.commentTag.args[bot]);
       self.status.blocker = { bot, checkpoint };
       self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
       self.commands.checkPrecursors(self);
       break;
     }
     case 'dry': {
-      const dry = gcodeObject.metaComment.args.dry;
+      const dry = gcodeObject.commentTag.args.dry;
       self.logger.debug(`About to purge: ${dry} ${typeof dry} `);
 
       // If the printer is currently blocked, then purge and unblock it
@@ -81,7 +81,7 @@ async function processCommentTag(gcodeObject, self) {
     }
     default: {
       self.lr.resume();
-      self.logger.error('Unknown comment', gcodeObject.metaComment.command);
+      self.logger.error('Unknown comment', gcodeObject.commentTag.command);
       break;
     }
   }
@@ -98,9 +98,9 @@ async function processLine(line, self) {
   const gcodeObject = gcodeToObject(line, self);
 
   // NOTE Currently not processing any information in from of a comment tag
-  if (gcodeObject.metaComment.command) {
+  if (gcodeObject.commentTag.command) {
     await processCommentTag(gcodeObject, self);
-    // Process the metaComment
+    // Process the commentTag
   } else if (gcodeObject.command == undefined && Object.keys(gcodeObject.args).length === 0) {
       // If the command is blank, move on to the next line
       if (self.fsm.current === 'executingJob') {
