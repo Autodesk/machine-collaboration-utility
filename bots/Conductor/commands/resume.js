@@ -27,7 +27,7 @@ async function checkResume(self) {
     self.logger.error('Get players resume info error', ex);
   });
 
-  if (resume) {
+  if (resumeDone) {
     function capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
     }
