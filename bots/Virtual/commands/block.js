@@ -1,14 +1,8 @@
-const path = require('path');
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
-
-module.exports = async function block(self, params) {
+module.exports = async function block(self) {
   try {
     if (self.fsm.current !== 'executingJob') {
       throw new Error(`Cannot block from state "${self.fsm.current}"`);
     }
-    const commandArray = [];
-
     // We want block to happen in a very specific order
     // 1. Start block from the state machine immediately
     // 2. Allow for block movements / macros / etc
@@ -36,7 +30,7 @@ module.exports = async function block(self, params) {
       postCallback: () => {
         self.logger.debug('Done with block movements');
         self.queue.prependCommands(blockEndCommand);
-      }
+      },
     });
 
     self.logger.debug('Just queued block', self.getBot().settings.name, self.fsm.current);

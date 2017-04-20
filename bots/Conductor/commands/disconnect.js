@@ -1,7 +1,7 @@
 const request = require('request-promise');
 const path = require('path');
+
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
 async function checkDisconnection(self) {
   // ping each bot
@@ -32,7 +32,7 @@ async function checkDisconnection(self) {
   }
 }
 
-module.exports = async function disconnect(self, params) {
+module.exports = async function disconnect(self) {
   try {
     if (!botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
       throw new Error(`Cannot disconnect from state "${self.fsm.current}"`);

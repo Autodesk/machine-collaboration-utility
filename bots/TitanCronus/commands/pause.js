@@ -1,9 +1,9 @@
 const path = require('path');
+
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 const generateParkCommands = require('./generateParkCommands');
 
-module.exports = async function pause(self, params) {
+module.exports = async function pause(self) {
   try {
     if (self.currentJob === undefined) {
       throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
@@ -29,7 +29,6 @@ module.exports = async function pause(self, params) {
     // This comes across a bit backwards, but the ordering is necessary in order to prevent
     // transitioning to an incorrect state
 
-    const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
     const parkCommands = generateParkCommands(self);
     parkCommands.push({
       postCallback: () => {
@@ -38,7 +37,7 @@ module.exports = async function pause(self, params) {
             self.fsm.pauseDone();
           },
         });
-      }
+      },
     });
 
     const commandArray = [];
@@ -48,7 +47,8 @@ module.exports = async function pause(self, params) {
         self.logger.debug('Starting pause command');
         // This line of code is not being reached.
         self.currentJob.pause();
-        // Note, we don't return the pause request until the initial pause command is processed by the queue
+        // Note, we don't return the pause request
+        // until the initial pause command is processed by the queue
         self.queue.prependCommands(parkCommands);
       },
     });
@@ -59,7 +59,7 @@ module.exports = async function pause(self, params) {
           self.fsm.pause();
           self.pauseableState = self.fsm.current;
           self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
-        }
+        },
       });
       self.queue.queueCommands(commandArray);
     } else {

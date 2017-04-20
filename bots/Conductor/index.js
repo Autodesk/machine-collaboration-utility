@@ -1,8 +1,5 @@
-const util = require('util');
-const request = require('request-promise');
 const _ = require('lodash');
 const path = require('path');
-const ip = require('ip');
 
 const VirtualBot = require('../Virtual');
 
@@ -18,9 +15,6 @@ const updateCollaborativeBotCheckpoint = require('./commands/updateCollaborative
 const updatePlayers = require('./commands/updatePlayers');
 const addPlayer = require('./commands/addPlayer');
 const removePlayer = require('./commands/removePlayer');
-
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
 const info = {
   connectionType: 'conductor',
@@ -48,7 +42,7 @@ const commands = {
   updatePlayers,
   addPlayer,
   removePlayer,
-}
+};
 
 module.exports = {
   info: _.extend(Object.assign({}, VirtualBot.info), info),

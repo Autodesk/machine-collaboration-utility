@@ -1,4 +1,4 @@
-module.exports = function initialize(self, params) {
+module.exports = function initialize(self) {
   self.currentJob = undefined;
   self.collaboratorCheckpoints = {};
   // placeholder for storing which possible state to return to after pausing
@@ -6,4 +6,4 @@ module.exports = function initialize(self, params) {
 
   // placeholder for storing which possible state to return to after receiving a job warning
   self.jobWarningState = undefined;
-}
+};

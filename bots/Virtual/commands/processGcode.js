@@ -19,9 +19,9 @@ module.exports = async function processGcode(self, params) {
 
     const commandArray = [];
 
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
       commandArray.push({
-        code: objectToGcode(gcodeObject, {comment: false}),
+        code: objectToGcode(gcodeObject, { comment: false }),
         postCallback: (command, reply) => {
           resolve(reply);
         },

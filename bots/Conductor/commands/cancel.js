@@ -1,5 +1,6 @@
 const request = require('request-promise');
 const path = require('path');
+
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
@@ -40,7 +41,7 @@ module.exports = function cancel(self) {
       throw new Error(`Cannot cancel Conductor from state "${self.fsm.current}"`);
     }
     if (self.currentJob === undefined) {
-      throw new Error(`Conductor should currently have a job associated with it.`);
+      throw new Error('Conductor should currently have a job associated with it.');
     }
     if (!jobFsmDefinitions.metaStates.processingJob.includes(self.currentJob.fsm.current)) {
       throw new Error(`Cannot cancel Conductor job from state ${self.currentJob.fsm.current}`);
@@ -61,9 +62,7 @@ module.exports = function cancel(self) {
         };
 
         await request(cancelJobParams)
-        .catch(ex => {
-          self.logger.error('Cancel fail', ex);
-        });
+        .catch((ex) => { self.logger.error('Cancel fail', ex); });
       });
       checkCancel(self);
     } catch (ex) {

@@ -6,8 +6,7 @@ const _ = require('lodash');
 const request = require('request-promise');
 
 async function processCommentTag(gcodeObject, self) {
-
-  switch(gcodeObject.commentTag.command) {
+  switch (gcodeObject.commentTag.command) {
     case 'forcePark': {
       self.parked = true;
       self.lr.resume();
@@ -23,7 +22,7 @@ async function processCommentTag(gcodeObject, self) {
     }
     case 'checkpoint': {
       _.entries(gcodeObject.commentTag.args).forEach(([bot, checkpoint]) => {
-        self.status.checkpoint = parseInt(checkpoint);
+        self.status.checkpoint = parseInt(checkpoint, 10);
         self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
       });
 
@@ -41,9 +40,7 @@ async function processCommentTag(gcodeObject, self) {
           };
 
           await request(updateParams)
-          .catch((error) => {
-            self.logger.error('Conductor update fail', ex);
-          });
+          .catch((error) => { self.logger.error('Conductor update fail', error); });
         });
       }
 
@@ -58,7 +55,7 @@ async function processCommentTag(gcodeObject, self) {
     case 'precursor': {
       // Assuming that there's only one precursor per line
       const bot = Object.keys(gcodeObject.commentTag.args)[0];
-      const checkpoint = parseInt(gcodeObject.commentTag.args[bot]);
+      const checkpoint = parseInt(gcodeObject.commentTag.args[bot], 10);
       self.status.blocker = { bot, checkpoint };
       self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
       self.commands.checkPrecursors(self);
@@ -102,10 +99,10 @@ async function processLine(line, self) {
     await processCommentTag(gcodeObject, self);
     // Process the commentTag
   } else if (gcodeObject.command == undefined && Object.keys(gcodeObject.args).length === 0) {
-      // If the command is blank, move on to the next line
-      if (self.fsm.current === 'executingJob') {
-        self.lr.resume();
-      }
+    // If the command is blank, move on to the next line
+    if (self.fsm.current === 'executingJob') {
+      self.lr.resume();
+    }
   } else {
     self.addOffset(gcodeObject);
 
@@ -150,7 +147,7 @@ async function processFileEnd(self, theFile) {
 function getNLinesInFile(theFile) {
   // Get the number of lines in the file
   let numLines = 0;
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     fs.createReadStream(theFile.filePath)
     .on('data', function readStreamOnData(chunk) {
       numLines += chunk
@@ -198,7 +195,7 @@ module.exports = async function startJob(self, params) {
       throw new Error(`Cannot start job from state "${self.fsm.current}"`);
     }
     if (self.currentJob !== undefined) {
-      throw new Error(`Bot should not currently have a job associated with it.`);
+      throw new Error('Bot should not currently have a job associated with it.');
     }
     if (params.fileUuid === undefined) {
       throw new Error('A "fileUuid" must be specified when starting a job.');
@@ -212,15 +209,11 @@ module.exports = async function startJob(self, params) {
       const subscribers = params.subscribers;
 
       self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid, null, subscribers)
-      .catch(error => {
-        throw new Error('Create job error', error);
-      });
+      .catch((error) => { throw new Error('Create job error', error); });
 
       // set up the file executor
       await setupFileExecutor(self)
-      .catch(error => {
-        throw new Error('Setup file executor error', error);
-      });
+      .catch((error) => { throw new Error('Setup file executor error', error); });
 
       self.currentJob.start();
 

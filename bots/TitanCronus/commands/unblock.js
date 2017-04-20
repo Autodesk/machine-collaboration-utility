@@ -1,6 +1,3 @@
-const path = require('path');
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 const generateUnparkCommands = require('./generateUnparkCommands');
 
 module.exports = async function unblock(self, params) {
@@ -11,9 +8,9 @@ module.exports = async function unblock(self, params) {
         {
           postCallback: () => {
             self.lr.resume();
-          }
-        }
-      ]
+          },
+        },
+      ];
       self.queue.queueCommands(commandArray);
     } else {
       if (!(self.fsm.current === 'blocked' || self.fsm.current === 'blocking')) {
@@ -25,7 +22,7 @@ module.exports = async function unblock(self, params) {
         commandArray.push({
           postCallback: () => {
             self.fsm.unblock();
-          }
+          },
         });
       }
       commandArray.push({
@@ -48,7 +45,7 @@ module.exports = async function unblock(self, params) {
         preCallback: () => {
           self.queue.prependCommands(unblockDoneCommand);
           self.logger.debug('Done with unblock motion');
-        }
+        },
       });
 
       self.queue.queueCommands(commandArray);

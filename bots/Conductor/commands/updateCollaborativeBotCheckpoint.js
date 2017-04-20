@@ -1,12 +1,12 @@
-module.exports = function(self, params) {
+module.exports = function updateCollaborativeBotCheckpoint(self, params) {
   const bot = params.bot;
   if (bot === undefined) {
-    throw 'Param "bot" is undefined';
+    throw new Error('Param "bot" is undefined');
   }
 
   const checkpoint = params.checkpoint;
   if (checkpoint === undefined) {
-    throw 'Param "checkpoint" is undefined';
+    throw new Error('Param "checkpoint" is undefined');
   }
   self.logger.info('updating bot checkpoints', bot, checkpoint, self.collaboratorCheckpoints);
   self.collaboratorCheckpoints[bot] = checkpoint;

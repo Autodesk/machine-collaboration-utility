@@ -1,6 +1,4 @@
-const delay = Promise.delay;
-
-module.exports = function connect(self, params) {
+module.exports = function connect(self) {
   try {
     if (self.fsm.current !== 'ready') {
       throw new Error(`Cannot connect from state "${self.fsm.current}"`);

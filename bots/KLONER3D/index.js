@@ -2,8 +2,6 @@ const _ = require('lodash');
 
 const VirtualBot = require('../Virtual');
 
-const connect = require('./commands/connect');
-
 const info = {
   connectionType: 'serial',
   fileTypes: ['.gcode'],

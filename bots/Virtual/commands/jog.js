@@ -15,7 +15,7 @@ module.exports = function jog(self, params) {
       } else {
         feedRate = self.settings[`jog${params.axis.toUpperCase()}Speed`];
       }
-      let jogGcode = `G1 ${params.axis.toUpperCase()}${newPosition} F${feedRate}`;
+      const jogGcode = `G1 ${params.axis.toUpperCase()}${newPosition} F${feedRate}`;
       self.queue.prependCommands(jogGcode);
       return true;
     },

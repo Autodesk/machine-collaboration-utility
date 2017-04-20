@@ -1,9 +1,6 @@
-const path = require('path');
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 const generateParkCommands = require('./generateParkCommands');
 
-module.exports = async function block(self, params) {
+module.exports = async function block(self) {
   try {
     if (self.fsm.current === 'blocked') {
       return self.lr.resume();
@@ -35,7 +32,7 @@ module.exports = async function block(self, params) {
     parkCommands.push({
       postCallback: () => {
         self.queue.prependCommands(blockEndCommand);
-      }
+      },
     });
 
     self.queue.prependCommands(parkCommands);

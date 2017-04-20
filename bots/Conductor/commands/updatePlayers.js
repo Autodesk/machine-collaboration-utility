@@ -2,7 +2,7 @@ const request = require('request-promise');
 
 module.exports = async function updatePlayers(self) {
   try {
-    for (const player of self.settings.custom.players) {
+    await Promise.map(self.settings.custom.players, async (player) => {
       const updatePlayerParams = {
         method: 'POST',
         uri: player.endpoint,
@@ -12,8 +12,8 @@ module.exports = async function updatePlayers(self) {
         },
         json: true,
       };
-      const updateCollaboratorReply = await request(updatePlayerParams);
-    }
+      await request(updatePlayerParams);
+    });
   } catch (ex) {
     self.logger.error(ex);
   }

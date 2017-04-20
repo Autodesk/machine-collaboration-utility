@@ -2,44 +2,8 @@ const fs = require('fs-promise');
 const request = require('request-promise');
 const ip = require('ip');
 const unzip = require('unzip2');
+
 const delay = Promise.delay;
-
-module.exports = async function startJob(self, params) {
-  self.logger.info('Executing function "startJob"', self.getBot());
-  try {
-    if (self.fsm.current !== 'idle') {
-      throw new Error(`Cannot start job from state "${self.fsm.current}"`);
-    }
-    if (self.currentJob !== undefined) {
-      throw new Error(`Bot should not currently have a job associated with it.`);
-    }
-    if (params.fileUuid === undefined) {
-      throw new Error('A "fileUuid" must be specified when starting a job.');
-    }
-    self.fsm.startJob();
-    try {
-
-      // Create a job
-      const jobMiddleware = self.app.context.jobs;
-      const botUuid = self.settings.uuid;
-      const fileUuid = params.fileUuid;
-      self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid);
-
-      // set up the file executor
-      await uploadAndSetupPlayerJobs(self);
-      self.logger.info('All files uploaded and set up');
-      self.currentJob.start();
-      // Start consuming the file
-      self.fsm.startDone();
-    } catch (ex) {
-      self.logger.error('Conductor Start Job Fail', ex);
-      self.fsm.startJobFail();
-    }
-  } catch (ex) {
-    self.logger.error('Double start command error', ex);
-  }
-  return self.getBot();
-};
 
 async function uploadAndSetupPlayerJobs(self) {
   const job = self.currentJob;
@@ -50,7 +14,7 @@ async function uploadAndSetupPlayerJobs(self) {
     const filesApp = self.app.context.files;
     const theFile = filesApp.getFile(job.fileUuid);
 
-    await new Promise( async (resolve, reject) => {
+    await new Promise(async (resolve) => {
       try {
         // Open and unzip the file
         await fs.createReadStream(theFile.filePath)
@@ -61,29 +25,16 @@ async function uploadAndSetupPlayerJobs(self) {
           try {
             // Reset each player's collaborator list
             const players = self.settings.custom.players;
-            for (const player of players) {
+            players.forEach((player) => {
               self.collaboratorCheckpoints[player.name] = 0;
-            }
+            });
 
             await self.commands.updatePlayers(self);
             self.logger.info('updated the players');
-            for (const player of players) {
+
+            await Promise.map(players, async (player) => {
               // For each player we're going to upload a file, and then create a job
-              // Get the bot's uuid
-              const getBotUuidParams = {
-                method: 'GET',
-                uri: player.endpoint,
-                json: true,
-              };
-              let getBotUuidReply;
 
-              try {
-                getBotUuidReply = await request(getBotUuidParams);
-              } catch (ex) {
-                throw `nope: ${ex}`;
-              }
-
-              const botUuid = getBotUuidReply.data.settings.uuid;
               // Upload a file
               const testFilePath = theFile.filePath.split('.')[0] + '/' + player.name + '.gcode';
               const fileStream = await fs.createReadStream(testFilePath);
@@ -110,9 +61,12 @@ async function uploadAndSetupPlayerJobs(self) {
                 json: true,
               };
               self.logger.info('Conductor player start params', jobParams);
-              const startJobReply = await request(jobParams);
+              await request(jobParams)
+              .catch((err) => { self.logger.error('Start job error', err); });
+
+              // No reason for this. Just looks cool when they start in a delayed order
               await delay(2000);
-            }
+            });
             resolve();
           } catch (ex) {
             self.logger.error(ex);
@@ -126,3 +80,39 @@ async function uploadAndSetupPlayerJobs(self) {
     self.logger.error(ex);
   }
 }
+
+module.exports = async function startJob(self, params) {
+  self.logger.info('Executing function "startJob"', self.getBot());
+  try {
+    if (self.fsm.current !== 'idle') {
+      throw new Error(`Cannot start job from state "${self.fsm.current}"`);
+    }
+    if (self.currentJob !== undefined) {
+      throw new Error('Bot should not currently have a job associated with it.');
+    }
+    if (params.fileUuid === undefined) {
+      throw new Error('A "fileUuid" must be specified when starting a job.');
+    }
+    self.fsm.startJob();
+    try {
+      // Create a job
+      const jobMiddleware = self.app.context.jobs;
+      const botUuid = self.settings.uuid;
+      const fileUuid = params.fileUuid;
+      self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid);
+
+      // set up the file executor
+      await uploadAndSetupPlayerJobs(self);
+      self.logger.info('All files uploaded and set up');
+      self.currentJob.start();
+      // Start consuming the file
+      self.fsm.startDone();
+    } catch (ex) {
+      self.logger.error('Conductor Start Job Fail', ex);
+      self.fsm.startJobFail();
+    }
+  } catch (ex) {
+    self.logger.error('Double start command error', ex);
+  }
+  return self.getBot();
+};

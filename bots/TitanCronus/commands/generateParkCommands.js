@@ -32,15 +32,16 @@ module.exports = function generateParkCommands(self) {
         parkCommandArray.push(`G1 Z${(self.parkedPosition.z + parkLift).toFixed(2)} F1000`);
       }
       if (self.parkedPosition.y > offsetY) {
-        parkCommandArray.push('G1 Y' + offsetY + ' F10000'); // Scrub
+        parkCommandArray.push(`G1 Y${offsetY} F10000`); // Scrub
       }
-      parkCommandArray.push('G1 Y' + Number(yPark + offsetY).toFixed(2) + ' F2000'); // Drag Y across the purge
+      const scrubEnd = Number(yPark + offsetY).toFixed(2);
+      parkCommandArray.push(`G1 Y${scrubEnd} F2000`); // Drag Y across the purge
       parkCommandArray.push({
         code: 'M400', // Clear motion buffer before saying we're done
         postCallback: () => {
           self.parked = true;
           self.logger.debug('Done with park movements');
-        }
+        },
       });
       self.queue.prependCommands(parkCommandArray);
     },

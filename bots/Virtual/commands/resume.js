@@ -1,8 +1,4 @@
-const path = require('path');
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
-
-module.exports = async function resume(self, params) {
+module.exports = async function resume(self) {
   try {
     if (self.currentJob === undefined) {
       throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
@@ -23,7 +19,7 @@ module.exports = async function resume(self, params) {
           return string.charAt(0).toUpperCase() + string.slice(1);
         }
 
-        const command = 'resume' + capitalizeFirstLetter(self.pauseableState);
+        const command = `resume${capitalizeFirstLetter(self.pauseableState)}`;
         // Resume the bot
         self.fsm[command]();
         if (self.pauseableState === 'executingJob') {
@@ -48,8 +44,8 @@ module.exports = async function resume(self, params) {
           self.parkedPosition = undefined;
           self.queue.prependCommands(resumeDoneCommand);
           self.logger.debug('Done with resume motion');
-        }
-      }
+        },
+      },
     ];
 
     const resumeStartCommand = {
@@ -59,13 +55,13 @@ module.exports = async function resume(self, params) {
         // Resume the job
         self.currentJob.resume();
       },
-    }
+    };
 
     if (self.fsm.current === 'pausing') {
       commandArray.push({
         postCallback: () => {
           self.fsm.resume();
-        }
+        },
       });
     }
 
@@ -77,7 +73,6 @@ module.exports = async function resume(self, params) {
       // Resume the bot
       self.fsm.resume();
     }
-
   } catch (ex) {
     self.logger.error('Resume error', ex);
   }

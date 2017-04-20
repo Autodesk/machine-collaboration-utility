@@ -1,4 +1,4 @@
-module.exports = function initialize(self, params) {
+module.exports = function initialize(self) {
   self.queue = undefined;
   self.currentJob = undefined;
   self.lr = undefined; // buffered file line reader
@@ -38,4 +38,4 @@ module.exports = function initialize(self, params) {
       checkpoint: undefined,
     },
   };
-}
+};

@@ -1,4 +1,4 @@
-module.exports = function discover(self, params) {
+module.exports = function discover(self) {
   const state = self.fsm.current;
   if (self.fsm.current !== 'uninitialized') {
     throw new Error(`Cannot discover from state "${state}"`);

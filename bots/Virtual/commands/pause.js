@@ -1,8 +1,8 @@
 const path = require('path');
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
-module.exports = async function pause(self, params) {
+const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+
+module.exports = async function pause(self) {
   try {
     if (self.currentJob === undefined) {
       throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
@@ -51,12 +51,12 @@ module.exports = async function pause(self, params) {
             x: parsedPosition[1],
             y: parsedPosition[3],
             z: parsedPosition[5],
-            e: parsedPosition[7]
-          }
+            e: parsedPosition[7],
+          };
           self.queue.prependCommands(pauseEndCommand);
           return true;
-        }
-      }
+        },
+      },
     ];
 
     // Pause the job
@@ -65,7 +65,8 @@ module.exports = async function pause(self, params) {
         self.logger.debug('Starting pause command');
         // This line of code is not being reached.
         self.currentJob.pause();
-        // Note, we don't return the pause request until the initial pause command is processed by the queue
+        // Note, we don't return the pause request
+        // until the initial pause command is processed by the queue
         self.queue.prependCommands(pauseMovementCommand);
       },
     });

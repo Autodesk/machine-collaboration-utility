@@ -1,8 +1,8 @@
 const path = require('path');
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
-module.exports = function disconnect(self, params) {
+const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+
+module.exports = function disconnect(self) {
   try {
     if (!botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
       throw new Error(`Cannot disconnect from state "${self.fsm.current}"`);

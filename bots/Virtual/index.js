@@ -1,10 +1,3 @@
-const LineByLineReader = Promise.promisifyAll(require('line-by-line'));
-const fs = require('fs');
-const path = require('path');
-
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
-
 const initialize = require('./commands/initialize');
 const discover = require('./commands/discover');
 const connect = require('./commands/connect');

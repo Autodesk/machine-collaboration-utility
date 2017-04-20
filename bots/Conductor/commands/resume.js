@@ -2,7 +2,10 @@ const request = require('request-promise');
 const path = require('path');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
+
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 async function checkResume(self) {
   // ping each bot
@@ -15,27 +18,20 @@ async function checkResume(self) {
       json: true,
     };
     const reply = await request(checkParams)
-    .catch(ex => {
-      self.logger.error('Get bot resume info error', ex);
-    });
+    .catch((ex) => { self.logger.error('Get bot resume info error', ex); });
 
     if (!botFsmDefinitions.metaStates.pauseable.includes(reply.data.state)) {
       resumeDone = false;
     }
   })
-  .catch(ex => {
-    self.logger.error('Get players resume info error', ex);
-  });
+  .catch((ex) => { self.logger.error('Get players resume info error', ex); });
 
   if (resumeDone) {
-    function capitalizeFirstLetter(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    }
-
-    let command = 'resume' + capitalizeFirstLetter(self.pauseableState);
+    const command = `resume${capitalizeFirstLetter(self.pauseableState)}`;
     // Resume the bot
     self.fsm[command]();
   } else {
+    // Wait 2 seconds and then check the status again
     await Promise.delay(2000);
     checkResume(self);
   }
@@ -66,10 +62,8 @@ module.exports = async function resume(self) {
         json: true,
       };
 
-      const resumeReply = await request(resumeParams)
-      .catch(ex => {
-        self.logger.error('Resume conductor player fail', ex);
-      });
+      await request(resumeParams)
+      .catch((ex) => { self.logger.error('Resume conductor player fail', ex); });
     });
 
     self.currentJob.fsm.resume();

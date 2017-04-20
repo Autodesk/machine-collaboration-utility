@@ -1,11 +1,7 @@
 const StateMachine = require('javascript-state-machine');
 const _ = require('lodash');
-const request = require('request-promise');
 const uuidGenerator = require('uuid/v4');
-const ip = require('ip');
 const path = require('path');
-const gcodeToObject = require('gcode-json-converter').gcodeToObject;
-const objectToGcode = require('gcode-json-converter').objectToGcode;
 
 const SerialCommandExecutor = require('./comProtocols/serial/executor');
 const TelnetExecutor = require('./comProtocols/telnet/executor');
@@ -145,7 +141,7 @@ class Bot {
   setPort(port) {
     // Validate?
     this.port = port;
-  };
+  }
 
   /*
    * This is the logic for parsing any commands sent to the Bot API
@@ -291,38 +287,6 @@ class Bot {
         gcodeObject.args.z += Number(this.settings.offsetZ);
       }
     }
-  }
-
-
-  /**
-   * offsetAxis()
-   *
-   * Takes a gcode command and offsets an individual axis per the bot's settings
-   *
-   * Args:   command       - The command to be offset
-   *         axis          - The axis to be offset
-   * Return: offsetCommand - The offset command
-   */
-  offsetAxis(command, axis) {
-    let offsetCommand = command;
-    try {
-      if (offsetCommand.indexOf(axis) !== -1) {
-        const axisArray = offsetCommand.split(axis);
-        const before = axisArray[0];
-        const splitArray = axisArray[1].split(' ');
-        const middle = axis + Number(Number(splitArray[0]) + Number(this.settings['offset' + axis])).toFixed(4);
-        let end = '';
-        if (splitArray.length > 1) {
-          for (let i = 1; i < splitArray.length; i++) {
-            end += ' ' + splitArray[i];
-          }
-        }
-        offsetCommand = before + middle + end;
-      }
-    } catch (ex) {
-      this.logger.error('Error when offsetting axis', command, axis, ex);
-    }
-    return offsetCommand;
   }
 }
 

@@ -1,9 +1,9 @@
 const path = require('path');
 const request = require('request-promise');
-const delay = Promise.delay;
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
+
+const delay = Promise.delay;
 
 module.exports = async function updateRoutine(self, params) {
   let doneConducting = true;
@@ -13,7 +13,7 @@ module.exports = async function updateRoutine(self, params) {
   if (botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
     const players = self.settings.custom.players;
 
-    for (const player of players) {
+    await Promise.map(players, async (player) => {
       // Ping each player for status
       const pingJobParams = {
         method: 'GET',
@@ -35,7 +35,7 @@ module.exports = async function updateRoutine(self, params) {
       } catch (ex) {
         doneConducting = false;
       }
-    }
+    });
 
     // If still processing job, but done conducting, then complete and cleanup
     if (botFsmDefinitions.metaStates.processingJob.includes(self.fsm.current)) {

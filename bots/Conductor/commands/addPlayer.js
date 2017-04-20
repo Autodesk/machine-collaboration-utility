@@ -2,25 +2,25 @@ module.exports = async function addPlayer(self, params) {
   try {
     const name = params.name;
     if (name === undefined) {
-      throw '"name" is undefined';
+      throw new Error('"name" is undefined');
     }
 
     const endpoint = params.endpoint;
     if (endpoint === undefined) {
-      throw '"endpoint" is undefined';
+      throw new Error('"endpoint" is undefined');
     }
 
     const playerArray = self.settings.custom.players;
 
     // Check for duplicate names or endpoints
-    for (const player of playerArray) {
+    playerArray.forEach((player) => {
       if (player.name === name) {
-        throw `Duplicate name "${name}".`;
+        throw new Error(`Duplicate name "${name}".`);
       }
       if (player.endpoint === endpoint) {
-        throw `Duplicate endpoint "${endpoint}".`;
+        throw new Error(`Duplicate endpoint "${endpoint}".`);
       }
-    }
+    });
 
     playerArray.push({ name, endpoint });
     self.settings.custom.players = playerArray;

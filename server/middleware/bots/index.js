@@ -59,7 +59,7 @@ class Bots {
       }
 
       // Load all bots from the database and add them to the 'botList' object
-      for (const dbBot of botsDbArray) {
+      botsDbArray.forEach((dbBot) => {
         try {
           if (dbBot.dataValues.custom && dbBot.dataValues.custom.length > 0) {
             dbBot.dataValues.custom = JSON.parse(dbBot.dataValues.custom);
@@ -91,7 +91,7 @@ class Bots {
         } catch (ex) {
           this.logger.error(`Failed to create bot. ${ex}`);
         }
-      }
+      });
 
       // Start scanning for all bots
       // Do not use usb if testing
@@ -143,7 +143,7 @@ class Bots {
     });
   }
 
-  async loadBotPresetList () {
+  async loadBotPresetList() {
     const botDirectory = path.join(process.env.PWD, './bots');
     const files = await fs.readdir(botDirectory);
     const botPresets = await Promise.filter(files, async (file) => {
@@ -151,7 +151,7 @@ class Bots {
       return stat.isDirectory();
     });
 
-    botPresets.forEach(botPreset => {
+    botPresets.forEach((botPreset) => {
       const presetPath = path.join(botDirectory, botPreset);
       const BotPreset = require(presetPath);
 
@@ -185,7 +185,7 @@ class Bots {
       inputSettings.model === undefined ||
       this.botPresetList[inputSettings.model] === undefined
     ) ?
-    this.botPresetList['Virtual'] :
+    this.botPresetList.Virtual :
     this.botPresetList[inputSettings.model];
     // Mixin all input settings into the bot object
     const newBot = new Bot(this.app, botPresets, inputSettings);
@@ -206,14 +206,15 @@ class Bots {
     try {
       const bot = this.botList[uuid];
       if (bot === undefined) {
-        throw `Bot "${uuid}" is undefined`;
+        throw new Error(`Bot "${uuid}" is undefined`);
       }
 
       // Sweep through all of the bots in the database
       // Make sure the bot is in the database. If it is, delete it
       const bots = await this.BotModel.findAll();
       let deleted = false;
-      for (const dbBot of bots) {
+
+      await Promise.map(bots, async (dbBot) => {
         const dbBotUuid = dbBot.dataValues.uuid;
         if (uuid === dbBotUuid) {
           await dbBot.destroy();
@@ -221,7 +222,7 @@ class Bots {
           delete this.botList[uuid];
           deleted = true;
         }
-      }
+      });
 
       if (!deleted) {
         throw new Error(
@@ -250,11 +251,11 @@ class Bots {
   */
   getBots() {
     const filteredBots = {};
-    for (const [botKey, bot] of _.entries(this.botList)) {
+    _.entries(this.botList).forEach(([botKey, bot]) => {
       filteredBots[botKey] = bot.getBot();
-    }
+    });
     return filteredBots;
-  };
+  }
 
   /*
   * get a json friendly description of a Bots
@@ -276,13 +277,14 @@ class Bots {
   }
 
   findBotByName(name) {
-    let botByName = undefined;
-    for (const [botKey, bot] of _.entries(this.botList)) {
+    let botByName;
+
+    _.entries(this.botList).forEach(([botKey, bot]) => {
       if (bot.settings.name === name) {
         botByName = bot;
-        break;
       }
-    }
+    });
+
     return botByName;
   }
 
@@ -290,16 +292,18 @@ class Bots {
   // allow the first connected bot to be address as 'solo'
   // return the first connected bot
   soloBot() {
-    let uuid = undefined;
-    for (const [botKey, bot] of _.entries(this.botList)) {
+    let uuid;
+
+    _.entries(this.botList).forEach(([botKey, bot]) => {
       if (bot.fsm.current !== 'unavailable') {
         uuid = bot.settings.uuid;
-        break;
       }
-    }
+    });
+
     if (uuid === undefined) {
-      throw 'No bot is currently available';
+      throw new Error('No bot is currently available');
     }
+
     return uuid;
   }
 }

@@ -17,7 +17,7 @@ module.exports = function checkPrecursors(self) {
         self.queue.queueCommands({
           postCallback: () => {
             self.lr.resume();
-          }
+          },
         });
       }
     } else {
@@ -38,4 +38,4 @@ module.exports = function checkPrecursors(self) {
       });
     }
   }
-}
+};
