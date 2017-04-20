@@ -2,7 +2,7 @@ module.exports = async function unblock(self, params) {
   try {
     if (self.fsm.current === 'executingJob') {
       const commandArray = [
-        // generateUnparkCommands(self),
+        self.commands.generateUnparkCommands(self),
         {
           postCallback: () => {
             self.lr.resume();
@@ -16,25 +16,6 @@ module.exports = async function unblock(self, params) {
       }
 
       const commandArray = [];
-
-      const unblockDoneCommand = {
-        postCallback: () => {
-          self.fsm.unblockDone();
-          self.lr.resume();
-        },
-      };
-
-      const unblockMotion = {
-        preCallback: () => {
-          self.logger.debug('Starting unblock motion');
-        },
-        delay: 1000,
-        postCallback: () => {
-          self.queue.prependCommands(unblockDoneCommand);
-          self.logger.debug('Done with unblock motion');
-        },
-      };
-
       if (self.fsm.current === 'blocking') {
         commandArray.push({
           postCallback: () => {
@@ -42,8 +23,29 @@ module.exports = async function unblock(self, params) {
           },
         });
       }
+      commandArray.push({
+        preCallback: () => {
+          self.logger.debug('Starting unblock motion', params);
+        },
+      });
 
-      commandArray.push(unblockMotion);
+      if (params.dry === false) {
+        commandArray.push(self.commands.generateUnparkCommands(self));
+      }
+
+      const unblockDoneCommand = {
+        postCallback: () => {
+          self.fsm.unblockDone();
+          self.lr.resume();
+        },
+      };
+      commandArray.push({
+        preCallback: () => {
+          self.queue.prependCommands(unblockDoneCommand);
+          self.logger.debug('Done with unblock motion');
+        },
+      });
+
       self.queue.queueCommands(commandArray);
 
       // Queue the unblock command if currently 'blocking'

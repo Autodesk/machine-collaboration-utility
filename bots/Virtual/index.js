@@ -15,6 +15,8 @@ const processGcode = require('./commands/processGcode');
 const checkPrecursors = require('./commands/checkPrecursors');
 const updateCollaboratorCheckpoints = require('./commands/updateCollaboratorCheckpoints');
 const unplug = require('./commands/unplug');
+const generateParkCommands = require('./commands/generateParkCommands');
+const generateUnparkCommands = require('./commands/generateUnparkCommands');
 
 const info = {
   connectionType: 'virtual',
@@ -55,6 +57,8 @@ const commands = {
   checkPrecursors,
   updateCollaboratorCheckpoints,
   unplug,
+  generateParkCommands,
+  generateUnparkCommands,
 };
 
 module.exports = { settings, info, commands };

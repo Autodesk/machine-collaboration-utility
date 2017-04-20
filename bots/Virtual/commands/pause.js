@@ -14,8 +14,6 @@ module.exports = async function pause(self) {
       throw new Error(`Cannot pause job from state "${self.currentJob.fsm.current}"`);
     }
 
-    const commandArray = [];
-
     // We want pause to happen in a very specific order
     // 1. Start pause from the state machine immediately
     // 2. Allow for pause movements / macros / etc
@@ -30,51 +28,45 @@ module.exports = async function pause(self) {
     // This comes across a bit backwards, but the ordering is necessary in order to prevent
     // transitioning to an incorrect state
 
-    const pauseEndCommand = {
+    const parkCommands = self.commands.generateParkCommands(self);
+    parkCommands.push({
       postCallback: () => {
-        self.fsm.pauseDone();
+        self.queue.prependCommands({
+          postCallback: () => {
+            self.fsm.pauseDone();
+          },
+        });
       },
-    };
+    });
 
-    const m114Regex = /.*X:([+-]?\d+(\.\d+)?)\s*Y:([+-]?\d+(\.\d+)?)\s*Z:([+-]?\d+(\.\d+)?)\s*E:([+-]?\d+(\.\d+)?).*/;
-    const pauseMovementCommand = [
-      'M400',
-      {
-        // When pausing capture the position so that we can come back to it
-        preCallback: () => {
-          self.logger.debug('Starting pause movements');
-        },
-        code: 'M114',
-        processData: (command, data) => {
-          const parsedPosition = data.match(m114Regex);
-          self.parkedPosition = {
-            x: parsedPosition[1],
-            y: parsedPosition[3],
-            z: parsedPosition[5],
-            e: parsedPosition[7],
-          };
-          self.queue.prependCommands(pauseEndCommand);
-          return true;
-        },
-      },
-    ];
-
+    const commandArray = [];
     // Pause the job
-    self.queue.prependCommands({
+    commandArray.push({
       postCallback: () => {
         self.logger.debug('Starting pause command');
         // This line of code is not being reached.
         self.currentJob.pause();
         // Note, we don't return the pause request
         // until the initial pause command is processed by the queue
-        self.queue.prependCommands(pauseMovementCommand);
+        self.queue.prependCommands(parkCommands);
       },
     });
 
-    self.queue.prependCommands(commandArray);
-    self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
-    self.pauseableState = self.fsm.current;
-    self.fsm.pause();
+    if (self.fsm.current === 'blocking' || self.fsm.current === 'unblocking') {
+      commandArray.unshift({
+        postCallback: () => {
+          self.pauseableState = self.fsm.current;
+          self.fsm.pause();
+          self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
+        },
+      });
+      self.queue.queueCommands(commandArray);
+    } else {
+      self.pauseableState = self.fsm.current;
+      self.fsm.pause();
+      self.queue.prependCommands(commandArray);
+      self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
+    }
   } catch (ex) {
     self.logger.error('Pause error', ex);
   }

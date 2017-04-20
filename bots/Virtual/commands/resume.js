@@ -21,6 +21,7 @@ module.exports = async function resume(self) {
 
         const command = `resume${capitalizeFirstLetter(self.pauseableState)}`;
         // Resume the bot
+        self.logger.info('captured command', command);
         self.fsm[command]();
         if (self.pauseableState === 'executingJob') {
           self.lr.resume();
@@ -29,6 +30,7 @@ module.exports = async function resume(self) {
     };
 
     const resumeMotion = [
+      self.commands.generateUnparkCommands(self),
       {
         code: self.parkedPosition === undefined ? 'M114' : `G92 E${self.parkedPosition.e}`,
       },

@@ -29,6 +29,6 @@ module.exports = async function addPlayer(self, params) {
     return self.getBot();
   } catch (ex) {
     self.logger.error('Add player error', ex);
-    throw ex;
+    throw new Error('Add player error', ex);
   }
 };
