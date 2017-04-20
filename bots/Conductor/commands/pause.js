@@ -5,6 +5,9 @@ const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Jobs/jobFsmDefinitions'));
 
 async function checkPause(self) {
+  if (self.fsm.current === 'paused') {
+    return;
+  }
   // ping each bot
   // If they're all connected, then we are done connecting
   let pauseDone = true;
@@ -14,6 +17,7 @@ async function checkPause(self) {
       uri: player.endpoint,
       json: true,
     };
+
     const reply = await request(checkParams)
     .catch(ex => {
       self.logger.error('Check pause player error', ex);
@@ -26,6 +30,10 @@ async function checkPause(self) {
   .catch(ex => {
     self.logger.error('Get players pause info error', ex);
   });
+
+  if (self.fsm.current === 'paused') {
+    return;
+  }
 
   if (pauseDone) {
     self.currentJob.pause();
