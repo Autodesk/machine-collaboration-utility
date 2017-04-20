@@ -29,3 +29,16 @@
   * Default bot will reset its current job referece once it completes said job
   * Created UI tweak to allow kicking off a file to filter the available bots
   * Fixed bug with creating a virtual bot
+
+## 1.1.0 (2017-04-19)
+  Refactored Bot / Job state machine and Bot MVC setup
+  
+### Improvements
+  * Replaced native promises with Bluebird promises
+  * Using Async/Await
+  * Restructured Job state machine
+  * Restructured Bot state machine
+  * Now using the gcode-json-converter library
+  * Refactored command queue to process async functions
+  * Removed "HardwareHub" style printer
+  * Standard file consumption now set up through "Virtual Bot" "StartJob" command
