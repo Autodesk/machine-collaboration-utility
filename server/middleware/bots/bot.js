@@ -157,12 +157,14 @@ class Bot {
     }
 
     // TODO Consider always returning get bot plus any info or error, instead
+    let reply;
     try {
-      const reply = await commandObj(this, params);
-      return reply;
+      reply = await commandObj(this, params);
     } catch (ex) {
-      return ex;
+      throw new Error(ex);
     }
+
+    return reply;
   }
 
   // Set up the appropriate command executor and validator for a given connection type

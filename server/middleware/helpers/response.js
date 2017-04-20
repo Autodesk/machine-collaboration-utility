@@ -1,3 +1,5 @@
+const errorToJSON = require('error-to-json');
+
 /**
  * Helper class for generating standardized REST API replies
  * @param {Object} ctx - The object representing the context for a request/response instance
@@ -8,6 +10,11 @@
  */
 class Response {
   constructor(ctx, query, payload) {
+    if (payload instanceof Error) {
+      payload = errorToJSON(payload);
+      delete payload.stack;
+    }
+
     if (ctx.status < 400) {
       this.data = payload;
     } else {
