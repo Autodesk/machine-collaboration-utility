@@ -137,6 +137,18 @@ a{
   padding: 5px;
 }
 
+#camfeed {
+  padding: 20px;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  justify-content: center;
+  background-color: #ffffff;
+  img {
+    border: 5px solid #dddddd;
+  } 
+}
+
 #dashboard{
   background-color: $white;
   padding-top: $standard-padding/2;
@@ -328,7 +340,7 @@ a{
   background-color: $base-bg-color;
   padding-top: $standard-padding/2;
   >li{
-    width: calc(100% / 3);
+    width: calc(100% / 4);
     text-align: center;
     &.active{
       >a{

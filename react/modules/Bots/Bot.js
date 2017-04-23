@@ -10,6 +10,7 @@ import _ from 'lodash';
 import Dashboard from './Dashboard';
 import Terminal from './Terminal';
 import Settings from './Settings';
+import CamFeed from './CamFeed';
 
 export default class Bot extends React.Component {
   constructor(props) {
@@ -94,6 +95,9 @@ export default class Bot extends React.Component {
           </Tab>
           <Tab eventKey={3} title="Settings">
             <Settings endpoint={endpoint} bot={this.props.bot}/>
+          </Tab>
+          <Tab eventKey={4} title="Cam Feed">
+            <CamFeed bot={this.props.bot}/>
           </Tab>
         </Tabs>
       </div>
