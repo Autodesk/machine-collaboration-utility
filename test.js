@@ -30,11 +30,9 @@ const logger = new (winston.Logger)({
 });
 logger.info(`Test initialized.`);
 
-// Collect the test file from each middleware module
-walk.walkSync('./server', (basedir, filename) => {
+const testArg = npmArgs.cooked[1] && npmArgs.cooked[1].split('--')[1].toLowerCase();
 
-  const testArg = npmArgs.cooked[1] && npmArgs.cooked[1].split('--')[1].toLowerCase();
-
+function addTests(basedir, filename) {
   const basedirArray = basedir.split('/');
   if (filename === 'test.js') {
     if (
@@ -49,6 +47,15 @@ walk.walkSync('./server', (basedir, filename) => {
       tests.push(require(filepath));
     }
   }
+}
+
+// Collect the test file from each middleware module
+walk.walkSync('./server', (basedir, filename) => {
+  addTests(basedir, filename);
+});
+
+walk.walkSync('./bots', (basedir, filename) => {
+  addTests(basedir, filename);
 });
 
 // Run each middleware test
