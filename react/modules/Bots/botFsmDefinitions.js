@@ -17,8 +17,6 @@ const connected = [
   'idle',
   'completingJob',
   'cancelingJob',
-  'handlingIdleWarning',
-  'handlingJobWarning',
   ...processingJob,
 ];
 
@@ -47,19 +45,8 @@ const fsmEvents = [
 
   // CONNECTED events
   { from: 'idle',                to: 'startingJob',         name: 'startJob'                      },
-  { from: 'idle',                to: 'handlingIdleWarning', name: 'warnIdle'                      },
-  { from: 'handlingIdleWarning', to: 'idle',                name: 'resolveIdleWarning'            },
   { from: 'completingJob',       to: 'idle',                name: 'completeDone'                  },
   { from: 'cancelingJob',        to: 'idle',                name: 'cancelDone'                    },
-  { from: 'handlingJobWarning',  to: 'cancelingJob',        name: 'cancel'                        },
-  { from: 'handlingJobWarning',  to: 'executingJob',        name: 'resolveJobWarningExecutingJob' },
-  { from: 'handlingJobWarning',  to: 'blocking',            name: 'resolveJobWarningBlocking'     },
-  { from: 'handlingJobWarning',  to: 'blocked',             name: 'resolveJobWarningBlocked'      },
-  { from: 'handlingJobWarning',  to: 'unblocking',          name: 'resolveJobWarningUnblocking'   },
-  { from: 'handlingJobWarning',  to: 'startingJob',         name: 'resolveJobWarningStartingJob'  },
-  { from: 'handlingJobWarning',  to: 'pausing',             name: 'resolveJobWarningPausing'      },
-  { from: 'handlingJobWarning',  to: 'paused',              name: 'resolveJobWarningPaused'       },
-  { from: 'handlingJobWarning',  to: 'resuming',            name: 'resolveJobWarningResuming'     },
 
   // PROCESSING JOB events
   { from: 'startingJob',         to: 'executingJob',        name: 'startDone'                     },
@@ -84,7 +71,6 @@ const fsmEvents = [
   { from: connected,             to: 'disconnecting',       name: 'disconnect'                    },
   { from: connected,             to: 'error',               name: 'connectedError'                },
   { from: processingJob,         to: 'cancelingJob',        name: 'cancel'                        },
-  { from: processingJob,         to: 'handlingJobWarning',  name: 'warnJob'                       },
   { from: pauseable,             to: 'pausing',             name: 'pause'                         },
 
   /* eslint-enable no-multi-spaces */
