@@ -80,6 +80,7 @@ class Bot {
       info: this.info,
       port: this.port,
       currentJob,
+      warnings: this.warnings,
     };
   }
 

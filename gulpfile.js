@@ -33,10 +33,10 @@ const dest = {
 };
 
 gulp.task('build', [
-  'build-files',
-  'build-scss',
-  'build-react-client',
-  'build-react-server',
+  // 'build-files',
+  // 'build-scss',
+  // 'build-react-client',
+  // 'build-react-server',
 ]);
 
 gulp.task('build-files', () => {
@@ -161,7 +161,7 @@ gulp.task('test', ['default'], () => {
     .once('end', () => {
       process.exit();
     });
-  }, 10000);
+  }, 1000);
 });
 
 gulp.task('default', [

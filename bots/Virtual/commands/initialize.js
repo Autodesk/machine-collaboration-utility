@@ -11,8 +11,8 @@ module.exports = function initialize(self) {
   // Set "parked" flag to false initially
   self.parked = false;
 
-  // placeholder for storing which possible state to return to after receiving a job warning
-  self.jobWarningState = undefined;
+  // Hold an array of any warning received
+  self.warnings = [];
 
   self.status = {
     position: {

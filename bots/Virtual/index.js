@@ -17,6 +17,9 @@ const updateCollaboratorCheckpoints = require('./commands/updateCollaboratorChec
 const unplug = require('./commands/unplug');
 const generateParkCommands = require('./commands/generateParkCommands');
 const generateUnparkCommands = require('./commands/generateUnparkCommands');
+const warn = require('./commands/warn');
+const genericWarningHandle = require('./commands/genericWarningHandle');
+const genericWarningResolve = require('./commands/genericWarningResolve');
 
 const info = {
   connectionType: 'virtual',
@@ -59,6 +62,9 @@ const commands = {
   unplug,
   generateParkCommands,
   generateUnparkCommands,
+  warn,
+  genericWarningHandle,
+  genericWarningResolve,
 };
 
 module.exports = { settings, info, commands };

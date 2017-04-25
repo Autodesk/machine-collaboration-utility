@@ -200,6 +200,10 @@ module.exports = async function startJob(self, params) {
     if (params.fileUuid === undefined) {
       throw new Error('A "fileUuid" must be specified when starting a job.');
     }
+    if (self.warnings.length > 0) {
+      throw new Error('Cannot start job with unresolved warnings', self.warnings);
+    }
+
     self.fsm.startJob();
     try {
       // Create a job
@@ -226,6 +230,7 @@ module.exports = async function startJob(self, params) {
     }
   } catch (ex) {
     self.logger.error('Start job fail', ex);
+    throw ex;
   }
   return self.getBot();
 };
