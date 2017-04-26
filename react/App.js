@@ -31,7 +31,10 @@ export default class App extends React.Component {
     // Append Conductor bots here
     _.entries(bots).forEach(([uuid, bot]) => {
       if (bot.settings.custom && Array.isArray(bot.settings.custom.players)) {
-        bot.settings.custom.players.forEach(player => {
+        bot.settings.custom.players.forEach((player) => {
+          if (player.endpoint.includes('localhost')) {
+            return;
+          }
           const newBot = {
             state: 'uninitialized',
             status: {
@@ -39,7 +42,7 @@ export default class App extends React.Component {
                 x: 0,
                 y: 0,
                 z: 0,
-                e: 0
+                e: 0,
               },
               sensors: {
                 t0: {
@@ -49,7 +52,7 @@ export default class App extends React.Component {
                 b0: {
                   temperature: 0,
                   setpoint: 0,
-                }
+                },
               },
             },
             settings: {
