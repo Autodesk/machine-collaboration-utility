@@ -3,14 +3,44 @@
 // If we're processing the job, add the warning and pause the job
 // If we're transitioning, push the warning and pause commands into the queue
 
-module.exports = function genericWarningHandle(self, params) {
+function addWarning(self) {
   const warningObject = {
-    type: 'generic',
+    type: 'genericWarning',
     time: new Date(),
     state: String(self.fsm.current),
   };
 
-  if (self.fsm.current === 'idle') {
+  const existingWarning = self.warnings.find((warning) => {
+    return warning.type === warningObject.type;
+  });
+
+  if (!existingWarning) {
+    console.log('sweet warning object', warningObject);
     self.warnings.push(warningObject);
+  }
+}
+
+module.exports = function genericWarningHandle(self) {
+  switch (self.fsm.current) {
+    case 'idle': {
+      addWarning(self);
+      break;
+    }
+    case 'executingJob': {
+      addWarning(self);
+      self.commands.pause(self);
+      break;
+    }
+    case 'pausing': {
+      self.queue.queueCommands({
+        preCallback: () => {
+          addWarning(self);
+        },
+      });
+      break;
+    }
+    default: {
+      break;
+    }
   }
 };

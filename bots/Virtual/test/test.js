@@ -362,7 +362,25 @@ module.exports = function botsTests() {
       const warnings = warnReply.data.warnings;
       should.ok(Array.isArray(warnings));
       should.ok(warnings.length === 1);
-      should(warnings[0].type).equal('generic');
+      should(warnings[0].type).equal('genericWarning');
+    });
+
+    it('issuing a warning should be idempotent', async function() {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'warn',
+          warning: 'genericWarning',
+        },
+        json: true,
+      };
+
+      const warnReply = await request(requestParams);
+      const warnings = warnReply.data.warnings;
+      should.ok(Array.isArray(warnings));
+      should.ok(warnings.length === 1);
+      should(warnings[0].type).equal('genericWarning');
     });
 
     it('should not be able to start a job when it has un-resolved warnings', async function() {
@@ -397,32 +415,167 @@ module.exports = function botsTests() {
     });
 
     it('should be able to resolve a warning', async function() {
-      should.equal(false, true);
+      const resolveWarningRequest = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'resolveWarning',
+          warning: 'genericWarning',
+        },
+        json: true,
+      };
+
+      const resolveWarningReply = await request(resolveWarningRequest)
+      should.ok(resolveWarningReply.data.warnings.length === 0);
     });
 
-    // it('should start another print', async function() {
-    //   should.equal(false, true);
-    // });
+    it('should start another print', async function() {
+      const startJobParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'startJob',
+          fileUuid: blockFile.uuid,
+        },
+        json: true,
+      };
 
-    // it('should receive a warning mid-print', async function() {
-    //   should.equal(false, true);
-    // });
+      await request(startJobParams);
+    });
 
-    // it('should resolve a mid-print warning', async function() {
-    //   should.equal(false, true);
-    // });
+    it('should receive a warning mid-print', async function() {
+      this.timeout(2000);
+      await Promise.delay(1000);
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'warn',
+          warning: 'genericWarning',
+        },
+        json: true,
+      };
 
-    // it('should pause and then issue a warning from the state "pausing"', async function() {
-    //   should.equal(false, true);
-    // });
+      const warnReply = await request(requestParams);
+      const warnings = warnReply.data.warnings;
+      should.ok(Array.isArray(warnings));
+      should.ok(warnings.length === 1);
+      should(warnings[0].type).equal('genericWarning');
+    });
 
-    // it('should resolve a warning issued from "pausing"', async function() {
-    //   should.equal(false, true);
-    // });
+    it('should not be able to resume a job when it has un-resolved warnings', async function() {
+      this.timeout(6000);
+      await Promise.delay(4000);
 
-    // it('should issue a warning from the state "paused"', async function() {
-    //   should.equal(false, true);
-    // });
+      const resumeParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'resume',
+        },
+        json: true,
+      };
+
+      await request(resumeParams)
+      .catch((err) => {
+        should(err.error.error.message).equal('Error: Cannot resume bot Virtual Bot with unresolved warnings');
+      });
+    });
+
+    it('should resolve a mid-print warning', async function() {
+      const resolveWarningRequest = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'resolveWarning',
+          warning: 'genericWarning',
+        },
+        json: true,
+      };
+
+      const resolveWarningReply = await request(resolveWarningRequest);
+      should.ok(resolveWarningReply.data.warnings.length === 0);
+      should(resolveWarningReply.data.state).equal('resuming');
+    });
+
+    it('should pause and then issue a warning from the state "pausing"', async function() {
+      this.timeout(10000);
+      await Promise.delay(1500);
+
+      const pauseParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'pause',
+        },
+        json: true,
+      };
+
+      await request(pauseParams);
+      await Promise.delay(500);
+
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'warn',
+          warning: 'genericWarning',
+        },
+        json: true,
+      };
+
+      await request(requestParams);
+      // Wait for pause to finish
+      await Promise.delay(4500);
+
+      const getBotParams = {
+        method: 'GET',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        json: true,
+      };
+
+      const getReply = await request(getBotParams);
+      const warnings = getReply.data.warnings;
+
+      should.ok(Array.isArray(warnings));
+      should.ok(warnings.length === 1);
+      should(warnings[0].type).equal('genericWarning');
+    });
+
+    it('should resolve a warning issued from "pausing"', async function() {
+      const resolveWarningRequest = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'resolveWarning',
+          warning: 'genericWarning',
+        },
+        json: true,
+      };
+
+      const resolveWarningReply = await request(resolveWarningRequest);
+      should.ok(resolveWarningReply.data.warnings.length === 0);
+      should(resolveWarningReply.data.state).equal('paused');
+    });
+
+    it('should issue a warning from the state "paused"', async function() {
+      const requestParams = {
+        method: 'POST',
+        uri: `http://localhost:9000/v1/bots/${botUuid}`,
+        body: {
+          command: 'warn',
+          warning: 'genericWarning',
+        },
+        json: true,
+      };
+
+      const warnReply = await request(requestParams);
+      console.log('warn reply', warnReply);
+      const warnings = warnReply.data.warnings;
+      should.ok(Array.isArray(warnings));
+      should.ok(warnings.length === 1);
+      should(warnings[0].type).equal('genericWarning');
+    });
 
     // it('should not be able to resume until all warnings are resolved', async function() {
     //   should.equal(false, true);
@@ -448,51 +601,43 @@ module.exports = function botsTests() {
     //   should.equal(false, true);
     // });
 
-    // it('should clean up by deleting the file, virtual bot, and jobs', function (done) {
+    // it('should clean up by deleting the file, virtual bot, and jobs', async function (done) {
     //   // Delete the bot
     //   const deleteBotParams = {
     //     method: 'DELETE',
     //     uri: `http://localhost:9000/v1/bots/${botUuid}`,
     //     json: true,
     //   };
-    //   request(deleteBotParams)
-    //   .then((destroyBotReply) => {
-    //     should(destroyBotReply.status).equal(200);
-    //     should(destroyBotReply.query).equal('Delete Bot');
-    //     should(destroyBotReply.data).equal(`Bot "${botUuid}" successfully deleted`);
-    //   })
-    //   .then(() => {
+
+    //   const destroyBotReply = await request(deleteBotParams);
+    //   should(destroyBotReply.status).equal(200);
+    //   should(destroyBotReply.query).equal('Delete Bot');
+    //   should(destroyBotReply.data).equal(`Bot "${botUuid}" successfully deleted`);
+
+
     //   // Delete the file
-    //     const deleteFileParams = {
-    //       method: 'DELETE',
-    //       uri: 'http://localhost:9000/v1/files/',
-    //       body: {
-    //         uuid: file.uuid,
-    //       },
-    //       json: true,
-    //     };
-    //     request(deleteFileParams)
-    //     /// TODO fix the cleanup of jobs
-    //     .then(() => {
-    //       // Delete the job
-    //       const deleteJobParams = {
-    //         method: 'DELETE',
-    //         uri: 'http://localhost:9000/v1/jobs/',
-    //         body: {
-    //           uuid: job.uuid,
-    //         },
-    //         json: true,
-    //       };
-    //       request(deleteJobParams)
-    //       .then((deleteJobReply) => {
-    //         done();
-    //       })
-    //       .catch((err) => {
-    //         logger.error(err);
-    //         done();
-    //       });
-    //     });
-    //   });
+    //   const deleteFileParams = {
+    //     method: 'DELETE',
+    //     uri: 'http://localhost:9000/v1/files/',
+    //     body: {
+    //       uuid: file.uuid,
+    //     },
+    //     json: true,
+    //   };
+
+    //   await request(deleteFileParams);
+
+    //   // Delete the job
+    //   const deleteJobParams = {
+    //     method: 'DELETE',
+    //     uri: 'http://localhost:9000/v1/jobs/',
+    //     body: {
+    //       uuid: job.uuid,
+    //     },
+    //     json: true,
+    //   };
+
+    //   await request(deleteJobParams);
     // });
   });
 };

@@ -10,6 +10,7 @@ import DisableMotors from './DisableMotors';
 import Temp from './Temp';
 import SendGcode from './SendGcode';
 import ConductorPlayers from './ConductorPlayers';
+import Warnings from './Warnings';
 
 export default class Dashboard extends React.Component {
   constructor(props) {
@@ -63,6 +64,9 @@ export default class Dashboard extends React.Component {
               <div className="area">
                 <Temp endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
+            </div>
+            <div className="col-md-12">
+              <Warnings bot={this.props.bot} />
             </div>
           </div>
         }

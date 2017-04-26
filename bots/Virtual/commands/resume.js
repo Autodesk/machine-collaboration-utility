@@ -11,6 +11,10 @@ module.exports = async function resume(self) {
       throw new Error(`Cannot resume bot ${self.settings.name} from state "${self.fsm.current}"`);
     }
 
+    if (self.warnings.length > 0) {
+      throw new Error(`Cannot resume bot ${self.settings.name} with unresolved warnings`, self.warnings);
+    }
+
     const commandArray = [];
 
     const resumeDoneCommand = {
@@ -77,6 +81,11 @@ module.exports = async function resume(self) {
     }
   } catch (ex) {
     self.logger.error('Resume error', ex);
+    if (ex instanceof Error) {
+      throw ex;
+    } else {
+      throw new Error('Resume error', ex);
+    }
   }
   return self.getBot();
 };
