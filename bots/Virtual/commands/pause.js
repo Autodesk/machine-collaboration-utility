@@ -4,6 +4,10 @@ const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots
 
 module.exports = async function pause(self) {
   try {
+    // Idempotent pause command
+    if (self.fsm.current === 'paused' || self.fsm.current === 'pausing') {
+      return;
+    }
     if (self.currentJob === undefined) {
       throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
     }
