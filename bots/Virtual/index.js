@@ -21,6 +21,7 @@ const generateUnparkCommands = require('./commands/generateUnparkCommands');
 const info = {
   connectionType: 'virtual',
   fileTypes: ['.gcode'],
+  clearBufferCommand: 'M400',
 };
 
 const settings = {

@@ -2,6 +2,10 @@ const _ = require('lodash');
 
 const VirtualBot = require('../Virtual');
 
+const connect = require('./commands/connect');
+const generateParkCommands = require('./commands/generateParkCommands');
+const generateUnparkCommands = require('./commands/generateUnparkCommands');
+
 const info = {
   connectionType: 'serial',
   fileTypes: ['.gcode'],
@@ -12,6 +16,7 @@ const info = {
     },
   ],
   baudrate: 115200,
+  clearBufferCommand: 'G4 P0',
 };
 
 const settings = {
@@ -20,6 +25,9 @@ const settings = {
 };
 
 const commands = {
+  connect,
+  generateParkCommands,
+  generateUnparkCommands,
 };
 
 module.exports = {

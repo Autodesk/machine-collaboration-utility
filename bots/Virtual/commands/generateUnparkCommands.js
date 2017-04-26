@@ -2,7 +2,7 @@
 module.exports = function generateUnparkCommands(self) {
   const commandArray = [];
 
-  commandArray.push('M400');
+  commandArray.push(self.info.clearBufferCommand);
   commandArray.push({
     postCallback: () => { self.parked = false; },
   });

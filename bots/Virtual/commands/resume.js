@@ -41,7 +41,7 @@ module.exports = async function resume(self) {
         preCallback: () => {
           self.logger.debug('Starting resume motion');
         },
-        code: 'M400',
+        code: self.info.clearBufferCommand,
         postCallback: () => {
           self.parkedPosition = undefined;
           self.queue.prependCommands(resumeDoneCommand);

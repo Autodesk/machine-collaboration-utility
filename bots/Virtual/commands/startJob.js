@@ -67,7 +67,7 @@ async function processCommentTag(gcodeObject, self) {
 
       // If the printer is currently blocked, then purge and unblock it
       self.queue.queueCommands([
-        'M400',
+        self.info.clearBufferCommand,
         {
           postCallback: () => {
             self.commands.unblock(self, { dry });
