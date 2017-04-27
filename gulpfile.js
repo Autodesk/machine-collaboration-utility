@@ -161,7 +161,7 @@ gulp.task('test', ['default'], () => {
     .once('end', () => {
       process.exit();
     });
-  }, 2000);
+  }, 10000);
 });
 
 gulp.task('default', [
