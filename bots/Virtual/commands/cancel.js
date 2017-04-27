@@ -18,7 +18,11 @@ module.exports = function cancel(self) {
     const commandArray = [];
 
     // cancel the bot
+    self.queue.clear();
     self.fsm.cancel();
+    delete self.status.checkpoint;
+    delete self.status.collaborators;
+    delete self.status.blocker;
 
     // cancel the job
     commandArray.push({

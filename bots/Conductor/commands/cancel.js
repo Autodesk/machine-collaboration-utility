@@ -25,9 +25,16 @@ async function checkCancel(self) {
   });
 
   if (cancelDone) {
-    self.currentJob.fsm.cancel();
+    self.currentJob.cancel();
     self.currentJob = undefined;
     self.fsm.cancelDone();
+    setTimeout(() => {
+      self.app.io.broadcast('botEvent', {
+        uuid: self.settings.uuid,
+        event: 'update',
+        data: self.getBot(),
+      });
+    }, 1000);
   } else {
     await Promise.delay(2000);
     checkCancel(self);
