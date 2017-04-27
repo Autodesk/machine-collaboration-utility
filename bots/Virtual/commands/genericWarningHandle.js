@@ -15,7 +15,6 @@ function addWarning(self) {
   });
 
   if (!existingWarning) {
-    console.log('sweet warning object', warningObject);
     self.warnings.push(warningObject);
   }
 }
@@ -26,9 +25,22 @@ module.exports = function genericWarningHandle(self) {
       addWarning(self);
       break;
     }
-    case 'executingJob': {
+    case 'blocked':
+    case 'executingJob':
+    case 'paused': {
       addWarning(self);
       self.commands.pause(self);
+      break;
+    }
+    case 'blocking':
+    case 'unblocking':
+    case 'resuming': {
+      self.queue.queueCommands({
+        preCallback: () => {
+          addWarning(self);
+          self.commands.pause(self);
+        },
+      });
       break;
     }
     case 'pausing': {

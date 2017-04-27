@@ -19,19 +19,43 @@ function removeWarning(self, params) {
   return removedWarning;
 }
 
+function handleRemovedWarning(self, params) {
+  const removedWarning = removeWarning(self, params);
+  if (removedWarning && removedWarning.state !== self.fsm.current) {
+    switch (removedWarning.state) {
+      case 'paused': {
+        // Nothing to do, just remove the warning
+        break;
+      }
+      case 'blocked':
+      case 'executingJob': {
+        self.commands.resume(self);
+        break;
+      }
+      default: {
+        self.logger.error('Should never end up in state', self.fsm.current);
+        break;
+      }
+    }
+  }
+}
+
 module.exports = function genericWarningResolve(self, params) {
   switch (self.fsm.current) {
     case 'idle': {
       removeWarning(self, params);
       break;
     }
+    case 'pausing': {
+      self.queue.queueCommands({
+        preCallback: () => {
+          handleRemovedWarning(self, params);
+        },
+      });
+      break;
+    }
     case 'paused': {
-      const removedWarning = removeWarning(self, params);
-      if (removedWarning && removedWarning.state !== self.fsm.current) {
-        if (removedWarning.state === 'executingJob') {
-          self.commands.resume(self);
-        }
-      }
+      handleRemovedWarning(self, params);
       break;
     }
     default: {
