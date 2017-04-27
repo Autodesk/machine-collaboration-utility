@@ -1,5 +1,4 @@
 module.exports = function resolveWarning(self, params) {
-  console.log('resolving warning', params);
   try {
     const warning = params.warning;
     if (!warning) {

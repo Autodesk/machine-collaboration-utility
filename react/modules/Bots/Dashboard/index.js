@@ -65,9 +65,13 @@ export default class Dashboard extends React.Component {
                 <Temp endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
             </div>
-            <div className="col-md-12">
-              <Warnings bot={this.props.bot} />
-            </div>
+            {
+              this.props.bot.warnings.length > 0 ?
+              <div className="col-md-12">
+                <Warnings bot={this.props.bot} />
+              </div>
+              : ''
+            }
           </div>
         }
         { isConductorBot ? conductorPlayers : '' }
