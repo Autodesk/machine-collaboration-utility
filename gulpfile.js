@@ -33,10 +33,10 @@ const dest = {
 };
 
 gulp.task('build', [
-  // 'build-files',
-  // 'build-scss',
-  // 'build-react-client',
-  // 'build-react-server',
+  'build-files',
+  'build-scss',
+  'build-react-client',
+  'build-react-server',
 ]);
 
 gulp.task('build-files', () => {
