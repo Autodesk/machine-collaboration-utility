@@ -47,3 +47,10 @@
   Patched bug with conductor resume function  
   Updated linter and refactored portions of bot middleware based on linter suggestions  
   Bumped Travis to node v7  
+
+## 1.2.0 (2017-05-02)
+
+### Improvements
+  * Bots now generate park and unpark commands separate from pause / block commands
+  * Generic Warning State now supported.
+  * Can now update hostname directly from mcu at the endpoint /hostname
