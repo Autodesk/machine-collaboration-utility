@@ -6,4 +6,7 @@ module.exports = function initialize(self) {
 
   // placeholder for storing which possible state to return to after receiving a job warning
   self.jobWarningState = undefined;
+
+  // Hold an array of any warning received
+  self.warnings = [];
 };
