@@ -12,15 +12,14 @@ const info = {
   vidPid: [
     {
       vid: 0x0403,
-      pid: 0x6001,
+      pid: 0x6015,
     },
   ],
-  baudrate: 115200,
-  clearBufferCommand: 'G4 P0',
+  baudrate: 250000,
 };
 
 const settings = {
-  name: 'KLONER3D',
+  name: 'MakeIt-3D',
   model: __dirname.split('/')[__dirname.split('/').length - 1],
 };
 

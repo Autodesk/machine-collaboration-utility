@@ -1,6 +1,4 @@
 module.exports = function generateParkCommands(self) {
-  const parkLift = 10;
-  const yPark = -50;
   const currentPosition = {
     x: undefined,
     y: undefined,
@@ -26,18 +24,24 @@ module.exports = function generateParkCommands(self) {
       return true;
     },
     postCallback: () => {
-      const offsetY = Number(Number(self.settings.offsetY).toFixed(2));
       const parkCommandArray = ['G92 E0', 'G1 E-2 F3000'];
-      if (self.parkedPosition.z < 500 - parkLift) {
-        parkCommandArray.push(`G1 Z${(self.parkedPosition.z + parkLift).toFixed(2)} F1000`);
-      }
-      if (self.parkedPosition.y > offsetY) {
-        parkCommandArray.push(`G1 Y${offsetY} F10000`); // Scrub
-      }
-      const scrubEnd = Number(yPark + offsetY).toFixed(2);
-      parkCommandArray.push(`G1 Y${scrubEnd} F2000`); // Drag Y across the purge
+      // Consider adding a specific G1 X<value> command instead of homing
+
+      // In this example, bot1 parks at X10, and bot2 parks at X490
+      // const xParkPosition = Number(self.settings.name[3]) === 1 ? 10 : 490;
+      // parkCommandArray.push([
+      //   `G1 X${xParkPosition}`,
+      //   {
+      //     code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
+      //     postCallback: () => {
+      //       self.parked = true;
+      //       self.logger.debug('Done with park movements');
+      //     },
+      //   },
+      // ]);
+
       parkCommandArray.push({
-        code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
+        code: 'G28 X Y', // Clear motion buffer before saying we're done
         postCallback: () => {
           self.parked = true;
           self.logger.debug('Done with park movements');

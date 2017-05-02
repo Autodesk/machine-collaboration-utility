@@ -24,7 +24,7 @@ module.exports = function generateParkCommands(self) {
     postCallback: () => {
       const parkCommandArray = [];
       parkCommandArray.push({
-        code: 'M400', // Clear motion buffer before saying we're done
+        code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
         postCallback: () => {
           self.parked = true;
           self.logger.debug('Done with park movements');

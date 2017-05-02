@@ -25,6 +25,7 @@ const genericWarningResolve = require('./commands/genericWarningResolve');
 const info = {
   connectionType: 'virtual',
   fileTypes: ['.gcode'],
+  clearBufferCommand: 'M400',
 };
 
 const settings = {
