@@ -5,7 +5,7 @@ Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible fo
 
 ## How to use
                                        
-Download the Raspberry Pi image [here](https://drive.google.com/open?id=0B7k-k73S74JBcVV0R2lOSEtLelE).  
+Download the Raspberry Pi image [here](https://drive.google.com/uc?id=0B7k-k73S74JBeHZ0TlR6d2pHM2M&export=download) (mcu_v1.2.0.zip)  
 
 ### Install Raspberry Pi usb driver libraries (Only necessary if using a Raspberry Pi)
 ```
