@@ -12,6 +12,7 @@ const router = require('koa-router')();
 const _ = require('lodash');
 const stringify = require('json-stringify-safe');
 const exec = require('child_process').exec;
+const execPromise = require('exec-then');
 
 const React = require('react');
 const renderToString = require('react-dom/server').renderToString;
@@ -134,6 +135,69 @@ async function koaApp(config) {
   } catch (ex) {
     app.context.logger.error('"Bots" middleware initialization error', ex);
   }
+
+  async function getHostname() {
+    const reply = await execPromise('cat /etc/hostname | tr -d " \t\n\r"')
+    .catch((execError) => {
+      logger.error('Get hostname error', execError);
+    });
+
+    if (reply.stdout && typeof reply.stdout === 'string' && reply.stdout.length > 1) {
+      return reply.stdout;
+    }
+    return null;
+  }
+
+  async function updateHostname(newHostname) {
+    const updateScriptPath = path.join(process.env.PWD, 'rename.sh');
+    const updateHostnameString = `/bin/bash ${updateScriptPath} ${newHostname}`;
+    await execPromise(updateHostnameString)
+    .catch((execError) => {
+      logger.error('Update hostname error', execError);
+    });
+    return true;
+  }
+
+  router.get('/hostname', async (ctx) => {
+    if (process.env.PWD === '/home/pi/machine-collaboration-utility/') {
+      const hostname = await getHostname();
+      if (!hostname) {
+        return ctx.redirect('/');
+      }
+
+      ctx.body = `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <title>Update Hostname</title>
+    </head>
+    <body>
+      <form action="/hostname" method="post">
+        Hostname:<br>
+        <input type="text" name="hostname" value="${hostname}"/><br>
+        <input type="submit" value="update"/>
+      </form>
+    </body>
+  </html>
+  `;
+    }
+  });
+
+  router.post('/hostname', async (ctx) => {
+    if (process.env.PWD === '/home/pi/machine-collaboration-utility/') {
+      const hostname = await getHostname();
+      if (!hostname) {
+        return ctx.redirect('/');
+      }
+
+      if (!ctx.request.body || !ctx.request.body.hostname || ctx.request.body.hostname === hostname) {
+        return ctx.redirect('/');
+      }
+
+      await updateHostname(ctx.request.body.hostname);
+      ctx.redirect('/');
+    }
+  });
 
   // Set up Koa to match any routes to the React App. If a route exists, render it.
   router.get('*', (ctx) => {
