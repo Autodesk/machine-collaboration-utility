@@ -23,7 +23,7 @@ export default class Bots extends React.Component {
     this.state = {
       showModal: false,
       selectedBot: this.findSelectedBot(props),
-      selectedPreset: props.botPresets['Default'],
+      selectedPreset: props.botPresets['Conductor'],
     };
   }
 
