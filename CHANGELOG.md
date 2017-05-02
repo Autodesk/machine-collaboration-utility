@@ -54,3 +54,10 @@
   * Bots now generate park and unpark commands separate from pause / block commands
   * Generic Warning State now supported.
   * Can now update hostname directly from mcu at the endpoint /hostname
+
+## 1.3.0 (2017-05-02)
+
+### Improvements
+  * Added support for Kloner3D and Makeit3D
+  * Moved "Clear Buffer Command" to abstract away if using a command other that M400
+  * Hide redundant bots if conducting and controlling bots on the same pi
