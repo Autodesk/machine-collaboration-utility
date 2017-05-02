@@ -61,3 +61,8 @@
   * Added support for Kloner3D and Makeit3D
   * Moved "Clear Buffer Command" to abstract away if using a command other that M400
   * Hide redundant bots if conducting and controlling bots on the same pi
+
+## 1.3.1 (2017-05-02)
+
+### Bug-Fixes
+  * Patched Conductor initialization to have an array of warnings
