@@ -2,11 +2,11 @@
 
 Contributions to this project are encouraged! All you need is a Github account to contribute.
 
-Please ask questions by [opening an issue]().
+Please ask questions by [opening an issue](https://github.com/Autodesk/machine-collaboration-utility/issues).
 
 ## Quickstart
 
-To get started, as always: [open an issue]().
+To get started, as always: [open an issue](https://github.com/Autodesk/machine-collaboration-utility/issues).
 
 Make your code changes, and submit a pull request. Add tests and update documentation when appropriate. Fill out the pull request template entirely on GitHub.
 
@@ -22,13 +22,13 @@ Here are some ideas:
 
 **Contribute unit tests** - test that MCU's functions work correctly in a variety of situations, and that they report errors when appropriate
 
-**Bug fixes:** Found a typo in the code? Found that a function fails under certain conditions? Know how to fix it? Great! Go for it. Please [open an issue]() so that we know you're working on it, and submit a pull request when you're ready.
+**Bug fixes:** Found a typo in the code? Found that a function fails under certain conditions? Know how to fix it? Great! Go for it. Please [open an issue](https://github.com/Autodesk/machine-collaboration-utility/issues) so that we know you're working on it, and submit a pull request when you're ready.
 
 **Whatever:** There's ALWAYS something to do.
 
 ### Pull requests are always welcome
 
-All PRs should be documented as [GitHub issues](), ideally BEFORE you start working on them.
+All PRs should be documented as [GitHub issues](https://github.com/Autodesk/machine-collaboration-utility/issues), ideally BEFORE you start working on them.
 
 ## Submission Guidelines
 
