@@ -77,6 +77,7 @@ export default class App extends React.Component {
               connectionType: 'player',
               fileTypes: ['.gcode'],
             },
+            warnings: [],
           };
           if (!bots.hasOwnProperty(player.name)) {
             bots[player.name] = newBot;
