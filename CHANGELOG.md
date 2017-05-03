@@ -66,3 +66,8 @@
 
 ### Bug-Fixes
   * Patched Conductor initialization to have an array of warnings
+
+## 1.3.2 (2017-05-03)
+
+### Bug-Fixes
+  * Patched Conductor's non-local players to have an array of warnings
