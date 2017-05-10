@@ -66,7 +66,7 @@
     "react-router": "^2.7.0",
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
-    "sequelize": "^3.24.1",
+    "sequelize": "^3.30.4",
     "should": "^11.1.0",
     "source-map-loader": "^0.1.5",
     "source-map-support": "^0.4.2",
