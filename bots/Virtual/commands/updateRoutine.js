@@ -1,3 +1,4 @@
+/* global logger */
 const path = require('path');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
@@ -43,7 +44,7 @@ module.exports = function updateRoutine(self, params) {
           newPosition.e = reply.split('E:')[1].split(' ')[0];
           self.status.position = newPosition;
         } catch (ex) {
-          self.logger.error('Failed to set position', reply, ex);
+          logger.error('Failed to set position', reply, ex);
         }
         return true;
       },
@@ -64,14 +65,14 @@ module.exports = function updateRoutine(self, params) {
           self.status.sensors.t0.temperature = reply.split('T:')[1].split(' ')[0];
           self.status.sensors.t0.setpoint = reply.split('T:')[1].split('/')[1].split(' ')[0];
         } catch (ex) {
-          // this.logger.info('Failed to parse nozzle temp');
+          // logger.info('Failed to parse nozzle temp');
         }
 
         try {
           self.status.sensors.b0.temperature = reply.split('B:')[1].split(' ')[0];
           self.status.sensors.b0.setpoint = reply.split('B:')[1].split('/')[1].split(' ')[0];
         } catch (ex) {
-          // this.logger.info('Failed to parse bed temp');
+          // logger.info('Failed to parse bed temp');
         }
 
         self.app.io.broadcast('botEvent', {

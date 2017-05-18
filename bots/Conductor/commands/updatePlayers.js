@@ -1,3 +1,4 @@
+/* global logger */
 const request = require('request-promise');
 
 module.exports = async function updatePlayers(self) {
@@ -15,6 +16,6 @@ module.exports = async function updatePlayers(self) {
       await request(updatePlayerParams);
     });
   } catch (ex) {
-    self.logger.error(ex);
+    logger.error(ex);
   }
 };

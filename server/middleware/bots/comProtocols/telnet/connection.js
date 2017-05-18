@@ -23,7 +23,6 @@ const net = require('net');
 class TelnetConnection {
   constructor(app, externalEndpoint, doneFunction) {
     this.app = app;
-    this.logger = app.context.logger;
 
     this.externalEndpoint = externalEndpoint;
     this.doneFunction = doneFunction;
@@ -96,7 +95,7 @@ class TelnetConnection {
    */
   close() {
     this.mPort.destroy();
-    this.logger.info('Closing telnet connection!');
+    logger.info('Closing telnet connection!');
   }
 }
 

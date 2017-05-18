@@ -1,3 +1,4 @@
+/* global logger */
 module.exports = async function resume(self) {
   try {
     if (self.currentJob === undefined) {
@@ -25,7 +26,7 @@ module.exports = async function resume(self) {
 
         const command = `resume${capitalizeFirstLetter(self.pauseableState)}`;
         // Resume the bot
-        self.logger.info('captured command', command);
+        logger.info('captured command', command);
         self.fsm[command]();
         if (self.pauseableState === 'executingJob') {
           self.lr.resume();
@@ -43,20 +44,20 @@ module.exports = async function resume(self) {
       },
       {
         preCallback: () => {
-          self.logger.debug('Starting resume motion');
+          logger.debug('Starting resume motion');
         },
         code: self.info.clearBufferCommand,
         postCallback: () => {
           self.parkedPosition = undefined;
           self.queue.prependCommands(resumeDoneCommand);
-          self.logger.debug('Done with resume motion');
+          logger.debug('Done with resume motion');
         },
       },
     ];
 
     const resumeStartCommand = {
       postCallback: () => {
-        self.logger.debug('starting resume commands');
+        logger.debug('starting resume commands');
         self.queue.prependCommands(resumeMotion);
         // Resume the job
         self.currentJob.resume();
@@ -80,7 +81,7 @@ module.exports = async function resume(self) {
       self.fsm.resume();
     }
   } catch (ex) {
-    self.logger.error('Resume error', ex);
+    logger.error('Resume error', ex);
     if (ex instanceof Error) {
       throw ex;
     } else {

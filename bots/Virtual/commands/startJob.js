@@ -1,3 +1,4 @@
+/* global logger */
 const fs = require('fs-promise');
 const LineByLineReader = require('line-by-line');
 const gcodeToObject = require('gcode-json-converter').gcodeToObject;
@@ -23,7 +24,7 @@ async function processCommentTag(gcodeObject, self) {
     case 'checkpoint': {
       _.entries(gcodeObject.commentTag.args).forEach(([bot, checkpoint]) => {
         self.status.checkpoint = parseInt(checkpoint, 10);
-        self.logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
+        logger.info(`Bot ${bot} just reached checkpoint ${checkpoint}`);
       });
 
       if (Array.isArray(self.currentJob.subscribers)) {
@@ -40,7 +41,7 @@ async function processCommentTag(gcodeObject, self) {
           };
 
           await request(updateParams)
-          .catch((error) => { self.logger.error('Conductor update fail', error); });
+          .catch((error) => { logger.error('Conductor update fail', error); });
         });
       }
 
@@ -57,13 +58,13 @@ async function processCommentTag(gcodeObject, self) {
       const bot = Object.keys(gcodeObject.commentTag.args)[0];
       const checkpoint = parseInt(gcodeObject.commentTag.args[bot], 10);
       self.status.blocker = { bot, checkpoint };
-      self.logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
+      logger.info(`Just set blocker to bot ${bot}, checkpoint ${checkpoint}`);
       self.commands.checkPrecursors(self);
       break;
     }
     case 'dry': {
       const dry = gcodeObject.commentTag.args.dry;
-      self.logger.debug(`About to purge: ${dry} ${typeof dry} `);
+      logger.debug(`About to purge: ${dry} ${typeof dry} `);
 
       // If the printer is currently blocked, then purge and unblock it
       self.queue.queueCommands([
@@ -78,7 +79,7 @@ async function processCommentTag(gcodeObject, self) {
     }
     default: {
       self.lr.resume();
-      self.logger.error('Unknown comment', gcodeObject.commentTag.command);
+      logger.error('Unknown comment', gcodeObject.commentTag.command);
       break;
     }
   }
@@ -123,7 +124,7 @@ async function processLine(line, self) {
 }
 
 async function processFileEnd(self, theFile) {
-  self.logger.info('Completed reading file,', theFile.filePath, 'is closed now.');
+  logger.info('Completed reading file,', theFile.filePath, 'is closed now.');
   self.lr.close();
   self.queue.queueCommands({
     postCallback: () => {
@@ -171,7 +172,7 @@ const setupFileExecutor = async function setupFileExecutor(self) {
   self.lr.pause(); // redundant
 
   self.lr.on('error', (error) => {
-    self.logger.error('line reader error:', error);
+    logger.error('line reader error:', error);
   });
 
   // As the buffer reads each line, process it
@@ -229,7 +230,7 @@ module.exports = async function startJob(self, params) {
       self.fsm.startJobFail();
     }
   } catch (ex) {
-    self.logger.error('Start job fail', ex);
+    logger.error('Start job fail', ex);
     throw ex;
   }
   return self.getBot();

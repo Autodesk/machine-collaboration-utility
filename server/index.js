@@ -1,3 +1,4 @@
+/* global logger */
 require('source-map-support').install();
 
 try {
@@ -7,17 +8,16 @@ try {
 }
 
 global.Promise = require('bluebird');
-
+const path = require('path');
+const http = require('http');
+const fs = require('fs-promise');
 const winston = require('winston');
 require('winston-daily-rotate-file');
 
-const path = require('path');
-const http = require('http');
-
+// Make sure PWD is set to the root folder of this project
 if (process.env.PWD === undefined) {
   process.env.PWD = path.join(__dirname, '../');
 }
-
 
 const config = require('./config');
 const koaApp = require('./koaApp');
@@ -38,100 +38,56 @@ function normalizePort(val) {
   return false;
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
-function onError(error, inPort) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  const bind = typeof inPort === 'string'
-  ? 'Pipe ' + inPort
-  : 'Port ' + inPort;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
-}
-
-function dumpError(err) {
-  if (typeof err === 'object') {
-    if (err.message) {
-      console.log('\nMessage: ' + err.message);
-    }
-    if (err.stack) {
-      console.log('\nStacktrace:');
-      console.log('====================');
-      console.log(err.stack);
-    }
-  } else {
-    console.log('dumpError :: argument is not an object');
-  }
-}
-
-// Set up logging
-const filename = path.join(__dirname, '../catchall.log');
-const logger = new (winston.Logger)({
-  level: 'debug',
-  transports: [
-    new (winston.transports.Console)(),
-    new (winston.transports.File)({ filename }),
-  ],
-});
-logger.info('started logging');
-
-const transport = new winston.transports.DailyRotateFile({
+const loggerTransport = new winston.transports.DailyRotateFile({
   filename: 'mcu.log',
-  datePattern: './logs/yyyy-MM-dd-HH-mm-',
+  datePattern: './logs/yyyy-MM-dd-',
   prepend: true,
-  level: process.env.ENV === 'development' ? 'info' : 'debug',
+  level: process.env.LOG_LEVEL || 'info',
   maxFiles: 7,
 });
 
-const dailyLog = new (winston.Logger)({
+global.logger = new (winston.Logger)({
   transports: [
-    transport,
+    loggerTransport,
   ],
 });
 
-setInterval(() => {
-  dailyLog.info('woot');
-}, 1000);
+logger.info('Logger initialized');
 
 process.on('uncaughtException', (err) => {
-  logger.error(`Caught exception: ${err}`);
-  dumpError(err);
+  logger.error(`Uncaught exception: ${err}`);
 });
 
+process.on('unhandledExecption', (err) => {
+  logger.error(`Unhandled exception: ${err}`);
+});
+
+async function clearOldLogs() {
+  const files = await fs.readdir('./logs');
+  const logFiles = files.filter(file => file.includes('-mcu.log'));
+  // Make sure that the files are sorted by date
+  // With the newest files first
+  // Still a chance that we could end up with up to 14 total log files
+  logFiles.sort();
+  logFiles.reverse();
+  logFiles.forEach((logFile, i) => {
+    if (i >= 7) {
+      const filePath = path.join(process.env.PWD, `logs/${logFile}`);
+      fs.unlink(filePath);
+    }
+  });
+}
 
 async function setupApp() {
   try {
+    await clearOldLogs();
     // Create a new app object and set it up
     const app = await koaApp(config);
-    const server = http.createServer(app.callback());
-
-    /**
-     * Listen on provided port, on all network interfaces.
-     * Port is set per command line, or the config, and falls back on port 9000
-     */
-
-
+    http.createServer(app.callback());
     const port = normalizePort(process.env.PORT || '9000');
-
     app.server.listen(port);
-    server.on('error', onError);
-    app.context.logger.info('Server initialized');
+
+    logger.info('Server initialized');
   } catch (ex) {
     logger.error('Catchall Server Error Handler', ex);
   }

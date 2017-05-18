@@ -1,3 +1,4 @@
+/* global logger */
 module.exports = async function addPlayer(self, params) {
   try {
     const name = params.name;
@@ -28,7 +29,7 @@ module.exports = async function addPlayer(self, params) {
     // should update the database version of this
     return self.getBot();
   } catch (ex) {
-    self.logger.error('Add player error', ex);
+    logger.error('Add player error', ex);
     throw new Error('Add player error', ex);
   }
 };

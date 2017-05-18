@@ -1,3 +1,4 @@
+/* global logger */
 const request = require('request-promise');
 
 async function checkPause(self) {
@@ -15,13 +16,13 @@ async function checkPause(self) {
     };
 
     const reply = await request(checkParams)
-    .catch((ex) => { self.logger.error('Check pause player error', ex); });
+    .catch((ex) => { logger.error('Check pause player error', ex); });
 
     if (reply.data.state !== 'paused') {
       pauseDone = false;
     }
   })
-  .catch((ex) => { self.logger.error('Get players pause info error', ex); });
+  .catch((ex) => { logger.error('Get players pause info error', ex); });
 
   if (self.fsm.current === 'paused') {
     return;
@@ -64,13 +65,13 @@ module.exports = async function pause(self) {
       };
 
       const pauseReply = await request(pauseParams)
-      .catch((ex) => { self.logger.error('Pause fail', ex); });
+      .catch((ex) => { logger.error('Pause fail', ex); });
 
       checkPause(self);
-      self.logger.info('Paused bot', player, pauseReply);
+      logger.info('Paused bot', player, pauseReply);
     });
   } catch (ex) {
-    self.logger.error(ex);
+    logger.error(ex);
   }
   return self.getBot();
 };

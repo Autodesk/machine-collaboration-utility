@@ -1,3 +1,4 @@
+/* global logger */
 const fs = require('fs-promise');
 const request = require('request-promise');
 const ip = require('ip');
@@ -21,7 +22,7 @@ async function uploadAndSetupPlayerJobs(self) {
         .pipe(unzip.Extract({ path: theFile.filePath.split('.')[0] }))
         // As soon as the file is done being unzipped
         .on('close', async () => {
-          self.logger.info('unzipped file', self.settings.custom.players);
+          logger.info('unzipped file', self.settings.custom.players);
           try {
             // Reset each player's collaborator list
             const players = self.settings.custom.players;
@@ -30,7 +31,7 @@ async function uploadAndSetupPlayerJobs(self) {
             });
 
             await self.commands.updatePlayers(self);
-            self.logger.info('updated the players');
+            logger.info('updated the players');
 
             await Promise.map(players, async (player) => {
               // For each player we're going to upload a file, and then create a job
@@ -60,29 +61,29 @@ async function uploadAndSetupPlayerJobs(self) {
                 },
                 json: true,
               };
-              self.logger.info('Conductor player start params', jobParams);
+              logger.info('Conductor player start params', jobParams);
               await request(jobParams)
-              .catch((err) => { self.logger.error('Start job error', err); });
+              .catch((err) => { logger.error('Start job error', err); });
 
               // No reason for this. Just looks cool when they start in a delayed order
               await delay(2000);
             });
             resolve();
           } catch (ex) {
-            self.logger.error(ex);
+            logger.error(ex);
           }
         });
       } catch (ex) {
-        self.logger.error(ex);
+        logger.error(ex);
       }
     });
   } catch (ex) {
-    self.logger.error(ex);
+    logger.error(ex);
   }
 }
 
 module.exports = async function startJob(self, params) {
-  self.logger.info('Executing function "startJob"', self.getBot());
+  logger.info('Executing function "startJob"', self.getBot());
   try {
     if (self.fsm.current !== 'idle') {
       throw new Error(`Cannot start job from state "${self.fsm.current}"`);
@@ -103,16 +104,16 @@ module.exports = async function startJob(self, params) {
 
       // set up the file executor
       await uploadAndSetupPlayerJobs(self);
-      self.logger.info('All files uploaded and set up');
+      logger.info('All files uploaded and set up');
       self.currentJob.start();
       // Start consuming the file
       self.fsm.startDone();
     } catch (ex) {
-      self.logger.error('Conductor Start Job Fail', ex);
+      logger.error('Conductor Start Job Fail', ex);
       self.fsm.startJobFail();
     }
   } catch (ex) {
-    self.logger.error('Double start command error', ex);
+    logger.error('Double start command error', ex);
   }
   return self.getBot();
 };

@@ -1,3 +1,4 @@
+/* global logger */
 const path = require('path');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
@@ -49,7 +50,7 @@ module.exports = function cancel(self) {
 
     self.queue.queueCommands(commandArray);
   } catch (ex) {
-    self.logger.error('Cancel fail', ex);
+    logger.error('Cancel fail', ex);
   }
   return self.getBot();
 };

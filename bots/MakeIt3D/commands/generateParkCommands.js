@@ -1,3 +1,4 @@
+/* global logger */
 module.exports = function generateParkCommands(self) {
   const currentPosition = {
     x: undefined,
@@ -10,7 +11,7 @@ module.exports = function generateParkCommands(self) {
   commandArray.push(self.info.clearBufferCommand);
   commandArray.push({
     preCallback: () => {
-      self.logger.debug('Starting park movements');
+      logger.debug('Starting park movements');
     },
     code: 'M114',
     processData: (command, reply) => {
@@ -35,7 +36,7 @@ module.exports = function generateParkCommands(self) {
       //     code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
       //     postCallback: () => {
       //       self.parked = true;
-      //       self.logger.debug('Done with park movements');
+      //       logger.debug('Done with park movements');
       //     },
       //   },
       // ]);
@@ -44,7 +45,7 @@ module.exports = function generateParkCommands(self) {
         code: 'G28 X Y', // Clear motion buffer before saying we're done
         postCallback: () => {
           self.parked = true;
-          self.logger.debug('Done with park movements');
+          logger.debug('Done with park movements');
         },
       });
       self.queue.prependCommands(parkCommandArray);

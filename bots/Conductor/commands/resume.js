@@ -1,3 +1,4 @@
+/* global logger */
 const request = require('request-promise');
 const path = require('path');
 
@@ -18,13 +19,13 @@ async function checkResume(self) {
       json: true,
     };
     const reply = await request(checkParams)
-    .catch((ex) => { self.logger.error('Get bot resume info error', ex); });
+    .catch((ex) => { logger.error('Get bot resume info error', ex); });
 
     if (!botFsmDefinitions.metaStates.pauseable.includes(reply.data.state)) {
       resumeDone = false;
     }
   })
-  .catch((ex) => { self.logger.error('Get players resume info error', ex); });
+  .catch((ex) => { logger.error('Get players resume info error', ex); });
 
   if (resumeDone) {
     const command = `resume${capitalizeFirstLetter(self.pauseableState)}`;
@@ -63,14 +64,14 @@ module.exports = async function resume(self) {
       };
 
       await request(resumeParams)
-      .catch((ex) => { self.logger.error('Resume conductor player fail', ex); });
+      .catch((ex) => { logger.error('Resume conductor player fail', ex); });
     });
 
     self.currentJob.fsm.resume();
 
     checkResume(self);
   } catch (ex) {
-    self.logger.error(ex);
+    logger.error(ex);
   }
 
   return self.getBot();

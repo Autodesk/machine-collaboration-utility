@@ -1,9 +1,9 @@
+/* global logger */
 const router = require('koa-router')();
 const path = require('path');
 const fs = require('fs-promise');
 const walk = require('fs-walk');
 const uuidGenerator = require('uuid/v4');
-const winston = require('winston');
 const _ = require('lodash');
 
 const filesRoutes = require('./routes');
@@ -23,7 +23,6 @@ class Files {
     app.context.files = this; // External app reference variable
 
     this.app = app;
-    this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
     this.router = router;
     this.uploadDir = path.join(__dirname, '../../../uploads');
@@ -41,9 +40,9 @@ class Files {
       await this.setupRouter();
       await this.createUploadDirectory();
       await this.scanUploadDirectory();
-      this.logger.info('Files instance initialized');
+      logger.info('Files instance initialized');
     } catch (ex) {
-      this.logger.error('Files initialization error', ex);
+      logger.error('Files initialization error', ex);
     }
   }
 
@@ -107,9 +106,9 @@ class Files {
 
       // Register all router routes with the app
       this.app.use(this.router.routes()).use(this.router.allowedMethods());
-      this.logger.info('Files router setup complete');
+      logger.info('Files router setup complete');
     } catch (ex) {
-      this.logger.error('Files router setup error', ex);
+      logger.error('Files router setup error', ex);
     }
   }
 
@@ -215,7 +214,7 @@ class Files {
     if (fileExists) {
       // Delete the file
       await fs.unlink(file.filePath);
-      this.logger.info('Just deleted file', file.filePath);
+      logger.info('Just deleted file', file.filePath);
       // Remove the file object from the 'files' array
       delete this.fileList[fileUuid];
       this.app.io.broadcast('fileEvent', {

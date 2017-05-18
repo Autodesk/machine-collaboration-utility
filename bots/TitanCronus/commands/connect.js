@@ -1,3 +1,4 @@
+/* global logger */
 module.exports = function connect(self) {
   try {
     if (self.fsm.current !== 'ready') {
@@ -13,7 +14,7 @@ module.exports = function connect(self) {
       },
     });
   } catch (ex) {
-    self.logger.error('Connect fail.', ex);
+    logger.error('Connect fail.', ex);
     // Not sure where to put connect fail
     // self.fsm.connectFail();
   }

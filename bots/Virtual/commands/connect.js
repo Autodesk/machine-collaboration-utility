@@ -1,3 +1,4 @@
+/* global logger */
 const delay = Promise.delay;
 
 module.exports = function connect(self) {
@@ -16,7 +17,7 @@ module.exports = function connect(self) {
       },
     });
   } catch (ex) {
-    self.logger.error('Connect fail.', ex);
+    logger.error('Connect fail.', ex);
     self.fsm.connectFail();
   }
   return self.getBot();

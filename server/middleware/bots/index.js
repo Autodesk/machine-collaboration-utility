@@ -1,3 +1,4 @@
+/* global logger */
 const router = require('koa-router')();
 const fs = require('fs-promise');
 const path = require('path');
@@ -23,7 +24,6 @@ class Bots {
     this.app = app;
 
     // Setup logger and router
-    this.logger = app.context.logger;
     this.routeEndpoint = routeEndpoint;
     this.router = router;
 
@@ -74,7 +74,7 @@ class Bots {
                 this.createBot(dbBot.dataValues);
               }
             } catch (ex) {
-              this.logger.error('Could not retreive connectionType', ex);
+              logger.error('Could not retreive connectionType', ex);
             }
           } else if (process.env.ONLY_SERIAL === 'true') {
             try {
@@ -83,13 +83,13 @@ class Bots {
                 this.createBot(dbBot.dataValues);
               }
             } catch (ex) {
-              this.logger.error('Could not retreive connectionType', ex);
+              logger.error('Could not retreive connectionType', ex);
             }
           } else {
             this.createBot(dbBot.dataValues);
           }
         } catch (ex) {
-          this.logger.error(`Failed to create bot. ${ex}`);
+          logger.error(`Failed to create bot. ${ex}`);
         }
       });
 
@@ -100,9 +100,9 @@ class Bots {
         this.setupDiscovery();
       }
 
-      this.logger.info('Bots instance initialized');
+      logger.info('Bots instance initialized');
     } catch (ex) {
-      this.logger.error('Bot initialization error', ex);
+      logger.error('Bot initialization error', ex);
     }
   }
 
@@ -116,9 +116,9 @@ class Bots {
       await botsRoutes(this);
       // Register all router routes with the app
       this.app.use(this.router.routes()).use(this.router.allowedMethods());
-      this.logger.info('Bots router setup complete');
+      logger.info('Bots router setup complete');
     } catch (ex) {
-      this.logger.error('Bots router setup error', ex);
+      logger.error('Bots router setup error', ex);
     }
   }
 
@@ -138,7 +138,7 @@ class Bots {
         const DiscoveryClass = require(discoveryPath);
         const discoveryObject = new DiscoveryClass(this.app);
         discoveryObject.initialize();
-        this.logger.info(`${discoveryType} discovery initialized`);
+        logger.info(`${discoveryType} discovery initialized`);
       }
     });
   }
@@ -158,7 +158,7 @@ class Bots {
       this.botPresetList[botPreset] = BotPreset;
     });
 
-    this.logger.info('Done loading presets');
+    logger.info('Done loading presets');
   }
 
 
@@ -238,7 +238,7 @@ class Bots {
 
       return `Bot "${uuid}" successfully deleted`;
     } catch (ex) {
-      this.logger.error('Delete bot error', ex);
+      logger.error('Delete bot error', ex);
       return 'Delete bot error';
     }
   }

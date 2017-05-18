@@ -1,3 +1,4 @@
+/* global logger */
 const StateMachine = require('javascript-state-machine');
 const _ = require('lodash');
 const uuidGenerator = require('uuid/v4');
@@ -23,7 +24,6 @@ const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots
 class Bot {
   constructor(app, presets, inputSettings) {
     this.app = app;
-    this.logger = app.context.logger;
 
     // Since we will edit settings, we want a clone of the default settings
     this.settings = Object.assign({}, presets.settings);
@@ -46,13 +46,13 @@ class Bot {
       initial: 'uninitialized',
       error: (one, two) => {
         const errorMessage = `Invalid ${this.settings.name} bot state change action "${one}". State at "${two}".`;
-        this.logger.error(errorMessage);
+        logger.error(errorMessage);
         throw new Error(errorMessage);
       },
       events: botFsmDefinitions.fsmEvents,
       callbacks: {
         onenterstate: (event, from, to) => {
-          this.logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
+          logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
           try {
             this.app.io.broadcast('botEvent', {
               uuid: this.settings.uuid,
@@ -60,7 +60,7 @@ class Bot {
               data: this.getBot(),
             });
           } catch (ex) {
-            this.logger.error('Update bot socket error', ex);
+            logger.error('Update bot socket error', ex);
           }
         },
       },
@@ -111,7 +111,7 @@ class Bot {
 
     // Update the database
     if (dbBot !== undefined) {
-      this.logger.info(`About to update bot ${this.settings.name} settings from ${JSON.stringify(this.settings)} to ${JSON.stringify(settingsToUpdate)}`);
+      logger.info(`About to update bot ${this.settings.name} settings from ${JSON.stringify(this.settings)} to ${JSON.stringify(settingsToUpdate)}`);
       await dbBot.update(settingsToUpdate);
     }
 
@@ -219,7 +219,7 @@ class Bot {
 
         this.fsm.initializationDone();
       } catch (ex) {
-        this.logger.error(ex);
+        logger.error(ex);
         this.fsm.initializationFail();
       }
     }
@@ -251,7 +251,7 @@ class Bot {
     try {
       ok = _.last(lines).indexOf('ok') !== -1;
     } catch (ex) {
-      this.logger.error('Bot validate serial reply error', reply, ex);
+      logger.error('Bot validate serial reply error', reply, ex);
     }
     return ok;
   }

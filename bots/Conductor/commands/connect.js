@@ -1,3 +1,4 @@
+/* global logger */
 // const ip = require('ip');
 const request = require('request-promise');
 const path = require('path');
@@ -64,13 +65,13 @@ module.exports = async function connect(self) {
       try {
         await request(connectParams);
       } catch (ex) {
-        self.logger.error('Connect player request fail', ex, connectParams);
+        logger.error('Connect player request fail', ex, connectParams);
       }
     });
 
     checkConnection(self);
   } catch (ex) {
-    self.logger.error(ex);
+    logger.error(ex);
     self.fsm.connectFail();
   }
   return self.getBot();

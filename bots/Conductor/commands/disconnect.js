@@ -1,3 +1,4 @@
+/* global logger */
 const request = require('request-promise');
 const path = require('path');
 
@@ -53,7 +54,7 @@ module.exports = async function disconnect(self) {
       try {
         await request(connectParams);
       } catch (ex) {
-        self.logger.error('Disconnect player request fail', ex);
+        logger.error('Disconnect player request fail', ex);
       }
     });
 
@@ -61,7 +62,7 @@ module.exports = async function disconnect(self) {
     self.commands.toggleUpdater(self, { update: false });
     checkDisconnection(self);
   } catch (ex) {
-    self.logger.error(ex);
+    logger.error(ex);
     self.fsm.disconnectFail();
   }
 

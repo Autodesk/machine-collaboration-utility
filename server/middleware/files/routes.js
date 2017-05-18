@@ -1,3 +1,4 @@
+/* global logger */
 const convert = require('koa-convert');
 const body = require('koa-body');
 const fs = require('fs-promise');
@@ -51,7 +52,7 @@ const uploadFile = (self) => {
       } catch (ex) {
         ctx.status = 500;
         ctx.body = new Response(ctx, requestDescription, ex);
-        self.logger.error(ex);
+        logger.error(ex);
       }
     }
   );
@@ -80,7 +81,7 @@ const deleteFile = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -102,7 +103,7 @@ const getFiles = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -136,7 +137,7 @@ const getFile = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -171,7 +172,7 @@ const downloadFile = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -199,7 +200,7 @@ const deleteAllFiles = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };

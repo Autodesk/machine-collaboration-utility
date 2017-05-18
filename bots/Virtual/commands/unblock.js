@@ -1,3 +1,4 @@
+/* global logger */
 module.exports = async function unblock(self, params) {
   try {
     if (self.fsm.current === 'executingJob') {
@@ -25,7 +26,7 @@ module.exports = async function unblock(self, params) {
       }
       commandArray.push({
         preCallback: () => {
-          self.logger.debug('Starting unblock motion', params);
+          logger.debug('Starting unblock motion', params);
         },
       });
 
@@ -42,7 +43,7 @@ module.exports = async function unblock(self, params) {
       commandArray.push({
         preCallback: () => {
           self.queue.prependCommands(unblockDoneCommand);
-          self.logger.debug('Done with unblock motion');
+          logger.debug('Done with unblock motion');
         },
       });
 
@@ -55,7 +56,7 @@ module.exports = async function unblock(self, params) {
       }
     }
   } catch (ex) {
-    self.logger.error('Unblock error', ex);
+    logger.error('Unblock error', ex);
   }
   return self.getBot();
 };

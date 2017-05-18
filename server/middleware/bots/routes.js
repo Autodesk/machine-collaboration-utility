@@ -1,3 +1,4 @@
+/* global logger */
 const Response = require('../helpers/response');
 const _ = require('lodash');
 
@@ -14,7 +15,7 @@ const getBots = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -31,7 +32,7 @@ const deleteAllBots = (self) => {
           try {
             await self.deleteBot(uuid);
           } catch (ex) {
-            self.logger.error(`Delete bot ${uuid} error: ${ex}`);
+            logger.error(`Delete bot ${uuid} error: ${ex}`);
           }
         }
       }
@@ -41,7 +42,7 @@ const deleteAllBots = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -60,7 +61,7 @@ const createBot = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -95,7 +96,7 @@ const updateBot = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -117,7 +118,7 @@ const deleteBot = (self) => {
       ctx.status = 200;
       ctx.body = new Response(ctx, requestDescription, reply);
     } catch (ex) {
-      self.logger.error(ex);
+      logger.error(ex);
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
     }
@@ -148,7 +149,7 @@ const getBot = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -193,7 +194,7 @@ const processBotCommand = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };

@@ -23,7 +23,6 @@ var SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr, bo
   this.mCommandsProcessed = undefined;
   this.app = app;
   this.io = app.io;
-  this.logger = app.context.logger;
   this.bot = bot;
 };
 

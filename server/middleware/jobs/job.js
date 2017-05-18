@@ -1,3 +1,4 @@
+/* global logger */
 const uuidGenerator = require('uuid/v4');
 const StateMachine = require('javascript-state-machine');
 const Stopwatch = require('timer-stopwatch');
@@ -32,7 +33,6 @@ class Job {
     this.initialState = jobParams.initialState;
     this.id = jobParams.id;
     this.subscribers = Array.isArray(jobParams.subscribers) ? jobParams.subscribers : [];
-    this.logger = this.app.context.logger;
   }
 
   /**
@@ -63,13 +63,13 @@ class Job {
       initial: initialState,
       error: (eventName, from, to, args, errorCode, errorMessage) => {
         const fsmError = `Invalid job ${this.uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
-        this.logger.error(fsmError);
+        logger.error(fsmError);
         throw new Error(fsmError);
       },
       events: jobFsmDefinitions.fsmEvents,
       callbacks: {
         onenterstate: async (event, from, to) => {
-          this.logger.info(`Job ${this.uuid} Bot ${this.botUuid} event ${event}: Transitioning from ${from} to ${to}.`);
+          logger.info(`Job ${this.uuid} Bot ${this.botUuid} event ${event}: Transitioning from ${from} to ${to}.`);
           if (from !== 'none') {
             try {
               // As soon as an event successfully transistions, update it in the database
@@ -82,14 +82,14 @@ class Job {
                 elapsed: this.stopwatch.ms,
                 percentComplete: this.percentComplete,
               });
-              this.logger.info(`Job event. ${event} for job ${this.uuid} successfully updated to ${this.fsm.current}`);
+              logger.info(`Job event. ${event} for job ${this.uuid} successfully updated to ${this.fsm.current}`);
               this.app.io.broadcast('jobEvent', {
                 uuid: this.uuid,
                 event: 'update',
                 data: this.getJob(),
               });
             } catch (ex) {
-              this.logger.info(`Job event ${event} for job ${this.uuid} failed to update: ${ex}`);
+              logger.info(`Job event ${event} for job ${this.uuid} failed to update: ${ex}`);
             }
           }
         },
@@ -104,7 +104,7 @@ class Job {
 
     // job updates once a second
     this.stopwatch.onTime(() => {
-      this.logger.info('jobEvent', this.getJob());
+      logger.info('jobEvent', this.getJob());
       this.app.io.broadcast('jobEvent', {
         uuid: this.uuid,
         event: 'update',
@@ -155,7 +155,7 @@ class Job {
       this.fsm.start();
     } catch (ex) {
       const errorMessage = `Job start failure ${ex}`;
-      this.logger.error(errorMessage);
+      logger.error(errorMessage);
     }
   };
 
@@ -178,7 +178,7 @@ class Job {
       this.fsm.pause();
     } catch (ex) {
       const errorMessage = `Job pause failure ${ex}`;
-      this.logger.error(errorMessage);
+      logger.error(errorMessage);
     }
   };
 
@@ -200,7 +200,7 @@ class Job {
       this.fsm.resume();
     } catch (ex) {
       const errorMessage = `Job resume failure ${ex}`;
-      this.logger.error(errorMessage);
+      logger.error(errorMessage);
     }
   };
 
@@ -220,7 +220,7 @@ class Job {
       this.fsm.cancel();
     } catch (ex) {
       const errorMessage = `Job cancel failure ${ex}`;
-      this.logger.error(errorMessage);
+      logger.error(errorMessage);
     }
   };
 

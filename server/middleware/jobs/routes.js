@@ -1,3 +1,4 @@
+/* global logger */
 const Response = require('../helpers/response');
 const _ = require('lodash');
 
@@ -18,7 +19,7 @@ const getJobs = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -47,7 +48,7 @@ const deleteAllJobs = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -101,7 +102,7 @@ const createJob = (self) => {
       const errorMessage = `Jobs API "Create Job" request error: ${ex}`;
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, errorMessage);
-      self.logger.error(errorMessage);
+      logger.error(errorMessage);
     }
   });
 };
@@ -135,7 +136,7 @@ const getJob = (self) => {
       const errorMessage = `Get Job "${ctx.params.uuid}" request error: ${ex}`;
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, errorMessage);
-      self.logger.error(errorMessage);
+      logger.error(errorMessage);
     }
   });
 };
@@ -163,7 +164,7 @@ const deleteJob = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };
@@ -206,7 +207,7 @@ const processJobCommand = (self) => {
     } catch (ex) {
       ctx.status = 500;
       ctx.body = new Response(ctx, requestDescription, ex);
-      self.logger.error(ex);
+      logger.error(ex);
     }
   });
 };

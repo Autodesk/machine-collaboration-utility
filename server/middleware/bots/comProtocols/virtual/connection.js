@@ -1,3 +1,4 @@
+/* global logger */
 /*******************************************************************************
  * FakeMarlinConnection.js
  *
@@ -27,7 +28,7 @@ const roundAxis = function roundAxis(command, axis, self) {
       roundedCommand = before + middle + end;
     }
   } catch (ex) {
-    self.logger.error('Round Axis error', command, axis, ex);
+    logger.error('Round Axis error', command, axis, ex);
   }
   return roundedCommand;
 };
@@ -43,7 +44,7 @@ const roundGcode = function roundGcode(inGcode, self) {
       gcode = roundAxis(gcode, 'F', self);
     }
   } catch (ex) {
-    self.logger.error('Error index of G1', inGcode, ex);
+    logger.error('Error index of G1', inGcode, ex);
   }
   return gcode;
 };
@@ -67,7 +68,6 @@ const roundGcode = function roundGcode(inGcode, self) {
 const VirtualConnection = function VirtualConnection(app, connectedFunc) {
   this.app = app;
   this.bot = new MCE();
-  this.logger = app.context.logger;
   this.mCloseFunc = undefined;
   this.mErrorFunc = undefined;
   this.mDataFunc = connectedFunc;
@@ -130,10 +130,10 @@ VirtualConnection.prototype.send = function send(inCommandStr) {
 
     this.bot.sendGcode(gcode)
     .then(reply => {
-      this.logger.silly('reply:', reply);
+      logger.silly('reply:', reply);
       this.processData(reply);
     });
-    self.logger.silly('sent :', gcode);
+    logger.silly('sent :', gcode);
 
     commandSent = true;
   } catch (inError) {

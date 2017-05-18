@@ -14,7 +14,6 @@ const TelnetConnection = require('./connection');
 
 const TelnetCommandExecutor = function (app, externalEndpoint) {
   this.app = app;
-  this.logger = app.context.logger;
   this.externalEndpoint = externalEndpoint;
   this.mConnection = undefined;
   this.mCommandsProcessed = undefined;

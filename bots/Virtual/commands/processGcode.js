@@ -1,3 +1,4 @@
+/* global logger */
 const gcodeToObject = require('gcode-json-converter').gcodeToObject;
 const objectToGcode = require('gcode-json-converter').objectToGcode;
 
@@ -29,9 +30,9 @@ module.exports = async function processGcode(self, params) {
       self.queue.queueCommands(commandArray);
     })
     .catch((ex) => {
-      self.logger.error('Awaiting error', ex);
+      logger.error('Awaiting error', ex);
     });
   } catch (ex) {
-    self.logger.error(ex);
+    logger.error(ex);
   }
 };

@@ -1,3 +1,4 @@
+/* global logger */
 const path = require('path');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
@@ -47,7 +48,7 @@ module.exports = async function pause(self) {
     // Pause the job
     commandArray.push({
       postCallback: () => {
-        self.logger.debug('Starting pause command');
+        logger.debug('Starting pause command');
         // This line of code is not being reached.
         self.currentJob.pause();
         // Note, we don't return the pause request
@@ -61,7 +62,7 @@ module.exports = async function pause(self) {
         postCallback: () => {
           self.pauseableState = self.fsm.current;
           self.fsm.pause();
-          self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
+          logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
         },
       });
       self.queue.queueCommands(commandArray);
@@ -69,10 +70,10 @@ module.exports = async function pause(self) {
       self.pauseableState = self.fsm.current;
       self.fsm.pause();
       self.queue.prependCommands(commandArray);
-      self.logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
+      logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
     }
   } catch (ex) {
-    self.logger.error('Pause error', ex);
+    logger.error('Pause error', ex);
   }
 
   return self.getBot();

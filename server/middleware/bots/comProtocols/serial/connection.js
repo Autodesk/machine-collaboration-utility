@@ -1,3 +1,4 @@
+/* global logger */
 /*******************************************************************************
  * serialConnection.js
  *
@@ -56,7 +57,7 @@ const roundAxis = function roundAxis(command, axis, self) {
       roundedCommand = before + middle + end;
     }
   } catch (ex) {
-    self.logger.error('Round Axis error', command, axis, ex);
+    logger.error('Round Axis error', command, axis, ex);
   }
   return roundedCommand;
 };
@@ -72,7 +73,7 @@ const roundGcode = function roundGcode(inGcode, self) {
       gcode = roundAxis(gcode, 'F', self);
     }
   } catch (ex) {
-    self.logger.error('Error index of G1', inGcode, ex);
+    logger.error('Error index of G1', inGcode, ex);
   }
   return gcode;
 };
@@ -86,25 +87,8 @@ var SerialConnection = function(
   inInitDataFunc,
   inConnectedFunc
 ) {
-  this.serialLogger = undefined;
-  // Set up serial logger
-  if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-    // Set up logging for written serial data
-    const serialLogName = path.join(__dirname, `../../../../../${inBot.settings.name}-verbose-serial.log`);
-    this.serialLogger = new (winston.Logger)({
-      levels: { write: 0, read: 1, info: 2 },
-      transports: [
-        new (winston.transports.Console)(),
-        new (winston.transports.File)({ filename: serialLogName }),
-      ],
-    });
-    this.serialLogger.info('started logging');
-  }
-
-
     this.app = app;
     this.io = app.io;
-    this.logger = app.context.logger;
     var that = this;
     var portParams = {
       baudrate: inBaud,
@@ -139,14 +123,14 @@ var SerialConnection = function(
 
     // Open our port and register our stub handers
     this.mPort.open(function(error) {
-        that.logger.info('Serial port opened');
+        logger.info('Serial port opened');
         if (error) {
-            that.logger.warn('Failed to open com port:', inComName, error);
+            logger.warn('Failed to open com port:', inComName, error);
         } else {
             that.mPort.on('data', function (inData) {
               const data = inData.toString();
               if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                that.serialLogger.log('read', data);
+                logger.debug('read', data);
               }
               that.returnString += data;
               if (data.includes('ok')) {
@@ -169,7 +153,7 @@ var SerialConnection = function(
             });
 
             that.mPort.on('error', function (error) {
-                that.logger.error('Serial error', error);
+                logger.error('Serial error', error);
                 if (_.isFunction(that.mErrorFunc)) {
                     that.mErrorFunc(arguments);
                 }
@@ -179,7 +163,7 @@ var SerialConnection = function(
             if (that.mOpenPrimeStr && (that.mOpenPrimeStr !== '')) {
                 that.mPort.write(that.mOpenPrimeStr + '\n');
                 if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  that.serialLogger.log('write', that.mOpenPrimeStr + '\n');
+                  logger.debug('write', that.mOpenPrimeStr + '\n');
                 }
             }
         }
@@ -201,7 +185,7 @@ SerialConnection.prototype.setDataFunc = function (inDataFunc) {
     if (this.mState === SerialConnection.State.CONNECTED) {
         this.mDataFunc = inDataFunc;
     } else {
-        // logger.error('Cannot set a custom data function until we have connected');
+        logger.error('Cannot set a custom data function until we have connected');
     }
 };
 SerialConnection.prototype.setCloseFunc = function (inCloseFunc) {
@@ -235,14 +219,14 @@ SerialConnection.prototype.send = function (inCommandStr) {
             that.mPort.write(gcode);
 
             function sendAgain() {
-              that.serialLogger.log('ComError', gcode);
+              logger.error('ComError', gcode);
               that.mPort.write(gcode);
             }
             // Prepare to send the gcode line again in <t> milliseconds
             that.timeout = setTimeout(sendAgain, that.timeoutAmount);
 
             if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-              that.serialLogger.log('write', gcode);
+              logger.debug('write', gcode);
             }
             commandSent = true;
         } catch (inError) {
@@ -251,7 +235,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
     }
 
     if (!commandSent) {
-        // logger.error('Cannot send commands if not connected:', this.mState, error);
+        logger.error('Cannot send commands if not connected:', this.mState, error);
     }
 };
 
@@ -265,9 +249,9 @@ SerialConnection.prototype.send = function (inCommandStr) {
  */
 SerialConnection.prototype.close = function () {
     this.mPort.close(function(err) {
-        // logger.info('Serialport is now closed');
+        logger.info('Serialport is now closed');
         if (err) {
-            // logger.error('Failed closing the port', err);
+            logger.error('Failed closing the port', err);
         }
     });
 };
@@ -314,9 +298,9 @@ SerialConnection.prototype.heartbeat = function () {
         // Issue the M115
         this.mPort.write('M115\n'); // can't use 'send()' until connected
         if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-          this.serialLogger.log('write', 'M115\n');
+          logger.debug('write', 'M115\n');
         }
-        // logger.info('Wrote M115 to serialport');
+        logger.debug('Wrote M115 to serialport');
         this.mState = SerialConnection.State.M115_SENT;
         this.mWait = SerialConnection.WAIT_COUNT; // refresh our wait count
         return;
@@ -355,9 +339,9 @@ SerialConnection.prototype.heartbeat = function () {
     // Cleanup the heartbeat and close our port
     this.mHeartbeat.clear();
     this.mPort.close(function(err) {
-        // logger.info('Serial port closed');
+        logger.debug('Serial port closed');
         if (err) {
-            // logger.error('Failed closing the port', err);
+            logger.error('Failed closing the port', err);
         }
     });
 };

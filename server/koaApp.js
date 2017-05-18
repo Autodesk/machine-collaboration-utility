@@ -1,3 +1,4 @@
+/* global logger */
 const Koa = require('koa');
 const cors = require('koa-cors');
 const convert = require('koa-convert');
@@ -68,26 +69,12 @@ function renderPage(appHtml, jsVariables = {}) {
   * @returns {koa object} - App to be used by the server
   */
 async function koaApp(config) {
-  // Setup logger
-  const filename = path.join(__dirname, `../${config.logFileName}`);
-  const logger = new (winston.Logger)({
-    level: 'debug',
-    transports: [
-      new (winston.transports.Console)(),
-      new (winston.transports.File)({ filename }),
-    ],
-  });
-
   const app = new Koa();
-
   app.context.config = config;
-  app.context.logger = logger;
-
   // Add middleware
-
   // on 'error' is the first middleware in the koa middleware stack, should this be moved to later?
   app.on('error', (error, ctx) => {
-    app.context.logger.error('server error', error, ctx);
+    logger.error('server error', error, ctx);
   });
   app.use(convert(cors()));
   app.use(convert(bodyparser()));
@@ -106,12 +93,12 @@ async function koaApp(config) {
   try {
     err = await sequelize.authenticate();
   } catch (ex) {
-    app.context.logger.error('Sequelize authentication error', ex);
+    logger.error('Sequelize authentication error', ex);
   }
 
   if (err) {
     const errorMessage = `Unable to connect to the database: ${err}`;
-    app.context.logger.error(err);
+    logger.error(err);
     throw (errorMessage);
   } else {
     app.context.db = sequelize;
@@ -122,21 +109,21 @@ async function koaApp(config) {
   try {
     await files.initialize();
   } catch (ex) {
-    app.context.logger.error('"Files" middleware initialization error', ex);
+    logger.error('"Files" middleware initialization error', ex);
   }
 
   const jobs = new Jobs(app, `/${config.apiVersion}/jobs`);
   try {
     await jobs.initialize();
   } catch (ex) {
-    app.context.logger.error('"Jobs" middleware initialization error', ex);
+    logger.error('"Jobs" middleware initialization error', ex);
   }
 
   const bots = new Bots(app, `/${config.apiVersion}/bots`);
   try {
     await bots.initialize();
   } catch (ex) {
-    app.context.logger.error('"Bots" middleware initialization error', ex);
+    logger.error('"Bots" middleware initialization error', ex);
   }
 
   async function getHostname() {
@@ -260,7 +247,7 @@ async function koaApp(config) {
         }
       });
     } catch (ex) {
-      app.context.logger.error(ex);
+      logger.error(ex);
       ctx.body = 'Server Error';
       ctx.status = 500;
     }
@@ -275,10 +262,10 @@ async function koaApp(config) {
   app.use(router.routes(), router.allowedMethods());
 
   app.on('error', (error, ctx) => {
-    app.context.logger.error('server error', error, ctx);
+    logger.error('server error', error, ctx);
   });
 
-  app.context.logger.info('Machine Collaboration Utility has been initialized successfully.');
+  logger.info('Machine Collaboration Utility has been initialized successfully.');
 
   return app;
 }

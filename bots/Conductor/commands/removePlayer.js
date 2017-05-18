@@ -1,3 +1,4 @@
+/* global logger */
 module.exports = async function removePlayer(self, params) {
   try {
     const name = params.name;
@@ -19,7 +20,7 @@ module.exports = async function removePlayer(self, params) {
     }
     await self.updateBot({ custom: self.settings.custom });
   } catch (ex) {
-    self.logger.error('error', ex);
+    logger.error('error', ex);
     return ex;
   }
   return self.getBot();

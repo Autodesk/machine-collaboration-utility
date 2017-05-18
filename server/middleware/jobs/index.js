@@ -1,3 +1,5 @@
+/* global logger */
+
 const router = require('koa-router')();
 const _ = require('lodash');
 
@@ -21,7 +23,6 @@ const Jobs = function(app, routeEndpoint) {
   app.context.jobs = this; // External app reference variable
 
   this.app = app;
-  this.logger = app.context.logger;
   this.routeEndpoint = routeEndpoint;
   this.router = router;
   this.jobList = {};
@@ -83,9 +84,9 @@ Jobs.prototype.initialize = async function initialize() {
       jobObject.elapsed = job.dataValues.elapsed;
       this.jobList[jobUuid] = jobObject;
     }
-    this.logger.info('Jobs instance initialized');
+    logger.info('Jobs instance initialized');
   } catch (ex) {
-    this.logger.error('Jobs initialization error', ex);
+    logger.error('Jobs initialization error', ex);
   }
 };
 
@@ -134,7 +135,7 @@ Jobs.prototype.createJob = async function createJob(botUuid, fileUuid, jobUuid, 
   const jobJson = jobObject.getJob();
 
   this.jobList[jobObject.uuid] = jobObject;
-  this.logger.info('jobEvent', jobJson);
+  logger.info('jobEvent', jobJson);
   this.app.io.broadcast('jobEvent', {
     uuid: jobObject.uuid,
     event: 'new',
@@ -157,9 +158,9 @@ Jobs.prototype.setupRouter = async function setupRouter() {
 
     // Register all router routes with the app
     this.app.use(this.router.routes()).use(this.router.allowedMethods());
-    this.logger.info('Jobs router setup complete');
+    logger.info('Jobs router setup complete');
   } catch (ex) {
-    this.logger.error('Jobs router setup error', ex);
+    logger.error('Jobs router setup error', ex);
   }
 };
 
@@ -212,7 +213,7 @@ Jobs.prototype.deleteJob = async function deleteJob(jobUuid) {
   const dbJob = await this.JobModel.findById(theJob.id);
   await dbJob.destroy();
   delete this.jobList[jobUuid];
-  this.logger.info(`Job ${jobUuid} deleted`);
+  logger.info(`Job ${jobUuid} deleted`);
   try {
     this.app.io.broadcast('jobEvent', {
       uuid: jobUuid,
@@ -220,7 +221,7 @@ Jobs.prototype.deleteJob = async function deleteJob(jobUuid) {
       data: null,
     });
   } catch (ex) {
-    this.logger.error('Socket error', ex);
+    logger.error('Socket error', ex);
   }
   return `Job ${jobUuid} deleted`;
 };

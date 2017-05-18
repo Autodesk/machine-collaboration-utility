@@ -13,7 +13,6 @@ const Bot = require('../bot');
 const UsbDiscovery = function(app) {
   this.app = app;
   this.config = app.context.config;
-  this.logger = app.context.logger;
 
   this.botPresetList = app.context.bots.botPresetList;
   this.ports = {};

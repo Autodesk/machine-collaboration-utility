@@ -1,3 +1,4 @@
+/* global logger */
 // When we receive a generic warning, we want to add the warning to the Warning Array
 // If we're idle, just add the warning
 // If we're processing the job, add the warning and pause the job
@@ -33,7 +34,7 @@ function handleRemovedWarning(self, params) {
         break;
       }
       default: {
-        self.logger.error('Should never end up in state', self.fsm.current);
+        logger.error('Should never end up in state', self.fsm.current);
         break;
       }
     }

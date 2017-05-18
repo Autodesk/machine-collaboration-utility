@@ -1,3 +1,4 @@
+/* global logger */
 const request = require('request-promise');
 const path = require('path');
 
@@ -69,14 +70,14 @@ module.exports = function cancel(self) {
         };
 
         await request(cancelJobParams)
-        .catch((ex) => { self.logger.error('Cancel fail', ex); });
+        .catch((ex) => { logger.error('Cancel fail', ex); });
       });
       checkCancel(self);
     } catch (ex) {
-      self.logger.error('Check cancel error', ex);
+      logger.error('Check cancel error', ex);
     }
   } catch (ex) {
-    self.logger.error(ex);
+    logger.error(ex);
   }
 
   return self.getBot();
