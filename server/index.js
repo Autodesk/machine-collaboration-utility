@@ -9,6 +9,8 @@ try {
 global.Promise = require('bluebird');
 
 const winston = require('winston');
+require('winston-daily-rotate-file');
+
 const path = require('path');
 const http = require('http');
 
@@ -88,6 +90,24 @@ const logger = new (winston.Logger)({
   ],
 });
 logger.info('started logging');
+
+const transport = new winston.transports.DailyRotateFile({
+  filename: 'mcu.log',
+  datePattern: './logs/yyyy-MM-dd-HH-mm-',
+  prepend: true,
+  level: process.env.ENV === 'development' ? 'info' : 'debug',
+  maxFiles: 7,
+});
+
+const dailyLog = new (winston.Logger)({
+  transports: [
+    transport,
+  ],
+});
+
+setInterval(() => {
+  dailyLog.info('woot');
+}, 1000);
 
 process.on('uncaughtException', (err) => {
   logger.error(`Caught exception: ${err}`);

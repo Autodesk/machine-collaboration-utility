@@ -10,7 +10,10 @@ const path = require('path');
 const Sequelize = require('sequelize');
 const router = require('koa-router')();
 const _ = require('lodash');
+const fs = require('fs-promise');
 const stringify = require('json-stringify-safe');
+const write = require('fs').createWriteStream;
+const pack = require('tar-pack').pack;
 const exec = require('child_process').exec;
 const execPromise = require('exec-then');
 
@@ -157,6 +160,29 @@ async function koaApp(config) {
     });
     return true;
   }
+
+  router.get('/download-logs', async (ctx) => {
+    try {
+      await new Promise((resolve, reject) => {
+        pack(path.join(process.env.PWD, 'logs'))
+        .pipe(write(process.env.PWD + '/mcu-logs.tar.gz'))
+        .on('error', (zipError) => {
+          logger.error(zipError);
+          reject();
+        })
+        .on('close', () => {
+          resolve();
+        });
+      });
+
+      ctx.res.setHeader('Content-disposition', 'attachment; filename=mcu-logs.tar.gz');
+      ctx.body = fs.createReadStream(process.env.PWD + '/mcu-logs.tar.gz');
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = `Download logs failure: ${ex}`;
+      logger.error(ex);
+    }
+  });
 
   router.get('/hostname', async (ctx) => {
     if (process.env.PWD === '/home/pi/machine-collaboration-utility/') {
