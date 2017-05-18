@@ -23,7 +23,7 @@ export default class Header extends React.Component {
                 <NavLink to="/">
                   <span className="hidden-xs">Bots</span>
                   <span className="hidden-sm hidden-md hidden-lg">
-                    <i className="fa fa-cog"></i>
+                    <i className="fa fa-tachometer"></i>
                   </span>
                 </NavLink>
               </li>
@@ -31,7 +31,15 @@ export default class Header extends React.Component {
                 <NavLink to="/files">
                   <span className="hidden-xs">Files</span>
                   <span className="hidden-sm hidden-md hidden-lg">
-                    <i className="fa fa-file"></i>
+                    <i className="fa fa-files-o"></i>
+                  </span>
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/settings">
+                  <span className="hidden-xs">Settings</span>
+                  <span className="hidden-sm hidden-md hidden-lg">
+                    <i className="fa fa-cogs"></i>
                   </span>
                 </NavLink>
               </li>

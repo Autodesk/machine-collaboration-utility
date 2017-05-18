@@ -30,6 +30,29 @@ const Files = require('./middleware/files');
 const Jobs = require('./middleware/jobs');
 const Bots = require('./middleware/bots');
 
+async function getHostname() {
+  if (process.env.PWD === '/home/pi/machine-collaboration-utility/') {
+    return null;
+  }
+
+  const reply = await execPromise('cat /etc/hostname | tr -d " \t\n\r"')
+  .catch((execError) => {
+    logger.error('Get hostname error', execError);
+  });
+
+  if (reply.stdout && typeof reply.stdout === 'string' && reply.stdout.length > 1) {
+    return reply.stdout;
+  }
+  return null;
+}
+
+async function getAppSettings() {
+  const hostname = await getHostname().catch((err) => {
+    logger.error('wuh', err);
+  });
+  return { hostname };
+}
+
 /**
  * renderPage()
  *
@@ -69,6 +92,8 @@ function renderPage(appHtml, jsVariables = {}) {
   * @returns {koa object} - App to be used by the server
   */
 async function koaApp(config) {
+  const appSettings = await getAppSettings();
+
   const app = new Koa();
   app.context.config = config;
   // Add middleware
@@ -126,18 +151,6 @@ async function koaApp(config) {
     logger.error('"Bots" middleware initialization error', ex);
   }
 
-  async function getHostname() {
-    const reply = await execPromise('cat /etc/hostname | tr -d " \t\n\r"')
-    .catch((execError) => {
-      logger.error('Get hostname error', execError);
-    });
-
-    if (reply.stdout && typeof reply.stdout === 'string' && reply.stdout.length > 1) {
-      return reply.stdout;
-    }
-    return null;
-  }
-
   async function updateHostname(newHostname) {
     const updateScriptPath = path.join(process.env.PWD, 'rename.sh');
     const updateHostnameString = `/bin/bash ${updateScriptPath} ${newHostname}`;
@@ -152,7 +165,7 @@ async function koaApp(config) {
     try {
       await new Promise((resolve, reject) => {
         pack(path.join(process.env.PWD, 'logs'))
-        .pipe(write(process.env.PWD + '/mcu-logs.tar.gz'))
+        .pipe(write(`${process.env.PWD}/mcu-logs.tar.gz`))
         .on('error', (zipError) => {
           logger.error(zipError);
           reject();
@@ -171,49 +184,26 @@ async function koaApp(config) {
     }
   });
 
-  router.get('/hostname', async (ctx) => {
-    if (process.env.PWD === '/home/pi/machine-collaboration-utility/') {
-      const hostname = await getHostname();
-      if (!hostname) {
-        return ctx.redirect('/');
-      }
-
-      ctx.body = `<!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="utf-8">
-      <title>Update Hostname</title>
-    </head>
-    <body>
-      <form action="/hostname" method="post">
-        Hostname:<br>
-        <input type="text" name="hostname" value="${hostname}"/><br>
-        <input type="submit" value="update"/>
-      </form>
-    </body>
-  </html>
-  `;
-    }
-  });
-
   router.post('/hostname', async (ctx) => {
-    if (process.env.PWD === '/home/pi/machine-collaboration-utility/') {
-      const hostname = await getHostname();
-      if (!hostname) {
-        return ctx.redirect('/');
-      }
-
-      if (!ctx.request.body || !ctx.request.body.hostname || ctx.request.body.hostname === hostname) {
-        return ctx.redirect('/');
-      }
-
-      await updateHostname(ctx.request.body.hostname);
-      ctx.redirect('/');
+    if (process.env.PWD !== '/home/pi/machine-collaboration-utility/') {
+      return;
     }
+
+    const hostname = await getHostname();
+    if (!hostname) {
+      return ctx.redirect('/');
+    }
+
+    if (!ctx.request.body || !ctx.request.body.hostname || ctx.request.body.hostname === hostname) {
+      return ctx.redirect('/');
+    }
+
+    await updateHostname(ctx.request.body.hostname);
+    ctx.redirect('/');
   });
 
   // Set up Koa to match any routes to the React App. If a route exists, render it.
-  router.get('*', (ctx) => {
+  router.get('*', async (ctx) => {
     try {
       match({ routes, location: ctx.req.url }, (error, redirect, props) => {
         if (error) {
@@ -238,6 +228,7 @@ async function koaApp(config) {
             jobs: jobs.getJobs(),
             bots: bots.getBots(),
             botPresets: bots.getBotPresets(),
+            appSettings,
           };
           _.extend(props.params, serverProps);
           const appHtml = renderToString(React.createElement(RouterContext, props));

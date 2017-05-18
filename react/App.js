@@ -195,6 +195,7 @@ export default class App extends React.Component {
       // mapping through all of the children components in order to inject server app objects
       return React.cloneElement(child, Object.assign({}, this.state, { dropzoneOpener: this.openDropzone, updateBot: this.updateBot }));
     });
+
     return (
       <Dropzone
         ref="dropzone"
@@ -202,11 +203,8 @@ export default class App extends React.Component {
         onDrop={this.onDrop}
         disableClick
       >
-        <Header/>
+        <Header />
         {childrenComponents}
-        <div onClick={this.restart}>
-          <img style={{width:this.state.restartWidth, position:"fixed", cursor:"pointer", right:"0px", bottom:"0px"}} src="images/restart.svg"/>
-        </div>
       </Dropzone>
     );
   }

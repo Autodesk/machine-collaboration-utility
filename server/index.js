@@ -48,6 +48,7 @@ const loggerTransport = new winston.transports.DailyRotateFile({
 
 global.logger = new (winston.Logger)({
   transports: [
+    new (winston.transports.Console)(),
     loggerTransport,
   ],
 });
