@@ -35,7 +35,7 @@ export default class Settings extends React.Component {
   }
 
   resetMCU() {
-    const reset = confirm('Are you sure you want to reset MCU?');
+    const reset = confirm('Are you sure you want to restart MCU?');
     if (reset) {
       request.post('/restart').end();
 
@@ -54,13 +54,13 @@ export default class Settings extends React.Component {
       <div>
         <h1>Settings</h1>
         {this.state.showRestartIcon ? <div><i className="fa fa-spinner fa-pulse fa-3x fa-fw"></i><br />Restarting</div> : null}
-        <a href="/download-logs"><Button>Download Logs</Button></a>
+        <a href="/download-logs"><Button style={{ width: '200px' }}>Download Logs</Button></a>
         <br />
         <br />
-        <Button onClick={this.updateHostname}>Update Hostname</Button>
+        <Button style={{ width: '200px' }} onClick={this.updateHostname}>Update Hostname</Button>
         <br />
         <br />
-        <Button bsStyle="danger" onClick={this.resetMCU}>Reset MCU</Button>
+        <Button style={{ width: '200px' }} bsStyle="danger" onClick={this.resetMCU}>Restart</Button>
       </div>
     );
   }

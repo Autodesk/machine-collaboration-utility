@@ -244,9 +244,9 @@ async function koaApp(config) {
     }
   });
 
-  router.post('/restart', (ctx) => {
+  router.post('/reset', (ctx) => {
     process.exit(1);
-    ctx.body = 'Restarting';
+    ctx.body = 'Resetting';
   });
 
   // Latch the defined routes to the koa app
