@@ -71,3 +71,9 @@
 
 ### Bug-Fixes
   * Patched Conductor's non-local players to have an array of warnings
+
+## 1.4.0 (2017-05-18)
+
+### Improvements
+  * Moved logging to a gloval logger variable
+  * Added UI for downloading log files, updating the hostname, and restarting MCU
