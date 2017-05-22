@@ -38,6 +38,10 @@ function normalizePort(val) {
   return false;
 }
 
+if (!fs.existsSync('./logs')) {
+  fs.mkdirSync('./logs');
+}
+
 const loggerTransport = new winston.transports.DailyRotateFile({
   filename: 'mcu.log',
   datePattern: './logs/yyyy-MM-dd-',
