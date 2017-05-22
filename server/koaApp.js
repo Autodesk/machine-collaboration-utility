@@ -31,7 +31,7 @@ const Jobs = require('./middleware/jobs');
 const Bots = require('./middleware/bots');
 
 async function getHostname() {
-  if (process.env.PWD === '/home/pi/machine-collaboration-utility/') {
+  if (process.env.PWD !== '/home/pi/machine-collaboration-utility/') {
     return null;
   }
 
@@ -41,14 +41,16 @@ async function getHostname() {
   });
 
   if (reply.stdout && typeof reply.stdout === 'string' && reply.stdout.length > 1) {
-    return reply.stdout;
+    const hostname = reply.stdout;
+    logger.debug('Found hostname', hostname);
+    return hostname;
   }
   return null;
 }
 
 async function getAppSettings() {
   const hostname = await getHostname().catch((err) => {
-    logger.error('wuh', err);
+    logger.error('Get Hostname Error', err);
   });
   return { hostname };
 }
