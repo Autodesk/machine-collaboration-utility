@@ -77,3 +77,8 @@
 ### Improvements
   * Moved logging to a gloval logger variable
   * Added UI for downloading log files, updating the hostname, and restarting MCU
+
+## 1.4.1 (2017-05-22)
+
+### Bug-Fixes
+  * On boot, MCU now creates a "logs" folder if one doesn't exist
