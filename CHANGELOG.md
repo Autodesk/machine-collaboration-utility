@@ -82,3 +82,8 @@
 
 ### Bug-Fixes
   * On boot, MCU now creates a "logs" folder if one doesn't exist
+
+## 1.4.2 (2017-05-22)
+
+### Bug-Fixes
+  * Fixed hostname resolution on the Raspberry Pi
