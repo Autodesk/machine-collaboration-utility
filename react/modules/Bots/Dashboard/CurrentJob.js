@@ -2,6 +2,7 @@ import React from 'react';
 import request from 'superagent';
 import ProgressBar from 'react-bootstrap/lib/ProgressBar';
 import Button from 'react-bootstrap/lib/Button';
+import File from '../../Files/File';
 
 import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
@@ -44,7 +45,7 @@ export default class CurrentJob extends React.Component {
 
   renderPauseButton() {
     if (this.props.bot.currentJob === undefined) {
-      return <Button className="pause-resume" disabled>Pause/Resume</Button>;
+      return <Button className="pause-resume" disabled>Pause</Button>;
     }
 
     switch (this.props.bot.state) {
@@ -64,33 +65,90 @@ export default class CurrentJob extends React.Component {
     return <Button bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>;
   }
 
+  findMostRecentUpload() {
+    let newestFile = null;
+    Object.entries(this.props.files).forEach(([fileKey, file]) => {
+      if (!newestFile || file.dateChanged > newestFile.dateChanged) {
+        newestFile = file;
+      }
+    });
+    return newestFile;
+  }
+
+  printFile(fileUuid) {
+    const requestParams = {
+      command: 'startJob',
+      fileUuid,
+    };
+
+    request.post(`/v1/bots/${this.props.bot.settings.uuid}`)
+    .send(requestParams)
+    .set('Accept', 'application/json')
+    .end()
+    .catch((err) => {
+      // console.log('request error', err);
+    });
+  }
+
   renderProgressBar() {
     if (this.props.bot.currentJob === undefined) {
-      return <ProgressBar now={0}/>;
+      // Render the most recent file
+      const newestFile = this.findMostRecentUpload();
+      if (newestFile) {
+        const buttonReady = this.props.bot.state === 'idle';
+        return (
+          <div>
+            <Button
+              className="pause-resume"
+              disabled={!buttonReady}
+              style={{ width: '100%', backgroundColor: buttonReady ? '#90bb95' : '#9FA1A4' }}
+              onClick={() => this.printFile(newestFile.uuid)}
+            >
+            Print "{newestFile.name}"
+            </Button>
+          </div>
+        );
+      }
+      return null;
     }
     const percentComplete = this.props.bot.currentJob.percentComplete;
-    return <ProgressBar active now={percentComplete} label={`${percentComplete}%`} />;
+    const percentTextStyle = {
+      position: 'absolute',
+      right: 0,
+      left: 0,
+      color: '#f5f5f5',
+    };
+
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <span style={percentTextStyle}>{`${percentComplete}%`} </span>
+          <ProgressBar style={{ backgroundImage: 'none', backgroundColor: '#AEAEAE' }} active now={percentComplete} key={0} />
+          {/*<ProgressBar bsStyle="success" now={100 - percentComplete} key={1} />*/}
+      </div>
+    );
   }
 
   render() {
     return (
       <div>
-        <div className="area max-area-width">
+        <div style={{ padding: '3px' }} className="area max-area-width">
           <h3>CURRENT STATE: {this.props.bot.state.toUpperCase()}</h3>
           <div className="row">
-            <div className="col-xs-3">
+            <div className="col-xs-4">
               {this.renderConnectButton()}
             </div>
-            <div className="col-xs-5">
+            <div className="col-xs-4">
               {this.renderPauseButton()}
             </div>
             <div className="col-xs-4">
               {this.renderCancelButton()}
             </div>
           </div>
+          <br />
         </div>
-        <br/>
-        {this.renderProgressBar()}
+        <div>
+          {this.renderProgressBar()}
+        </div>
       </div>
     );
   }

@@ -51,7 +51,7 @@ export default class Dashboard extends React.Component {
             </div>
             <div id="right" className="col-md-6">
               <div className="area">
-                <CurrentJob endpoint={this.props.endpoint} bot={this.props.bot}/>
+                <CurrentJob files={this.props.files} endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
               <div className="area row">
                 <div className="col-sm-6 no-padding">
