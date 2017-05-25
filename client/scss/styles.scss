@@ -234,15 +234,19 @@ a{
         margin-top: 10px;
       }
       &.cancel{
+        width: 100%;
         background-color: $red;
       }
       &.connect{
+        width: 100%;
         background-color: $green-low-sat;
       }
       &.disconnect{
+        width: 100%;
         background-color: $button-color;
       }
       &.pause-resume{
+        width: 100%;
         color: $white;
         background-color: $button-color;
       }
