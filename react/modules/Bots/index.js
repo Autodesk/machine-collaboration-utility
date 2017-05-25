@@ -5,6 +5,7 @@ import Radio from 'react-bootstrap/lib/Radio';
 import Button from 'react-bootstrap/lib/Button';
 import request from 'superagent';
 import _ from 'lodash';
+import { browserHistory } from 'react-router';
 
 import Bot from './Bot';
 import NavLink from '../NavLink';
@@ -32,6 +33,13 @@ export default class Bots extends React.Component {
     let selectedBot;
     if (props.params.id !== undefined && _.has(props.bots, props.params.id)) {
       selectedBot = props.bots[props.params.id];
+    }
+    // If no bot is selected, select the first bot and then update the route
+    if (!selectedBot) {
+      const firstBot = this.props.bots[Object.keys(this.props.bots)[0]];
+      if (require('is-browser') && firstBot) {
+        browserHistory.push(`/${firstBot.settings.uuid}`);
+      }
     }
     return selectedBot;
   }
