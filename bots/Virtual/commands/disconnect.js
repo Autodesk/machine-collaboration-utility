@@ -13,6 +13,17 @@ module.exports = function disconnect(self) {
       close: true,
       postCallback: () => {
         self.commands.toggleUpdater(self, { update: false });
+        if (self.currentJob) {
+          self.currentJob.cancel();
+          self.currentJob = undefined;
+          setTimeout(() => {
+            self.app.io.broadcast('botEvent', {
+              uuid: self.settings.uuid,
+              event: 'update',
+              data: self.getBot(),
+            });
+          }, 1000);
+        }
         self.fsm.disconnectDone();
       },
     });
