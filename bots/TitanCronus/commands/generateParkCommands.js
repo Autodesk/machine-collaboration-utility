@@ -1,7 +1,6 @@
 /* global logger */
 module.exports = function generateParkCommands(self) {
   const parkLift = 10;
-  const yPark = -50;
   const currentPosition = {
     x: undefined,
     y: undefined,
@@ -35,7 +34,7 @@ module.exports = function generateParkCommands(self) {
       if (self.parkedPosition.y > offsetY) {
         parkCommandArray.push(`G1 Y${offsetY} F10000`); // Scrub
       }
-      const scrubEnd = Number(yPark + offsetY).toFixed(2);
+      const scrubEnd = 10;
       parkCommandArray.push(`G1 Y${scrubEnd} F2000`); // Drag Y across the purge
       parkCommandArray.push({
         code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
