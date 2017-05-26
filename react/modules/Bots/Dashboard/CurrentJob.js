@@ -67,7 +67,7 @@ export default class CurrentJob extends React.Component {
 
   findMostRecentUpload() {
     let newestFile = null;
-    Object.entries(this.props.files).forEach(([fileKey, file]) => {
+    this.props.files && Object.entries(this.props.files).forEach(([fileKey, file]) => {
       if (!newestFile || file.dateChanged > newestFile.dateChanged) {
         newestFile = file;
       }
