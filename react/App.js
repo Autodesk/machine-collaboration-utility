@@ -6,6 +6,7 @@ import request from 'superagent';
 import _ from 'lodash';
 import * as DeepEqual from 'deep-equal';
 import Header from './modules/Header';
+
 const equal = DeepEqual.default;
 
 export default class App extends React.Component {
@@ -18,12 +19,13 @@ export default class App extends React.Component {
     }
 
     this.state.bots = this.appendConductorPlayers(this.state.bots);
-
-    this.state.restartWidth = '50px';
+    this.state.dropzoneActive = false;
 
     this.openDropzone = this.openDropzone.bind(this);
     this.restart = this.restart.bind(this);
     this.updateBot = this.updateBot.bind(this);
+    this.onDragEnter = this.onDragEnter.bind(this);
+    this.onDragLeave = this.onDragLeave.bind(this);
   }
 
   // Add any conductor's players to the list of bots
@@ -186,11 +188,24 @@ export default class App extends React.Component {
     this.refs.dropzone.open();
   }
 
+  onDragEnter() {
+    this.setState({
+      dropzoneActive: true,
+    });
+  }
+
+  onDragLeave() {
+    this.setState({
+      dropzoneActive: false,
+    });
+  }
+
   render() {
     const dropzoneStyle = {
       width: '100%',
       height: '100%',
     };
+
     const childrenComponents = React.Children.map(this.props.children, child => {
       // mapping through all of the children components in order to inject server app objects
       return React.cloneElement(child, Object.assign({}, this.state, { dropzoneOpener: this.openDropzone, updateBot: this.updateBot }));
@@ -202,6 +217,8 @@ export default class App extends React.Component {
         style={dropzoneStyle}
         onDrop={this.onDrop}
         disableClick
+        onDragEnter={this.onDragEnter}
+        onDragLeave={this.onDragLeave}
       >
         <Header />
         {childrenComponents}
