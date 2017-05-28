@@ -220,7 +220,7 @@ export default class Bots extends React.Component {
         {daBot}
         <Modal show={this.state.showModal} onHide={this.closeModal}>
           <Modal.Header closeButton>
-            <Modal.Title>Create...</Modal.Title>
+            <Modal.Title><h1>Create a New Bot</h1></Modal.Title>
           </Modal.Header>
           <Modal.Body>
             {this.createPresetList()}

@@ -24,8 +24,8 @@ export default class SendGcode extends React.Component {
       <div className="send-gcode">
         <form onSubmit={this.processGcode}>
           <div className="row">
-            <div className="col-sm-7">
-              <input type="text" name="gcode"/>
+            <div className="col-sm-7 no-padding-right">
+              <input placeholder="type gcode here" type="text" name="gcode"/>
             </div>
             <div className="col-sm-5">
               <input type="submit" value="SEND GCODE" />

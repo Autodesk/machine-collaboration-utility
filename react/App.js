@@ -212,17 +212,19 @@ export default class App extends React.Component {
     });
 
     return (
-      <Dropzone
-        ref="dropzone"
-        style={dropzoneStyle}
-        onDrop={this.onDrop}
-        disableClick
-        onDragEnter={this.onDragEnter}
-        onDragLeave={this.onDragLeave}
-      >
-        <Header />
-        {childrenComponents}
-      </Dropzone>
+      <div className={this.state.dropzoneActive ? "dropzone-active" : ""}>
+        <Dropzone
+          ref="dropzone"
+          style={dropzoneStyle}
+          onDrop={this.onDrop}
+          disableClick
+          onDragEnter={this.onDragEnter}
+          onDragLeave={this.onDragLeave}
+        >
+          <Header />
+          {childrenComponents}
+        </Dropzone>
+      </div>
     );
   }
 }

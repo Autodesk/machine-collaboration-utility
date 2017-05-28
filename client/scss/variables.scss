@@ -9,7 +9,9 @@ $screen-md-max: ($screen-lg-min - 1);
 /* COLORS */
 $white: #ffffff;
 $light-gray: #9FA1A4;
-
+$purple:    hsl(244, 14%, 40%);
+$purple-light: hsl(244, 14%, 65%);
+$purple-medium: hsl(244, 14%, 50%);
 
 $gray:        #383635;
 $gray-light:  #5e5d5d;
@@ -38,7 +40,9 @@ $active-bot-bg:     $base-bg-color;
 $bot-tab-div-bg:    rgba(204,203,213,.5);
 
 /* DASHBOARD */
-$button-color: $light-gray;
+$button-color: $purple;
+$button-hover: $purple-light;
+$button-focus: $purple-medium;
 
 /*FONT SIZES*/
 $standard-font-size: 16px;
