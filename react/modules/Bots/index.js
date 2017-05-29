@@ -215,7 +215,7 @@ export default class Bots extends React.Component {
     const daBot = selectedBot === undefined ? '' : <Bot files={this.props.files} updateBot={this.props.updateBot} currentJob={currentJob} botPresets={this.props.botPresets} bot={selectedBot}/>;
 
     return (
-      <div>
+      <div className="bot-list-area">
         {this.renderBotList()}
         {daBot}
         <Modal show={this.state.showModal} onHide={this.closeModal}>

@@ -189,12 +189,16 @@ export default class App extends React.Component {
   }
 
   onDragEnter() {
+    document.body.style.background = '#5a5874';
+    document.getElementById("app").style.background = '#5a5874';
     this.setState({
       dropzoneActive: true,
     });
   }
 
   onDragLeave() {
+    document.body.style.background = '#F3F6FB';
+    document.getElementById("app").style.background = '#F3F6FB';
     this.setState({
       dropzoneActive: false,
     });

@@ -36,7 +36,7 @@ body { height: 100%; padding: 0; overflow: auto; margin: 0; -webkit-overflow-scr
 body {
   font-family:  "turkey-regular";
   font-size: $standard-font-size;
-  background-color: $purple;
+  background-color: $base-bg-color;
   #app{
     background-color: $base-bg-color;
   }
@@ -157,7 +157,7 @@ a{
 
 #dashboard{
   background-color: $white;
-  padding-top: $standard-padding/2;
+  padding: $standard-padding/2;
   font-size: 14px;
   .col-md-6{
     padding: 0;
@@ -217,6 +217,7 @@ a{
     }
     .temperature{
       padding-top: $standard-padding/2;
+      padding-bottom: 4px;
       input{
         padding: $standard-padding/3.75;
         &[type="submit"]{
@@ -327,6 +328,11 @@ a{
   }
 }
 
+.bot-list-area{
+  background-color: $base-bg-color;
+  height: 100%;
+}
+
 .progress-area{
   background-color: $white;
   height: 40px;
@@ -352,10 +358,10 @@ a{
   }
   .logo{
     width: 100%;
-    max-width: 50px;
+    max-width: 40px;
     display: inline-block;
     position: relative;
-    top: 9px;
+    top: 13px;
     img{
       width:100%;
     }
