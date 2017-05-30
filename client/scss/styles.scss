@@ -160,7 +160,7 @@ a{
     position: relative;
     &.active{
       color: $black;
-      background-color: $active-bot-bg;
+      background-color: $purple-super-light;
     }
     &:hover{
       text-decoration: none;
@@ -332,7 +332,7 @@ a{
 }
 
 .bot-list-area{
-  background-color: $base-bg-color;
+  background-color: $purple-super-light;;
   height: 100%;
 }
 
@@ -400,7 +400,7 @@ a{
 }
 
 .nav-tabs{
-  background-color: $base-bg-color;
+  background-color: $purple-super-light;
   padding-top: $standard-padding/2;
   >li{
     width: calc(100% / 3);

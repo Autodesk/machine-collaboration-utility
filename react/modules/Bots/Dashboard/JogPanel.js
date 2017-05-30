@@ -42,10 +42,10 @@ export default class JogPanel extends React.Component {
   }
 
   render() {
-    const purple1 =   'hsl(214, 30%, 40%)';
-    const purple2 =   'hsl(214, 30%, 50%)';
-    const purple3 =   'hsl(214, 30%, 60%)';
-    const purple4 =   'hsl(214, 30%, 70%)';
+    const purple1 =   'hsl(210, 29%, 24%)';
+    const purple2 =   'hsl(210, 29%, 34%)';
+    const purple3 =   'hsl(210, 29%, 44%)';
+    const purple4 =   'hsl(210, 29%, 54%)';
     const white =     '#ffffff';
     return (
       <div style={{
