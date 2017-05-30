@@ -37,7 +37,7 @@ export default class Dashboard extends React.Component {
             <CurrentJob endpoint={this.props.endpoint} bot={this.props.bot}/>
           </div>
           :
-          <div className="container">
+          <div className="container no-padding-mobile">
             <div id="left" className="col-md-6">
               <div className="area">
                 <JogPanel endpoint={this.props.endpoint}/>

@@ -85,44 +85,39 @@ export default class Temp extends React.Component {
           <h3>TEMPERATURE CONTROL</h3>
         <div className="row temperature">
           <div className="col-xs-3">
-            <p><span>&#x25EF;</span> Extruder</p>
+            <p className="temp-title"><span></span> Extruder</p>
           </div>
-          <div className="col-xs-3">
+          <div className="col-xs-2">
             <form onSubmit={this.setNozzleTemp}>
               <div className="row">
-                <input type="text" name="setpoint" className="col-sm-5" disabled={t0Disabled}/>
-                <i className="fa fa-repeat" aria-hidden="true">
-                  <input type="submit" value="" className="col-sm-1" disabled={t0Disabled}/>
-                </i>
+                <input type="text" placeholder="X°C" name="setpoint" className="" disabled={t0Disabled}/>
+                  <input type="hidden" value="" className="col-sm-1" disabled={t0Disabled}/>
               </div>
             </form>
           </div>
-          <div className="col-xs-3">
-            <p>{t0.temperature} / {t0.setpoint}</p>
+          <div className="col-xs-3 no-padding-right">
+            <p className="temp-fraction">{t0.temperature} / {t0.setpoint}°C</p>
           </div>
-          <div className="col-xs-3">
+          <div className="col-xs-4 no-padding-left">
             {this.renderNozzleOnOff()}
           </div>
         </div>
         <div className="row temperature">
           <div className="col-xs-3">
-            <p><span>&#x25EF;</span> Bed</p>
+            <p className="temp-title"><span></span> Bed</p>
           </div>
-          <div className="col-xs-3">
+          <div className="col-xs-2">
             <form onSubmit={this.setBedTemp}>
               <div className="row">
-                <input type="text" name="setpoint" className="col-sm-5" disabled={b0Disabled}/>
-
-                <i className="fa fa-repeat" aria-hidden="true">
-                  <input type="submit" value="" className="col-sm-1 fa fa-repeat" disabled={b0Disabled}/>
-                </i>
+                <input type="text" placeholder="X°C" name="setpoint" className="" disabled={b0Disabled}/>
+                  <input type="hidden" value="" className="col-sm-1 fa fa-repeat" disabled={b0Disabled}/>
               </div>
             </form>
           </div>
-          <div className="col-xs-3">
-            <p>{b0.temperature} / {b0.setpoint}</p>
+          <div className="col-xs-3 no-padding-right">
+            <p className="temp-fraction">{b0.temperature} / {b0.setpoint} °C</p>
           </div>
-          <div className="col-xs-3">
+          <div className="col-xs-4 no-padding-left">
             {this.renderBedOnOff()}
           </div>
         </div>

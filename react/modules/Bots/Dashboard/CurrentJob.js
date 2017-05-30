@@ -67,7 +67,7 @@ export default class CurrentJob extends React.Component {
 
   findMostRecentUpload() {
     let newestFile = null;
-    Object.entries(this.props.files).forEach(([fileKey, file]) => {
+    this.props.files && Object.entries(this.props.files).forEach(([fileKey, file]) => {
       if (!newestFile || file.dateChanged > newestFile.dateChanged) {
         newestFile = file;
       }
@@ -131,16 +131,16 @@ export default class CurrentJob extends React.Component {
   render() {
     return (
       <div>
-        <div className="area max-area-width no-margin">
+        <div className="max-area-width no-margin">
           <h3>CURRENT STATE: {this.props.bot.state.toUpperCase()}</h3>
           <div className="row">
-            <div className="col-xs-4 no-padding-left">
+            <div className="col-xs-4 no-padding-right">
               {this.renderConnectButton()}
             </div>
             <div className="col-xs-4 no-padding">
               {this.renderPauseButton()}
             </div>
-            <div className="col-xs-4 no-padding-right">
+            <div className="col-xs-4 no-padding-left">
               {this.renderCancelButton()}
             </div>
           </div>

@@ -84,7 +84,7 @@ export default class Bot extends React.Component {
     `/v1/bots/${this.props.bot.settings.uuid}`;
 
     return (
-      <div className="container">
+      <div className="container no-padding-mobile">
         <Tabs id="bot-pages" activeKey={this.state.selectedTab} onSelect={this.tabSelectEvent}>
           <Tab eventKey={1} title="Dashboard">
             <Dashboard files={this.props.files} endpoint={endpoint} bot={this.props.bot}/>
