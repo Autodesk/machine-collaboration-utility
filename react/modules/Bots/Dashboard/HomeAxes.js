@@ -40,7 +40,7 @@ export default class HomeAxes extends React.Component {
     return (
       <div>
         <div className="row">
-          <div className="area-padding max-area-width">
+          <div className="area-padding home-area max-area-width">
             <div className="col-xs-3 no-padding">
               <button onClick={() => this.homeAxes({ x: true })}>Home X</button>
             </div>
@@ -51,7 +51,7 @@ export default class HomeAxes extends React.Component {
             <button onClick={() => this.homeAxes({ z: true })}>Home Z</button>
             </div>
             <div className="col-xs-3 no-padding">
-            <button onClick={() => this.homeAxes({ x: true, y: true, z: true })}>Home All</button>
+            <button className="home-all" onClick={() => this.homeAxes({ x: true, y: true, z: true })}>Home All</button>
             </div>
           </div>
         </div>

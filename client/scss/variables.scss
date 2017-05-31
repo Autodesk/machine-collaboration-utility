@@ -1,4 +1,4 @@
-/*BREAKPOINTS*/
+// BREAKPOINTS
 $screen-sm-min: 768px;
 $screen-xs-max: ($screen-sm-min - 1);
 $screen-md-min: 992px;
@@ -6,10 +6,16 @@ $screen-sm-max: ($screen-md-min - 1);
 $screen-lg-min: 1200px;
 $screen-md-max: ($screen-lg-min - 1);
 
-/* COLORS */
+// COLORS
+$black: #333;
 $white: #ffffff;
 $light-gray: #9FA1A4;
 
+$primary-hue: 200;
+$primary:             hsl($primary-hue, 29%, 24%);
+$primary-medium:      hsl($primary-hue, 29%, 44%);
+$primary-light:       hsl($primary-hue, 29%, 60%);
+$primary-super-light: hsl($primary-hue, 29%, 94%);
 
 $gray:        #383635;
 $gray-light:  #5e5d5d;
@@ -28,18 +34,20 @@ $green-low-sat: #90bb95;
 
 $base-bg-color: #F3F6FB;
 
-/* PADDING */
+// PADDING
 $standard-padding: 30px;
 
-/* TABS */
+// TABS
 $bot-tab-bg:        #CCCBD5;
-$bot-tab-font-size: $standard-padding/1.5;
+$bot-tab-font-size: $standard-padding / 1.5;
 $active-bot-bg:     $base-bg-color;
 $bot-tab-div-bg:    rgba(204,203,213,.5);
 
-/* DASHBOARD */
-$button-color: $light-gray;
+// DASHBOARD
+$button-color: $primary-medium;
+$button-hover: $primary-light;
+$button-focus: $primary-medium;
 
-/*FONT SIZES*/
+// FONT SIZES
 $standard-font-size: 16px;
 $font-label-size: 18px;

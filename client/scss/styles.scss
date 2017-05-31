@@ -4,13 +4,17 @@
 @import "variables.scss";
 
 // Prevent rubber-band scroll
-html { height: 100%; width: 100%; overflow: hidden; }
+html { height: 100%; width: 100%; overflow: hidden; background-color: $base-bg-color; }
 body { height: 100%; padding: 0; overflow: auto; margin: 0; -webkit-overflow-scrolling: touch; }
 // End Prevent rubber-band scroll
 
 /* GENERAL */
 .conductor-player {
   padding: 5px;
+}
+
+.dropzone-active{
+  opacity: .5;
 }
 
 .conductor-form-text {
@@ -24,16 +28,47 @@ body { height: 100%; padding: 0; overflow: auto; margin: 0; -webkit-overflow-scr
 .modal.fade.in{
   display: block;
 }
+.modal-header{
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.no-margin{
+  margin: 0;
+}
+.no-padding{
+  padding:0;
+}
+.no-padding-left{
+  padding-left: 0;
+}
+.no-padding-right{
+  padding-right: 0;
+}
+.no-padding-mobile{
+  @media screen and (max-width: $screen-sm-max) {
+    padding: 0;
+  }
+}
+
 body {
   font-family:  "turkey-regular";
   font-size: $standard-font-size;
   background-color: $base-bg-color;
+  #app{
+    background-color: $base-bg-color;
+  }
   a {
     color: #00B7FF;
   }
   .container{
     max-width: 970px;
     width: 100%;
+    .left{
+      background-color: $white;
+    }
+    .right{
+      background-color: $white;
+    }
   }
   #connect {
     cursor: pointer;
@@ -55,7 +90,7 @@ body {
       }
     }
     input[type=submit]{
-      background: #f16767;
+      background: $primary;
       color: #fff;
       margin-top: 15px;
       outline: none;
@@ -105,7 +140,7 @@ button{
   }
 }
 .bot-tab-list{
-  background-color: $bot-tab-div-bg;
+  background-color: $primary-light;
   width: 100%;
   overflow-y: hidden;
   @media screen and (max-width: $screen-lg-min) {
@@ -114,17 +149,18 @@ button{
 }
 a{
   &.bot-tabs{
-    color: $gray;
+    color: $white;
     font-size: $bot-tab-font-size;
-    background-color: $bot-tab-bg;
+    background-color: $primary-medium;
     padding: 19px 15px;
     display: inline-block;
-    margin: 0 3px;
+    margin: 0;
     border-radius: 0;
     border: none;
     position: relative;
     &.active{
-      background-color: $active-bot-bg;
+      color: $black;
+      background-color: $primary-super-light;
     }
     &:hover{
       text-decoration: none;
@@ -139,17 +175,22 @@ a{
 
 #dashboard{
   background-color: $white;
-  padding-top: $standard-padding/2;
+  padding: $standard-padding/2;
   font-size: 14px;
+  @media screen and (max-width: 767px) {
+    padding: 0;
+    padding-top: $standard-padding/2;
+  }
   .col-md-6{
     padding: 0;
   }
   .area{
     background-color: #f0efef;
-    padding: 15px;
+    padding: $standard-padding/2;
     margin: 7px 4px;
-    .no-padding{
-      padding:0;
+    @media screen and (max-width: $screen-sm-max) {
+      padding: $standard-padding/2;
+      margin: 7px 0;
     }
     .col-xs-4{
       position: relative;
@@ -160,64 +201,67 @@ a{
     }
     .disable-motors{
       button{
+        width: 100%;
         padding: $standard-padding/4;
+        border: 2px solid $primary-light;
+      }
+    }
+    .home-area{
+      padding-top: 0;
+      button{
+        position: relative;
+        margin: 0 auto;
+        &.home-all{
+          width: 100%;
+        }
       }
     }
     .positioning{
       button{
-        padding: $standard-padding/6;
+        padding: $standard-padding/3.75;
         @media screen and (max-width: $screen-sm-max) {
           margin-bottom: $standard-padding/2;
         }
       }
-    }
-    .progress{
-      margin-bottom: 0;
+      h5{
+        margin-top: 0;
+      }
     }
     .temperature{
-      padding-bottom: $standard-padding/2;
-      input{
-        padding: $standard-padding/3;
-        &[type="submit"]{
-          margin-top: 0;
-          padding: 12px;
-          margin-left: $standard-padding/6;
-        }
-        &[type="text"]{
-          background: #ffffff;
-          border: 2px solid #333;
-        }
+      margin-bottom: $standard-padding/-6;
+      &:first-of-type{
+        padding-bottom: $standard-padding/3;
+        margin-bottom: 0;
       }
-      .fa{
-        &::before{
-          text-align: center;
-          font-size: $standard-padding/1.5;
-          color: white;
-          background-color: $red;
-          padding: 8px;
-          position: relative;
-          top: 8px;
-          left: -20px;
-        }
-        input[type="submit"]{
-          background: transparent;
-          position: relative;
-          right: $standard-padding/3 * -1;
-        }
+      button{
+        width: 100%;
+      }
+      input{
+        background-color: $white;
+        border: none;
+        padding-left: $standard-padding/2;
       }
       span{
         color: $button-color;
-        background-color: $button-color;
+        background-color: $gray-light;
         border-radius: 100%;
         padding: 0 2px;
+        width: $standard-padding/2;
+        height: $standard-padding/2;
+        display: inline-block;
         &.active{
           color: $red;
           background-color: $red;
         }
+        background-color: $gray-light;
+        border: none;
+      }
+      .temp-title,.temp-fraction{
+        padding-top: $standard-padding/2;
       }
     }
-    .max-area-width{
-      max-width: 460px;
+    .progress{
+      margin-bottom: 0;
     }
     button{
       background-color: $button-color;
@@ -250,6 +294,15 @@ a{
         color: $white;
         background-color: $button-color;
       }
+      &:hover{
+        transition: 0.2s;
+        background-color: $button-hover;
+        outline: none;
+      }
+      &:focus{
+        background-color: $button-focus;
+        outline: none;
+      }
     }
     h3{
       font-size: $standard-padding/2;
@@ -259,16 +312,36 @@ a{
     }
   }
   .send-gcode{
+    form{
+      margin-bottom: 0;
+    }
+    .no-padding-right{
+      @media screen and (max-width: $screen-xs-max) {
+        padding: 0 $standard-padding/2;
+      }
+    }
     input{
       &[type="submit"]{
         margin-top: 0;
       }
       &[type="text"]{
         background: #ffffff;
-        border: 2px solid #333;
+        border: none;
+        padding-left: $standard-padding/2;
       }
     }
   }
+}
+
+.bot-list-area{
+  background-color: $primary-super-light;;
+  height: 100%;
+}
+
+.progress-area{
+  background-color: $white;
+  height: 40px;
+  margin-top: $standard-padding/-1.5;
 }
 
 .header {
@@ -290,10 +363,10 @@ a{
   }
   .logo{
     width: 100%;
-    max-width: 50px;
+    max-width: 40px;
     display: inline-block;
     position: relative;
-    top: 9px;
+    top: 13px;
     img{
       width:100%;
     }
@@ -329,7 +402,7 @@ a{
 }
 
 .nav-tabs{
-  background-color: $base-bg-color;
+  background-color: $primary-super-light;
   padding-top: $standard-padding/2;
   >li{
     width: calc(100% / 3);
@@ -347,6 +420,9 @@ a{
       font-size: 20px;
       border-radius: 0;
       padding: $standard-padding/3;
+      @media screen and (max-width: 767px) {
+        font-size: 16px;
+      }
       &:hover{
         background-color: #808284;
       }
@@ -669,7 +745,7 @@ input{
   background-color: transparent;
   border-bottom: 3px solid $gray;
   &[type=submit]{
-    background-color: $red;
+    background-color: $primary;
     color: $white;
     border: none;
     letter-spacing: 2px;
@@ -695,6 +771,7 @@ select{
 label{
   display: block;
   margin-top: $standard-padding/2;
+  margin-bottom: 0;
   text-transform: uppercase;
   font-size: $font-label-size;
 }

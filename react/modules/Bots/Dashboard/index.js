@@ -37,7 +37,7 @@ export default class Dashboard extends React.Component {
             <CurrentJob endpoint={this.props.endpoint} bot={this.props.bot}/>
           </div>
           :
-          <div className="container">
+          <div className="container no-padding-mobile">
             <div id="left" className="col-md-6">
               <div className="area">
                 <JogPanel endpoint={this.props.endpoint}/>
@@ -54,10 +54,10 @@ export default class Dashboard extends React.Component {
                 <CurrentJob files={this.props.files} endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
               <div className="area row">
-                <div className="col-sm-6 no-padding">
+                <div className="col-sm-7 no-padding">
                   <PositionFeedback endpoint={this.props.endpoint} bot={this.props.bot}/>
                 </div>
-                <div className="col-sm-6 no-padding">
+                <div className="col-sm-5 no-padding">
                   <DisableMotors endpoint={this.props.endpoint}/>
                 </div>
               </div>

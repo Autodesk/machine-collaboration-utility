@@ -136,22 +136,22 @@ export default class CurrentJob extends React.Component {
   render() {
     return (
       <div>
-        <div style={{ padding: '3px' }} className="area max-area-width">
+        <div className="max-area-width no-margin">
           <h3>CURRENT STATE: {this.props.bot.state.toUpperCase()}</h3>
           <div className="row">
-            <div className="col-xs-4">
+            <div className="col-xs-4 no-padding-right">
               {this.renderConnectButton()}
             </div>
-            <div className="col-xs-4">
+            <div className="col-xs-4 no-padding">
               {this.renderPauseButton()}
             </div>
-            <div className="col-xs-4">
+            <div className="col-xs-4 no-padding-left">
               {this.renderCancelButton()}
             </div>
           </div>
           <br />
         </div>
-        <div>
+        <div className="progress-area">
           {this.renderProgressBar()}
         </div>
       </div>

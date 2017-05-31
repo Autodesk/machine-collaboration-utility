@@ -189,12 +189,16 @@ export default class App extends React.Component {
   }
 
   onDragEnter() {
+    document.body.style.background = '#5a5874';
+    document.getElementById("app").style.background = '#5a5874';
     this.setState({
       dropzoneActive: true,
     });
   }
 
   onDragLeave() {
+    document.body.style.background = '#F3F6FB';
+    document.getElementById("app").style.background = '#F3F6FB';
     this.setState({
       dropzoneActive: false,
     });
@@ -212,17 +216,19 @@ export default class App extends React.Component {
     });
 
     return (
-      <Dropzone
-        ref="dropzone"
-        style={dropzoneStyle}
-        onDrop={this.onDrop}
-        disableClick
-        onDragEnter={this.onDragEnter}
-        onDragLeave={this.onDragLeave}
-      >
-        <Header />
-        {childrenComponents}
-      </Dropzone>
+      <div className={this.state.dropzoneActive ? "dropzone-active" : ""}>
+        <Dropzone
+          ref="dropzone"
+          style={dropzoneStyle}
+          onDrop={this.onDrop}
+          disableClick
+          onDragEnter={this.onDragEnter}
+          onDragLeave={this.onDragLeave}
+        >
+          <Header />
+          {childrenComponents}
+        </Dropzone>
+      </div>
     );
   }
 }
