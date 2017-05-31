@@ -203,6 +203,7 @@ a{
       button{
         width: 100%;
         padding: $standard-padding/4;
+        border: 2px solid $primary-light;
       }
     }
     .home-area{
@@ -294,7 +295,7 @@ a{
         background-color: $button-color;
       }
       &:hover{
-        transition: 0.13s;
+        transition: 0.2s;
         background-color: $button-hover;
         outline: none;
       }

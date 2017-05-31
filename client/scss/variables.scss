@@ -11,7 +11,7 @@ $black: #333;
 $white: #ffffff;
 $light-gray: #9FA1A4;
 
-$primary-hue: 180;
+$primary-hue: 200;
 $primary:             hsl($primary-hue, 29%, 24%);
 $primary-medium:      hsl($primary-hue, 29%, 44%);
 $primary-light:       hsl($primary-hue, 29%, 60%);
@@ -44,7 +44,7 @@ $active-bot-bg:     $base-bg-color;
 $bot-tab-div-bg:    rgba(204,203,213,.5);
 
 // DASHBOARD
-$button-color: $primary;
+$button-color: $primary-medium;
 $button-hover: $primary-light;
 $button-focus: $primary-medium;
 
