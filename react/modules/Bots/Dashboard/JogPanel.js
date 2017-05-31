@@ -1,10 +1,20 @@
 import React from 'react';
 import request from 'superagent';
+import path from 'path';
+import hexToHsl from 'hex-to-hsl';
+
+const sassVars = require('../../../sassVars');
 
 class Polygon extends React.Component {
   constructor(props) {
     super(props);
     this.handleClick = this.handleClick.bind(this);
+    this.state = {
+      hovering: false,
+    };
+
+    this.startHover = this.startHover.bind(this);
+    this.leaveHover = this.leaveHover.bind(this);
   }
 
   handleClick(event) {
@@ -17,9 +27,38 @@ class Polygon extends React.Component {
     .end();
   }
 
+  startHover() {
+    this.setState({ hovering: true });
+  }
+
+  leaveHover() {
+    this.setState({ hovering: false });
+  }
+
   render() {
+    let fill;
+    if (this.state.hovering) {
+      const hslRegex = /hsl\(\s*(\d+)\s*,\s*(\d*(?:\.\d+)?%)\s*,\s*(\d*(?:\.\d+)?%)\)/ig;
+      if (this.props.fillColor.includes('hsl')) {
+        const hslVals = hslRegex.exec(this.props.fillColor);
+        fill = `hsl(${hslVals[1]}, ${hslVals[2]}, ${Number(hslVals[3].split('%')[0]) + 10}%)`;
+      } else {
+        const hslVals = hexToHsl(this.props.fillColor);
+        fill = `hsl(${hslVals[0]}, ${hslVals[1]}%, ${hslVals[2] + 10}%)`;
+      }
+    } else {
+      fill = this.props.fillColor;
+    }
+
     return (
-      <polygon fill={this.props.fillColor} onClick={this.handleClick} points={this.props.points} className="jog no-select"/>
+      <polygon
+        onMouseOut={this.leaveHover}
+        onMouseOver={this.startHover}
+        fill={fill}
+        onClick={this.handleClick}
+        points={this.props.points}
+        className="jog no-select"
+      />
     );
   }
 }
@@ -42,19 +81,21 @@ export default class JogPanel extends React.Component {
   }
 
   render() {
-    const purple1 =   'hsl(210, 29%, 24%)';
-    const purple2 =   'hsl(210, 29%, 34%)';
-    const purple3 =   'hsl(210, 29%, 44%)';
-    const purple4 =   'hsl(210, 29%, 54%)';
-    const white =     '#ffffff';
+    const white = '#ffffff';
+    const hue = sassVars['$primary-hue'];
+    const primary = `hsl(${hue}, 30%, 20%)`;
+    const primaryMedium = `hsl(${hue}, 30%, 30%)`;
+    const primaryLight = `hsl(${hue}, 30%, 40%)`;
+    const primarySuperLight = `hsl(${hue}, 30%, 50%)`;
+
     return (
       <div style={{
         maxWidth: '450px',
         height: 'auto',
-        st0: { fill: purple1 },
-        st1: { fill: purple2 },
+        st0: { fill: primary },
+        st1: { fill: primaryMedium },
         st2: { fill: '#76AEA6' },
-        st3: { fill: purple3 },
+        st3: { fill: primaryLight },
         st4: { fill: '#747476' },
         st5: { fill: '#797C7D' },
         st6: { fill: '#9FA1A4' },
@@ -65,31 +106,31 @@ export default class JogPanel extends React.Component {
         <svg version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 536 360">
           <g>
             <g>
-              <Polygon fillColor={purple1} endpoint={this.props.endpoint} points="329.5,27.1 38.9,27.1 66.9,55.1 301.5,55.1" axis={'y'} amount={100}/>
-              <Polygon fillColor={purple1} endpoint={this.props.endpoint} points="61.9,294.7 61.9,60 34,32.1 34,322.6" axis={'x'} amount={-100}/>
-              <Polygon fillColor={purple1} endpoint={this.props.endpoint} points="334.4,32.1 306.5,60 306.5,294.7 334.4,322.6" axis={'x'} amount={100}/>
-              <Polygon fillColor={purple2} endpoint={this.props.endpoint} points="294.5,62.1 73.8,62.1 101.8,90 266.6,90" axis={'y'} amount={10}/>
-              <Polygon fillColor={purple2} endpoint={this.props.endpoint} points="96.9,259.8 96.9,95 68.9,67 68.9,287.7" axis={'x'} amount={-10}/>
-              <Polygon fillColor={purple2} endpoint={this.props.endpoint} points="299.5,67 271.5,95 271.5,259.8 299.5,287.7" axis={'x'} amount={10}/>
-              <Polygon fillColor={purple3} endpoint={this.props.endpoint} points="259.6,97 108.8,97 136.7,125 231.7,125" axis={'y'} amount={1}/>
-              <Polygon fillColor={purple3} endpoint={this.props.endpoint} points="131.8,224.8 131.8,129.9 103.8,102 103.8,252.8" axis={'x'} amount={-1}/>
-              <Polygon fillColor={purple3} endpoint={this.props.endpoint} points="264.5,102 236.6,129.9 236.6,224.8 264.5,252.8" axis={'x'} amount={1}/>
-              <Polygon fillColor={purple4} endpoint={this.props.endpoint} points="224.7,131.9 143.7,131.9 171.7,159.9 196.7,159.9" axis={'y'} amount={0.1}/>
-              <Polygon fillColor={purple4} endpoint={this.props.endpoint} points="166.7,189.9 166.7,164.8 138.8,136.9 138.8,217.8" axis={'x'} amount={-0.1}/>
-              <Polygon fillColor={purple4} endpoint={this.props.endpoint} points="229.6,136.9 201.7,164.8 201.7,189.9 229.6,217.8" axis={'x'} amount={0.1}/>
-              <Polygon fillColor={purple4} endpoint={this.props.endpoint} points="196.7,194.8 171.7,194.8 143.7,222.8 224.7,222.8" axis={'y'} amount={-0.1}/>
-              <Polygon fillColor={purple3} endpoint={this.props.endpoint} points="231.7,229.8 136.7,229.8 108.8,257.7 259.6,257.7" axis={'y'} amount={-1}/>
-              <Polygon fillColor={purple2} endpoint={this.props.endpoint} points="266.6,264.7 101.8,264.7 73.8,292.7 294.5,292.7" axis={'y'} amount={-10}/>
-              <Polygon fillColor={purple1} endpoint={this.props.endpoint} points="301.5,299.6 66.9,299.6 38.9,327.6 329.5,327.6" axis={'y'} amount={-100}/>
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} points="329.5,27.1 38.9,27.1 66.9,55.1 301.5,55.1" axis={'y'} amount={100}/>
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} points="61.9,294.7 61.9,60 34,32.1 34,322.6" axis={'x'} amount={-100}/>
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} points="334.4,32.1 306.5,60 306.5,294.7 334.4,322.6" axis={'x'} amount={100}/>
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} points="294.5,62.1 73.8,62.1 101.8,90 266.6,90" axis={'y'} amount={10}/>
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} points="96.9,259.8 96.9,95 68.9,67 68.9,287.7" axis={'x'} amount={-10}/>
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} points="299.5,67 271.5,95 271.5,259.8 299.5,287.7" axis={'x'} amount={10}/>
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} points="259.6,97 108.8,97 136.7,125 231.7,125" axis={'y'} amount={1}/>
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} points="131.8,224.8 131.8,129.9 103.8,102 103.8,252.8" axis={'x'} amount={-1}/>
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} points="264.5,102 236.6,129.9 236.6,224.8 264.5,252.8" axis={'x'} amount={1}/>
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} points="224.7,131.9 143.7,131.9 171.7,159.9 196.7,159.9" axis={'y'} amount={0.1}/>
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} points="166.7,189.9 166.7,164.8 138.8,136.9 138.8,217.8" axis={'x'} amount={-0.1}/>
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} points="229.6,136.9 201.7,164.8 201.7,189.9 229.6,217.8" axis={'x'} amount={0.1}/>
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} points="196.7,194.8 171.7,194.8 143.7,222.8 224.7,222.8" axis={'y'} amount={-0.1}/>
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} points="231.7,229.8 136.7,229.8 108.8,257.7 259.6,257.7" axis={'y'} amount={-1}/>
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} points="266.6,264.7 101.8,264.7 73.8,292.7 294.5,292.7" axis={'y'} amount={-10}/>
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} points="301.5,299.6 66.9,299.6 38.9,327.6 329.5,327.6" axis={'y'} amount={-100}/>
 
-              <Polygon fillColor={purple1} endpoint={this.props.endpoint} points="380.1,301.1 380.1,329.1 442.7,329.1 442.7,301.1" axis={'z'} amount={-100}/>
-              <Polygon fillColor={purple2} endpoint={this.props.endpoint} points="380.1,266 380.1,294 442.7,294 442.7,266" axis={'z'} amount={-10}/>
-              <Polygon fillColor={purple3} endpoint={this.props.endpoint} points="380.1,231 380.1,259 442.7,259 442.7,231" axis={'z'} amount={-1}/>
-              <Polygon fillColor={purple4} endpoint={this.props.endpoint} points="380.1,195.9 380.1,223.9 442.7,223.9 442.7,195.9" axis={'z'} amount={-0.1}/>
-              <Polygon fillColor={purple4} endpoint={this.props.endpoint} points="380.1,132.9 380.1,160.9 442.7,160.9 442.7,132.9" axis={'z'} amount={0.1}/>
-              <Polygon fillColor={purple3} endpoint={this.props.endpoint} points="380.1,97.8 380.1,125.8 442.7,125.8 442.7,97.8" axis={'z'} amount={1}/>
-              <Polygon fillColor={purple2} endpoint={this.props.endpoint} points="380.1,62.8 380.1,90.8 442.7,90.8 442.7,62.8" axis={'z'} amount={10}/>
-              <Polygon fillColor={purple1} endpoint={this.props.endpoint} points="380.1,27.8 380.1,55.8 442.7,55.8 442.7,27.8" axis={'z'} amount={100}/>
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} points="380.1,301.1 380.1,329.1 442.7,329.1 442.7,301.1" axis={'z'} amount={-100}/>
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} points="380.1,266 380.1,294 442.7,294 442.7,266" axis={'z'} amount={-10}/>
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} points="380.1,231 380.1,259 442.7,259 442.7,231" axis={'z'} amount={-1}/>
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} points="380.1,195.9 380.1,223.9 442.7,223.9 442.7,195.9" axis={'z'} amount={-0.1}/>
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} points="380.1,132.9 380.1,160.9 442.7,160.9 442.7,132.9" axis={'z'} amount={0.1}/>
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} points="380.1,97.8 380.1,125.8 442.7,125.8 442.7,97.8" axis={'z'} amount={1}/>
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} points="380.1,62.8 380.1,90.8 442.7,90.8 442.7,62.8" axis={'z'} amount={10}/>
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} points="380.1,27.8 380.1,55.8 442.7,55.8 442.7,27.8" axis={'z'} amount={100}/>
 
               <Polygon fillColor={'#747476'} endpoint={this.props.endpoint} points="461.2,301.1 461.2,329.1 523.8,329.1 523.8,301.1" axis={'e'} amount={100}/>
               <Polygon fillColor={'#797C7D'} endpoint={this.props.endpoint} points="461.2,266 461.2,294 523.8,294 523.8,266" axis={'e'} amount={10}/>

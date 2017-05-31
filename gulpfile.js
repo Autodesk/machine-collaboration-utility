@@ -13,6 +13,9 @@ const autoprefixer = require('gulp-autoprefixer');
 const mocha = require('gulp-mocha');
 const sass = require('gulp-sass');
 const webpack = require('gulp-webpack');
+const scssToJson = require('scss-to-json');
+const path = require('path');
+const fs = require('fs-promise');
 
 const src = {
   reactClient: './react/index.js',
@@ -48,7 +51,14 @@ gulp.task('build-files', () => {
   .pipe(gulp.dest(dest.vendorJs));
 });
 
-gulp.task('build-scss', () => {
+gulp.task('build-sass-vars', [], () => {
+  const sassVariablePath = path.resolve(__dirname, './client/scss/variables.scss');
+  const sassVars = scssToJson(sassVariablePath);
+  const totalFile = `const sassVars = ${JSON.stringify(sassVars)};\nmodule.exports = sassVars;\n`;
+  fs.writeFileSync('./react/sassVars.js', totalFile, 'utf-8');
+});
+
+gulp.task('build-scss', ['build-sass-vars'], () => {
   return gulp.src(src.scss)
   .pipe(sass({
     outputStyle: 'compressed',
@@ -101,7 +111,7 @@ gulp.task(
   }
 );
 
-gulp.task('build-react-client', () => {
+gulp.task('build-react-client', ['build-sass-vars'], () => {
   return gulp.src(src.reactClient)
     .pipe(webpack({
       entry: ['babel-polyfill', src.reactClient],
@@ -134,7 +144,7 @@ gulp.task('build-react-client', () => {
     .pipe(gulp.dest(dest.css));
 });
 
-gulp.task('build-react-server', () => {
+gulp.task('build-react-server', ['build-sass-vars'], () => {
   return gulp.src(src.reactServer)
   .pipe(sourcemaps.init())
   .pipe(
