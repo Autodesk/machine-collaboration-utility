@@ -357,6 +357,10 @@ a{
     padding-left: 10px;
     position: absolute;
     top: 16px;
+    @media screen and (max-width: $screen-sm-max) {
+      font-size: 26px;
+      top: 22px;
+    }
     .bold{
       font-family: 'turkey-bold';
     }
@@ -367,6 +371,9 @@ a{
     display: inline-block;
     position: relative;
     top: 13px;
+    @media screen and (max-width: $screen-xs-max) {
+      position: absolute;
+    }
     img{
       width:100%;
     }
@@ -399,6 +406,10 @@ a{
       }
     }
   }
+}
+
+.feedback{
+  padding-top: $standard-padding/2;
 }
 
 .nav-tabs{

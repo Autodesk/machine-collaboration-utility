@@ -230,6 +230,9 @@ export default class Bots extends React.Component {
             </form>
           </Modal.Body>
         </Modal>
+        <div className="container feedback">
+          <p>Have Feedback? <a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSfWv_jzLw819N7jnKGL18rci2eeHfI9-EUeIiZQ5kpwH01Neg/viewform">Fill out this form to let us know what you think.</a></p>
+        </div>
       </div>
     );
   }
