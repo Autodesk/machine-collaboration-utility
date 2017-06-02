@@ -28,9 +28,9 @@ sudo echo ". ~/.nvm/nvm.sh" >> ~/.bashrc
 ```
 . ~/.nvm/nvm.sh
 ```
-- Download Node V6 or higher.  
+- Download Node V8.
 ```
-nvm install v6.9.1
+nvm install v8
 ```
 
 ### Install all NodeJS dependencies:
