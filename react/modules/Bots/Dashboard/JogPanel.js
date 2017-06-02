@@ -8,74 +8,21 @@ const sassVars = require('../../../sassVars');
 class Polygon extends React.Component {
   constructor(props) {
     super(props);
-    this.handleClick = this.handleClick.bind(this);
-    this.animateColor = null;
 
     const hslRegex = /hsl\(\s*(\d+)\s*,\s*(\d*(?:\.\d+)?%)\s*,\s*(\d*(?:\.\d+)?%)\)/ig;
     const hsl = hslRegex.exec(this.props.fillColor);
 
     this.state = {
-      colorCurrent: {
+      color: {
         h: Number(hsl[1]),
         s: Number(hsl[2].split('%')[0]),
         l: Number(hsl[3].split('%')[0]),
-      },
-      colorDestination: {
-        h: Number(hsl[1]),
-        s: Number(hsl[2].split('%')[0]),
-        l: Number(hsl[3].split('%')[0]),
-      },
-      increment: {
-        h: 3,
-        s: 3,
-        l: 3,
       },
     };
 
+    this.handleClick = this.handleClick.bind(this);
     this.startHover = this.startHover.bind(this);
     this.leaveHover = this.leaveHover.bind(this);
-  }
-
-  increment() {
-    if (
-      this.state.colorCurrent.h === this.state.colorDestination.h &&
-      this.state.colorCurrent.s === this.state.colorDestination.s &&
-      this.state.colorCurrent.l === this.state.colorDestination.l
-    ) {
-      clearInterval(this.animateColor);
-      this.animateColor = null;
-      return;
-    }
-
-    const hslArray = ['h', 's', 'l'];
-
-    const newColor = {
-      h: this.state.colorCurrent.h,
-      s: this.state.colorCurrent.s,
-      l: this.state.colorCurrent.l,
-    };
-
-    hslArray.forEach((key) => {
-      if (this.state.colorCurrent[key] < this.state.colorDestination[key]) {
-        // Kill jitter
-        if (this.state.colorDestination[key] - this.state.colorCurrent[key] < this.state.increment[key]) {
-          newColor[key] = this.state.colorDestination[key];
-        } else {
-          // Increment
-          newColor[key] = this.state.colorCurrent[key] + this.state.increment[key];
-        }
-      } else {
-        // Kill jitter
-        if (this.state.colorCurrent[key] - this.state.colorDestination[key] < this.state.increment[key]) {
-          newColor[key] = this.state.colorDestination[key];
-        } else {
-          // Decrement
-          newColor[key] = this.state.colorCurrent[key] - this.state.increment[key];
-        }
-      }
-    });
-
-    this.setState({ colorCurrent: newColor });
   }
 
   handleClick(event) {
@@ -88,46 +35,29 @@ class Polygon extends React.Component {
     .end();
 
     setTimeout(() => {
-      const colorDestination = Object.assign({}, this.state.colorDestination);
-      colorDestination.h -= 20;
-      this.setState({ colorDestination });
+      const color = Object.assign({}, this.state.color);
+      color.h -= 20;
+      this.setState({ color });
     }, 3000);
 
-    const colorDestination = Object.assign({}, this.state.colorDestination);
-    colorDestination.h += 20;
-    this.setState({ colorDestination });
+    const color = Object.assign({}, this.state.color);
+    color.h += 20;
+    this.setState({ color });
   }
 
   startHover() {
-    const colorDestination = Object.assign({}, this.state.colorDestination);
-    colorDestination.l += 10;
-    this.setState({ colorDestination });
+    const color = Object.assign({}, this.state.color);
+    color.l += 10;
+    this.setState({ color });
   }
 
   leaveHover() {
-    const colorDestination = Object.assign({}, this.state.colorDestination);
-    colorDestination.l -= 10;
-    this.setState({ colorDestination });
-  }
-
-  hslToString(hslObject) {
-    return `hsl(${hslObject.h}, ${hslObject.s}%, ${hslObject.l}%)`;
+    const color = Object.assign({}, this.state.color);
+    color.l -= 10;
+    this.setState({ color });
   }
 
   render() {
-    if (
-      !this.animateColor &&
-      (
-        this.state.colorCurrent.h !== this.state.colorDestination.h ||
-        this.state.colorCurrent.s !== this.state.colorDestination.s ||
-        this.state.colorCurrent.l !== this.state.colorDestination.l
-      )
-    ) {
-      this.animateColor = setInterval(() => {
-        this.increment();
-      }, 40);
-    }
-
     let x = 0;
     let y = 0;
     this.props.points.split(' ').map((xy) => {
@@ -136,7 +66,8 @@ class Polygon extends React.Component {
       y += Number(xyArray[1]);
     });
     const text = this.props.axis === 'x' ? null : <text fill="white" x={(x / 4) - 15} y={(y / 4) + 5}>{Number(this.props.amount) > 0 ? '+' : ''}{this.props.amount}</text>;
-    const fill = this.hslToString(this.state.colorCurrent);
+    const fill = `hsl(${this.state.color.h}, ${this.state.color.s}%, ${this.state.color.l}%)`;
+
     return (
       <g
         className="jog no-select"
@@ -145,7 +76,8 @@ class Polygon extends React.Component {
         onMouseOver={this.startHover}
       >
         <polygon
-          fill={fill}
+          style={{ fill, stroke: 'purple; stroke-width: 5' }}
+          stroke={'purple; stroke-width:5'}
           points={this.props.points}
         />
         {text}
@@ -162,10 +94,10 @@ export default class JogPanel extends React.Component {
   render() {
     const white = '#ffffff';
     const hue = sassVars['$primary-hue'];
-    const primary = `hsl(${hue}, 40%, 30%)`;
-    const primaryMedium = `hsl(${hue}, 40%, 35%)`;
-    const primaryLight = `hsl(${hue}, 40%, 40%)`;
-    const primarySuperLight = `hsl(${hue}, 40%, 45%)`;
+    const primary =           `hsl(${hue}, 40%, 40%)`;
+    const primaryMedium =     `hsl(${hue}, 40%, 45%)`;
+    const primaryLight =      `hsl(${hue}, 40%, 50%)`;
+    const primarySuperLight = `hsl(${hue}, 40%, 55%)`;
 
     return (
       <div style={{
