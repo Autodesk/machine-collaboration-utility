@@ -40,7 +40,7 @@ export default class CurrentJob extends React.Component {
       return <Button className="disconnect" onClick={() => { this.sendCommand('disconnect'); }}>Disconnect</Button>;
     }
 
-    return <Button disabled>{this.props.bot.state}</Button>;
+    return <Button className="disconnect" disabled>{this.props.bot.state}</Button>;
   }
 
   renderPauseButton() {
@@ -50,9 +50,9 @@ export default class CurrentJob extends React.Component {
 
     switch (this.props.bot.state) {
       case 'paused':
-        return <Button onClick={() => { this.sendCommand('resume'); }}>Resume</Button>;
+        return <Button className="resume" onClick={() => { this.sendCommand('resume'); }}>Resume</Button>;
       case 'executingJob':
-        return <Button onClick={() => { this.sendCommand('pause'); }}>Pause</Button>;
+        return <Button className="pause" onClick={() => { this.sendCommand('pause'); }}>Pause</Button>;
       default:
         return <Button className="pause-resume" disabled>Pause/Resume</Button>;
     }
@@ -62,7 +62,7 @@ export default class CurrentJob extends React.Component {
     if (this.props.bot.currentJob === undefined) {
       return <Button className="cancel" bsStyle="danger" disabled>Cancel</Button>;
     }
-    return <Button bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>;
+    return <Button className="cancel" bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>;
   }
 
   findMostRecentUpload() {
@@ -151,7 +151,7 @@ export default class CurrentJob extends React.Component {
           </div>
           <br />
         </div>
-        <div className="progress-area">
+        <div className="progress-area" style={ this.props.bot.currentJob ? { height: '20px', marginTop: '-10px' } : { height: '40px', marginTop: '-20px' }}>
           {this.renderProgressBar()}
         </div>
       </div>

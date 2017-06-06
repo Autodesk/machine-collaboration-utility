@@ -265,7 +265,7 @@ a{
     }
     button{
       background-color: $button-color;
-      border: none;
+      border: solid 1px #ECECEB;
       padding: $standard-padding/3 $standard-padding/2;
       border-radius: 0;
       color: white;
@@ -290,6 +290,16 @@ a{
         background-color: $button-color;
       }
       &.pause-resume{
+        width: 100%;
+        color: $white;
+        background-color: $button-color;
+      }
+      &.pause{
+        width: 100%;
+        color: $white;
+        background-color: $button-color;
+      }
+      &.resume{
         width: 100%;
         color: $white;
         background-color: $button-color;
@@ -340,8 +350,8 @@ a{
 
 .progress-area{
   background-color: $white;
-  height: 40px;
-  margin-top: $standard-padding/-1.5;
+  // height: 40px;
+  // margin-top: $standard-padding/-1.5;
 }
 
 .header {

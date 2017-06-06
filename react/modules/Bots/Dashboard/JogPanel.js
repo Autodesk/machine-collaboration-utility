@@ -76,8 +76,7 @@ class Polygon extends React.Component {
         onMouseOver={this.startHover}
       >
         <polygon
-          style={{ fill, stroke: 'purple; stroke-width: 5' }}
-          stroke={'purple; stroke-width:5'}
+          style={{ fill }}
           points={this.props.points}
         />
         {text}
