@@ -70,7 +70,6 @@
     "request-promise": "^4.1.1",
     "scss-to-json": "^1.1.0",
     "sequelize": "^3.30.4",
-    "serialport": "^4.0.7",
     "should": "^11.1.0",
     "source-map-loader": "^0.1.5",
     "source-map-support": "^0.4.2",
@@ -79,7 +78,6 @@
     "timer-stopwatch": "^0.2.0",
     "underscore": "^1.8.3",
     "unzip2": "^0.2.5",
-    "usb": "^1.2.0",
     "uuid": "^3.0.1",
     "winston": "^2.2.0",
     "winston-daily-rotate-file": "^1.4.6"
