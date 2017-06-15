@@ -1,5 +1,5 @@
 language: node_js
-node_js: 8
+node_js: 7
 before_script:
   - echo "PORT=9000" >> .env
   - psql -c 'create database travis_ci_test;' -U postgres
