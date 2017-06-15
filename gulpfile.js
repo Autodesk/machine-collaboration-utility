@@ -4,14 +4,20 @@ try {
   console.log('No .env file found', ex);
 }
 
-
 const gulp = require('gulp');
 const sourcemaps = require('gulp-sourcemaps');
 const babel = require('gulp-babel');
 const nodemon = require('gulp-nodemon');
 const autoprefixer = require('gulp-autoprefixer');
 const mocha = require('gulp-mocha');
-const sass = require('gulp-sass');
+
+let sass;
+try {
+  sass = require('gulp-sass');
+} catch (ex) {
+
+}
+
 const webpack = require('gulp-webpack');
 const scssToJson = require('scss-to-json');
 const path = require('path');
@@ -59,6 +65,7 @@ gulp.task('build-sass-vars', [], () => {
 });
 
 gulp.task('build-scss', ['build-sass-vars'], () => {
+  if (!sass) { return; }
   return gulp.src(src.scss)
   .pipe(sass({
     outputStyle: 'compressed',
