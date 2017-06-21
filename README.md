@@ -3,8 +3,11 @@
 A generalized host for communicating with hardware.  
 Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible for other firmware and communication protocols.
 
-## How to use
-                                       
+## How to use  
+There are two ways to start using MCU
+
+### Download the Raspberry Pi image  
 Download the Raspberry Pi image [here](https://drive.google.com/uc?id=0B7k-k73S74JBV3A3Z2FSa00teWc&export=download) (mcu_v1_4_2.zip)  
 
+### Build it from scratch
 Interested in building from scratch? Check out instructions [here](BUILDING.md)
