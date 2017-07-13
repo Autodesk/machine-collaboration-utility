@@ -24,6 +24,7 @@ export default class App extends React.Component {
     this.openDropzone = this.openDropzone.bind(this);
     this.restart = this.restart.bind(this);
     this.updateBot = this.updateBot.bind(this);
+    this.onDrop = this.onDrop.bind(this);
     this.onDragEnter = this.onDragEnter.bind(this);
     this.onDragLeave = this.onDragLeave.bind(this);
   }
@@ -181,6 +182,12 @@ export default class App extends React.Component {
     });
     req.end(() => {
       // Called after the file is uploaded
+    });
+
+    document.body.style.background = '#F3F6FB';
+    document.getElementById("app").style.background = '#F3F6FB';
+    this.setState({
+      dropzoneActive: false,
     });
   }
 
