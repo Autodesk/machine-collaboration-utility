@@ -19,7 +19,6 @@ try {
 }
 
 const webpack = require('gulp-webpack');
-const scssToJson = require('scss-to-json');
 const path = require('path');
 const fs = require('fs-promise');
 
@@ -57,14 +56,7 @@ gulp.task('build-files', () => {
   .pipe(gulp.dest(dest.vendorJs));
 });
 
-gulp.task('build-sass-vars', [], () => {
-  const sassVariablePath = path.resolve(__dirname, './client/scss/variables.scss');
-  const sassVars = scssToJson(sassVariablePath);
-  const totalFile = `const sassVars = ${JSON.stringify(sassVars)};\nmodule.exports = sassVars;\n`;
-  fs.writeFileSync('./react/sassVars.js', totalFile, 'utf-8');
-});
-
-gulp.task('build-scss', ['build-sass-vars'], () => {
+gulp.task('build-scss', () => {
   if (!sass) { return; }
   return gulp.src(src.scss)
   .pipe(sass({
@@ -118,7 +110,7 @@ gulp.task(
   }
 );
 
-gulp.task('build-react-client', ['build-sass-vars'], () => {
+gulp.task('build-react-client', () => {
   return gulp.src(src.reactClient)
     .pipe(webpack({
       entry: ['babel-polyfill', src.reactClient],
@@ -151,7 +143,7 @@ gulp.task('build-react-client', ['build-sass-vars'], () => {
     .pipe(gulp.dest(dest.css));
 });
 
-gulp.task('build-react-server', ['build-sass-vars'], () => {
+gulp.task('build-react-server', () => {
   return gulp.src(src.reactServer)
   .pipe(sourcemaps.init())
   .pipe(

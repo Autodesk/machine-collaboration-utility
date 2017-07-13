@@ -3,8 +3,6 @@ import request from 'superagent';
 import path from 'path';
 import hexToHsl from 'hex-to-hsl';
 
-const sassVars = require('../../../sassVars');
-
 class Polygon extends React.Component {
   constructor(props) {
     super(props);
@@ -92,7 +90,7 @@ export default class JogPanel extends React.Component {
 
   render() {
     const white = '#ffffff';
-    const hue = sassVars['$primary-hue'];
+    const hue = 210;
     const primary =           `hsl(${hue}, 40%, 40%)`;
     const primaryMedium =     `hsl(${hue}, 40%, 45%)`;
     const primaryLight =      `hsl(${hue}, 40%, 50%)`;
