@@ -264,6 +264,7 @@ a{
       margin-bottom: 0;
     }
     button{
+      width: 100%;
       background-color: $button-color;
       border: solid 1px #ECECEB;
       padding: $standard-padding/3 $standard-padding/2;
@@ -349,7 +350,7 @@ a{
 }
 
 .progress-area{
-  background-color: $white;
+  // background-color: $white;
   // height: 40px;
   // margin-top: $standard-padding/-1.5;
 }
