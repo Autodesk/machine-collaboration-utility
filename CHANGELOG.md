@@ -87,3 +87,9 @@
 
 ### Bug-Fixes
   * Fixed hostname resolution on the Raspberry Pi
+  
+## 1.5.0 (2017-07-17)
+  * Re-styled UI for more responsive experience
+  * UI now auto-selects the first bot, if no bot is selected
+  * Running jobs are canceled if the bot is disconnected
+  * Added styles for if a file is dragged onto the UI
