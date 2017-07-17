@@ -1,7 +1,6 @@
 import React from 'react';
 import request from 'superagent';
 import path from 'path';
-import hexToHsl from 'hex-to-hsl';
 
 class Polygon extends React.Component {
   constructor(props) {
