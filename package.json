@@ -41,7 +41,6 @@
     "gulp-sourcemaps": "^2.6.0",
     "gulp-webpack": "^1.5.0",
     "heartbeater": "^0.1.0",
-    "hex-to-hsl": "^1.0.2",
     "ip": "^1.1.3",
     "is-browser": "^2.0.1",
     "javascript-state-machine": "^2.3.5",
