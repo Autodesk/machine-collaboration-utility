@@ -241,21 +241,6 @@ a{
         border: none;
         padding-left: $standard-padding/2;
       }
-      span{
-        color: $button-color;
-        background-color: $gray-light;
-        border-radius: 100%;
-        padding: 0 2px;
-        width: $standard-padding/2;
-        height: $standard-padding/2;
-        display: inline-block;
-        &.active{
-          color: $red;
-          background-color: $red;
-        }
-        background-color: $gray-light;
-        border: none;
-      }
       .temp-title,.temp-fraction{
         padding-top: $standard-padding/2;
       }
