@@ -18,6 +18,7 @@ export default class App extends React.Component {
       this.state = props.params;
     }
 
+    this.state.appColor = 210;
     this.state.bots = this.appendConductorPlayers(this.state.bots);
     this.state.dropzoneActive = false;
 

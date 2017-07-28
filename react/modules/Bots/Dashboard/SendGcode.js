@@ -1,6 +1,9 @@
 import React from 'react';
 import request from 'superagent';
 
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
+import HoverAndClick from './HoverAndClick';
+
 export default class SendGcode extends React.Component {
   constructor(props) {
     super(props);
@@ -16,19 +19,25 @@ export default class SendGcode extends React.Component {
     .send({ command: 'processGcode' })
     .send({ gcode })
     .set('Accept', 'application/json')
-    .end();
+    .end(() => {
+      this.gcodeInput.value = '';
+    });
   }
 
   render() {
+    const connected = botMetaStates.connected.includes(this.props.bot.state);
+
     return (
       <div className="send-gcode">
         <form onSubmit={this.processGcode}>
           <div className="row">
             <div className="col-sm-7 no-padding-right">
-              <input placeholder="type gcode here" type="text" name="gcode"/>
+              <input ref={(gcodeInput) => { this.gcodeInput = gcodeInput; }} placeholder="type gcode here" type="text" name="gcode" />
             </div>
             <div className="col-sm-5">
-              <input type="submit" value="SEND GCODE" />
+              <HoverAndClick disabled={!connected} color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+                <input type="submit" value="SEND GCODE" />
+              </HoverAndClick>
             </div>
           </div>
         </form>

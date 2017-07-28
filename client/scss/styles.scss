@@ -305,11 +305,11 @@ a{
         color: $white;
         background-color: $button-color;
       }
-      &:hover{
-        transition: 0.2s;
-        background-color: $button-hover;
-        outline: none;
-      }
+      // &:hover{
+      //   transition: 0.2s;
+      //   background-color: $button-hover;
+      //   outline: none;
+      // }
       &:focus{
         background-color: $button-focus;
         outline: none;

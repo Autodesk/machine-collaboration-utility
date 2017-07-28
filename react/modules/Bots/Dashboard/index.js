@@ -40,29 +40,29 @@ export default class Dashboard extends React.Component {
           <div className="container no-padding-mobile">
             <div id="left" className="col-md-6">
               <div className="area">
-                <JogPanel endpoint={this.props.endpoint}/>
+                <JogPanel appColor={this.props.appColor} endpoint={this.props.endpoint} bot={this.props.bot} />
               </div>
               <div className="area">
-                <HomeAxes endpoint={this.props.endpoint} bot={this.props.bot}/>
+                <HomeAxes appColor={this.props.appColor} endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
               <div className="area">
-                <SendGcode endpoint={this.props.endpoint} bot={this.props.bot}/>
+                <SendGcode appColor={this.props.appColor} endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
             </div>
             <div id="right" className="col-md-6">
               <div className="area">
-                <CurrentJob files={this.props.files} endpoint={this.props.endpoint} bot={this.props.bot}/>
+                <CurrentJob appColor={this.props.appColor} files={this.props.files} endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
               <div className="area row">
-                <div className="col-sm-7 no-padding">
-                  <PositionFeedback endpoint={this.props.endpoint} bot={this.props.bot}/>
+                <div className="col-sm-7" style={{padding: '2px'}}>
+                  <PositionFeedback appColor={this.props.appColor} endpoint={this.props.endpoint} bot={this.props.bot}/>
                 </div>
-                <div className="col-sm-5 no-padding">
-                  <DisableMotors endpoint={this.props.endpoint}/>
+                <div className="col-sm-5" style={{padding: '5px'}}>
+                  <DisableMotors appColor={this.props.appColor} endpoint={this.props.endpoint} />
                 </div>
               </div>
               <div className="area">
-                <Temp endpoint={this.props.endpoint} bot={this.props.bot}/>
+                <Temp appColor={this.props.appColor} endpoint={this.props.endpoint} bot={this.props.bot}/>
               </div>
             </div>
             {

@@ -1,7 +1,8 @@
 import React from 'react';
 import request from 'superagent';
 import ProgressBar from 'react-bootstrap/lib/ProgressBar';
-import Button from 'react-bootstrap/lib/Button';
+
+import HoverAndClick from './HoverAndClick';
 import File from '../../Files/File';
 
 import { metaStates as botMetaStates } from '../botFsmDefinitions';
@@ -30,39 +31,82 @@ export default class CurrentJob extends React.Component {
 
   renderConnectButton() {
     if (this.props.bot.state === 'uninitialized') {
-      return <Button onClick={() => { this.sendCommand('discover'); }}>Detect</Button>;
+      return (
+        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+          <button onClick={() => this.sendCommand('discover') }>Detect</button>
+        </HoverAndClick>
+      );
     }
 
     if (this.props.bot.state === 'uninitialized' || this.props.bot.state === 'ready') {
-      return <Button className="connect" onClick={() => { this.sendCommand('connect') } }>Connect</Button>;
+      return (
+        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+          <button className="connect" onClick={() => this.sendCommand('connect')}>
+            Connect
+          </button>
+        </HoverAndClick>
+      );
     }
     if (botMetaStates.connected.includes(this.props.bot.state)) {
-      return <Button className="disconnect" onClick={() => { this.sendCommand('disconnect'); }}>Disconnect</Button>;
+      return (
+        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+          <button className="disconnect" onClick={() => { this.sendCommand('disconnect'); }}>Disconnect</button>
+        </HoverAndClick>
+      );
     }
 
-    return <Button className="disconnect" disabled>{this.props.bot.state}</Button>;
+    return (
+      <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+        <button className="disconnect" disabled>{this.props.bot.state}</button>
+      </HoverAndClick>
+    );
   }
 
   renderPauseButton() {
     if (this.props.bot.currentJob === undefined) {
-      return <Button className="pause-resume" disabled>Pause</Button>;
+      return (
+        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+          <button className="pause-resume" disabled>Pause</button>
+        </HoverAndClick>
+      );
     }
 
     switch (this.props.bot.state) {
       case 'paused':
-        return <Button className="resume" onClick={() => { this.sendCommand('resume'); }}>Resume</Button>;
+        return (
+          <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+            <button className="resume" onClick={() => { this.sendCommand('resume'); }}>Resume</button>
+          </HoverAndClick>
+        );
       case 'executingJob':
-        return <Button className="pause" onClick={() => { this.sendCommand('pause'); }}>Pause</Button>;
+        return (
+          <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+            <button className="pause" onClick={() => { this.sendCommand('pause'); }}>Pause</button>
+          </HoverAndClick>
+        );
       default:
-        return <Button className="pause-resume" disabled>Pause/Resume</Button>;
+        return (        
+          <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+            <button className="pause-resume" disabled>Pause/Resume</button>
+          </HoverAndClick>
+        );
     }
   }
 
   renderCancelButton() {
     if (this.props.bot.currentJob === undefined) {
-      return <Button className="cancel" bsStyle="danger" disabled>Cancel</Button>;
+      return (        
+        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+          <button className="cancel" disabled>Cancel</button>
+        </HoverAndClick>
+      );
     }
-    return <Button className="cancel" bsStyle="danger" onClick={this.cancelJob}>Cancel</Button>;
+    
+    return (
+      <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+        <button className="cancel" onClick={this.cancelJob}>Cancel</button>
+      </HoverAndClick>
+    );
   }
 
   findMostRecentUpload() {
@@ -103,14 +147,16 @@ export default class CurrentJob extends React.Component {
         const buttonReady = this.props.bot.state === 'idle';
         return (
           <div>
-            <Button
-              className="pause-resume"
-              disabled={!buttonReady}
-              style={{ width: '100%', backgroundColor: buttonReady ? '#90bb95' : '#9FA1A4' }}
-              onClick={() => this.printFile(newestFile.uuid)}
-            >
-            Print "{newestFile.name}"
-            </Button>
+            <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+              <button
+                className="pause-resume"
+                disabled={!buttonReady}
+                style={{ width: '100%', backgroundColor: buttonReady ? '#90bb95' : '#9FA1A4' }}
+                onClick={() => this.printFile(newestFile.uuid)}
+              >
+              Print "{newestFile.name}"
+              </button>
+            </HoverAndClick>
           </div>
         );
       }
@@ -128,7 +174,6 @@ export default class CurrentJob extends React.Component {
       <div style={{ textAlign: 'center' }}>
         <span style={percentTextStyle}>{`${percentComplete}%`} </span>
           <ProgressBar style={{ backgroundImage: 'none', backgroundColor: '#AEAEAE' }} active now={percentComplete} key={0} />
-          {/*<ProgressBar bsStyle="success" now={100 - percentComplete} key={1} />*/}
       </div>
     );
   }
@@ -151,6 +196,7 @@ export default class CurrentJob extends React.Component {
           </div>
           <br />
         </div>
+        <div style={{padding: "2px"}} />
         <div className="progress-area" style={ this.props.bot.currentJob ? { height: '20px', marginTop: '-10px' } : { height: '40px', marginTop: '-20px' }}>
           {this.renderProgressBar()}
         </div>

@@ -87,7 +87,7 @@ export default class Bot extends React.Component {
       <div className="container no-padding-mobile">
         <Tabs id="bot-pages" activeKey={this.state.selectedTab} onSelect={this.tabSelectEvent}>
           <Tab eventKey={1} title="Dashboard">
-            <Dashboard files={this.props.files} endpoint={endpoint} bot={this.props.bot}/>
+            <Dashboard appColor={this.props.appColor} files={this.props.files} endpoint={endpoint} bot={this.props.bot}/>
           </Tab>
           <Tab eventKey={2} title="Terminal">
             <Terminal endpoint={endpoint} bot={this.props.bot}/>

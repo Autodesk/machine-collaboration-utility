@@ -2,10 +2,44 @@ import React from 'react';
 import request from 'superagent';
 import _ from 'lodash';
 
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
+import HoverAndClick from './HoverAndClick';
+
 export default class HomeAxes extends React.Component {
-  constructor(props) {
-    super(props);
+  startHover() {
+    const color = Object.assign({}, this.state.color);
+    color.l += 10;
+    this.setState({ color });
   }
+
+  leaveHover() {
+    const color = Object.assign({}, this.state.color);
+    color.l -= 10;
+    this.setState({ color });
+  }
+
+  handleClick(event) {
+    event.preventDefault();
+    request.post(this.props.endpoint)
+    .send({ command: 'jog' })
+    .send({ axis: this.props.axis })
+    .send({ amount: this.props.amount })
+    .set('Accept', 'application/json')
+    .end();
+
+    setTimeout(() => {
+      const hslRegex = /hsl\(\s*(\d+)\s*,\s*(\d*(?:\.\d+)?%)\s*,\s*(\d*(?:\.\d+)?%)\)/ig;
+      const hsl = hslRegex.exec(this.props.fillColor);
+      const borderColor = Object.assign({}, this.state.borderColor);
+      borderColor.l = Number(hsl[3].split('%')[0]) - 10;
+      this.setState({ borderColor });
+    }, this.fadeTime);
+
+    const borderColor = Object.assign({}, this.state.borderColor);
+    borderColor.l = 80;
+    this.setState({ borderColor });
+  }
+
 
   homeAxes(inputAxes) {
     const axes = { x: false, y: false, z: false };
@@ -37,21 +71,39 @@ export default class HomeAxes extends React.Component {
   }
 
   render() {
+    const connected = botMetaStates.connected.includes(this.props.bot.state);
+
     return (
       <div>
         <div className="row">
           <div className="area-padding home-area max-area-width">
             <div className="col-xs-3 no-padding">
-              <button onClick={() => this.homeAxes({ x: true })}>Home X</button>
+              <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+                <button disabled={!connected} onClick={() => this.homeAxes({ x: true })}>
+                  Home X
+                </button>
+              </HoverAndClick>
             </div>
             <div className="col-xs-3 no-padding">
-            <button onClick={() => this.homeAxes({ y: true })}>Home Y</button>
+              <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+                <button disabled={!connected} onClick={() => this.homeAxes({ y: true })}>
+                  Home Y
+                </button>
+              </HoverAndClick>
             </div>
             <div className="col-xs-3 no-padding">
-            <button onClick={() => this.homeAxes({ z: true })}>Home Z</button>
+              <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+                <button disabled={!connected} onClick={() => this.homeAxes({ z: true })}>
+                  Home Z
+                </button>
+              </HoverAndClick>
             </div>
             <div className="col-xs-3 no-padding">
-            <button className="home-all" onClick={() => this.homeAxes({ x: true, y: true, z: true })}>Home All</button>
+              <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+                <button disabled={!connected} onClick={() => this.homeAxes({ x: true, y: true, z: true })}>
+                  Home All
+                </button>
+              </HoverAndClick>
             </div>
           </div>
         </div>
