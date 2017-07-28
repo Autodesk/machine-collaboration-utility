@@ -36,7 +36,9 @@ export default class HoverAndClick extends React.Component {
   }
 
   handleClick(e) {
-    e.preventDefault();
+    if (!this.props.allowDefault) {
+      e.preventDefault();
+    }
 
     setTimeout(() => {
       const borderColor = Object.assign({}, this.props.color);
