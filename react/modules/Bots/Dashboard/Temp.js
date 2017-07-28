@@ -24,7 +24,9 @@ export default class Temp extends React.Component {
       .send({ command: 'processGcode' })
       .send({ gcode: `M104 S${event.target.setpoint.value}` })
       .set('Accept', 'application/json')
-      .end();
+      .end(() => {
+        this.nozzleTempInput.value = '';
+      });
     }
   }
 
@@ -39,7 +41,9 @@ export default class Temp extends React.Component {
       .send({ command: 'processGcode' })
       .send({ gcode: `M140 S${event.target.setpoint.value}` })
       .set('Accept', 'application/json')
-      .end();
+      .end(() => {
+        this.bedTempInput.value = '';
+      });
     }
   }
 
@@ -103,7 +107,14 @@ export default class Temp extends React.Component {
     );
   }
 
+  // Return true if setpoint greater than 0
+  isHot(sensor) {
+    return Number(sensor.setpoint) > 0;
+  }
+
   render() {
+    const connected = botMetaStates.connected.includes(this.props.bot.state);
+
     const t0Disabled = this.props.bot.status.sensors.t0 === undefined ||
     Number.isNaN(Number(this.props.bot.status.sensors.t0.setpoint));
     const b0Disabled = this.props.bot.status.sensors.b0 === undefined ||
@@ -116,13 +127,16 @@ export default class Temp extends React.Component {
           <h3>TEMPERATURE CONTROL</h3>
         <div className="row temperature">
           <div className="col-xs-3">
-            <p className="temp-title"><span></span> Extruder</p>
+            <p className="temp-title">
+              <span style={{ fontSize: '20px', color: `hsl(0, ${this.isHot(t0) ? 60 : 5}%, 40%)` }}>&#x25cf;</span>
+              Extruder
+            </p>
           </div>
           <div className="col-xs-2">
             <form onSubmit={this.setNozzleTemp}>
               <div className="row">
-                <input type="text" placeholder="X°C" name="setpoint" className="" disabled={t0Disabled}/>
-                  <input type="hidden" value="" className="col-sm-1" disabled={t0Disabled}/>
+                <input type="text" ref={(nozzleTempInput) => { this.nozzleTempInput = nozzleTempInput; }} placeholder="X°C" name="setpoint" className="" disabled={t0Disabled} />
+                <input type="hidden" value="" className="col-sm-1" disabled={t0Disabled} />
               </div>
             </form>
           </div>
@@ -135,13 +149,16 @@ export default class Temp extends React.Component {
         </div>
         <div className="row temperature">
           <div className="col-xs-3">
-            <p className="temp-title"><span></span> Bed</p>
+            <p className="temp-title">
+              <span style={{ fontSize: '20px', color: `hsl(0, ${this.isHot(b0) ? 60 : 5}%, 40%)` }}>&#x25cf;</span>
+              Bed
+            </p>
           </div>
           <div className="col-xs-2">
             <form onSubmit={this.setBedTemp}>
               <div className="row">
-                <input type="text" placeholder="X°C" name="setpoint" className="" disabled={b0Disabled}/>
-                  <input type="hidden" value="" className="col-sm-1 fa fa-repeat" disabled={b0Disabled}/>
+                <input type="text" ref={(bedTempInput) => { this.bedTempInput = bedTempInput; }} placeholder="X°C" name="setpoint" className="" disabled={b0Disabled} />
+                <input type="hidden" value="" className="col-sm-1 fa fa-repeat" disabled={b0Disabled} />
               </div>
             </form>
           </div>
