@@ -347,6 +347,7 @@ a{
 .bot-list-area{
   background-color: $primary-super-light;;
   height: 100%;
+  padding-top: 65px;
 }
 
 .progress-area{
@@ -358,6 +359,8 @@ a{
 .header {
   background-color: #fff;
   height: 65px;
+  position: fixed;
+  width: 100%;
   a {
     color: #373435;
   }
