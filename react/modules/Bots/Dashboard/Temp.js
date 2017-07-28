@@ -2,6 +2,7 @@ import React from 'react';
 import request from 'superagent';
 
 import HoverAndClick from './HoverAndClick';
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
 export default class Temp extends React.Component {
   constructor(props) {
@@ -51,48 +52,52 @@ export default class Temp extends React.Component {
   }
 
   renderNozzleOnOff() {
+    const connected = botMetaStates.connected.includes(this.props.bot.state);
+
     const t0 = this.props.bot.status.sensors.t0 === undefined ?
       { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.t0;
 
     if (Number(t0.setpoint) === 0) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-          <button onClick={() => { this.processGcode(`M104 S${this.props.bot.settings.tempE}`) } }>Turn On ({this.props.bot.settings.tempE}&#x2103;)</button>
+        <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+          <button disabled={!connected} onClick={() => { this.processGcode(`M104 S${this.props.bot.settings.tempE}`) } }>Turn On ({this.props.bot.settings.tempE}&#x2103;)</button>
         </HoverAndClick>
       );
     } else if (Number(t0.setpoint) > 0 || Number(t0.setpoint < 0)) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-          <button onClick={() => { this.processGcode('M104 S0') } }>Turn Off (0&#x2103;)</button>
+        <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+          <button disabled={!connected} onClick={() => { this.processGcode('M104 S0') } }>Turn Off (0&#x2103;)</button>
         </HoverAndClick>
       );
     }
     return (
-      <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+      <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
         <button disabled>On/Off</button>
       </HoverAndClick>
     );
   }
 
   renderBedOnOff() {
+    const connected = botMetaStates.connected.includes(this.props.bot.state);
+
     const b0 = this.props.bot.status.sensors.b0 === undefined ?
       { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.b0;
 
     if (Number(b0.setpoint) === 0) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-          <button onClick={() => { this.processGcode(`M140 S${this.props.bot.settings.tempB}`) } }>Turn On ({this.props.bot.settings.tempB}&#x2103;)</button>
+        <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+          <button disabled={!connected} onClick={() => { this.processGcode(`M140 S${this.props.bot.settings.tempB}`) } }>Turn On ({this.props.bot.settings.tempB}&#x2103;)</button>
         </HoverAndClick>
       );
     } else if (Number(b0.setpoint) > 0 || Number(b0.setpoint < 0)) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-          <button onClick={() => { this.processGcode('M140 S0') } }>Turn Off (0&#x2103;)</button>
+        <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+          <button disabled={!connected} onClick={() => { this.processGcode('M140 S0') } }>Turn Off (0&#x2103;)</button>
         </HoverAndClick>
       );
     }
     return (
-      <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+      <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
         <button disabled>On/Off</button>
       </HoverAndClick>
     );

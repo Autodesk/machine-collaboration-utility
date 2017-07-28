@@ -20,7 +20,7 @@ export default class HoverAndClick extends React.Component {
     this.startHover = this.startHover.bind(this);
     this.leaveHover = this.leaveHover.bind(this);
   }
-  
+
   componentWillReceiveProps(nextProps) {
     const borderColor = Object.assign({}, nextProps.color);
     borderColor.l -= 10;

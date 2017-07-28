@@ -58,7 +58,7 @@ export default class Dashboard extends React.Component {
                   <PositionFeedback appColor={this.props.appColor} endpoint={this.props.endpoint} bot={this.props.bot}/>
                 </div>
                 <div className="col-sm-5" style={{padding: '5px'}}>
-                  <DisableMotors appColor={this.props.appColor} endpoint={this.props.endpoint} />
+                  <DisableMotors appColor={this.props.appColor} endpoint={this.props.endpoint} bot={this.props.bot} />
                 </div>
               </div>
               <div className="area">

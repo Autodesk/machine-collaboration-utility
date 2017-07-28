@@ -23,24 +23,27 @@ export default class CurrentJob extends React.Component {
   }
 
   cancelJob() {
-    request.post(this.props.endpoint)
-    .send({ command: 'cancel' })
-    .set('Accept', 'application/json')
-    .end();
+    const reply = confirm('Are you sure you want to cancel the job?');
+    if (reply) {
+      request.post(this.props.endpoint)
+      .send({ command: 'cancel' })
+      .set('Accept', 'application/json')
+      .end();
+    }
   }
 
   renderConnectButton() {
     if (this.props.bot.state === 'uninitialized') {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+        <HoverAndClick color={{ h: this.props.appColor, s: 5, l: 40 }} >
           <button onClick={() => this.sendCommand('discover') }>Detect</button>
         </HoverAndClick>
       );
     }
 
-    if (this.props.bot.state === 'uninitialized' || this.props.bot.state === 'ready') {
+    if (this.props.bot.state === 'ready') {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+        <HoverAndClick color={{ h: 120, s: 40, l: 40 }} >
           <button className="connect" onClick={() => this.sendCommand('connect')}>
             Connect
           </button>
@@ -49,8 +52,21 @@ export default class CurrentJob extends React.Component {
     }
     if (botMetaStates.connected.includes(this.props.bot.state)) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-          <button className="disconnect" onClick={() => { this.sendCommand('disconnect'); }}>Disconnect</button>
+        <HoverAndClick color={{ h: 0, s: 40, l: 40 }} >
+          <button
+            className="disconnect"
+            onClick={() => {
+              let disconnect = true;
+              if (this.props.bot.currentJob) {
+                disconnect = confirm('Are you sure you want to disconnect?\n Disconnecting will cancel the current job.');
+              }
+              if (disconnect) {
+                this.sendCommand('disconnect');
+              }
+            }}
+          >
+            Disconnect
+          </button>
         </HoverAndClick>
       );
     }
@@ -65,7 +81,7 @@ export default class CurrentJob extends React.Component {
   renderPauseButton() {
     if (this.props.bot.currentJob === undefined) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+        <HoverAndClick color={{ h: 60, s: 5, l: 40 }} >
           <button className="pause-resume" disabled>Pause</button>
         </HoverAndClick>
       );
@@ -74,19 +90,19 @@ export default class CurrentJob extends React.Component {
     switch (this.props.bot.state) {
       case 'paused':
         return (
-          <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+          <HoverAndClick color={{ h: 120, s: 40, l: 40 }} >
             <button className="resume" onClick={() => { this.sendCommand('resume'); }}>Resume</button>
           </HoverAndClick>
         );
       case 'executingJob':
         return (
-          <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+          <HoverAndClick color={{ h: 60, s: 40, l: 40 }} >
             <button className="pause" onClick={() => { this.sendCommand('pause'); }}>Pause</button>
           </HoverAndClick>
         );
       default:
-        return (        
-          <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+        return (
+          <HoverAndClick color={{ h: this.props.appColor, s: 5, l: 40 }} >
             <button className="pause-resume" disabled>Pause/Resume</button>
           </HoverAndClick>
         );
@@ -95,15 +111,15 @@ export default class CurrentJob extends React.Component {
 
   renderCancelButton() {
     if (this.props.bot.currentJob === undefined) {
-      return (        
-        <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+      return (
+        <HoverAndClick color={{ h: 0, s: 5, l: 40 }} >
           <button className="cancel" disabled>Cancel</button>
         </HoverAndClick>
       );
     }
-    
+
     return (
-      <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+      <HoverAndClick color={{ h: 0, s: 40, l: 40 }} >
         <button className="cancel" onClick={this.cancelJob}>Cancel</button>
       </HoverAndClick>
     );
@@ -140,6 +156,7 @@ export default class CurrentJob extends React.Component {
   }
 
   renderProgressBar() {
+    const connected = botMetaStates.connected.includes(this.props.bot.state);
     if (this.props.bot.currentJob === undefined) {
       // Render the most recent file
       const newestFile = this.findMostRecentUpload();
@@ -147,7 +164,7 @@ export default class CurrentJob extends React.Component {
         const buttonReady = this.props.bot.state === 'idle';
         return (
           <div>
-            <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
+            <HoverAndClick color={{ h: 120, s: connected ? 40 : 5, l: 40 }} >
               <button
                 className="pause-resume"
                 disabled={!buttonReady}

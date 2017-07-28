@@ -2,6 +2,7 @@ import React from 'react';
 import request from 'superagent';
 import _ from 'lodash';
 
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
 import HoverAndClick from './HoverAndClick';
 
 export default class DisableMotors extends React.Component {
@@ -34,33 +35,35 @@ export default class DisableMotors extends React.Component {
   }
 
   render() {
+    const connected = botMetaStates.connected.includes(this.props.bot.state);
+
     return (
       <div className="disable-motors">
         <h3>DISABLE MOTORS</h3>
         <div className="">
           <div className="col-xs-3 no-padding">
-            <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-              <button onClick={() => this.disableAxes({ x: true })}>X</button>
+            <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+              <button disabled={!connected} onClick={() => this.disableAxes({ x: true })}>X</button>
             </HoverAndClick>
           </div>
           <div className="col-xs-3 no-padding">
-            <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-              <button onClick={() => this.disableAxes({ y: true })}>Y</button>
+            <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+              <button disabled={!connected} onClick={() => this.disableAxes({ y: true })}>Y</button>
             </HoverAndClick>
           </div>
           <div className="col-xs-3 no-padding">
-            <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-              <button onClick={() => this.disableAxes({ z: true })}>Z</button>
+            <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+              <button disabled={!connected} onClick={() => this.disableAxes({ z: true })}>Z</button>
             </HoverAndClick>
           </div>
           <div className="col-xs-3 no-padding">
-            <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-              <button onClick={() => this.disableAxes({ e: true })}>E</button>
+            <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+              <button disabled={!connected} onClick={() => this.disableAxes({ e: true })}>E</button>
             </HoverAndClick>
           </div>
           <div className="col-sm-12 no-padding">
-            <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }} >
-              <button className="full-width" onClick={() => this.disableAxes({ x: true, y: true, z: true, e: true })}>All</button>
+            <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+              <button disabled={!connected} className="full-width" onClick={() => this.disableAxes({ x: true, y: true, z: true, e: true })}>All</button>
             </HoverAndClick>
           </div>
         </div>
