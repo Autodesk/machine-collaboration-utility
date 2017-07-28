@@ -50,6 +50,24 @@ export default class CurrentJob extends React.Component {
         </HoverAndClick>
       );
     }
+    if (this.props.bot.state === 'connecting') {
+      return (
+        <HoverAndClick color={{ h: 120, s: 20, l: 40 }} >
+          <button className="connect" disabled>
+            Connecting...
+          </button>
+        </HoverAndClick>
+      );
+    }
+    if (this.props.bot.state === 'disconnecting') {
+      return (
+        <HoverAndClick color={{ h: 0, s: 20, l: 40 }} >
+          <button className="connect" disabled>
+            Disconnecting...
+          </button>
+        </HoverAndClick>
+      );
+    }
     if (botMetaStates.connected.includes(this.props.bot.state)) {
       return (
         <HoverAndClick color={{ h: 0, s: 40, l: 40 }} >
@@ -98,6 +116,18 @@ export default class CurrentJob extends React.Component {
         return (
           <HoverAndClick color={{ h: 60, s: 40, l: 40 }} >
             <button className="pause" onClick={() => { this.sendCommand('pause'); }}>Pause</button>
+          </HoverAndClick>
+        );
+      case 'pausing':
+        return (
+          <HoverAndClick color={{ h: 60, s: 20, l: 40 }} >
+            <button className="pause" disabled>Pausing...</button>
+          </HoverAndClick>
+        );
+      case 'resuming':
+        return (
+          <HoverAndClick color={{ h: 120, s: 20, l: 40 }} >
+            <button className="pause" disabled>Resuming...</button>
           </HoverAndClick>
         );
       default:
