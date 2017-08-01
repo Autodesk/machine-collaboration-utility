@@ -11,15 +11,15 @@ const info = {
   fileTypes: ['.gcode'],
   vidPid: [
     {
-      vid: 0x2c99,
-      pid: 0x0001,
+      vid: 0x2a03,
+      pid: 0x0042,
     },
   ],
   baudrate: 115200,
 };
 
 const settings = {
-  name: 'Prusa i3',
+  name: 'Clever',
   tempE: 220,
   tempB: 55,
   model: __dirname.split('/')[__dirname.split('/').length - 1],
