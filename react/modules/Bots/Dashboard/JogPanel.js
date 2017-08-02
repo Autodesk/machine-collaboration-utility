@@ -85,10 +85,10 @@ class Polygon extends React.Component {
 
     return (
       <g
-        className={`${this.props.connected ? 'jog' : ''} no-select`}
-        onClick={this.props.connected ? this.handleClick : null}
-        onMouseOut={this.props.connected ? this.leaveHover: null}
-        onMouseOver={this.props.connected ? this.startHover: null}
+        className={`${this.props.jogable ? 'jog' : ''} no-select`}
+        onClick={this.props.jogable ? this.handleClick : null}
+        onMouseOut={this.props.jogable ? this.leaveHover: null}
+        onMouseOver={this.props.jogable ? this.startHover: null}
       >
         <polygon
           style={{ fill, transition: `${this.fadeTime}ms`, transitionTimingFunction: 'ease', stroke: border, strokeWidth: '3px' }}
@@ -106,8 +106,8 @@ export default class JogPanel extends React.Component {
   }
 
   render() {
-    const connected = botMetaStates.connected.includes(this.props.bot.state);
-    const botSaturation = connected ? 40 : 5;
+    const jogable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
+    const botSaturation = jogable ? 40 : 5;
 
     const primary =           { h: this.props.appColor, s: botSaturation, l: 40 };
     const primaryMedium =     { h: this.props.appColor, s: botSaturation, l: 45 };
@@ -130,40 +130,40 @@ export default class JogPanel extends React.Component {
         <svg version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 536 360">
           <g style={{ disabled: true }}>
             <g>
-              <Polygon fillColor={primary} endpoint={this.props.endpoint} connected={connected} points="329.5,27.1 38.9,27.1 66.9,55.1 301.5,55.1" axis={'y'} amount={100} />
-              <Polygon fillColor={primary} endpoint={this.props.endpoint} connected={connected} points="61.9,294.7 61.9,60 34,32.1 34,322.6" axis={'x'} amount={-100} />
-              <Polygon fillColor={primary} endpoint={this.props.endpoint} connected={connected} points="334.4,32.1 306.5,60 306.5,294.7 334.4,322.6" axis={'x'} amount={100} />
-              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} connected={connected} points="294.5,62.1 73.8,62.1 101.8,90 266.6,90" axis={'y'} amount={10} />
-              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} connected={connected} points="96.9,259.8 96.9,95 68.9,67 68.9,287.7" axis={'x'} amount={-10} />
-              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} connected={connected} points="299.5,67 271.5,95 271.5,259.8 299.5,287.7" axis={'x'} amount={10} />
-              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} connected={connected} points="259.6,97 108.8,97 136.7,125 231.7,125" axis={'y'} amount={1} />
-              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} connected={connected} points="131.8,224.8 131.8,129.9 103.8,102 103.8,252.8" axis={'x'} amount={-1} />
-              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} connected={connected} points="264.5,102 236.6,129.9 236.6,224.8 264.5,252.8" axis={'x'} amount={1} />
-              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} connected={connected} points="224.7,131.9 143.7,131.9 171.7,159.9 196.7,159.9" axis={'y'} amount={0.1} />
-              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} connected={connected} points="166.7,189.9 166.7,164.8 138.8,136.9 138.8,217.8" axis={'x'} amount={-0.1} />
-              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} connected={connected} points="229.6,136.9 201.7,164.8 201.7,189.9 229.6,217.8" axis={'x'} amount={0.1} />
-              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} connected={connected} points="196.7,194.8 171.7,194.8 143.7,222.8 224.7,222.8" axis={'y'} amount={-0.1} />
-              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} connected={connected} points="231.7,229.8 136.7,229.8 108.8,257.7 259.6,257.7" axis={'y'} amount={-1} />
-              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} connected={connected} points="266.6,264.7 101.8,264.7 73.8,292.7 294.5,292.7" axis={'y'} amount={-10} />
-              <Polygon fillColor={primary} endpoint={this.props.endpoint} connected={connected} points="301.5,299.6 66.9,299.6 38.9,327.6 329.5,327.6" axis={'y'} amount={-100} />
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} jogable={jogable} points="329.5,27.1 38.9,27.1 66.9,55.1 301.5,55.1" axis={'y'} amount={100} />
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} jogable={jogable} points="61.9,294.7 61.9,60 34,32.1 34,322.6" axis={'x'} amount={-100} />
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} jogable={jogable} points="334.4,32.1 306.5,60 306.5,294.7 334.4,322.6" axis={'x'} amount={100} />
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} jogable={jogable} points="294.5,62.1 73.8,62.1 101.8,90 266.6,90" axis={'y'} amount={10} />
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} jogable={jogable} points="96.9,259.8 96.9,95 68.9,67 68.9,287.7" axis={'x'} amount={-10} />
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} jogable={jogable} points="299.5,67 271.5,95 271.5,259.8 299.5,287.7" axis={'x'} amount={10} />
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} jogable={jogable} points="259.6,97 108.8,97 136.7,125 231.7,125" axis={'y'} amount={1} />
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} jogable={jogable} points="131.8,224.8 131.8,129.9 103.8,102 103.8,252.8" axis={'x'} amount={-1} />
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} jogable={jogable} points="264.5,102 236.6,129.9 236.6,224.8 264.5,252.8" axis={'x'} amount={1} />
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} jogable={jogable} points="224.7,131.9 143.7,131.9 171.7,159.9 196.7,159.9" axis={'y'} amount={0.1} />
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} jogable={jogable} points="166.7,189.9 166.7,164.8 138.8,136.9 138.8,217.8" axis={'x'} amount={-0.1} />
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} jogable={jogable} points="229.6,136.9 201.7,164.8 201.7,189.9 229.6,217.8" axis={'x'} amount={0.1} />
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} jogable={jogable} points="196.7,194.8 171.7,194.8 143.7,222.8 224.7,222.8" axis={'y'} amount={-0.1} />
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} jogable={jogable} points="231.7,229.8 136.7,229.8 108.8,257.7 259.6,257.7" axis={'y'} amount={-1} />
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} jogable={jogable} points="266.6,264.7 101.8,264.7 73.8,292.7 294.5,292.7" axis={'y'} amount={-10} />
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} jogable={jogable} points="301.5,299.6 66.9,299.6 38.9,327.6 329.5,327.6" axis={'y'} amount={-100} />
 
-              <Polygon fillColor={primary} endpoint={this.props.endpoint} connected={connected} points="380.1,301.1 380.1,329.1 442.7,329.1 442.7,301.1" axis={'z'} amount={-100} />
-              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} connected={connected} points="380.1,266 380.1,294 442.7,294 442.7,266" axis={'z'} amount={-10} />
-              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} connected={connected} points="380.1,231 380.1,259 442.7,259 442.7,231" axis={'z'} amount={-1} />
-              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} connected={connected} points="380.1,195.9 380.1,223.9 442.7,223.9 442.7,195.9" axis={'z'} amount={-0.1} />
-              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} connected={connected} points="380.1,132.9 380.1,160.9 442.7,160.9 442.7,132.9" axis={'z'} amount={0.1} />
-              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} connected={connected} points="380.1,97.8 380.1,125.8 442.7,125.8 442.7,97.8" axis={'z'} amount={1} />
-              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} connected={connected} points="380.1,62.8 380.1,90.8 442.7,90.8 442.7,62.8" axis={'z'} amount={10} />
-              <Polygon fillColor={primary} endpoint={this.props.endpoint} connected={connected} points="380.1,27.8 380.1,55.8 442.7,55.8 442.7,27.8" axis={'z'} amount={100} />
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} jogable={jogable} points="380.1,301.1 380.1,329.1 442.7,329.1 442.7,301.1" axis={'z'} amount={-100} />
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} jogable={jogable} points="380.1,266 380.1,294 442.7,294 442.7,266" axis={'z'} amount={-10} />
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} jogable={jogable} points="380.1,231 380.1,259 442.7,259 442.7,231" axis={'z'} amount={-1} />
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} jogable={jogable} points="380.1,195.9 380.1,223.9 442.7,223.9 442.7,195.9" axis={'z'} amount={-0.1} />
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} jogable={jogable} points="380.1,132.9 380.1,160.9 442.7,160.9 442.7,132.9" axis={'z'} amount={0.1} />
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} jogable={jogable} points="380.1,97.8 380.1,125.8 442.7,125.8 442.7,97.8" axis={'z'} amount={1} />
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} jogable={jogable} points="380.1,62.8 380.1,90.8 442.7,90.8 442.7,62.8" axis={'z'} amount={10} />
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} jogable={jogable} points="380.1,27.8 380.1,55.8 442.7,55.8 442.7,27.8" axis={'z'} amount={100} />
 
-              <Polygon fillColor={primary} endpoint={this.props.endpoint} connected={connected} points="461.2,301.1 461.2,329.1 523.8,329.1 523.8,301.1" axis={'e'} amount={100} />
-              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} connected={connected} points="461.2,266 461.2,294 523.8,294 523.8,266" axis={'e'} amount={10} />
-              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} connected={connected} points="461.2,231 461.2,259 523.8,259 523.8,231" axis={'e'} amount={1} />
-              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} connected={connected} points="461.2,195.9 461.2,223.9 523.8,223.9 523.8,195.9" axis={'e'} amount={0.1} />
-              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} connected={connected} points="461.2,132.9 461.2,160.9 523.8,160.9 523.8,132.9" axis={'e'} amount={-0.1} />
-              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} connected={connected} points="461.2,97.8 461.2,125.8 523.8,125.8 523.8,97.8" axis={'e'} amount={-1} />
-              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} connected={connected} points="461.2,62.8 461.2,90.8 523.8,90.8 523.8,62.8" axis={'e'} amount={-10} />
-              <Polygon fillColor={primary} endpoint={this.props.endpoint} connected={connected} points="461.2,27.8 461.2,55.8 523.8,55.8 523.8,27.8" axis={'e'} amount={-100} />
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} jogable={jogable} points="461.2,301.1 461.2,329.1 523.8,329.1 523.8,301.1" axis={'e'} amount={100} />
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} jogable={jogable} points="461.2,266 461.2,294 523.8,294 523.8,266" axis={'e'} amount={10} />
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} jogable={jogable} points="461.2,231 461.2,259 523.8,259 523.8,231" axis={'e'} amount={1} />
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} jogable={jogable} points="461.2,195.9 461.2,223.9 523.8,223.9 523.8,195.9" axis={'e'} amount={0.1} />
+              <Polygon fillColor={primarySuperLight} endpoint={this.props.endpoint} jogable={jogable} points="461.2,132.9 461.2,160.9 523.8,160.9 523.8,132.9" axis={'e'} amount={-0.1} />
+              <Polygon fillColor={primaryLight} endpoint={this.props.endpoint} jogable={jogable} points="461.2,97.8 461.2,125.8 523.8,125.8 523.8,97.8" axis={'e'} amount={-1} />
+              <Polygon fillColor={primaryMedium} endpoint={this.props.endpoint} jogable={jogable} points="461.2,62.8 461.2,90.8 523.8,90.8 523.8,62.8" axis={'e'} amount={-10} />
+              <Polygon fillColor={primary} endpoint={this.props.endpoint} jogable={jogable} points="461.2,27.8 461.2,55.8 523.8,55.8 523.8,27.8" axis={'e'} amount={-100} />
             </g>
             <g>
               <path className="st8" d="M197.5,176.5l-3.9-3.9c-0.2-0.2-0.4-0.3-0.7-0.3c-0.3,0-0.5,0.1-0.7,0.3c-0.2,0.2-0.3,0.4-0.3,0.7v1.9h-15.6v-1.9c0-0.3-0.1-0.5-0.3-0.7c-0.2-0.2-0.4-0.3-0.7-0.3s-0.5,0.1-0.7,0.3l-3.9,3.9c-0.2,0.2-0.3,0.4-0.3,0.7s0.1,0.5,0.3,0.7l3.9,3.9c0.2,0.2,0.4,0.3,0.7,0.3s0.5-0.1,0.7-0.3c0.2-0.2,0.3-0.4,0.3-0.7v-2H192v2c0,0.3,0.1,0.5,0.3,0.7c0.2,0.2,0.4,0.3,0.7,0.3c0.3,0,0.5-0.1,0.7-0.3l3.9-3.9c0.2-0.2,0.3-0.4,0.3-0.7S197.7,176.7,197.5,176.5z"/>

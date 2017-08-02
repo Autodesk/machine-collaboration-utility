@@ -49,7 +49,6 @@ module.exports = async function pause(self) {
     commandArray.push({
       postCallback: () => {
         logger.debug('Starting pause command');
-        // This line of code is not being reached.
         self.currentJob.pause();
         // Note, we don't return the pause request
         // until the initial pause command is processed by the queue

@@ -36,7 +36,7 @@ export default class PositionFeedback extends React.Component {
     return Number.isNaN(Number(number)) ? '-' : Number(number).toFixed(3);
   }
   render() {
-    const connected = botMetaStates.connected.includes(this.props.bot.state);
+    const zeroable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
 
     const position = this.props.bot.status && this.props.bot.status.position ?
       this.props.bot.status.position : { x: '?', y: '?', z: '?', e: '?' };
@@ -47,22 +47,22 @@ export default class PositionFeedback extends React.Component {
         <div className="col-xs-4 no-padding">
           <h5>X-Axis</h5>
           <div>{this.parseNumber(position.x)}</div>
-          <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-            <button disabled={!connected} onClick={() => { this.zeroAxis({ x: true }); }}>Zero X</button>
+          <HoverAndClick color={{ h: this.props.appColor, s: zeroable ? 40 : 5, l: 40 }} >
+            <button disabled={!zeroable} onClick={() => { this.zeroAxis({ x: true }); }}>Zero X</button>
           </HoverAndClick>
         </div>
         <div className="col-xs-4 no-padding">
           <h5>Y-Axis</h5>
           <div>{this.parseNumber(position.y)}</div>
-          <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-            <button disabled={!connected} onClick={() => { this.zeroAxis({ y: true }); }}>Zero Y</button>
+          <HoverAndClick color={{ h: this.props.appColor, s: zeroable ? 40 : 5, l: 40 }} >
+            <button disabled={!zeroable} onClick={() => { this.zeroAxis({ y: true }); }}>Zero Y</button>
           </HoverAndClick>
         </div>
         <div className="col-xs-4 no-padding">
           <h5>Z-Axis</h5>
           <div>{this.parseNumber(position.z)}</div>
-          <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-            <button disabled={!connected} onClick={() => { this.zeroAxis({ z: true }); }}>Zero Z</button>
+          <HoverAndClick color={{ h: this.props.appColor, s: zeroable ? 40 : 5, l: 40 }} >
+            <button disabled={!zeroable} onClick={() => { this.zeroAxis({ z: true }); }}>Zero Z</button>
           </HoverAndClick>
         </div>
       </div>

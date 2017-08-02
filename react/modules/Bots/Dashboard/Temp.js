@@ -56,52 +56,52 @@ export default class Temp extends React.Component {
   }
 
   renderNozzleOnOff() {
-    const connected = botMetaStates.connected.includes(this.props.bot.state);
+    const editable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
 
     const t0 = this.props.bot.status.sensors.t0 === undefined ?
       { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.t0;
 
     if (Number(t0.setpoint) === 0) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-          <button disabled={!connected} onClick={() => { this.processGcode(`M104 S${this.props.bot.settings.tempE}`) } }>Turn On ({this.props.bot.settings.tempE}&#x2103;)</button>
+        <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }} >
+          <button disabled={!editable} onClick={() => { this.processGcode(`M104 S${this.props.bot.settings.tempE}`) } }>Turn On ({this.props.bot.settings.tempE}&#x2103;)</button>
         </HoverAndClick>
       );
     } else if (Number(t0.setpoint) > 0 || Number(t0.setpoint < 0)) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-          <button disabled={!connected} onClick={() => { this.processGcode('M104 S0') } }>Turn Off (0&#x2103;)</button>
+        <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }} >
+          <button disabled={!editable} onClick={() => { this.processGcode('M104 S0') } }>Turn Off (0&#x2103;)</button>
         </HoverAndClick>
       );
     }
     return (
-      <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+      <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }} >
         <button disabled>On/Off</button>
       </HoverAndClick>
     );
   }
 
   renderBedOnOff() {
-    const connected = botMetaStates.connected.includes(this.props.bot.state);
+    const editable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
 
     const b0 = this.props.bot.status.sensors.b0 === undefined ?
       { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.b0;
 
     if (Number(b0.setpoint) === 0) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-          <button disabled={!connected} onClick={() => { this.processGcode(`M140 S${this.props.bot.settings.tempB}`) } }>Turn On ({this.props.bot.settings.tempB}&#x2103;)</button>
+        <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }} >
+          <button disabled={!editable} onClick={() => { this.processGcode(`M140 S${this.props.bot.settings.tempB}`) } }>Turn On ({this.props.bot.settings.tempB}&#x2103;)</button>
         </HoverAndClick>
       );
     } else if (Number(b0.setpoint) > 0 || Number(b0.setpoint < 0)) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-          <button disabled={!connected} onClick={() => { this.processGcode('M140 S0') } }>Turn Off (0&#x2103;)</button>
+        <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }} >
+          <button disabled={!editable} onClick={() => { this.processGcode('M140 S0') } }>Turn Off (0&#x2103;)</button>
         </HoverAndClick>
       );
     }
     return (
-      <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
+      <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }} >
         <button disabled>On/Off</button>
       </HoverAndClick>
     );
@@ -113,7 +113,7 @@ export default class Temp extends React.Component {
   }
 
   render() {
-    const connected = botMetaStates.connected.includes(this.props.bot.state);
+    const editable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
 
     const t0Disabled = this.props.bot.status.sensors.t0 === undefined ||
     Number.isNaN(Number(this.props.bot.status.sensors.t0.setpoint));
@@ -135,8 +135,8 @@ export default class Temp extends React.Component {
           <div className="col-xs-2">
             <form onSubmit={this.setNozzleTemp}>
               <div className="row">
-                <input type="text" ref={(nozzleTempInput) => { this.nozzleTempInput = nozzleTempInput; }} placeholder="X°C" name="setpoint" className="" disabled={t0Disabled} />
-                <input type="hidden" value="" className="col-sm-1" disabled={t0Disabled} />
+                <input type="text" ref={(nozzleTempInput) => { this.nozzleTempInput = nozzleTempInput; }} placeholder="X°C" name="setpoint" className="" disabled={!editable || t0Disabled} />
+                <input type="hidden" value="" className="col-sm-1" disabled={!editable || t0Disabled} />
               </div>
             </form>
           </div>
@@ -157,8 +157,8 @@ export default class Temp extends React.Component {
           <div className="col-xs-2">
             <form onSubmit={this.setBedTemp}>
               <div className="row">
-                <input type="text" ref={(bedTempInput) => { this.bedTempInput = bedTempInput; }} placeholder="X°C" name="setpoint" className="" disabled={b0Disabled} />
-                <input type="hidden" value="" className="col-sm-1 fa fa-repeat" disabled={b0Disabled} />
+                <input type="text" ref={(bedTempInput) => { this.bedTempInput = bedTempInput; }} placeholder="X°C" name="setpoint" className="" disabled={!editable || b0Disabled} />
+                <input type="hidden" value="" className="col-sm-1 fa fa-repeat" disabled={!editable || b0Disabled} />
               </div>
             </form>
           </div>

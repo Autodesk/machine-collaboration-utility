@@ -25,18 +25,18 @@ export default class SendGcode extends React.Component {
   }
 
   render() {
-    const connected = botMetaStates.connected.includes(this.props.bot.state);
+    const gcodeable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
 
     return (
       <div className="send-gcode">
         <form onSubmit={this.processGcode}>
           <div className="row">
             <div className="col-sm-7 no-padding-right">
-              <input disabled={!connected} ref={(gcodeInput) => { this.gcodeInput = gcodeInput; }} placeholder="type gcode here" type="text" name="gcode" />
+              <input disabled={!gcodeable} ref={(gcodeInput) => { this.gcodeInput = gcodeInput; }} placeholder="type gcode here" type="text" name="gcode" />
             </div>
             <div className="col-sm-5">
-               <HoverAndClick allowDefault disabled={!connected} color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-                <input disabled={!connected} type="submit" value="SEND GCODE" />
+               <HoverAndClick allowDefault disabled={!gcodeable} color={{ h: this.props.appColor, s: gcodeable ? 40 : 5, l: 40 }} >
+                <input disabled={!gcodeable} type="submit" value="SEND GCODE" />
                </HoverAndClick>
             </div>
           </div>

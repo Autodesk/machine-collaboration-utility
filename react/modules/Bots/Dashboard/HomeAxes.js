@@ -71,36 +71,36 @@ export default class HomeAxes extends React.Component {
   }
 
   render() {
-    const connected = botMetaStates.connected.includes(this.props.bot.state);
+    const homeable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
 
     return (
       <div>
         <div className="row">
           <div className="area-padding home-area max-area-width">
             <div className="col-xs-3 no-padding">
-              <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-                <button disabled={!connected} onClick={() => this.homeAxes({ x: true })}>
+              <HoverAndClick color={{ h: this.props.appColor, s: homeable ? 40 : 5, l: 40 }} >
+                <button disabled={!homeable} onClick={() => this.homeAxes({ x: true })}>
                   Home X
                 </button>
               </HoverAndClick>
             </div>
             <div className="col-xs-3 no-padding">
-              <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-                <button disabled={!connected} onClick={() => this.homeAxes({ y: true })}>
+              <HoverAndClick color={{ h: this.props.appColor, s: homeable ? 40 : 5, l: 40 }} >
+                <button disabled={!homeable} onClick={() => this.homeAxes({ y: true })}>
                   Home Y
                 </button>
               </HoverAndClick>
             </div>
             <div className="col-xs-3 no-padding">
-              <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-                <button disabled={!connected} onClick={() => this.homeAxes({ z: true })}>
+              <HoverAndClick color={{ h: this.props.appColor, s: homeable ? 40 : 5, l: 40 }} >
+                <button disabled={!homeable} onClick={() => this.homeAxes({ z: true })}>
                   Home Z
                 </button>
               </HoverAndClick>
             </div>
             <div className="col-xs-3 no-padding">
-              <HoverAndClick color={{ h: this.props.appColor, s: connected ? 40 : 5, l: 40 }} >
-                <button disabled={!connected} onClick={() => this.homeAxes({ x: true, y: true, z: true })}>
+              <HoverAndClick color={{ h: this.props.appColor, s: homeable ? 40 : 5, l: 40 }} >
+                <button disabled={!homeable} onClick={() => this.homeAxes({ x: true, y: true, z: true })}>
                   Home All
                 </button>
               </HoverAndClick>
