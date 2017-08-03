@@ -6,19 +6,19 @@ const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots
 module.exports = function updateRoutine(self, params) {
   self.status = {
     position: {
-      x: undefined,
-      y: undefined,
-      z: undefined,
-      e: undefined,
+      x: self.status.position.x || undefined,
+      y: self.status.position.y || undefined,
+      z: self.status.position.z || undefined,
+      e: self.status.position.e || undefined,
     },
     sensors: {
       t0: {
-        temperature: undefined,
-        setpoint: undefined,
+        temperature: self.status.sensors.t0.temperature || undefined,
+        setpoint: self.status.sensors.t0.setpoint || undefined,
       },
       b0: {
-        temperature: undefined,
-        setpoint: undefined,
+        temperature: self.status.sensors.b0.temperature || undefined,
+        setpoint: self.status.sensors.b0.setpoint || undefined,
       },
     },
     checkpoint: self.status && self.status.checkpoint,
