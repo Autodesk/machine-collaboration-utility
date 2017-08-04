@@ -184,6 +184,63 @@ CommandQueue.prototype.queueCommands = function() {
     }
 };
 
+/**
+ * createSequentialCommands()
+ *
+ * Takes an array of commands and returns an array with a single command
+ * The postCallback of the single command will call the second command
+ * The second command's postcallback will call the third command... etc...
+ */
+CommandQueue.prototype.createSequentialCommands = function(commands) {
+    for (var i = commands.length - 1; i > 0; i--) {
+        const current_index = i;
+        const oldPostcallback = commands[current_index - 1] && typeof commands[current_index-1].postCallback === 'function' && commands[current_index - 1].postCallback;
+        commands[current_index - 1].postCallback = () => {
+            if (oldPostcallback) {
+                oldPostcallback();
+            }
+            this.prependCommands(commands[current_index]);
+        };
+    }
+    return [commands[0]];
+};
+
+/**
+ * queueSequentialCommands()
+ *
+ * Queues up commands by appending them to the end of the queue
+ * Each sequential command is prepended in the prior command's postcallback
+ */
+CommandQueue.prototype.queueSequentialCommands = function() {
+    var commands = CommandQueue.prototype.expandCommands.apply(this, arguments);
+
+    if (commands) {
+        const oldSize = this.mQueue.length;
+        const singleCommand = this.createSequentialCommands(commands);
+        // Turn array of commands into sequential commands
+        this.mQueue = this.mQueue.concat(singleCommand);
+        if (oldSize === 0) {
+            this.resume(); // with commands, we make sure we process them
+        }
+    }
+};
+
+/**
+ * prependSequentialCommands()
+ *
+ * Queues up commands by appending them to the end of the queue
+ * Each sequential command is prepended in the prior command's postcallback
+ */
+CommandQueue.prototype.prependSequentialCommands = function() {
+    var commands = CommandQueue.prototype.expandCommands.apply(this, arguments);
+
+    if (commands) {
+        const singleCommand = this.createSequentialCommands(commands);
+        this.mQueue = singleCommand.concat(this.mQueue);
+        this.resume(); // with commands, we make sure we process them
+    }
+};
+
 
 /**
  * prependCommands()
