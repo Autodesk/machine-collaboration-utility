@@ -18,7 +18,30 @@ module.exports = async function resume(self) {
 
     const commandArray = [];
 
-    const resumeDoneCommand = {
+    if (self.fsm.current === 'pausing') {
+      commandArray.push({
+        postCallback: () => {
+          self.fsm.resume();
+        },
+      });
+    }
+
+    commandArray.push(...self.commands.generateUnparkCommands(self));
+
+    if (self.parkedPosition !== undefined) {
+      commandArray.push(`G92 E${self.parkedPosition.e}`);
+      commandArray.push(`G1 X${self.parkedPosition.x} Y${self.parkedPosition.y} Z${self.parkedPosition.z} F2000`);
+    }
+
+    commandArray.push({
+      code: self.info.clearBufferCommand,
+      postCallback: () => {
+        self.parkedPosition = undefined;
+        logger.debug('Done with resume motion');
+      },
+    });
+
+    commandArray.push({
       postCallback: () => {
         function capitalizeFirstLetter(string) {
           return string.charAt(0).toUpperCase() + string.slice(1);
@@ -32,54 +55,21 @@ module.exports = async function resume(self) {
           self.lr.resume();
         }
       },
-    };
+    });
 
-    const resumeMotion = [
-      self.commands.generateUnparkCommands(self),
-      {
-        code: self.parkedPosition === undefined ? 'M114' : `G92 E${self.parkedPosition.e}`,
-      },
-      {
-        code: self.parkedPosition === undefined ? 'M114' : `G1 X${self.parkedPosition.x} Y${self.parkedPosition.y} Z${self.parkedPosition.z} F2000`
-      },
-      {
-        preCallback: () => {
-          logger.debug('Starting resume motion');
-        },
-        code: self.info.clearBufferCommand,
-        postCallback: () => {
-          self.parkedPosition = undefined;
-          self.queue.prependCommands(resumeDoneCommand);
-          logger.debug('Done with resume motion');
-        },
-      },
-    ];
-
-    const resumeStartCommand = {
+    commandArray.push({
       postCallback: () => {
-        logger.debug('starting resume commands');
-        self.queue.prependCommands(resumeMotion);
+        logger.debug('Resuming job');
         // Resume the job
         self.currentJob.resume();
       },
-    };
+    });
 
-    if (self.fsm.current === 'pausing') {
-      commandArray.push({
-        postCallback: () => {
-          self.fsm.resume();
-        },
-      });
-    }
-
-    commandArray.push(resumeStartCommand);
-    self.queue.queueCommands(commandArray);
-
-    // Queue the resume command if currently 'pausing'
     if (self.fsm.current === 'paused') {
-      // Resume the bot
       self.fsm.resume();
     }
+
+    self.queue.queueSequentialCommands(commandArray);
   } catch (ex) {
     logger.error('Resume error', ex);
     if (ex instanceof Error) {

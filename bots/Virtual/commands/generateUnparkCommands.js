@@ -7,12 +7,13 @@ module.exports = function generateUnparkCommands(self) {
     postCallback: () => { self.parked = false; },
   });
 
-  const parkCheck = {
+  const parkCheck = [{
     postCallback: () => {
       if (self.parked) {
         self.queue.prependCommands(commandArray);
       }
     },
-  };
+  }];
+
   return parkCheck;
 };

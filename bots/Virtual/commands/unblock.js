@@ -2,58 +2,46 @@
 module.exports = async function unblock(self, params) {
   try {
     if (self.fsm.current === 'executingJob') {
-      const commandArray = [
-        self.commands.generateUnparkCommands(self),
-        {
+      const commandArray = [];
+
+      const unparkCommands = self.commands.generateUnparkCommands(self);
+      commandArray.push(...unparkCommands);
+
+      commandArray.push({
           postCallback: () => {
             self.lr.resume();
           },
-        },
-      ];
-      self.queue.queueCommands(commandArray);
+      });
+
+      self.queue.queueSequentialCommands(commandArray);
     } else {
       if (!(self.fsm.current === 'blocked' || self.fsm.current === 'blocking')) {
         throw new Error(`Cannot unblock from state "${self.fsm.current}"`);
       }
 
       const commandArray = [];
-      if (self.fsm.current === 'blocking') {
-        commandArray.push({
-          postCallback: () => {
-            self.fsm.unblock();
-          },
-        });
-      }
+
       commandArray.push({
-        preCallback: () => {
+        postCallback: () => {
           logger.debug('Starting unblock motion', params);
+          self.fsm.unblock();
         },
       });
 
       if (params.dry === false) {
-        commandArray.push(self.commands.generateUnparkCommands(self));
+        commandArray.push(...self.commands.generateUnparkCommands(self));
       }
 
-      const unblockDoneCommand = {
+      commandArray.push({
         postCallback: () => {
           self.fsm.unblockDone();
           self.lr.resume();
-        },
-      };
-      commandArray.push({
-        preCallback: () => {
-          self.queue.prependCommands(unblockDoneCommand);
           logger.debug('Done with unblock motion');
         },
       });
 
-      self.queue.queueCommands(commandArray);
+      self.queue.queueSequentialCommands(commandArray);
 
-      // Queue the unblock command if currently 'blocking'
-      if (self.fsm.current === 'blocked') {
-        // Unblock the bot
-        self.fsm.unblock();
-      }
     }
   } catch (ex) {
     logger.error('Unblock error', ex);

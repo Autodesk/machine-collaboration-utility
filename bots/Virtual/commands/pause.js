@@ -23,53 +23,45 @@ module.exports = async function pause(self) {
     // 1. Start pause from the state machine immediately
     // 2. Allow for pause movements / macros / etc
     // 3. Complete state machine pause transition by signaling that pause is complete
-    //
-    // In order to accomplish this, we must prepend the current commands in the queue
-    // We prepend 1
-    // We call the state machine command "pause"
-    // In the postCallback of 1, we prepend 2 to the queue
-    // Then in the postCallback of 2, we prepend 3 to the queue
-    //
-    // This comes across a bit backwards, but the ordering is necessary in order to prevent
-    // transitioning to an incorrect state
-
-    const parkCommands = self.commands.generateParkCommands(self);
-    parkCommands.push({
-      postCallback: () => {
-        self.queue.prependCommands({
-          postCallback: () => {
-            self.fsm.pauseDone();
-          },
-        });
-      },
-    });
 
     const commandArray = [];
-    // Pause the job
+
+    if (self.fsm.current === 'blocking' || self.fsm.current === 'unblocking') {
+      commandArray.push({
+        postCallback: () => {
+          self.pauseableState = self.fsm.current;
+          self.fsm.pause();
+          logger.info('Just queued pause', self.getBot().settings.name, self.fsm.current);
+        },
+      });
+    } else {
+      self.pauseableState = self.fsm.current;
+      self.fsm.pause();
+    }
+
     commandArray.push({
       postCallback: () => {
-        logger.debug('Starting pause command');
+        logger.info('Starting pause command');
         self.currentJob.pause();
         // Note, we don't return the pause request
         // until the initial pause command is processed by the queue
-        self.queue.prependCommands(parkCommands);
+      },
+    });
+
+
+    commandArray.push(...self.commands.generateParkCommands(self));
+
+    commandArray.push({
+      postCallback: () => {
+        self.fsm.pauseDone();
       },
     });
 
     if (self.fsm.current === 'blocking' || self.fsm.current === 'unblocking') {
-      commandArray.unshift({
-        postCallback: () => {
-          self.pauseableState = self.fsm.current;
-          self.fsm.pause();
-          logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
-        },
-      });
-      self.queue.queueCommands(commandArray);
+      self.queue.queueSequentialCommands(commandArray);
     } else {
-      self.pauseableState = self.fsm.current;
-      self.fsm.pause();
-      self.queue.prependCommands(commandArray);
-      logger.debug('Just queued pause', self.getBot().settings.name, self.fsm.current);
+      self.queue.prependSequentialCommands(commandArray);
+      logger.info('Just queued pause', self.getBot().settings.name, self.fsm.current);
     }
   } catch (ex) {
     logger.error('Pause error', ex);

@@ -67,7 +67,7 @@ async function processCommentTag(gcodeObject, self) {
       logger.debug(`About to purge: ${dry} ${typeof dry} `);
 
       // If the printer is currently blocked, then purge and unblock it
-      self.queue.queueCommands([
+      self.queue.queueSequentialCommands([
         self.info.clearBufferCommand,
         {
           postCallback: () => {
