@@ -4,29 +4,29 @@ const path = require('path');
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 
 module.exports = function updateRoutine(self, params) {
-  self.status = {
-    position: {
-      x: self.status.position.x || undefined,
-      y: self.status.position.y || undefined,
-      z: self.status.position.z || undefined,
-      e: self.status.position.e || undefined,
-    },
-    sensors: {
-      t0: {
-        temperature: self.status.sensors.t0.temperature || undefined,
-        setpoint: self.status.sensors.t0.setpoint || undefined,
-      },
-      b0: {
-        temperature: self.status.sensors.b0.temperature || undefined,
-        setpoint: self.status.sensors.b0.setpoint || undefined,
-      },
-    },
-    checkpoint: self.status && self.status.checkpoint,
-    collaborators: self.status.collaborators || {},
-    blocker: self.status.blocker || undefined,
-  };
-
   if (botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
+    self.status = {
+      position: {
+        x: (self.status && self.status.position && self.status.position.x) || undefined,
+        y: (self.status && self.status.position && self.status.position.y) || undefined,
+        z: (self.status && self.status.position && self.status.position.z) || undefined,
+        e: (self.status && self.status.position && self.status.position.e) || undefined,
+      },
+      sensors: {
+        t0: {
+          temperature: (self.status && self.status.sensors && self.status.sensors.t0 && self.status.sensors.t0.temperature) || undefined,
+          setpoint: (self.status && self.status.sensors && self.status.sensors.t0 && self.status.sensors.t0.setpoint) || undefined,
+        },
+        b0: {
+          temperature: (self.status && self.status.sensors && self.status.sensors.b0 && self.status.sensors.b0.temperature) || undefined,
+          setpoint: (self.status && self.status.sensors && self.status.sensors.b0 && self.status.sensors.b0.setpoint) || undefined,
+        },
+      },
+      checkpoint: self.status && self.status.checkpoint,
+      collaborators: (self.status && self.status.collaborators) || {},
+      blocker: (self.status && self.status.blocker) || undefined,
+    };
+
     const commandArray = [];
     commandArray.push({
       code: 'M114',
@@ -83,6 +83,6 @@ module.exports = function updateRoutine(self, params) {
         return true;
       },
     });
-    self.queue.queueCommands(commandArray);
+    self.queue.queueSequentialCommands(commandArray);
   }
 };
