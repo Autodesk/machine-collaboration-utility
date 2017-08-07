@@ -196,10 +196,13 @@ CommandQueue.prototype.createSequentialCommands = function(commands) {
         const current_index = i;
         const oldPostcallback = commands[current_index - 1] && typeof commands[current_index-1].postCallback === 'function' && commands[current_index - 1].postCallback;
         commands[current_index - 1].postCallback = () => {
+            this.prependCommands(commands[current_index]);
+
+            // Note: calling the oldPostcallback last so that
+            // no other function can prepend commmands in front of the oldpostcallback's prependCommands function
             if (oldPostcallback) {
                 oldPostcallback();
             }
-            this.prependCommands(commands[current_index]);
         };
     }
     return [commands[0]];
