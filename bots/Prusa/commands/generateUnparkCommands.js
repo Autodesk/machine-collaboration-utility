@@ -9,12 +9,13 @@ module.exports = function generateUnparkCommands(self) {
     postCallback: () => { self.parked = false; },
   });
 
-  const purgeCheck = {
+  const purgeCheck = [{
     postCallback: () => {
       if (self.parked) {
         self.queue.prependCommands(commandArray);
       }
     },
-  };
+  }];
+
   return purgeCheck;
 };

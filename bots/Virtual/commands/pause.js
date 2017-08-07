@@ -52,6 +52,7 @@ module.exports = async function pause(self) {
     commandArray.push(...self.commands.generateParkCommands(self));
 
     commandArray.push({
+      code: self.info.clearBufferCommand,
       postCallback: () => {
         self.fsm.pauseDone();
       },
