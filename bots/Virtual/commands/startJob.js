@@ -9,6 +9,9 @@ const request = require('request-promise');
 async function processCommentTag(gcodeObject, self) {
   switch (gcodeObject.commentTag.command) {
     case 'pause': {
+      self.commands.pause(self);
+      break;
+    }
     case 'forcePark': {
       self.parked = true;
       self.lr.resume();
