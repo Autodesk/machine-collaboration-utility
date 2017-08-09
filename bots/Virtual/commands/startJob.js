@@ -8,6 +8,7 @@ const request = require('request-promise');
 
 async function processCommentTag(gcodeObject, self) {
   switch (gcodeObject.commentTag.command) {
+    case 'pause': {
     case 'forcePark': {
       self.parked = true;
       self.lr.resume();
@@ -113,7 +114,10 @@ async function processLine(line, self) {
         // Note, canceling a job will clear the current job value
         if (self.currentJob) {
           self.currentLine += 1;
-          self.currentJob.percentComplete = parseInt(self.currentLine / self.numLines * 100, 10);
+          // Once the file is done, make sure that we still read only 99% until the bot is done processing the file
+          const percentComplete = parseInt(self.currentLine / self.numLines * 100, 10) >= 100 ? 99 : parseInt(self.currentLine / self.numLines * 100, 10);
+          self.currentJob.percentComplete = percentComplete;
+
           if (self.fsm.current === 'executingJob') {
             self.lr.resume();
           }
@@ -127,6 +131,7 @@ async function processFileEnd(self, theFile) {
   logger.info('Completed reading file,', theFile.filePath, 'is closed now.');
   self.lr.close();
   self.queue.queueCommands({
+    code: self.info.clearBufferCommand,
     postCallback: () => {
       self.currentJob.percentComplete = 100;
       self.fsm.complete();
