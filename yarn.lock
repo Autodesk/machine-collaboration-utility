@@ -2231,9 +2231,9 @@ gcode-json-converter@0.0.1:
     deep-equal "^1.0.1"
     lodash "^4.17.2"
 
-gcode-json-converter@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/gcode-json-converter/-/gcode-json-converter-1.1.0.tgz#e4ab2e319a8d059a356a903778b71f1f854d081b"
+gcode-json-converter@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/gcode-json-converter/-/gcode-json-converter-1.2.0.tgz#62e872fbbf93144b4441c99799372eeb60ecfed0"
   dependencies:
     bluebird "^3.4.6"
     chai "^3.5.0"
