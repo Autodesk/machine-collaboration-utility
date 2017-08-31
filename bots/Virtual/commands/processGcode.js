@@ -7,10 +7,11 @@ const objectToGcode = require('gcode-json-converter').objectToGcode;
 // @force: <boolean> Force gcode execution even if the bot is processing a job
 module.exports = async function processGcode(self, params) {
   try {
+    const force = !!String(params.force) === 'true';
     if (
       self.fsm.current !== 'paused'
       && self.fsm.current !== 'idle'
-      && params.force !== true
+      && !force
     ) {
       throw new Error(`Cannot process gcode from state ${self.fsm.current}`);
     }
