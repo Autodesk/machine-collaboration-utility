@@ -75,6 +75,7 @@
     "superagent": "^2.2.0",
     "tar-pack": "^3.4.0",
     "timer-stopwatch": "^0.2.0",
+    "twilio": "^3.6.5",
     "underscore": "^1.8.3",
     "unzip2": "^0.2.5",
     "usb": "^1.2.0",
