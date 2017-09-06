@@ -5,6 +5,9 @@ const gcodeToObject = require('gcode-json-converter').gcodeToObject;
 const objectToGcode = require('gcode-json-converter').objectToGcode;
 const _ = require('lodash');
 const request = require('request-promise');
+const path = require('path');
+
+const sendTwilioUpdate = require(path.join(process.env.PWD, 'server/middleware/helpers/sendTwilioUpdate'));
 
 async function processCommentTag(gcodeObject, self) {
   switch (gcodeObject.commentTag.command) {
@@ -142,6 +145,7 @@ async function processFileEnd(self, theFile) {
       self.currentJob = undefined;
       // Could do some sort of completion routine here
       self.fsm.completeDone();
+      sendTwilioUpdate(`${self.settings.name} job is complete.`);
       setTimeout(() => {
         self.app.io.broadcast('botEvent', {
           uuid: self.settings.uuid,
@@ -234,6 +238,8 @@ module.exports = async function startJob(self, params) {
       self.lr.resume();
 
       self.fsm.startDone();
+
+      sendTwilioUpdate(`${self.settings.name} job is starting.`);
     } catch (ex) {
       self.fsm.startJobFail();
     }
