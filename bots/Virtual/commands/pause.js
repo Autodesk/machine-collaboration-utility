@@ -1,13 +1,14 @@
 /* global logger */
 const path = require('path');
 
+const sendTwilioUpdate = require(path.join(process.env.PWD, 'server/middleware/helpers/sendTwilioUpdate'));
 const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
 
 module.exports = async function pause(self) {
   try {
     // Idempotent pause command
     if (self.fsm.current === 'paused' || self.fsm.current === 'pausing') {
-      return;
+      throw new Error(`Cannot pause from state "${self.fsm.current}"`);
     }
     if (self.currentJob === undefined) {
       throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
@@ -55,6 +56,7 @@ module.exports = async function pause(self) {
       code: self.info.clearBufferCommand,
       postCallback: () => {
         self.fsm.pauseDone();
+        sendTwilioUpdate(`${self.settings.name} has been paused`);
       },
     });
 
