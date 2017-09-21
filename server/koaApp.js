@@ -17,6 +17,7 @@ const write = require('fs').createWriteStream;
 const pack = require('tar-pack').pack;
 const exec = require('child_process').exec;
 const execPromise = require('exec-then');
+const faye = require('faye');
 
 const React = require('react');
 const renderToString = require('react-dom/server').renderToString;
@@ -259,6 +260,26 @@ async function koaApp(config) {
   });
 
   logger.info('Machine Collaboration Utility has been initialized successfully.');
+
+  const client = new faye.Client('https://mcu-mirror-staging.herokuapp.com/faye');
+  setInterval(() => {
+    client.publish('/bots', { bots: app.context.bots.getBots() });
+    client.publish('/files', { files: app.context.files.getFiles() });
+    client.publish('/jobs', { jobs: app.context.jobs.getJobs() });
+  }, 2000);
+
+  client.subscribe('/command', ({ command, botId, ...rest }) => {
+    if (botId) {
+      if (botId == 'solo') {
+        botId = app.context.bots.soloBot();
+      }
+
+      console.log('command botid and rest', command, botId, rest);
+
+      const bot = app.context.bots.botList[botId];
+      bot.processCommand(command, rest);
+    }
+  });
 
   return app;
 }
