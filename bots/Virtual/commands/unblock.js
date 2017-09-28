@@ -33,7 +33,13 @@ module.exports = async function unblock(self, params) {
       });
 
       if (params.dry === false) {
-        commandArray.push(...self.commands.generateUnparkCommands(self));
+        const unparkCommands = self.commands.generateUnparkCommands(self);
+        if (Array.isArray(unparkCommands)) {
+          commandArray.push(...unparkCommands);
+        } else {
+          commandArray.push(unparkCommands);
+        }
+        
       }
 
       commandArray.push({

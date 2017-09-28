@@ -27,7 +27,12 @@ module.exports = async function resume(self) {
     }
 
     const unparkCommands = self.commands.generateUnparkCommands(self);
-    commandArray.push(...unparkCommands);
+    if (Array.isArray(unparkCommands)) {
+      commandArray.push(...unparkCommands);
+    } else {
+      commandArray.push(unparkCommands);
+    }
+
 
     if (self.parkedPosition !== undefined) {
       commandArray.push(`G92 E${self.parkedPosition.e}`);

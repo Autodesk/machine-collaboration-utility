@@ -49,8 +49,12 @@ module.exports = async function pause(self) {
       },
     });
 
-
-    commandArray.push(...self.commands.generateParkCommands(self));
+    const parkCommands = self.commands.generateParkCommands(self)
+    if (Array.isArray(parkCommands)) {
+      commandArray.push(...parkCommands);
+    } else {
+      commandArray.push(parkCommands);
+    }
 
     commandArray.push({
       code: self.info.clearBufferCommand,
