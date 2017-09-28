@@ -34,8 +34,8 @@ export default class Dashboard extends React.Component {
       <div id="dashboard">
         { isConductorBot ?
           <div className="container no-padding-mobile">
-           <div className="area">
-              <CurrentJob endpoint={this.props.endpoint} bot={this.props.bot}/>
+            <div className="area">
+              <CurrentJob appColor={this.props.appColor} files={this.props.files} endpoint={this.props.endpoint} bot={this.props.bot}/>
             </div>
           </div>
           :
