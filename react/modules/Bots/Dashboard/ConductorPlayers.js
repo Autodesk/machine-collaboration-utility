@@ -1,6 +1,7 @@
 import React from 'react';
 import request from 'superagent';
 import _ from 'lodash';
+import HoverAndClick from './HoverAndClick';
 
 export default class ConductorPlayers extends React.Component {
   constructor(props) {
@@ -25,7 +26,9 @@ export default class ConductorPlayers extends React.Component {
         <div className="col-md-4">Name: {player.name}</div>
         <div className="col-md-4">Endpoint: {player.endpoint}</div>
         <div className="col-md-4">
-          <button className="cancel" onClick={() => { this.removePlayer(player.name); }}>X</button>
+          <HoverAndClick color={{ h: 0, s: 40, l: 40 }} >
+            <button className="cancel" onClick={() => { this.removePlayer(player.name); }}>X</button>
+          </HoverAndClick>
         </div>
       </div>
     );
