@@ -93,3 +93,12 @@
   * UI now auto-selects the first bot, if no bot is selected
   * Running jobs are canceled if the bot is disconnected
   * Added styles for if a file is dragged onto the UI
+
+## 1.6.0 (2017-09-28)
+  * Added UI feedback for if nozzle or bed is heating
+  * Added feedback to button click and button hover
+  * Added queueSequentialCommands and prependSequentialcommands to the commandQueue API
+  * Can pass "; <<<PAUSE>>>" in gcode file to initiate pause, mid-print
+  * Added "force" flag to process-gcode to allow gcode commands mid-print
+  * Added ability to send-receive text updates if Twilio ENV setup
+  
