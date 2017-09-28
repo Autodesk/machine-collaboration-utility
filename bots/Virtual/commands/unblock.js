@@ -5,7 +5,11 @@ module.exports = async function unblock(self, params) {
       const commandArray = [];
 
       const unparkCommands = self.commands.generateUnparkCommands(self);
-      commandArray.push(...unparkCommands);
+      if (Array.isArray(unparkCommands)) {
+        commandArray.push(...unparkCommands);
+      } else {
+        commandArray.push(unparkCommands);
+      }
 
       commandArray.push({
           postCallback: () => {
