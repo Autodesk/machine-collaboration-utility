@@ -65,7 +65,9 @@ export default class ConductorPlayers extends React.Component {
             <input className="conductor-form-text" type="textarea" name="endpoint" defaultValue="" />
           </div>
           <div className="col-md-4">
-            <input className="green-plz" type="submit" value="Add Player" />
+            <HoverAndClick allowDefault color={{ h: 120, s: 40, l: 40 }} >
+              <input type="submit" value="Add Player" />
+            </HoverAndClick>
           </div>
         </div>
       </form>
