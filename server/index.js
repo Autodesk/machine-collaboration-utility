@@ -5,7 +5,6 @@ try {
   console.log('No .env file found', ex);
 }
 
-global.Promise = require('bluebird');
 const path = require('path');
 const http = require('http');
 const fs = require('fs-promise');

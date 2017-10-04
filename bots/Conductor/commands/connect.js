@@ -2,6 +2,7 @@
 // const ip = require('ip');
 const request = require('request-promise');
 const path = require('path');
+const bluebird = require('bluebird');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
 
@@ -20,7 +21,7 @@ async function checkConnection(self) {
   // ping each bot
   // If they're all connected, then we are done connecting
   let connectionDone = true;
-  await Promise.map(self.settings.custom.players, async (player) => {
+  await bluebird.map(self.settings.custom.players, async (player) => {
     const checkParams = {
       method: 'GET',
       uri: player.endpoint,
@@ -38,7 +39,7 @@ async function checkConnection(self) {
     // Then you're done
     self.fsm.connectDone();
   } else {
-    await Promise.delay(2000);
+    await bluebird.delay(2000);
     checkConnection(self);
   }
 }
@@ -53,7 +54,7 @@ module.exports = async function connect(self) {
     // Go through each player and connect it
     const players = self.settings.custom.players;
 
-    await Promise.map(players, async (player) => {
+    await bluebird.map(players, async (player) => {
       const connectParams = {
         method: 'POST',
         uri: player.endpoint,

@@ -5,6 +5,7 @@ const fs = require('fs-promise');
 const path = require('path');
 const winston = require('winston');
 const config = require('../../../server/config');
+const bluebird = require('bluebird');
 
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);
@@ -19,7 +20,7 @@ const logger = new (winston.Logger)({
 async function debugCount(seconds) {
   for (let i = 0; i < seconds; i++) {
     console.log(i);
-    await Promise.delay(1000);
+    await bluebird.delay(1000);
   }
 }
 
@@ -58,7 +59,7 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${botUuid}`,
         json: true,
       };
-      Promise.delay(config.virtualDelay) // Wait for virtual "detecting" event to complete
+      bluebird.delay(config.virtualDelay) // Wait for virtual "detecting" event to complete
       .then(() => {
         request(requestParams)
         .then((getStatusReply) => {
@@ -118,7 +119,7 @@ module.exports = function botsTests() {
     });
 
     it('should connect', function (done) {
-      Promise.delay(config.virtualDelay) // Wait for virtual "detecting" event to complete
+      bluebird.delay(config.virtualDelay) // Wait for virtual "detecting" event to complete
       .then(() => {
         const requestParams = {
           method: 'POST',
@@ -141,7 +142,7 @@ module.exports = function botsTests() {
     });
 
     it('should finish connecting and transition to a state of "idle"', function (done) {
-      Promise.delay(config.virtualDelay)
+      bluebird.delay(config.virtualDelay)
       .then(() => {
         const requestParams = {
           method: 'GET',
@@ -261,7 +262,7 @@ module.exports = function botsTests() {
 
     it('should resume a job', async function () {
       this.timeout(10000);
-      await Promise.delay(5000);
+      await bluebird.delay(5000);
 
       const requestParams = {
         method: 'POST',
@@ -282,7 +283,7 @@ module.exports = function botsTests() {
 
     it('should cancel a job', async function () {
       this.timeout(10000);
-      await Promise.delay(5000);
+      await bluebird.delay(5000);
 
       const requestParams = {
         method: 'POST',
@@ -303,7 +304,7 @@ module.exports = function botsTests() {
 
     it('should be in a state of idle after being canceled', async function() {
       this.timeout(3000);
-      await Promise.delay(2000);
+      await bluebird.delay(2000);
 
       const requestParams = {
         method: 'GET',
@@ -452,7 +453,7 @@ module.exports = function botsTests() {
 
     it('should receive a warning mid-print', async function() {
       this.timeout(2000);
-      await Promise.delay(1000);
+      await bluebird.delay(1000);
       const requestParams = {
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${botUuid}`,
@@ -472,7 +473,7 @@ module.exports = function botsTests() {
 
     it('should not be able to resume a job when it has un-resolved warnings', async function() {
       this.timeout(6000);
-      await Promise.delay(4000);
+      await bluebird.delay(4000);
 
       const resumeParams = {
         method: 'POST',
@@ -507,7 +508,7 @@ module.exports = function botsTests() {
 
     it('should pause and then issue a warning from the state "pausing"', async function() {
       this.timeout(10000);
-      await Promise.delay(1500);
+      await bluebird.delay(1500);
 
       const pauseParams = {
         method: 'POST',
@@ -519,7 +520,7 @@ module.exports = function botsTests() {
       };
 
       await request(pauseParams);
-      await Promise.delay(500);
+      await bluebird.delay(500);
 
       const requestParams = {
         method: 'POST',
@@ -533,7 +534,7 @@ module.exports = function botsTests() {
 
       await request(requestParams);
       // Wait for pause to finish
-      await Promise.delay(4500);
+      await bluebird.delay(4500);
 
       const getBotParams = {
         method: 'GET',
@@ -625,7 +626,7 @@ module.exports = function botsTests() {
       should(warnReply.data.state).equal('resuming');
 
       // Wait for resume / (re)-pause to finish
-      await Promise.delay(1000);
+      await bluebird.delay(1000);
 
       const getBotParams = {
         method: 'GET',
@@ -656,12 +657,12 @@ module.exports = function botsTests() {
       const resolveWarningReply = await request(resolveWarningRequest);
       should.ok(resolveWarningReply.data.warnings.length === 0);
       should(resolveWarningReply.data.state).equal('resuming');
-      await Promise.delay(1000); // Let it finish resuming
+      await bluebird.delay(1000); // Let it finish resuming
     });
 
     it('should issue a warning from the state "blocked"', async function() {
       this.timeout(20000);
-      await Promise.delay(10000);
+      await bluebird.delay(10000);
 
       const requestParams = {
         method: 'POST',
@@ -679,7 +680,7 @@ module.exports = function botsTests() {
       should.ok(warnings.length === 1);
       should(warnings[0].type).equal('genericWarning');
       should(warnReply.data.state).equal('pausing');
-      await Promise.delay(1000); // Wait for bot to pause
+      await bluebird.delay(1000); // Wait for bot to pause
     });
 
     it('should resolve a warning issued from "blocked"', async function() {
@@ -698,7 +699,7 @@ module.exports = function botsTests() {
       should.ok(resolveWarningReply.data.warnings.length === 0);
       should(resolveWarningReply.data.state).equal('resuming');
 
-      await Promise.delay(1000);
+      await bluebird.delay(1000);
 
       const getBotParams = {
         method: 'GET',

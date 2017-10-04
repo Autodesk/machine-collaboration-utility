@@ -3,8 +3,9 @@ const fs = require('fs-promise');
 const request = require('request-promise');
 const ip = require('ip');
 const unzip = require('unzip2');
+const bluebird = require('bluebird');
 
-const delay = Promise.delay;
+const delay = bluebird.delay;
 
 async function uploadAndSetupPlayerJobs(self) {
   const job = self.currentJob;
@@ -33,7 +34,7 @@ async function uploadAndSetupPlayerJobs(self) {
             await self.commands.updatePlayers(self);
             logger.info('updated the players');
 
-            await Promise.map(players, async (player) => {
+            await bluebird.map(players, async (player) => {
               // For each player we're going to upload a file, and then create a job
 
               // Upload a file

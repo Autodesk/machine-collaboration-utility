@@ -1,5 +1,5 @@
 /* global logger */
-const delay = Promise.delay;
+const delay = require('bluebird').delay;
 
 module.exports = function connect(self) {
   try {

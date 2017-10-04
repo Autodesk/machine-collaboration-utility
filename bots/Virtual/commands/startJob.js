@@ -6,6 +6,7 @@ const objectToGcode = require('gcode-json-converter').objectToGcode;
 const _ = require('lodash');
 const request = require('request-promise');
 const path = require('path');
+const bluebird = require('bluebird');
 
 const sendTwilioUpdate = require(path.join(process.env.PWD, 'server/middleware/helpers/sendTwilioUpdate'));
 
@@ -35,7 +36,7 @@ async function processCommentTag(gcodeObject, self) {
       });
 
       if (Array.isArray(self.currentJob.subscribers)) {
-        await Promise.map(self.currentJob.subscribers, async (subscriber) => {
+        await bluebird.map(self.currentJob.subscribers, async (subscriber) => {
           const updateParams = {
             method: 'POST',
             uri: subscriber,

@@ -5,8 +5,8 @@ const request = require('request-promise');
 const fs = require('fs-promise');
 const path = require('path');
 const winston = require('winston');
+const bluebird = require('bluebird');
 const config = require('../../../server/config');
-
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);
 const logger = new (winston.Logger)({
@@ -173,7 +173,7 @@ module.exports = function botsTests() {
       request(requestParams)
       .then((reply) => {
         // Wait a second for the bots to connect
-        Promise.delay(1000)
+        bluebird.delay(1000)
         .then(done);
       })
       .catch((err) => {
@@ -185,7 +185,7 @@ module.exports = function botsTests() {
     it('should verify that the players are connected and in an idle state', function (done) {
       let success = true;
       let nTimes = 0;
-      Promise.map(players, (player) => {
+      bluebird.map(players, (player) => {
         const requestParams = {
           method: 'GET',
           uri: player.endpoint,
@@ -208,7 +208,7 @@ module.exports = function botsTests() {
 
     it('should start printing a .esh file', async function() {
       this.timeout(15000);
-      await Promise.delay(5000);
+      await bluebird.delay(5000);
       // Upload a file
       const testFilePath = path.join(__dirname, 'test-cubes.esh');
       const fileStream = fs.createReadStream(testFilePath);
@@ -247,7 +247,7 @@ module.exports = function botsTests() {
 
     it('should pause printing a .esh file', async function() {
       this.timeout(10000);
-      await Promise.delay(5000);
+      await bluebird.delay(5000);
 
       const pauseReply = await request({
         method: 'POST',
@@ -266,7 +266,7 @@ module.exports = function botsTests() {
 
     it('should finish pausing', async function() {
       this.timeout(25000);
-      await Promise.delay(20000);
+      await bluebird.delay(20000);
 
       const getReply = await request({
         method: 'GET',
@@ -283,7 +283,7 @@ module.exports = function botsTests() {
 
     it('should resume printing a .esh file', async function() {
       this.timeout(10000);
-      await Promise.delay(5000);
+      await bluebird.delay(5000);
 
       const resumeReply = await request({
         method: 'POST',
@@ -302,7 +302,7 @@ module.exports = function botsTests() {
 
     it('should finish resuming', async function() {
       this.timeout(20000);
-      await Promise.delay(15000);
+      await bluebird.delay(15000);
 
       const getReply = await request({
         method: 'GET',
@@ -319,7 +319,7 @@ module.exports = function botsTests() {
 
     it('should complete printing a .esh file', async function() {
       this.timeout(100000);
-      await Promise.delay(90000);
+      await bluebird.delay(90000);
 
       const getJobReply = await request({
         method: 'GET',
@@ -377,7 +377,7 @@ module.exports = function botsTests() {
 
     it('should finish canceling a .esh file', async function() {
       this.timeout(40000);
-      await Promise.delay(30000);
+      await bluebird.delay(30000);
 
       const getReply = await request({
         method: 'GET',
@@ -413,7 +413,7 @@ module.exports = function botsTests() {
 
     it('should finish disconnecting the conductor', async function() {
       this.timeout(10000)
-      await Promise.delay(5000);
+      await bluebird.delay(5000);
 
       const getReply = await request({
         method: 'GET',
@@ -482,7 +482,7 @@ module.exports = function botsTests() {
           botRemovalPromises.push(botPromise);
         }
       }
-      await Promise.all(botRemovalPromises);
+      await bluebird.all(botRemovalPromises);
     });
   });
 };

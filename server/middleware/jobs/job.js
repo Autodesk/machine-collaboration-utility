@@ -2,6 +2,7 @@
 const uuidGenerator = require('uuid/v4');
 const StateMachine = require('javascript-state-machine');
 const Stopwatch = require('timer-stopwatch');
+const bluebird = require('bluebird');
 
 const jobFsmDefinitions = require('./jobFsmDefinitions');
 const jobModel = require('./model');
@@ -74,7 +75,7 @@ class Job {
             try {
               // As soon as an event successfully transistions, update it in the database
               const dbJob = await this.JobModel.findById(this.id);
-              await Promise.delay(0); // For some reason this can't happen in the same tick
+              await bluebird.delay(0); // For some reason this can't happen in the same tick
               await dbJob.updateAttributes({
                 state: this.fsm.current,
                 fileUuid: this.fileUuid,

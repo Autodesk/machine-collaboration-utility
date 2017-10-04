@@ -1,6 +1,7 @@
 /* global logger */
 const Response = require('../helpers/response');
 const _ = require('lodash');
+const bluebird = require('bluebird');
 
  /**
   * getJobs()
@@ -35,7 +36,7 @@ const deleteAllJobs = (self) => {
   const requestDescription = 'Delete All Jobs';
   self.router.delete(`${self.routeEndpoint}/all/`, async (ctx) => {
     try {
-      await Promise.map(
+      await bluebird.map(
         _.entries(self.jobList),
         async ([jobKey, job]) => {
           await self.deleteJob(jobKey);

@@ -8,7 +8,7 @@
  * with responses.
  ******************************************************************************/
 const _ = require('lodash');
-const delay = Promise.delay;
+const delay = require('bluebird').delay;
 const MCE = require('motion-controller-emulator');
 
 const roundAxis = function roundAxis(command, axis, self) {

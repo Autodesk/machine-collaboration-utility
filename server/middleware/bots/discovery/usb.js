@@ -1,8 +1,9 @@
 let usb;
 let SerialPort;
+const bluebird = require('bluebird');
 
 if (process.env.NODE_ENV !== 'test') {
-  usb = Promise.promisifyAll(require('usb'));
+  usb = bluebird.promisifyAll(require('usb'));
   SerialPort = require('serialport');
 }
 
@@ -31,7 +32,7 @@ UsbDiscovery.prototype.initialize = async function initialize() {
   const self = this;
   usb.on('attach', async () => {
     // Need to wait arbitrary amount of time for Serialport list to update
-    await Promise.delay(100);
+    await bluebird.delay(100);
     SerialPort.list((err, ports) => {
       ports = ports.map(this.substituteSerialNumberForPnpId);
       // Compare every available port against every known port
@@ -50,7 +51,7 @@ UsbDiscovery.prototype.initialize = async function initialize() {
 
   usb.on('detach', async () => {
     // Need to wait arbitrary amount of time for Serialport list to update
-    await Promise.delay(100);
+    await bluebird.delay(100);
     const portsToRemove = [];
     SerialPort.list(async (err, ports) => {
       ports = ports.map(this.substituteSerialNumberForPnpId);

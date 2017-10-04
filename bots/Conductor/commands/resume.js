@@ -1,6 +1,7 @@
 /* global logger */
 const request = require('request-promise');
 const path = require('path');
+const bluebird = require('bluebird');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
 
@@ -12,7 +13,7 @@ async function checkResume(self) {
   // ping each bot
   // If they're all connected, then we are done connecting
   let resumeDone = true;
-  await Promise.map(self.settings.custom.players, async (player) => {
+  await bluebird.map(self.settings.custom.players, async (player) => {
     const checkParams = {
       method: 'GET',
       uri: player.endpoint,
@@ -33,7 +34,7 @@ async function checkResume(self) {
     self.fsm[command]();
   } else {
     // Wait 2 seconds and then check the status again
-    await Promise.delay(2000);
+    await bluebird.delay(2000);
     checkResume(self);
   }
 }
@@ -54,7 +55,7 @@ module.exports = async function resume(self) {
     self.fsm.resume();
 
     const players = self.settings.custom.players;
-    await Promise.map(players, async (player) => {
+    await bluebird.map(players, async (player) => {
       // Ping each job for status
       const resumeParams = {
         method: 'POST',

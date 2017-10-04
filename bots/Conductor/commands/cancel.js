@@ -1,6 +1,7 @@
 /* global logger */
 const request = require('request-promise');
 const path = require('path');
+const bluebird = require('bluebird');
 
 const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
 const jobFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/jobs/jobFsmDefinitions'));
@@ -9,7 +10,7 @@ async function checkCancel(self) {
   // ping each bot
   // If they're all caneled, then we are done canceling
   let cancelDone = true;
-  await Promise.map(self.settings.custom.players, async (player) => {
+  await bluebird.map(self.settings.custom.players, async (player) => {
     const checkParams = {
       method: 'GET',
       uri: player.endpoint,
@@ -37,7 +38,7 @@ async function checkCancel(self) {
       });
     }, 1000);
   } else {
-    await Promise.delay(2000);
+    await bluebird.delay(2000);
     checkCancel(self);
   }
 }
