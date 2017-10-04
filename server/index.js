@@ -1,6 +1,4 @@
 /* global logger */
-require('source-map-support').install();
-
 try {
   require('dotenv').config();
 } catch (ex) {
@@ -98,4 +96,4 @@ async function setupApp() {
   }
 }
 
-setupApp();
+module.exports = setupApp;

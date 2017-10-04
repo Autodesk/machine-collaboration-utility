@@ -7,3 +7,5 @@ uploads
 addons
 *.tar.gz
 *.zip
+releases
+electron/build
