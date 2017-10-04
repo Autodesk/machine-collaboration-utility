@@ -21,6 +21,24 @@ const getBots = (self) => {
 };
 
 /**
+ * Handle all logic at this endpoint for reading all of the bot presets
+ */
+const getBotPresets = (self) => {
+  const requestDescription = 'Get Bot Presets';
+  self.router.get(`${self.routeEndpoint}/presets`, (ctx) => {
+    try {
+      const botsPresetsJson = self.getBotPresets();
+      ctx.status = 200;
+      ctx.body = new Response(ctx, requestDescription, botsPresetsJson);
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = new Response(ctx, requestDescription, ex);
+      logger.error(ex);
+    }
+  });
+};
+
+/**
  * Handle all logic at this endpoint for deleting all bots
  */
 const deleteAllBots = (self) => {
@@ -200,6 +218,7 @@ const processBotCommand = (self) => {
 };
 
 const botRoutes = (self) => {
+  getBotPresets(self);
   getBots(self);
   deleteAllBots(self);
 

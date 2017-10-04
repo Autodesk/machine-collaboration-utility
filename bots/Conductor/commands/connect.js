@@ -3,7 +3,7 @@
 const request = require('request-promise');
 const path = require('path');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
 
 // Criteria to be a local player
 // 1. Must have an identical ip address or be 'localhost'

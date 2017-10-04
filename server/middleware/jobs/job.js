@@ -3,7 +3,7 @@ const uuidGenerator = require('uuid/v4');
 const StateMachine = require('javascript-state-machine');
 const Stopwatch = require('timer-stopwatch');
 
-const jobFsmDefinitions = require('../../../react/modules/Jobs/jobFsmDefinitions');
+const jobFsmDefinitions = require('./jobFsmDefinitions');
 const jobModel = require('./model');
 
 /**

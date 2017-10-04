@@ -9,7 +9,7 @@ const TelnetExecutor = require('./comProtocols/telnet/executor');
 const VirtualExecutor = require('./comProtocols/virtual/executor');
 const CommandQueue = require('./commandQueue');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
 
 /**
  * This is a Bot class representing hardware that can process jobs.

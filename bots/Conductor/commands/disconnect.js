@@ -2,7 +2,7 @@
 const request = require('request-promise');
 const path = require('path');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
 
 async function checkDisconnection(self) {
   // ping each bot
