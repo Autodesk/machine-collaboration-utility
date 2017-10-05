@@ -1,3 +1,5 @@
+const path = require('path');
+
 const initialize = require('./commands/initialize');
 const discover = require('./commands/discover');
 const connect = require('./commands/connect');
@@ -22,6 +24,8 @@ const resolveWarning = require('./commands/resolveWarning');
 const genericWarningHandle = require('./commands/genericWarningHandle');
 const genericWarningResolve = require('./commands/genericWarningResolve');
 
+
+
 const info = {
   connectionType: 'virtual',
   fileTypes: ['.gcode'],
@@ -29,7 +33,6 @@ const info = {
 };
 
 const settings = {
-  model: __dirname.split('/')[__dirname.split('/').length - 1],
   name: 'Virtual Bot',
   endpoint: false,
   jogXSpeed: 2000,
@@ -42,6 +45,7 @@ const settings = {
   offsetY: 0.0,
   offsetZ: 0.0,
   openString: null,
+  model: 'Virtual',
 };
 
 const commands = {
