@@ -7,3 +7,4 @@ uploads
 addons
 *.tar.gz
 *.zip
+server/build
