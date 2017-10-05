@@ -1,0 +1,53 @@
+// BREAKPOINTS
+$screen-sm-min: 768px;
+$screen-xs-max: ($screen-sm-min - 1);
+$screen-md-min: 992px;
+$screen-sm-max: ($screen-md-min - 1);
+$screen-lg-min: 1200px;
+$screen-md-max: ($screen-lg-min - 1);
+
+// COLORS
+$black: #333;
+$white: #ffffff;
+$light-gray: #9FA1A4;
+
+$primary-hue: 210;
+$primary:             hsl($primary-hue, 29%, 24%);
+$primary-medium:      hsl($primary-hue, 29%, 44%);
+$primary-light:       hsl($primary-hue, 29%, 60%);
+$primary-super-light: hsl($primary-hue, 29%, 94%);
+
+$gray:        #383635;
+$gray-light:  #5e5d5d;
+$gray-dark:   #181818;
+
+$red:         #Df3f3f;
+$red-light:   #f04b5c;
+$red-dark:    #ab3642;
+
+$teal:        #007a7c;
+
+$green:       #58915E;
+$green-light: #81CC86;
+$green-dark:  #456B47;
+$green-low-sat: #90bb95;
+
+$base-bg-color: #F3F6FB;
+
+// PADDING
+$standard-padding: 30px;
+
+// TABS
+$bot-tab-bg:        #CCCBD5;
+$bot-tab-font-size: $standard-padding / 1.5;
+$active-bot-bg:     $base-bg-color;
+$bot-tab-div-bg:    rgba(204,203,213,.5);
+
+// DASHBOARD
+$button-color: $primary-medium;
+$button-hover: $primary-light;
+$button-focus: $primary-medium;
+
+// FONT SIZES
+$standard-font-size: 16px;
+$font-label-size: 18px;

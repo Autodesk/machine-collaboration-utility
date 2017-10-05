@@ -1,4 +1,5 @@
 dist
+build
 node_modules
 .DS_STORE
 *.log
@@ -8,4 +9,4 @@ addons
 *.tar.gz
 *.zip
 releases
-electron/build
+db.sqlite

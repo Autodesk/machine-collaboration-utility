@@ -196,6 +196,11 @@ class Bot {
             validator = this.validateSerialReply;
             break;
           }
+          case 'remote': {
+            executor = new VirtualExecutor(this.app);
+            validator = this.validateSerialReply;
+            break;
+          }
           case 'telnet': {
             executor = new TelnetExecutor(
               this.app,
