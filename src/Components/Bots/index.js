@@ -34,7 +34,7 @@ export default class Bots extends React.Component {
       selectedBot = props.bots[props.match.params.id];
     }
     // If no bot is selected, select the first bot and then update the route
-    if (!selectedBot && Object.keys(props.bots).length > 0) {
+    if (!selectedBot && props.bots && Object.keys(props.bots).length > 0) {
       selectedBot = this.props.bots[Object.keys(this.props.bots)[0]];
     }
     return selectedBot;

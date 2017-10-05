@@ -70,7 +70,7 @@ async function koaApp(config) {
   app.use(convert(cors()));
   app.use(convert(bodyparser()));
   app.use(convert(json()));
-  app.use(convert(serve(path.join(__dirname, '../build'))));
+  app.use(convert(serve(path.join(__dirname, './build'))));
 
   // attach socket middleware
   const io = new IO();
