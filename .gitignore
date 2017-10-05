@@ -10,3 +10,4 @@ addons
 *.zip
 releases
 db.sqlite
+src/main.css
