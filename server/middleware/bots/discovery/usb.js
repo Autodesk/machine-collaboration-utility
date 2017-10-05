@@ -32,7 +32,7 @@ UsbDiscovery.prototype.initialize = async function initialize() {
   const self = this;
   usb.on('attach', async () => {
     // Need to wait arbitrary amount of time for Serialport list to update
-    await bluebird.delay(100);
+    await bluebird.delay(2000);
     SerialPort.list((err, ports) => {
       ports = ports.map(this.substituteSerialNumberForPnpId);
       // Compare every available port against every known port
@@ -51,7 +51,7 @@ UsbDiscovery.prototype.initialize = async function initialize() {
 
   usb.on('detach', async () => {
     // Need to wait arbitrary amount of time for Serialport list to update
-    await bluebird.delay(100);
+    await bluebird.delay(2000);
     const portsToRemove = [];
     SerialPort.list(async (err, ports) => {
       ports = ports.map(this.substituteSerialNumberForPnpId);
