@@ -8,10 +8,11 @@
 const VirtualConnection = require('./connection');
 
 class VirtualExecutor {
-  constructor(app) {
+  constructor(app, bot) {
     this.connection = undefined;
     this.commandsProcessed = undefined;
     this.app = app;
+    this.bot = bot;
   }
 
   /**
@@ -36,6 +37,7 @@ class VirtualExecutor {
   open(doneFunc) {
     this.connection = new VirtualConnection(
       this.app,
+      this.bot,
       () => { doneFunc(true); }
     );
     this.commandsProcessed = 0;

@@ -192,7 +192,7 @@ class Bot {
           }
           case 'virtual':
           case 'conductor': {
-            executor = new VirtualExecutor(this.app);
+            executor = new VirtualExecutor(this.app, this);
             validator = this.validateSerialReply;
             break;
           }

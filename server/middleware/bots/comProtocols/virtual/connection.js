@@ -65,16 +65,17 @@ const roundGcode = function roundGcode(inGcode, self) {
  *                           connected
  * Return: N/A
  */
-const VirtualConnection = function VirtualConnection(app, connectedFunc) {
+const VirtualConnection = function VirtualConnection(app, bot, connectedFunc) {
   this.app = app;
-  this.bot = new MCE();
+  this.bot = bot;
+  this.mce = new MCE();
   this.mCloseFunc = undefined;
   this.mErrorFunc = undefined;
   this.mDataFunc = connectedFunc;
   this.returnString = '';
   this.io = app.io;
 
-  this.bot.open(() => {})
+  this.mce.open(() => {})
   .then(() => {
     connectedFunc(this);
   });
@@ -129,10 +130,10 @@ VirtualConnection.prototype.send = function send(inCommandStr) {
     // TODO add GCODE Validation regex
     // Add a line break if it isn't in there yet
 
-    this.io.broadcast('botSent', gcode);
-    this.bot.sendGcode(gcode)
+    this.io.broadcast(`botTx${this.bot.settings.uuid}`, gcode);
+    this.mce.sendGcode(gcode)
     .then(reply => {
-      this.io.broadcast('botReply', reply);
+      this.io.broadcast(`botRx${this.bot.settings.uuid}`, reply);
       logger.silly('reply:', reply);
       this.processData(reply);
     });
