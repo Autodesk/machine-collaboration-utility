@@ -129,6 +129,7 @@ VirtualConnection.prototype.send = function send(inCommandStr) {
     // TODO add GCODE Validation regex
     // Add a line break if it isn't in there yet
 
+    this.io.broadcast('botSent', gcode);
     this.bot.sendGcode(gcode)
     .then(reply => {
       this.io.broadcast('botReply', reply);

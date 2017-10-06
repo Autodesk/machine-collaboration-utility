@@ -1,7 +1,8 @@
-@import "bootstrap.min.scss";
+@import "variables.scss";
 @import "fonts.scss";
 @import "font-awesome/font-awesome.scss";
-@import "variables.scss";
+@import "bootstrap.min.scss";
+@import "./components/terminal";
 
 // Prevent rubber-band scroll
 html {

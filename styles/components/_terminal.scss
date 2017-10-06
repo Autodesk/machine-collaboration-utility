@@ -1,0 +1,11 @@
+.terminal__scroll-wrapper {
+  padding-bottom: 15px;
+  background: white;
+}
+
+.terminal__window {
+  background: white;
+  height: 400px;
+  overflow: scroll;
+  padding: 15px;
+}

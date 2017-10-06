@@ -217,7 +217,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
               gcode += '\n';
             }
             that.mPort.write(gcode);
-
+            that.io.broadcast('botSent', gcode);
             function sendAgain() {
               logger.error('ComError', gcode);
               that.mPort.write(gcode);
