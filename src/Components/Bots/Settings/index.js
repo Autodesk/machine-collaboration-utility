@@ -2,6 +2,7 @@ import React from 'react';
 import request from 'superagent';
 import _ from 'lodash';
 import Button from 'react-bootstrap/lib/Button';
+import { Redirect } from 'react-router-dom';
 
 export default class Settings extends React.Component {
   constructor(props) {
@@ -17,6 +18,7 @@ export default class Settings extends React.Component {
 
     this.state = {
       settings,
+      redirect: false,
     };
 
     this.updateBotSettings = this.updateBotSettings.bind(this);
@@ -132,10 +134,15 @@ export default class Settings extends React.Component {
   }
 
   deleteBot() {
-    request.delete(`/v1/bots/${this.props.bot.settings.uuid}`).end();
+    request.delete(`/v1/bots/${this.props.bot.settings.uuid}`).end(() => {
+      this.setState({ redirect: true });
+    });
   }
 
   render() {
+    if (this.state.redirect) {
+      return <Redirect to="/" />
+    }
     return (
       <div id="settings">
         <h3>Settings</h3>
