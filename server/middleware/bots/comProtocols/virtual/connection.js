@@ -72,6 +72,7 @@ const VirtualConnection = function VirtualConnection(app, connectedFunc) {
   this.mErrorFunc = undefined;
   this.mDataFunc = connectedFunc;
   this.returnString = '';
+  this.io = app.io;
 
   this.bot.open(() => {})
   .then(() => {
@@ -130,6 +131,7 @@ VirtualConnection.prototype.send = function send(inCommandStr) {
 
     this.bot.sendGcode(gcode)
     .then(reply => {
+      this.io.broadcast('botReply', reply);
       logger.silly('reply:', reply);
       this.processData(reply);
     });

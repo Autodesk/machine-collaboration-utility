@@ -56,7 +56,7 @@ export default class Bot extends React.Component {
             />
           </Tab>
           <Tab eventKey={2} title="Terminal">
-            <Terminal client={this.props.client} endpoint={endpoint} bot={this.props.bot} />
+            <Terminal open={this.state.selectedTab === 2} client={this.props.client} endpoint={endpoint} bot={this.props.bot} />
           </Tab>
           <Tab eventKey={3} title="Settings">
             <Settings client={this.props.client} endpoint={endpoint} bot={this.props.bot} />
