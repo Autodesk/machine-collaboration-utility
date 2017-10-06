@@ -134,15 +134,15 @@ export default class Settings extends React.Component {
   }
 
   deleteBot() {
-    request.delete(`/v1/bots/${this.props.bot.settings.uuid}`).end(() => {
-      this.setState({ redirect: true });
-    });
+    request.delete(`/v1/bots/${this.props.bot.settings.uuid}`).end();
+    this.setState({ redirect: true });
   }
 
   render() {
     if (this.state.redirect) {
-      return <Redirect to="/" />
+      return <Redirect to="/" />;
     }
+
     return (
       <div id="settings">
         <h3>Settings</h3>

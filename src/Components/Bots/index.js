@@ -5,6 +5,7 @@ import Radio from 'react-bootstrap/lib/Radio';
 import Button from 'react-bootstrap/lib/Button';
 import request from 'superagent';
 import _ from 'lodash';
+import { Redirect } from 'react-router-dom';
 
 import Bot from './Bot';
 import { NavLink } from 'react-router-dom';
@@ -35,7 +36,7 @@ export default class Bots extends React.Component {
     }
     // If no bot is selected, select the first bot and then update the route
     if (!selectedBot && props.bots && Object.keys(props.bots).length > 0) {
-      selectedBot = this.props.bots[Object.keys(this.props.bots)[0]];
+      selectedBot = props.bots[Object.keys(props.bots)[0]];
     }
     return selectedBot;
   }
@@ -163,10 +164,7 @@ export default class Bots extends React.Component {
         </div>
       );
     } catch (ex) {
-      // console.log('eh?', ex);
-      return '';
-    } finally {
-      // console.log('yeah?');
+      return null;
     }
   }
 
@@ -183,12 +181,6 @@ export default class Bots extends React.Component {
       .send({ name })
       .send({ model })
       .send({ endpoint })
-      // .send({ jogXSpeed: parseInt(event.target.jogXSpeed.value, 10) })
-      // .send({ jogYSpeed: parseInt(event.target.jogYSpeed.value, 10) })
-      // .send({ jogZSpeed: parseInt(event.target.jogZSpeed.value, 10) })
-      // .send({ jogESpeed: parseInt(event.target.jogESpeed.value, 10) })
-      // .send({ tempE: parseInt(event.target.tempE.value, 10) })
-      // .send({ tempB: parseInt(event.target.tempB.value, 10) })
       .set('Accept', 'application/json')
       .end();
   }
@@ -215,11 +207,22 @@ export default class Bots extends React.Component {
       selectedBot = this.state.selectedBot;
       currentJob = selectedBot.currentJob === undefined ? undefined : selectedBot.currentJob;
     }
-    // if the bot doesn't exist, we want to redirect the user...
+
     // if the user hasn't selected a bot, redirect them to the first available bot
+    const redirectToBot = this.props.location.pathname === "/" && selectedBot !== undefined ;
+    if (redirectToBot) {
+      return <Redirect to={`/${selectedBot.settings.uuid}`} />;
+    }
+
+    // if the bot doesn't exist, we want to redirect the user...
+    const redirectHome = selectedBot === undefined && this.props.location.pathname !== "/";
+    if (redirectHome) {
+      return <Redirect to="/" />;
+    }
+
     const daBot =
       selectedBot === undefined ? (
-        ''
+        null
       ) : (
         <Bot
           appColor={this.props.appColor}
