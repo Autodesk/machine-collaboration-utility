@@ -51,6 +51,7 @@
     "koa-static": "^2.0.0",
     "line-by-line": "^0.1.5",
     "lodash": "^4.17.4",
+    "moment": "^2.18.1",
     "motion-controller-emulator": "^0.1.2",
     "node-sass": "^4.5.3",
     "prop-types": "^15.5.10",
@@ -110,8 +111,8 @@
     "react-router": "^4.1.2",
     "react-router-dom": "^4.1.2",
     "react-router-prop-types": "^0.0.1",
-    "request": "^2.74.0",
     "react-scripts": "^1.0.14",
+    "request": "^2.83.0",
     "webpack": "^3.5.6"
   },
   "proxy": {
