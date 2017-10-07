@@ -29,27 +29,35 @@ export default class Terminal extends React.Component {
     this.setState({ commands: newCommands });
   }
 
-  socketConstructor() {
+  socketConstructor(botUuid) {
     this.boundReceivedListener = this.listCommand.bind(this, { sent: false });
-    this.props.client.on(`botRx${this.props.bot.settings.uuid}`, this.boundReceivedListener);
+    this.props.client.on(`botRx${botUuid}`, this.boundReceivedListener);
     this.boundSentListener = this.listCommand.bind(this, { sent: true });
-    this.props.client.on(`botTx${this.props.bot.settings.uuid}`, this.boundSentListener);
+    this.props.client.on(`botTx${botUuid}`, this.boundSentListener);
     this.setState({ listening: true });
   }
 
-  socketDeconstructor() {
-    this.props.client.removeListener('botReply', this.boundReceivedListener);
-    this.props.client.removeListener('botSent', this.boundSentListener);
+  socketDeconstructor(botUuid) {
+    this.props.client.removeListener(`botRx${botUuid}`, this.boundReceivedListener);
+    this.props.client.removeListener(`botTx${botUuid}`, this.boundSentListener);
     this.boundReceivedListener = null;
     this.boundSentListener = null;
     this.setState({ listening: false });
   }
 
   componentWillReceiveProps(props) {
+    // In case terminal is open and a different bot is selected
+    // Close the current event listeners and create new listeners
+    if (this.props.endpoint !== props.endpoint && this.state.listening) {
+      this.socketDeconstructor(this.props.bot.settings.uuid);
+      this.socketConstructor(props.bot.settings.uuid);
+      this.setState({ commands: [] });
+    }
+
     if (props.open && !this.state.listening) {
-      this.socketConstructor();
+      this.socketConstructor(this.props.bot.settings.uuid);
     } else if (!props.open && this.state.listening) {
-      this.socketDeconstructor();
+      this.socketDeconstructor(this.props.bot.settings.uuid);
     }
   }
 
