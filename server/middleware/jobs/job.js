@@ -29,7 +29,7 @@ class Job {
     this.app = jobParams.app;
     this.botUuid = jobParams.botUuid;
     this.fileUuid = jobParams.fileUuid;
-    this.uuid = jobParams.jobUuid !== undefined ? jobParams.jobUuid : uuidGenerator();
+    this.uuid = jobParams.jobUuid != null ? jobParams.jobUuid : uuidGenerator();
 
     this.initialState = jobParams.initialState;
     this.id = jobParams.id;
