@@ -8,7 +8,10 @@ const request = require('request-promise');
 const path = require('path');
 const bluebird = require('bluebird');
 
-const sendTwilioUpdate = require(path.join(process.env.PWD, 'server/middleware/helpers/sendTwilioUpdate'));
+const sendTwilioUpdate = require(path.join(
+  process.env.PWD,
+  'server/middleware/helpers/sendTwilioUpdate',
+));
 
 async function processCommentTag(gcodeObject, self) {
   switch (gcodeObject.commentTag.command) {
@@ -48,8 +51,9 @@ async function processCommentTag(gcodeObject, self) {
             json: true,
           };
 
-          await request(updateParams)
-          .catch((error) => { logger.error('Conductor update fail', error); });
+          await request(updateParams).catch((error) => {
+            logger.error('Conductor update fail', error);
+          });
         });
       }
 
@@ -122,7 +126,10 @@ async function processLine(line, self) {
         if (self.currentJob) {
           self.currentLine += 1;
           // Once the file is done, make sure that we still read only 99% until the bot is done processing the file
-          const percentComplete = parseInt(self.currentLine / self.numLines * 100, 10) >= 100 ? 99 : parseInt(self.currentLine / self.numLines * 100, 10);
+          const percentComplete =
+            parseInt(self.currentLine / self.numLines * 100, 10) >= 100
+              ? 99
+              : parseInt(self.currentLine / self.numLines * 100, 10);
           self.currentJob.percentComplete = percentComplete;
 
           if (self.fsm.current === 'executingJob') {
@@ -162,16 +169,15 @@ function getNLinesInFile(theFile) {
   // Get the number of lines in the file
   let numLines = 0;
   return new Promise((resolve) => {
-    fs.createReadStream(theFile.filePath)
-    .on('data', function readStreamOnData(chunk) {
-      numLines += chunk
-      .toString('utf8')
-      .split(/\r\n|[\n\r\u0085\u2028\u2029]/g)
-      .length - 1;
-    })
-    .on('end', () => {  // done
-      resolve(numLines);
-    });
+    fs
+      .createReadStream(theFile.filePath)
+      .on('data', (chunk) => {
+        numLines += chunk.toString('utf8').split(/\r\n|[\n\r\u0085\u2028\u2029]/g).length - 1;
+      })
+      .on('end', () => {
+        // done
+        resolve(numLines);
+      });
   });
 }
 
@@ -197,8 +203,7 @@ const setupFileExecutor = async function setupFileExecutor(self) {
     processFileEnd(self, theFile);
   });
 
-  self.numLines = await getNLinesInFile(theFile)
-  .catch((error) => {
+  self.numLines = await getNLinesInFile(theFile).catch((error) => {
     throw new Error('Read N lines error', error);
   });
 };
@@ -226,12 +231,16 @@ module.exports = async function startJob(self, params) {
       const fileUuid = params.fileUuid;
       const subscribers = params.subscribers;
 
-      self.currentJob = await jobMiddleware.createJob(botUuid, fileUuid, null, subscribers)
-      .catch((error) => { throw new Error('Create job error', error); });
+      self.currentJob = await jobMiddleware
+        .createJob(botUuid, fileUuid, null, subscribers)
+        .catch((error) => {
+          throw new Error('Create job error', error);
+        });
 
       // set up the file executor
-      await setupFileExecutor(self)
-      .catch((error) => { throw new Error('Setup file executor error', error); });
+      await setupFileExecutor(self).catch((error) => {
+        throw new Error('Setup file executor error', error);
+      });
 
       self.currentJob.start();
 

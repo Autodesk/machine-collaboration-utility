@@ -1,8 +1,14 @@
 /* global logger */
 const path = require('path');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/jobs/jobFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
+const jobFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/jobs/jobFsmDefinitions',
+));
 
 module.exports = function cancel(self) {
   try {

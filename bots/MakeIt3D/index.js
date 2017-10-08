@@ -21,7 +21,7 @@ const info = {
 
 const settings = {
   name: 'MakeIt-3D',
-  model: 'MakeIt3D'
+  model: 'MakeIt3D',
 };
 
 const commands = {

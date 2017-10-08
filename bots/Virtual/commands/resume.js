@@ -5,7 +5,9 @@ module.exports = async function resume(self) {
       throw new Error(`Bot ${self.settings.name} is not currently processing a job`);
     }
     if (self.currentJob.fsm.current !== 'paused') {
-      throw new Error(`Cannot resume ${self.settings.name} job from state "${self.currentJob.fsm.current}"`);
+      throw new Error(
+        `Cannot resume ${self.settings.name} job from state "${self.currentJob.fsm.current}"`,
+      );
     }
 
     if (!(self.fsm.current === 'paused' || self.fsm.current === 'pausing')) {
@@ -13,7 +15,10 @@ module.exports = async function resume(self) {
     }
 
     if (self.warnings.length > 0) {
-      throw new Error(`Cannot resume bot ${self.settings.name} with unresolved warnings`, self.warnings);
+      throw new Error(
+        `Cannot resume bot ${self.settings.name} with unresolved warnings`,
+        self.warnings,
+      );
     }
 
     const commandArray = [];
@@ -33,10 +38,11 @@ module.exports = async function resume(self) {
       commandArray.push(unparkCommands);
     }
 
-
     if (self.parkedPosition !== undefined) {
       commandArray.push(`G92 E${self.parkedPosition.e}`);
-      commandArray.push(`G1 X${self.parkedPosition.x} Y${self.parkedPosition.y} Z${self.parkedPosition.z} F2000`);
+      commandArray.push(
+        `G1 X${self.parkedPosition.x} Y${self.parkedPosition.y} Z${self.parkedPosition.z} F2000`,
+      );
     }
 
     commandArray.push({

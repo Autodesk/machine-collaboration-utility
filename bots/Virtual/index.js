@@ -24,8 +24,6 @@ const resolveWarning = require('./commands/resolveWarning');
 const genericWarningHandle = require('./commands/genericWarningHandle');
 const genericWarningResolve = require('./commands/genericWarningResolve');
 
-
-
 const info = {
   connectionType: 'virtual',
   fileTypes: ['.gcode'],

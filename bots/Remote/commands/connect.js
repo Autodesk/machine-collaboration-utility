@@ -1,4 +1,5 @@
 /* global logger */
+
 const request = require('request');
 
 module.exports = async function connect(self) {

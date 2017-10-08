@@ -40,13 +40,13 @@ const uploadFile = (self) => {
                 async (file) => {
                   uploadedFiles.push(await self.createFile(file));
                 },
-                { concurrency: 5 }
+                { concurrency: 5 },
               );
             } else {
               uploadedFiles.push(await self.createFile(files[theFile]));
             }
           },
-          { concurrency: 5 }
+          { concurrency: 5 },
         );
         ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, uploadedFiles);
@@ -55,7 +55,7 @@ const uploadFile = (self) => {
         ctx.body = new Response(ctx, requestDescription, ex);
         logger.error(ex);
       }
-    }
+    },
   );
 };
 

@@ -19,61 +19,63 @@ async function uploadAndSetupPlayerJobs(self) {
     await new Promise(async (resolve) => {
       try {
         // Open and unzip the file
-        await fs.createReadStream(theFile.filePath)
-        .pipe(unzip.Extract({ path: theFile.filePath.split('.')[0] }))
-        // As soon as the file is done being unzipped
-        .on('close', async () => {
-          logger.info('unzipped file', self.settings.custom.players);
-          try {
-            // Reset each player's collaborator list
-            const players = self.settings.custom.players;
-            players.forEach((player) => {
-              self.collaboratorCheckpoints[player.name] = 0;
-            });
+        await fs
+          .createReadStream(theFile.filePath)
+          .pipe(unzip.Extract({ path: theFile.filePath.split('.')[0] }))
+          // As soon as the file is done being unzipped
+          .on('close', async () => {
+            logger.info('unzipped file', self.settings.custom.players);
+            try {
+              // Reset each player's collaborator list
+              const players = self.settings.custom.players;
+              players.forEach((player) => {
+                self.collaboratorCheckpoints[player.name] = 0;
+              });
 
-            await self.commands.updatePlayers(self);
-            logger.info('updated the players');
+              await self.commands.updatePlayers(self);
+              logger.info('updated the players');
 
-            await bluebird.map(players, async (player) => {
-              // For each player we're going to upload a file, and then create a job
+              await bluebird.map(players, async (player) => {
+                // For each player we're going to upload a file, and then create a job
 
-              // Upload a file
-              const testFilePath = theFile.filePath.split('.')[0] + '/' + player.name + '.gcode';
-              const fileStream = await fs.createReadStream(testFilePath);
-              const formData = { file: fileStream };
-              const fileParams = {
-                method: 'POST',
-                uri: `${player.endpoint.split('/v1/bots')[0]}/v1/files`,
-                formData,
-                json: true,
-              };
-              const uploadFileReply = await request(fileParams);
+                // Upload a file
+                const testFilePath = `${theFile.filePath.split('.')[0]}/${player.name}.gcode`;
+                const fileStream = await fs.createReadStream(testFilePath);
+                const formData = { file: fileStream };
+                const fileParams = {
+                  method: 'POST',
+                  uri: `${player.endpoint.split('/v1/bots')[0]}/v1/files`,
+                  formData,
+                  json: true,
+                };
+                const uploadFileReply = await request(fileParams);
 
-              // Create and start job
-              const jobParams = {
-                method: 'POST',
-                uri: player.endpoint,
-                body: {
-                  command: 'startJob',
-                  fileUuid: uploadFileReply.data[0].uuid,
-                  subscribers: [
-                    `http://${ip.address()}:${process.env.PORT}/v1/bots/${self.settings.uuid}`,
-                  ],
-                },
-                json: true,
-              };
-              logger.info('Conductor player start params', jobParams);
-              await request(jobParams)
-              .catch((err) => { logger.error('Start job error', err); });
+                // Create and start job
+                const jobParams = {
+                  method: 'POST',
+                  uri: player.endpoint,
+                  body: {
+                    command: 'startJob',
+                    fileUuid: uploadFileReply.data[0].uuid,
+                    subscribers: [
+                      `http://${ip.address()}:${process.env.PORT}/v1/bots/${self.settings.uuid}`,
+                    ],
+                  },
+                  json: true,
+                };
+                logger.info('Conductor player start params', jobParams);
+                await request(jobParams).catch((err) => {
+                  logger.error('Start job error', err);
+                });
 
-              // No reason for this. Just looks cool when they start in a delayed order
-              await delay(2000);
-            });
-            resolve();
-          } catch (ex) {
-            logger.error(ex);
-          }
-        });
+                // No reason for this. Just looks cool when they start in a delayed order
+                await delay(2000);
+              });
+              resolve();
+            } catch (ex) {
+              logger.error(ex);
+            }
+          });
       } catch (ex) {
         logger.error(ex);
       }

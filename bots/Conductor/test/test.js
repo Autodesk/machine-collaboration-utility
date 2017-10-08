@@ -9,16 +9,13 @@ const bluebird = require('bluebird');
 const config = require('../../../server/config');
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);
-const logger = new (winston.Logger)({
+const logger = new winston.Logger({
   level: 'debug',
-  transports: [
-    new (winston.transports.Console)(),
-    new (winston.transports.File)({ filename }),
-  ],
+  transports: [new winston.transports.Console(), new winston.transports.File({ filename })],
 });
 
 module.exports = function botsTests() {
-  describe('Conductor unit test', function () {
+  describe('Conductor unit test', () => {
     let fileUuid;
     let conductorUuid;
     let virtualBot1;
@@ -27,20 +24,19 @@ module.exports = function botsTests() {
     let initialBots;
     let jobUuid;
 
-    it('should keep track of the bots initially available', function(done) {
+    it('should keep track of the bots initially available', (done) => {
       const requestParams = {
         method: 'GET',
         uri: 'http://localhost:9000/v1/bots/',
         json: true,
       };
-      request(requestParams)
-      .then((reply) => {
+      request(requestParams).then((reply) => {
         initialBots = reply.data;
         done();
       });
     });
 
-    it('should create a conductor bot', function (done) {
+    it('should create a conductor bot', (done) => {
       const requestParams = {
         method: 'POST',
         uri: 'http://localhost:9000/v1/bots/',
@@ -50,19 +46,19 @@ module.exports = function botsTests() {
         json: true,
       };
       request(requestParams)
-      .then((reply) => {
-        conductorUuid = reply.data.settings.uuid;
-        should(reply.status).equal(201);
-        should(reply.query).equal('Create Bot');
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
+        .then((reply) => {
+          conductorUuid = reply.data.settings.uuid;
+          should(reply.status).equal(201);
+          should(reply.query).equal('Create Bot');
+          done();
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
     });
 
-    it('should create a virtual bot', function (done) {
+    it('should create a virtual bot', (done) => {
       const requestParams = {
         method: 'POST',
         uri: 'http://localhost:9000/v1/bots/',
@@ -73,19 +69,19 @@ module.exports = function botsTests() {
         json: true,
       };
       request(requestParams)
-      .then((reply) => {
-        virtualBot1 = reply.data;
-        should(reply.status).equal(201);
-        should(reply.query).equal('Create Bot');
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
+        .then((reply) => {
+          virtualBot1 = reply.data;
+          should(reply.status).equal(201);
+          should(reply.query).equal('Create Bot');
+          done();
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
     });
 
-    it('should add a player to the conductor', function (done) {
+    it('should add a player to the conductor', (done) => {
       const requestParams = {
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
@@ -97,22 +93,22 @@ module.exports = function botsTests() {
         json: true,
       };
       request(requestParams)
-      .then((reply) => {
-        botUuid = reply.data.settings.uuid;
-        players = reply.data.settings.custom.players;
-        should(reply.status).equal(200);
-        should(Array.isArray(players)).equal(true);
-        should(players.length).equal(1);
-        should(reply.query).equal('Process Bot Command');
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
+        .then((reply) => {
+          botUuid = reply.data.settings.uuid;
+          players = reply.data.settings.custom.players;
+          should(reply.status).equal(200);
+          should(Array.isArray(players)).equal(true);
+          should(players.length).equal(1);
+          should(reply.query).equal('Process Bot Command');
+          done();
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
     });
 
-    it('should not allow two players to have the same name', function (done) {
+    it('should not allow two players to have the same name', (done) => {
       const requestParams = {
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
@@ -124,17 +120,17 @@ module.exports = function botsTests() {
         json: true,
       };
       request(requestParams)
-      .then((reply) => {
-        should(reply.data.includes('Duplicate name')).equal(true);
-        done();
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
+        .then((reply) => {
+          should(reply.data.includes('Duplicate name')).equal(true);
+          done();
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
     });
 
-    it('should add a second virtual bot', async function () {
+    it('should add a second virtual bot', async () => {
       const reply = await request({
         method: 'POST',
         uri: 'http://localhost:9000/v1/bots/',
@@ -161,7 +157,7 @@ module.exports = function botsTests() {
       players = addSecondPlayerReply.data.settings.custom.players;
     });
 
-    it('should create and connect all of the conductor\'s players', function (done) {
+    it("should create and connect all of the conductor's players", (done) => {
       const requestParams = {
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
@@ -171,42 +167,41 @@ module.exports = function botsTests() {
         json: true,
       };
       request(requestParams)
-      .then((reply) => {
-        // Wait a second for the bots to connect
-        bluebird.delay(1000)
-        .then(done);
-      })
-      .catch((err) => {
-        logger.error(err);
-        done();
-      });
+        .then((reply) => {
+          // Wait a second for the bots to connect
+          bluebird.delay(1000).then(done);
+        })
+        .catch((err) => {
+          logger.error(err);
+          done();
+        });
     });
 
-    it('should verify that the players are connected and in an idle state', function (done) {
+    it('should verify that the players are connected and in an idle state', (done) => {
       let success = true;
       let nTimes = 0;
-      bluebird.map(players, (player) => {
-        const requestParams = {
-          method: 'GET',
-          uri: player.endpoint,
-          json: true,
-        };
-        return request(requestParams)
-        .then((reply) => {
-          if (reply.data.state !== 'idle') {
-            success = false;
-          }
-          nTimes += 1;
+      bluebird
+        .map(players, (player) => {
+          const requestParams = {
+            method: 'GET',
+            uri: player.endpoint,
+            json: true,
+          };
+          return request(requestParams).then((reply) => {
+            if (reply.data.state !== 'idle') {
+              success = false;
+            }
+            nTimes += 1;
+          });
+        })
+        .then(() => {
+          should(nTimes).equal(players.length);
+          should(success).equal(true);
+          done();
         });
-      })
-      .then(() => {
-        should(nTimes).equal(players.length);
-        should(success).equal(true);
-        done();
-      });
     });
 
-    it('should start printing a .esh file', async function() {
+    it('should start printing a .esh file', async function () {
       this.timeout(15000);
       await bluebird.delay(5000);
       // Upload a file
@@ -232,8 +227,7 @@ module.exports = function botsTests() {
           fileUuid,
         },
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('start printing .esh error', err);
       });
 
@@ -245,7 +239,7 @@ module.exports = function botsTests() {
       should(startReply.query).equal('Process Bot Command');
     });
 
-    it('should pause printing a .esh file', async function() {
+    it('should pause printing a .esh file', async function () {
       this.timeout(10000);
       await bluebird.delay(5000);
 
@@ -254,8 +248,7 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: { command: 'pause' },
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('pause printing .esh error', err);
       });
 
@@ -264,7 +257,7 @@ module.exports = function botsTests() {
       should(pauseReply.query).equal('Process Bot Command');
     });
 
-    it('should finish pausing', async function() {
+    it('should finish pausing', async function () {
       this.timeout(25000);
       await bluebird.delay(20000);
 
@@ -272,8 +265,7 @@ module.exports = function botsTests() {
         method: 'GET',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('pause printing .esh error', err);
       });
 
@@ -281,7 +273,7 @@ module.exports = function botsTests() {
       should(getReply.status).equal(200);
     });
 
-    it('should resume printing a .esh file', async function() {
+    it('should resume printing a .esh file', async function () {
       this.timeout(10000);
       await bluebird.delay(5000);
 
@@ -290,8 +282,7 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: { command: 'resume' },
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('resume printing .esh error', err);
       });
 
@@ -300,7 +291,7 @@ module.exports = function botsTests() {
       should(resumeReply.query).equal('Process Bot Command');
     });
 
-    it('should finish resuming', async function() {
+    it('should finish resuming', async function () {
       this.timeout(20000);
       await bluebird.delay(15000);
 
@@ -308,8 +299,7 @@ module.exports = function botsTests() {
         method: 'GET',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('resuming printing .esh error', err);
       });
 
@@ -317,7 +307,7 @@ module.exports = function botsTests() {
       should(getReply.status).equal(200);
     });
 
-    it('should complete printing a .esh file', async function() {
+    it('should complete printing a .esh file', async function () {
       this.timeout(100000);
       await bluebird.delay(90000);
 
@@ -333,7 +323,7 @@ module.exports = function botsTests() {
       should(getJobReply.data.botUuid).equal(conductorUuid);
     });
 
-    it('should start printing another .esh file', async function() {
+    it('should start printing another .esh file', async function () {
       this.timeout(10000);
 
       // Kick off the job
@@ -345,8 +335,7 @@ module.exports = function botsTests() {
           fileUuid,
         },
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('start printing .esh error', err);
       });
 
@@ -358,14 +347,13 @@ module.exports = function botsTests() {
       should(startReply.query).equal('Process Bot Command');
     });
 
-    it('should cancel printing a .esh file', async function() {
+    it('should cancel printing a .esh file', async () => {
       const cancelReply = await request({
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: { command: 'cancel' },
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('cancel printing .esh error', err);
       });
 
@@ -375,7 +363,7 @@ module.exports = function botsTests() {
       should(cancelReply.query).equal('Process Bot Command');
     });
 
-    it('should finish canceling a .esh file', async function() {
+    it('should finish canceling a .esh file', async function () {
       this.timeout(40000);
       await bluebird.delay(30000);
 
@@ -383,8 +371,7 @@ module.exports = function botsTests() {
         method: 'GET',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('get conductor error', err);
       });
 
@@ -393,16 +380,15 @@ module.exports = function botsTests() {
       should(getReply.status).equal(200);
     });
 
-    it('should disconnect the conductor', async function() {
+    it('should disconnect the conductor', async () => {
       const disconnectReply = await request({
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         body: {
-          command: 'disconnect'
+          command: 'disconnect',
         },
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('disconnec conductor error', err);
       });
 
@@ -411,16 +397,15 @@ module.exports = function botsTests() {
       should(disconnectReply.query).equal('Process Bot Command');
     });
 
-    it('should finish disconnecting the conductor', async function() {
-      this.timeout(10000)
+    it('should finish disconnecting the conductor', async function () {
+      this.timeout(10000);
       await bluebird.delay(5000);
 
       const getReply = await request({
         method: 'GET',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         json: true,
-      })
-      .catch(err => {
+      }).catch((err) => {
         console.log('disconnec conductor error', err);
       });
 
@@ -428,7 +413,7 @@ module.exports = function botsTests() {
       should(getReply.status).equal(200);
     });
 
-    it('should remove a player from the conductor', async function () {
+    it('should remove a player from the conductor', async () => {
       const requestParams = {
         method: 'POST',
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
@@ -438,8 +423,7 @@ module.exports = function botsTests() {
         },
         json: true,
       };
-      const removePlayerReply = await request(requestParams)
-      .catch(err => {
+      const removePlayerReply = await request(requestParams).catch((err) => {
         console.log('remove conductor player error', err);
       });
 
@@ -450,7 +434,7 @@ module.exports = function botsTests() {
       should(removePlayerReply.query).equal('Process Bot Command');
     });
 
-    it('should clean up by removing all of the bots that were added', async function () {
+    it('should clean up by removing all of the bots that were added', async () => {
       const requestParams = {
         method: 'GET',
         uri: 'http://localhost:9000/v1/bots/',
@@ -471,8 +455,7 @@ module.exports = function botsTests() {
               json: true,
             };
 
-            await request(deleteBotParams)
-            .catch(() => {
+            await request(deleteBotParams).catch(() => {
               reject();
             });
 

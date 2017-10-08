@@ -26,7 +26,7 @@ const settings = {
   custom: {
     players: [],
   },
-  model: 'Conductor'
+  model: 'Conductor',
 };
 
 const commands = {

@@ -4,7 +4,10 @@ const request = require('request-promise');
 const path = require('path');
 const bluebird = require('bluebird');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
 
 // Criteria to be a local player
 // 1. Must have an identical ip address or be 'localhost'
@@ -49,6 +52,7 @@ module.exports = async function connect(self) {
     if (self.fsm.current !== 'ready') {
       throw new Error(`Cannot connect from state "${self.fsm.current}"`);
     }
+
     self.fsm.connect();
 
     // Go through each player and connect it

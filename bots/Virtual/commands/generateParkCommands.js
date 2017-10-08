@@ -31,6 +31,7 @@ module.exports = function generateParkCommands(self) {
           logger.debug('Done with park movements');
         },
       });
+
       self.queue.queueSequentialCommands(parkCommandArray);
     },
   });

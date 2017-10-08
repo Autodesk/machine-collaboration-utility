@@ -1,8 +1,14 @@
 /* global logger */
 const path = require('path');
 
-const sendTwilioUpdate = require(path.join(process.env.PWD, 'server/middleware/helpers/sendTwilioUpdate'));
-const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
+const sendTwilioUpdate = require(path.join(
+  process.env.PWD,
+  'server/middleware/helpers/sendTwilioUpdate',
+));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
 
 module.exports = async function pause(self) {
   try {
@@ -49,7 +55,7 @@ module.exports = async function pause(self) {
       },
     });
 
-    const parkCommands = self.commands.generateParkCommands(self)
+    const parkCommands = self.commands.generateParkCommands(self);
     if (Array.isArray(parkCommands)) {
       commandArray.push(...parkCommands);
     } else {

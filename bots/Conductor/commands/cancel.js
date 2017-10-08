@@ -3,8 +3,14 @@ const request = require('request-promise');
 const path = require('path');
 const bluebird = require('bluebird');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
-const jobFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/jobs/jobFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
+const jobFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/jobs/jobFsmDefinitions',
+));
 
 async function checkCancel(self) {
   // ping each bot
@@ -18,8 +24,7 @@ async function checkCancel(self) {
     };
     const reply = await request(checkParams);
     if (
-      botFsmDefinitions.metaStates.processingJob.includes(reply.data.state)
-      ||
+      botFsmDefinitions.metaStates.processingJob.includes(reply.data.state) ||
       reply.data.state === 'cancelingJob'
     ) {
       cancelDone = false;
@@ -43,7 +48,6 @@ async function checkCancel(self) {
   }
 }
 
-
 module.exports = function cancel(self) {
   try {
     if (!botFsmDefinitions.metaStates.processingJob.includes(self.fsm.current)) {
@@ -60,7 +64,7 @@ module.exports = function cancel(self) {
     try {
       const players = self.settings.custom.players;
       players.forEach(async (player) => {
-          // Cancel each bot
+        // Cancel each bot
         const cancelJobParams = {
           method: 'POST',
           uri: player.endpoint,
@@ -70,8 +74,9 @@ module.exports = function cancel(self) {
           json: true,
         };
 
-        await request(cancelJobParams)
-        .catch((ex) => { logger.error('Cancel fail', ex); });
+        await request(cancelJobParams).catch((ex) => {
+          logger.error('Cancel fail', ex);
+        });
       });
       checkCancel(self);
     } catch (ex) {

@@ -9,21 +9,25 @@ async function checkPause(self) {
   // ping each bot
   // If they're all connected, then we are done connecting
   let pauseDone = true;
-  await bluebird.map(self.settings.custom.players, async (player) => {
-    const checkParams = {
-      method: 'GET',
-      uri: player.endpoint,
-      json: true,
-    };
+  await bluebird
+    .map(self.settings.custom.players, async (player) => {
+      const checkParams = {
+        method: 'GET',
+        uri: player.endpoint,
+        json: true,
+      };
 
-    const reply = await request(checkParams)
-    .catch((ex) => { logger.error('Check pause player error', ex); });
+      const reply = await request(checkParams).catch((ex) => {
+        logger.error('Check pause player error', ex);
+      });
 
-    if (reply.data.state !== 'paused') {
-      pauseDone = false;
-    }
-  })
-  .catch((ex) => { logger.error('Get players pause info error', ex); });
+      if (reply.data.state !== 'paused') {
+        pauseDone = false;
+      }
+    })
+    .catch((ex) => {
+      logger.error('Get players pause info error', ex);
+    });
 
   if (self.fsm.current === 'paused') {
     return;
@@ -38,7 +42,6 @@ async function checkPause(self) {
     checkPause(self);
   }
 }
-
 
 module.exports = async function pause(self) {
   // TODO should not be able to pause unless all players are running
@@ -65,8 +68,9 @@ module.exports = async function pause(self) {
         json: true,
       };
 
-      const pauseReply = await request(pauseParams)
-      .catch((ex) => { logger.error('Pause fail', ex); });
+      const pauseReply = await request(pauseParams).catch((ex) => {
+        logger.error('Pause fail', ex);
+      });
 
       checkPause(self);
       logger.info('Paused bot', player, pauseReply);

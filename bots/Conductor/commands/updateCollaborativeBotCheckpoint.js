@@ -11,6 +11,9 @@ module.exports = function updateCollaborativeBotCheckpoint(self, params) {
   }
   logger.info('updating bot checkpoints', bot, checkpoint, self.collaboratorCheckpoints);
   self.collaboratorCheckpoints[bot] = checkpoint;
-  logger.info(`Just updated bot ${bot} to checkpoint ${checkpoint}`, JSON.stringify(self.collaboratorCheckpoints));
+  logger.info(
+    `Just updated bot ${bot} to checkpoint ${checkpoint}`,
+    JSON.stringify(self.collaboratorCheckpoints),
+  );
   self.commands.updatePlayers(self);
 };

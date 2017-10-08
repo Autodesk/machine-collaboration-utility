@@ -31,7 +31,7 @@ module.exports = function generateParkCommands(self) {
       if (self.parkedPosition.z < 190 - parkLift) {
         parkCommandArray.push(`G1 Z${(self.parkedPosition.z + parkLift).toFixed(2)} F1000`);
       }
-      parkCommandArray.push(`G1 X5 Y195 F2000`);
+      parkCommandArray.push('G1 X5 Y195 F2000');
       parkCommandArray.push({
         code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
         postCallback: () => {

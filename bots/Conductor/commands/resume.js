@@ -3,7 +3,10 @@ const request = require('request-promise');
 const path = require('path');
 const bluebird = require('bluebird');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
 
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -13,20 +16,24 @@ async function checkResume(self) {
   // ping each bot
   // If they're all connected, then we are done connecting
   let resumeDone = true;
-  await bluebird.map(self.settings.custom.players, async (player) => {
-    const checkParams = {
-      method: 'GET',
-      uri: player.endpoint,
-      json: true,
-    };
-    const reply = await request(checkParams)
-    .catch((ex) => { logger.error('Get bot resume info error', ex); });
+  await bluebird
+    .map(self.settings.custom.players, async (player) => {
+      const checkParams = {
+        method: 'GET',
+        uri: player.endpoint,
+        json: true,
+      };
+      const reply = await request(checkParams).catch((ex) => {
+        logger.error('Get bot resume info error', ex);
+      });
 
-    if (!botFsmDefinitions.metaStates.pauseable.includes(reply.data.state)) {
-      resumeDone = false;
-    }
-  })
-  .catch((ex) => { logger.error('Get players resume info error', ex); });
+      if (!botFsmDefinitions.metaStates.pauseable.includes(reply.data.state)) {
+        resumeDone = false;
+      }
+    })
+    .catch((ex) => {
+      logger.error('Get players resume info error', ex);
+    });
 
   if (resumeDone) {
     const command = `resume${capitalizeFirstLetter(self.pauseableState)}`;
@@ -64,8 +71,9 @@ module.exports = async function resume(self) {
         json: true,
       };
 
-      await request(resumeParams)
-      .catch((ex) => { logger.error('Resume conductor player fail', ex); });
+      await request(resumeParams).catch((ex) => {
+        logger.error('Resume conductor player fail', ex);
+      });
     });
 
     self.currentJob.fsm.resume();

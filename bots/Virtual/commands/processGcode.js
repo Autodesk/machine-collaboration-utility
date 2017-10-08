@@ -8,11 +8,7 @@ const objectToGcode = require('gcode-json-converter').objectToGcode;
 module.exports = async function processGcode(self, params) {
   try {
     const force = String(params.force) === 'true';
-    if (
-      self.fsm.current !== 'paused'
-      && self.fsm.current !== 'idle'
-      && !force
-    ) {
+    if (self.fsm.current !== 'paused' && self.fsm.current !== 'idle' && !force) {
       throw new Error(`Cannot process gcode from state ${self.fsm.current}`);
     }
 
@@ -33,8 +29,7 @@ module.exports = async function processGcode(self, params) {
         },
       });
       self.queue.queueCommands(commandArray);
-    })
-    .catch((ex) => {
+    }).catch((ex) => {
       logger.error('Awaiting error', ex);
     });
   } catch (ex) {

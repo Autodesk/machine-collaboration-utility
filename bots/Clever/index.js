@@ -23,7 +23,7 @@ const settings = {
   name: 'Clever',
   tempE: 220,
   tempB: 55,
-  model: 'Clever'
+  model: 'Clever',
 };
 
 const commands = {

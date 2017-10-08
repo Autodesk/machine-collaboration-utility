@@ -2,7 +2,10 @@ const path = require('path');
 const request = require('request-promise');
 const bluebird = require('bluebird');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
 
 const delay = bluebird.delay;
 
@@ -25,8 +28,10 @@ module.exports = async function updateRoutine(self, params) {
         const pingReply = await request(pingJobParams);
         if (botFsmDefinitions.metaStates.processingJob.includes(self.fsm.current)) {
           if (botFsmDefinitions.metaStates.processingJob.includes(pingReply.data.state)) {
-            accumulatePercentComplete += pingReply.data.currentJob.percentComplete == undefined ?
-              0 : pingReply.data.currentJob.percentComplete;
+            accumulatePercentComplete +=
+              pingReply.data.currentJob.percentComplete == undefined
+                ? 0
+                : pingReply.data.currentJob.percentComplete;
             doneConducting = false;
           } else {
             accumulatePercentComplete += 100;
@@ -48,17 +53,18 @@ module.exports = async function updateRoutine(self, params) {
         self.currentJob = undefined;
         self.fsm.completeDone();
         await delay(2000);
+
         self.app.io.broadcast('botEvent', {
           uuid: self.settings.uuid,
           event: 'update',
           data: self.getBot(),
         });
+      } else if (self.settings.custom.players.length === 0) {
+        self.currentJob.percentComplete = 0;
       } else {
-        if (self.settings.custom.players.length === 0) {
-          self.currentJob.percentComplete = 0;
-        } else {
-          self.currentJob.percentComplete = Number(accumulatePercentComplete / self.settings.custom.players.length).toFixed(3);
-        }
+        self.currentJob.percentComplete = Number(
+            accumulatePercentComplete / self.settings.custom.players.length,
+          ).toFixed(3);
       }
     }
   }

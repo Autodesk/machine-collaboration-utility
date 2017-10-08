@@ -12,7 +12,7 @@ const info = {
   fileTypes: ['.gcode'],
   vidPid: [
     {
-      vid: 0x1D50,
+      vid: 0x1d50,
       pid: 0x6015,
     },
   ],
@@ -21,7 +21,7 @@ const info = {
 
 const settings = {
   name: 'Cronus Bot',
-  model: 'TitanCronus'
+  model: 'TitanCronus',
 };
 
 const commands = {

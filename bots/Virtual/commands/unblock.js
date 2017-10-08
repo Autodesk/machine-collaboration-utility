@@ -12,9 +12,9 @@ module.exports = async function unblock(self, params) {
       }
 
       commandArray.push({
-          postCallback: () => {
-            self.lr.resume();
-          },
+        postCallback: () => {
+          self.lr.resume();
+        },
       });
 
       self.queue.queueSequentialCommands(commandArray);
@@ -39,7 +39,6 @@ module.exports = async function unblock(self, params) {
         } else {
           commandArray.push(unparkCommands);
         }
-        
       }
 
       commandArray.push({
@@ -51,7 +50,6 @@ module.exports = async function unblock(self, params) {
       });
 
       self.queue.queueSequentialCommands(commandArray);
-
     }
   } catch (ex) {
     logger.error('Unblock error', ex);

@@ -22,7 +22,7 @@ const info = {
 
 const settings = {
   name: 'KLONER3D',
-  model: 'KLONER3D'
+  model: 'KLONER3D',
 };
 
 const commands = {

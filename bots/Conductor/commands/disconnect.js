@@ -1,9 +1,12 @@
 /* global logger */
 const request = require('request-promise');
 const path = require('path');
-const bluebird = require('bluebird')
+const bluebird = require('bluebird');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'server/middleware/bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
 
 async function checkDisconnection(self) {
   // ping each bot
@@ -17,8 +20,7 @@ async function checkDisconnection(self) {
     };
     const reply = await request(checkParams);
     if (
-      botFsmDefinitions.metaStates.connected.includes(reply.data.state)
-      ||
+      botFsmDefinitions.metaStates.connected.includes(reply.data.state) ||
       reply.data.state === 'disconnecting'
     ) {
       disconnectionDone = false;

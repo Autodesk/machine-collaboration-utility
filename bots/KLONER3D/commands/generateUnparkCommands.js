@@ -11,7 +11,9 @@ module.exports = function generateUnparkCommands(self) {
   commandArray.push('G92 E-2'); // Prepare extruder for E0
   commandArray.push(self.info.clearBufferCommand); // Clear motion buffer before saying we're done
   commandArray.push({
-    postCallback: () => { self.parked = false; },
+    postCallback: () => {
+      self.parked = false;
+    },
   });
 
   const purgeCheck = {
