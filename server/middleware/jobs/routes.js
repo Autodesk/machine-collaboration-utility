@@ -3,7 +3,7 @@ const Response = require('../helpers/response');
 const _ = require('lodash');
 const bluebird = require('bluebird');
 
- /**
+/**
   * getJobs()
   *
   * Retreive a dictionary of all the jobs
@@ -25,7 +25,7 @@ const getJobs = (self) => {
   });
 };
 
- /**
+/**
   * deleteAllJobs()
   *
   * Handle all logic at this endpoint for deleting all jobs from the database
@@ -41,7 +41,7 @@ const deleteAllJobs = (self) => {
         async ([jobKey, job]) => {
           await self.deleteJob(jobKey);
         },
-        { concurrency: 5 }
+        { concurrency: 5 },
       );
       const status = 'All jobs deleted';
       ctx.status = 200;
@@ -54,7 +54,7 @@ const deleteAllJobs = (self) => {
   });
 };
 
- /**
+/**
   * createJob()
   *
   * Handle all logic at this endpoint for creating a job
@@ -169,7 +169,6 @@ const deleteJob = (self) => {
     }
   });
 };
-
 
 /**
  * processJobCommand()

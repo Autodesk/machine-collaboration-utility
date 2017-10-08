@@ -3,20 +3,15 @@ const Koa = require('koa');
 const cors = require('koa-cors');
 const convert = require('koa-convert');
 const bodyparser = require('koa-bodyparser');
-const koaBody = require('koa-body');
 const json = require('koa-json');
 const serve = require('koa-static');
-const winston = require('winston');
 const IO = require('koa-socket');
 const path = require('path');
 const Sequelize = require('sequelize');
 const router = require('koa-router')();
-const _ = require('lodash');
 const fs = require('fs-promise');
-const stringify = require('json-stringify-safe');
 const write = require('fs').createWriteStream;
 const pack = require('tar-pack').pack;
-const exec = require('child_process').exec;
 const execPromise = require('exec-then');
 
 const Files = require('./middleware/files');
@@ -28,8 +23,7 @@ async function getHostname() {
     return null;
   }
 
-  const reply = await execPromise('cat /etc/hostname | tr -d " \t\n\r"')
-  .catch((execError) => {
+  const reply = await execPromise('cat /etc/hostname | tr -d " \t\n\r"').catch((execError) => {
     logger.error('Get hostname error', execError);
   });
 
@@ -48,7 +42,7 @@ async function getAppSettings() {
   return { hostname };
 }
 
- /**
+/**
   * koaApp()
   *
   * Sets up the application's middleware
@@ -84,9 +78,9 @@ async function koaApp(config) {
     pool: {
       max: 5,
       min: 0,
-      idle: 10000
+      idle: 10000,
     },
-    storage: './db.sqlite'
+    storage: './db.sqlite',
   });
 
   // check database connection
@@ -100,7 +94,7 @@ async function koaApp(config) {
   if (err) {
     const errorMessage = `Unable to connect to the database: ${err}`;
     logger.error(err);
-    throw (errorMessage);
+    throw errorMessage;
   } else {
     app.context.db = sequelize;
   }
@@ -130,8 +124,7 @@ async function koaApp(config) {
   async function updateHostname(newHostname) {
     const updateScriptPath = path.join(process.env.PWD, 'rename.sh');
     const updateHostnameString = `/bin/bash ${updateScriptPath} ${newHostname}`;
-    await execPromise(updateHostnameString)
-    .catch((execError) => {
+    await execPromise(updateHostnameString).catch((execError) => {
       logger.error('Update hostname error', execError);
     });
     return true;
@@ -141,18 +134,18 @@ async function koaApp(config) {
     try {
       await new Promise((resolve, reject) => {
         pack(path.join(process.env.PWD, 'logs'))
-        .pipe(write(`${process.env.PWD}/mcu-logs.tar.gz`))
-        .on('error', (zipError) => {
-          logger.error(zipError);
-          reject();
-        })
-        .on('close', () => {
-          resolve();
-        });
+          .pipe(write(`${process.env.PWD}/mcu-logs.tar.gz`))
+          .on('error', (zipError) => {
+            logger.error(zipError);
+            reject();
+          })
+          .on('close', () => {
+            resolve();
+          });
       });
 
       ctx.res.setHeader('Content-disposition', 'attachment; filename=mcu-logs.tar.gz');
-      ctx.body = fs.createReadStream(process.env.PWD + '/mcu-logs.tar.gz');
+      ctx.body = fs.createReadStream(`${process.env.PWD}/mcu-logs.tar.gz`);
     } catch (ex) {
       ctx.status = 500;
       ctx.body = `Download logs failure: ${ex}`;

@@ -34,9 +34,9 @@ class Bots {
     this.botList = {};
   }
 
-  /*******************************************************************************
+  /** *****************************************************************************
    * Initialization functions
-   ******************************************************************************/
+   ***************************************************************************** */
   /**
    * initialize the bots endpoint
    */
@@ -70,7 +70,8 @@ class Bots {
           // Don't or Do, respectively, add Serial printers
           if (process.env.ONLY_CONDUCT === 'true') {
             try {
-              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
+              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info
+                .connectionType;
               if (connectionType !== 'serial') {
                 this.createBot(dbBot.dataValues);
               }
@@ -79,7 +80,8 @@ class Bots {
             }
           } else if (process.env.ONLY_SERIAL === 'true') {
             try {
-              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
+              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info
+                .connectionType;
               if (connectionType === 'serial') {
                 this.createBot(dbBot.dataValues);
               }
@@ -162,10 +164,9 @@ class Bots {
     logger.info('Done loading presets');
   }
 
-
-  /*******************************************************************************
+  /** *****************************************************************************
   * Core functions
-  ******************************************************************************/
+  ***************************************************************************** */
   async createPersistentBot(inputSettings = {}) {
     console.log('input settings', inputSettings);
     const newBot = this.createBot(inputSettings);
@@ -183,12 +184,10 @@ class Bots {
   createBot(inputSettings = {}) {
     // Load presets based on the model
     // If no model is passed, or if the model does not exist use the default presets
-    const botPresets = (
-      inputSettings.model === undefined ||
-      this.botPresetList[inputSettings.model] === undefined
-    ) ?
-    this.botPresetList.Virtual :
-    this.botPresetList[inputSettings.model];
+    const botPresets =
+      inputSettings.model === undefined || this.botPresetList[inputSettings.model] === undefined
+        ? this.botPresetList.Virtual
+        : this.botPresetList[inputSettings.model];
     // Mixin all input settings into the bot object
     const newBot = new Bot(this.app, botPresets, inputSettings);
 
@@ -228,7 +227,7 @@ class Bots {
 
       if (!deleted) {
         throw new Error(
-          `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`
+          `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`,
         );
       }
 
@@ -245,9 +244,9 @@ class Bots {
     }
   }
 
-  /*******************************************************************************
+  /** *****************************************************************************
   * Utility functions
-  ******************************************************************************/
+  ***************************************************************************** */
   /*
   * get a json friendly description of the Bots
   */

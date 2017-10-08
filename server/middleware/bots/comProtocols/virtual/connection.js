@@ -1,12 +1,12 @@
 /* global logger */
-/*******************************************************************************
+/** *****************************************************************************
  * FakeMarlinConnection.js
  *
  * A class to manage opening, maintaining, and closing a serial connection.
  * This class wraps a serialport connection and mostly cleanly handles the data
  * stream following open so that we settle into a clean state to match commands
  * with responses.
- ******************************************************************************/
+ ***************************************************************************** */
 const _ = require('lodash');
 const delay = require('bluebird').delay;
 const MCE = require('motion-controller-emulator');
@@ -49,7 +49,6 @@ const roundGcode = function roundGcode(inGcode, self) {
   return gcode;
 };
 
-
 /**
  * VirtualConnection()
  *
@@ -75,15 +74,14 @@ const VirtualConnection = function VirtualConnection(app, bot, connectedFunc) {
   this.returnString = '';
   this.io = app.io;
 
-  this.mce.open(() => {})
-  .then(() => {
+  this.mce.open(() => {}).then(() => {
     connectedFunc(this);
   });
 };
 
 /* ******************************************************************************
  * Public interface
- * *****************************************************************************/
+ * **************************************************************************** */
 
 /**
  * setDataFunc(), setCloseFunc, setErrorFunc()
@@ -122,7 +120,7 @@ VirtualConnection.prototype.processData = function processData(inData) {
  * Return: N/A
  */
 VirtualConnection.prototype.send = function send(inCommandStr) {
-  let gcode = roundGcode(inCommandStr).split('\n')[0];
+  const gcode = roundGcode(inCommandStr).split('\n')[0];
   let error;
   let commandSent = false;
 
@@ -131,8 +129,7 @@ VirtualConnection.prototype.send = function send(inCommandStr) {
     // Add a line break if it isn't in there yet
 
     this.io.broadcast(`botTx${this.bot.settings.uuid}`, gcode);
-    this.mce.sendGcode(gcode)
-    .then(reply => {
+    this.mce.sendGcode(gcode).then((reply) => {
       this.io.broadcast(`botRx${this.bot.settings.uuid}`, reply);
       logger.silly('reply:', reply);
       this.processData(reply);

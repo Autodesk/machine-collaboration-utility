@@ -132,7 +132,8 @@ class Files {
       const name = file.name;
       const fileStats = await fs.stat(file.path);
       const dateChanged = fileStats.ctime;
-      const filePath = this.uploadDir + '/' + name.split('.')[0] + '_' + uuid + '.' + name.split('.')[1];
+      const filePath =
+        `${this.uploadDir}/${name.split('.')[0]}_${uuid}.${name.split('.')[1]}`;
       fileObject = { uuid, name, dateChanged, filePath };
 
       // Rename the file from it's random name to the file's name plus the uuid
@@ -153,7 +154,11 @@ class Files {
       }
       const fileStats = await fs.stat(userPath);
       const uuid = userUuid;
-      const name = userPath.split('\\').pop().split('/').pop();
+      const name = userPath
+        .split('\\')
+        .pop()
+        .split('/')
+        .pop();
       const dateChanged = fileStats.ctime;
       fileObject = { uuid, name, dateChanged, filePath: userPath };
       this.fileList[uuid] = fileObject;
@@ -197,7 +202,7 @@ class Files {
     }
 
     return theFile;
-  };
+  }
 
   /**
    * deleteFile()

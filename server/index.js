@@ -47,11 +47,8 @@ const loggerTransport = new winston.transports.DailyRotateFile({
   maxFiles: 7,
 });
 
-global.logger = new (winston.Logger)({
-  transports: [
-    new (winston.transports.Console)(),
-    loggerTransport,
-  ],
+global.logger = new winston.Logger({
+  transports: [new winston.transports.Console(), loggerTransport],
 });
 
 logger.info('Logger initialized');

@@ -63,14 +63,18 @@ class Job {
     const fsmSettings = {
       initial: initialState,
       error: (eventName, from, to, args, errorCode, errorMessage) => {
-        const fsmError = `Invalid job ${this.uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
+        const fsmError = `Invalid job ${this
+          .uuid} state change on event "${eventName}" from "${from}" to "${to}"\nargs: "${args}"\nerrorCode: "${errorCode}"\nerrorMessage: "${errorMessage}"`;
         logger.error(fsmError);
         throw new Error(fsmError);
       },
       events: jobFsmDefinitions.fsmEvents,
       callbacks: {
         onenterstate: async (event, from, to) => {
-          logger.info(`Job ${this.uuid} Bot ${this.botUuid} event ${event}: Transitioning from ${from} to ${to}.`);
+          logger.info(
+            `Job ${this.uuid} Bot ${this
+              .botUuid} event ${event}: Transitioning from ${from} to ${to}.`,
+          );
           if (from !== 'none') {
             try {
               // As soon as an event successfully transistions, update it in the database
@@ -83,7 +87,10 @@ class Job {
                 elapsed: this.stopwatch.ms,
                 percentComplete: this.percentComplete,
               });
-              logger.info(`Job event. ${event} for job ${this.uuid} successfully updated to ${this.fsm.current}`);
+              logger.info(
+                `Job event. ${event} for job ${this.uuid} successfully updated to ${this.fsm
+                  .current}`,
+              );
               this.app.io.broadcast('jobEvent', {
                 uuid: this.uuid,
                 event: 'update',
@@ -126,8 +133,8 @@ class Job {
     */
   getJob() {
     const state = this.fsm.current ? this.fsm.current : 'ready';
-    const started = !!this.started ? this.started : null;
-    const elapsed = !!this.started ? this.stopwatch.ms || this.elapsed : null;
+    const started = this.started ? this.started : null;
+    const elapsed = this.started ? this.stopwatch.ms || this.elapsed : null;
     return {
       botUuid: this.botUuid,
       uuid: this.uuid,
@@ -137,7 +144,7 @@ class Job {
       elapsed,
       percentComplete: this.percentComplete,
     };
-  };
+  }
 
   /**
     * start()
@@ -158,7 +165,7 @@ class Job {
       const errorMessage = `Job start failure ${ex}`;
       logger.error(errorMessage);
     }
-  };
+  }
 
   /**
     * pause()
@@ -181,7 +188,7 @@ class Job {
       const errorMessage = `Job pause failure ${ex}`;
       logger.error(errorMessage);
     }
-  };
+  }
 
   /**
    * resume()
@@ -203,7 +210,7 @@ class Job {
       const errorMessage = `Job resume failure ${ex}`;
       logger.error(errorMessage);
     }
-  };
+  }
 
   /**
    * cancel()
@@ -223,7 +230,7 @@ class Job {
       const errorMessage = `Job cancel failure ${ex}`;
       logger.error(errorMessage);
     }
-  };
+  }
 
   complete() {
     if (this.fsm.current !== 'running') {
@@ -231,7 +238,7 @@ class Job {
     }
     this.fsm.completeJob();
     this.stopwatch.stop();
-  };
+  }
 }
 
 module.exports = Job;

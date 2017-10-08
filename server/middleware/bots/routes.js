@@ -195,7 +195,7 @@ const processBotCommand = (self) => {
         throw `Bot "${uuid} not found"`;
       }
 
-      let command = ctx.request.body.command;
+      const command = ctx.request.body.command;
       if (command === undefined) {
         throw '"command" is undefined';
       }

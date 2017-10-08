@@ -1,4 +1,4 @@
-/*******************************************************************************
+/** *****************************************************************************
  * FakeMarlinExecutor()
  *
  * This class mimics Marlin Firmware. All commands are accessed vai the executor
@@ -24,7 +24,6 @@ class VirtualExecutor {
     return this.commandsProcessed;
   }
 
-
   /**
    * open()
    *
@@ -35,11 +34,9 @@ class VirtualExecutor {
    * Return: N/A
    */
   open(doneFunc) {
-    this.connection = new VirtualConnection(
-      this.app,
-      this.bot,
-      () => { doneFunc(true); }
-    );
+    this.connection = new VirtualConnection(this.app, this.bot, () => {
+      doneFunc(true);
+    });
     this.commandsProcessed = 0;
   }
 

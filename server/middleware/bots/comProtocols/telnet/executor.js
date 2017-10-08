@@ -1,4 +1,4 @@
-/*******************************************************************************
+/** *****************************************************************************
  * TelnetCommandExecutor()
  *
  * Constructor for the TelnetCommandExecutor.  The command queue requests to
@@ -38,11 +38,9 @@ TelnetCommandExecutor.prototype.getCommandsProcessed = function () {
  * Return: N/A
  */
 TelnetCommandExecutor.prototype.open = function (inDoneFunc) {
-  this.mConnection = new TelnetConnection(
-    this.app,
-    this.externalEndpoint,
-    () => { inDoneFunc(true); }
-  );
+  this.mConnection = new TelnetConnection(this.app, this.externalEndpoint, () => {
+    inDoneFunc(true);
+  });
   this.mCommandsProcessed = 0;
 };
 
@@ -60,7 +58,6 @@ TelnetCommandExecutor.prototype.close = function (inDoneFunc) {
   this.mCommandsProcessed = undefined;
 };
 
-
 /**
  * execute()
  *
@@ -71,11 +68,7 @@ TelnetCommandExecutor.prototype.close = function (inDoneFunc) {
  *         inDataFunc - function to call with response data
  *         inDoneFunc - function to call if the command will have no response
  */
-TelnetCommandExecutor.prototype.execute = function (
-  inRawCode,
-  inDataFunc,
-  inDoneFunc
-) {
+TelnetCommandExecutor.prototype.execute = function (inRawCode, inDataFunc, inDoneFunc) {
   this.mConnection.setDataFunc(inDataFunc);
   this.mConnection.send(inRawCode);
   this.mCommandsProcessed++;
