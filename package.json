@@ -10,7 +10,7 @@
   "scripts": {
     "start": "electron .",
     "start-js": "PORT=3000 BROWSER=none react-scripts start",
-    "start-electron": "nodemon -w server node_modules/.bin/electron .",
+    "start-electron": "nodemon -w server -w bots node_modules/.bin/electron .",
     "dev": "NODE_ENV=dev npm-run-all -p watch-css start-js start-electron",
     "electron": "electron .",
     "watch-css": "nodemon -e scss -w styles -x 'npm run build:css'",
@@ -54,6 +54,7 @@
     "moment": "^2.18.1",
     "motion-controller-emulator": "^0.1.2",
     "node-sass": "^4.5.3",
+    "prettier": "^1.7.4",
     "prop-types": "^15.5.10",
     "request-promise": "^4.2.2",
     "sequelize": "^3.30.4",
