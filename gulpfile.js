@@ -10,9 +10,7 @@ const mocha = require('gulp-mocha');
 let sass;
 try {
   sass = require('gulp-sass');
-} catch (ex) {
-
-}
+} catch (ex) {}
 
 const webpack = require('gulp-webpack');
 const nodemon = require('gulp-nodemon');
@@ -22,46 +20,38 @@ const fs = require('fs-promise');
 gulp.task('test', ['default'], () => {
   // Timeout is ugly hack to allow time for the server instance to initialize
   // TODO Get rid of timeout for running tests
-  setTimeout(() => {
-    return gulp.src('./test.js', { read: false })
-    .pipe(mocha())
-    .once('error', (err) => {
-      // Error could be caused by not giving enough time
-      // for the server to spin up before starting tests
-      console.log('Testing error:\n', err);
-      process.exit(1);
-    })
-    .once('end', () => {
-      process.exit();
-    });
-  }, 10000);
+  setTimeout(() => gulp
+      .src('./test.js', { read: false })
+      .pipe(mocha())
+      .once('error', (err) => {
+        // Error could be caused by not giving enough time
+        // for the server to spin up before starting tests
+        console.log('Testing error:\n', err);
+        process.exit(1);
+      })
+      .once('end', () => {
+        process.exit();
+      }), 10000);
 });
 
-gulp.task(
-  'develop',
-  () => {
-    // Looking to see if we are running 'npm test'
-    const npmArgs = JSON.parse(process.env.npm_config_argv);
-    const testArg = npmArgs.cooked && npmArgs.cooked[0];
-    const nodeArgs = ['--debug'];
+gulp.task('develop', () => {
+  // Looking to see if we are running 'npm test'
+  const npmArgs = JSON.parse(process.env.npm_config_argv);
+  const testArg = npmArgs.cooked && npmArgs.cooked[0];
+  const nodeArgs = ['--debug'];
 
-    const nodemonArgs = {
-      script: 'server/index.js',
-      ignore: ['./uploads'],
-    };
+  const nodemonArgs = {
+    script: 'server/index.js',
+    ignore: ['./uploads'],
+  };
 
-    if (testArg === 'test') {
-      nodemonArgs.env = { NODE_ENV: 'test' };
-    }
-
-    return nodemon(nodemonArgs)
-    .on('restart', () => {
-      console.log('restarted!');
-    });
+  if (testArg === 'test') {
+    nodemonArgs.env = { NODE_ENV: 'test' };
   }
-);
 
+  return nodemon(nodemonArgs).on('restart', () => {
+    console.log('restarted!');
+  });
+});
 
-gulp.task('default', [
-  'develop',
-]);
+gulp.task('default', ['develop']);
