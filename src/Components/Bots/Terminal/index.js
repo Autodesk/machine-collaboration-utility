@@ -1,5 +1,7 @@
 import React from 'react';
 import uuidv4 from 'uuid/v4';
+import autobind from 'react-autobind';
+import request from 'request';
 
 import Reply from './Reply';
 
@@ -13,10 +15,13 @@ export default class Terminal extends React.Component {
     this.state = {
       listening: false,
       commands: [],
+      gcodeInput: '',
     };
 
     this.boundReceivedListener = null;
     this.boundSentListener = null;
+
+    autobind(this);
   }
 
   listCommand({ sent }, command) {
@@ -61,14 +66,41 @@ export default class Terminal extends React.Component {
     }
   }
 
+  updateGcodeInput(e) {
+    this.setState({ gcodeInput: e.target.value.toUpperCase() });
+  }
+
+  submitGcode(e) {
+    e.preventDefault();
+
+    const gcode = this.state.gcodeInput;
+
+    const commandObject = {
+      botUuid: this.props.endpoint,
+      command: 'processGcode',
+      gcode,
+    };
+
+    // request gcode input to be processed by bot
+    this.props.client.emit('command', commandObject);
+
+    // set gcodeinput to blank string
+    this.setState({ gcodeInput: '' });
+  }
+
   render() {
     return (
       <div className="terminal__scroll-wrapper">
         <div className="terminal__window">
-          <div>
-            <input type="text" />
-            <button>Send Gcode</button>
-          </div>
+          <form onSubmit={this.submitGcode}>
+            <input
+              value={this.state.gcodeInput}
+              default=""
+              onChange={this.updateGcodeInput}
+              type="text"
+            />
+            <button onClick={this.submitGcode}>Send Gcode</button>
+          </form>
           {this.state.commands.map(reply => <Reply key={reply.id} reply={reply} />)}
         </div>
       </div>
