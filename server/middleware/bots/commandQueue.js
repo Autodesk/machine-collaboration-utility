@@ -67,9 +67,8 @@
  * between commands (with the expected node event queue delays)
  ***************************************************************************** */
 const _ = require('underscore');
-const Heartbeat = require('heartbeater');
-
-let logger;
+const uuidv4 = require('uuid/v4');
+const bluebird = require('bluebird');
 
 /**
  * CommandQueue()
@@ -81,10 +80,9 @@ let logger;
  *         inReponseFunc(inData) - default response validation function.
  *                                 Returns true when command is complete
  */
-const CommandQueue = function (inExecutor, inExpandCodeFunc, inResponseFunc, inLogger) {
-  // logger = inLogger;
+const CommandQueue = function (inExecutor, inExpandCodeFunc, inResponseFunc) {
   if (!inExecutor) {
-    // logger.error('A CommandQueue requires an executor or it is useless');
+    logger.error('A CommandQueue requires an executor or it is useless');
   }
 
   // To send a command, we must an open connection to the device.  Note this
@@ -95,7 +93,7 @@ const CommandQueue = function (inExecutor, inExpandCodeFunc, inResponseFunc, inL
 
   this.mQueue = [];
   this.mCurrentCommand = undefined;
-  this.mCommandId = 0; // monotonically increasing
+  this.mCommandId = uuidv4(); // each command has a unique id
 
   // When processing commands nextCommand() runs every event loop until
   // it sees that this is false
@@ -386,7 +384,8 @@ CommandQueue.prototype.nextCommand = function () {
     this.mCurrentCommand = this.mQueue.shift();
 
     // Assign a unique command identifier
-    this.mCurrentCommand.commandId = ++this.mCommandId;
+    this.mCommandId = uuidv4();
+    this.mCurrentCommand.commandId = this.mCommandId;
 
     // Give it a pointer back to us so it can ask us to move on
     this.mCurrentCommand.queue = this;
@@ -450,17 +449,8 @@ CommandQueue.prototype.sendCommand = async function () {
   } else if (command.close) {
     this.mExecutor.close(_.bind(this.closeProcessed, this, command));
   } else if (command.delay) {
-    // Use heartbeat for our 'delay' command. Note that setTimeout doesn't
-    // work properly within the spawned printer process, so use heartbeat
-    // instead.
-    const that = this;
-    const delayTimer = new Heartbeat();
-    delayTimer.interval(command.delay);
-    delayTimer.add(async () => {
-      await that.commandProcessed(command);
-      delayTimer.clear();
-    });
-    delayTimer.start();
+    await bluebird.delay(command.delay);
+    await this.commandProcessed(command);
   } else if (command.rawCode) {
     // If we have a command code, send it and wait on the response.  That
     // response is responsible for calling commandProcessed()
@@ -494,16 +484,18 @@ CommandQueue.prototype.sendCommand = async function () {
  * Return: N/A
  */
 CommandQueue.prototype.processData = async function (inCommand, inData) {
-  if (!this.mCurrentCommand || inCommand.commandId != this.mCommandId) {
-    // logger.warn('Command ' + inCommand.commandId +
-    //             ' is no longer receiving data, ignoring:', inData.toString());
+  if (!this.mCurrentCommand || inCommand.commandId !== this.mCommandId) {
+    logger.warn(
+      `Command ${inCommand.commandId} is no longer receiving data, ignoring:`,
+      inData.toString(),
+    );
     return;
   }
   let commandComplete = true; // if no data processor, we're done
 
   const processDataFunc = this.mCurrentCommand.processData || this.mResponseFunc;
   if (processDataFunc) {
-    // logger.debug('calling processData:', inCommand.commandId, inData);
+    logger.debug('calling processData:', inCommand.commandId, inData);
     commandComplete = processDataFunc(inCommand, inData);
   }
 
