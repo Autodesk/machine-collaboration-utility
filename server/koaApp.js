@@ -72,7 +72,7 @@ async function koaApp(config) {
 
   // attach database context
   // const sequelize = new Sequelize(`postgres://${process.env.username}:${process.env.password}@localhost:5432/${process.env.dbname}`);
-  const sequelize = new Sequelize('mcu', 'mcu', 'password', {
+  const sequelizeParams = {
     host: 'localhost',
     dialect: 'sqlite',
     pool: {
@@ -80,8 +80,20 @@ async function koaApp(config) {
       min: 0,
       idle: 10000,
     },
-    storage: './db.sqlite',
-  });
+    storage:
+      process.env.NODE_ENV === 'test'
+        ? path.join(__dirname, './test.sqlite')
+        : path.join(__dirname, './mcu.sqlite'),
+  };
+
+  if (process.env.NODE_ENV === 'test') {
+    const testPath = path.join(__dirname, './test.sqlite');
+    if (fs.existsSync(testPath)) {
+      fs.unlinkSync(testPath);
+    }
+  }
+
+  const sequelize = new Sequelize('mcu', 'mcu', 'password', sequelizeParams);
 
   // check database connection
   let err;
@@ -122,7 +134,7 @@ async function koaApp(config) {
   }
 
   async function updateHostname(newHostname) {
-    const updateScriptPath = path.join(process.env.PWD, 'rename.sh');
+    const updateScriptPath = path.join(__dirname, 'rename.sh');
     const updateHostnameString = `/bin/bash ${updateScriptPath} ${newHostname}`;
     await execPromise(updateHostnameString).catch((execError) => {
       logger.error('Update hostname error', execError);
