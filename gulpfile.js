@@ -20,18 +20,22 @@ const fs = require('fs-promise');
 gulp.task('test', ['default'], () => {
   // Timeout is ugly hack to allow time for the server instance to initialize
   // TODO Get rid of timeout for running tests
-  setTimeout(() => gulp
-      .src('./test.js', { read: false })
-      .pipe(mocha())
-      .once('error', (err) => {
-        // Error could be caused by not giving enough time
-        // for the server to spin up before starting tests
-        console.log('Testing error:\n', err);
-        process.exit(1);
-      })
-      .once('end', () => {
-        process.exit();
-      }), 10000);
+  setTimeout(
+    () =>
+      gulp
+        .src('./test.js', { read: false })
+        .pipe(mocha())
+        .once('error', (err) => {
+          // Error could be caused by not giving enough time
+          // for the server to spin up before starting tests
+          console.log('Testing error:\n', err);
+          process.exit(1);
+        })
+        .once('end', () => {
+          process.exit();
+        }),
+    10000,
+  );
 });
 
 gulp.task('develop', () => {
@@ -41,7 +45,7 @@ gulp.task('develop', () => {
   const nodeArgs = ['--debug'];
 
   const nodemonArgs = {
-    script: 'server/index.js',
+    script: 'server/launch.js',
     ignore: ['./uploads'],
   };
 
