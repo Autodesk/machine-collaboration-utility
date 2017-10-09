@@ -1,34 +1,32 @@
 /* global describe, it */
 require('source-map-support').install();
-'use strict';
 
-/*******************************************************************************
+('use strict');
+
+/** *****************************************************************************
  * This framework allows for each piece of middleware to run its own tests
  * The individual pieces of middleware will place their tests in the following location:
  * src/middleware/<your middleware>/test/test.js
  * To run tests use 'npm test'
  * If you want to run an individual test, use npm test --yourtest
- ******************************************************************************/
-global.Promise = require('bluebird');
+ ***************************************************************************** */
 const path = require('path');
 const walk = require('fs-walk');
 const winston = require('winston');
 
 const config = require('./server/config');
+
 const npmArgs = JSON.parse(process.env.npm_config_argv);
 
 const tests = [];
 
 // Setup logger
 const filename = path.join(__dirname, `./${config.testLogFileName}`);
-const logger = new (winston.Logger)({
+const logger = new winston.Logger({
   level: 'debug',
-  transports: [
-    new (winston.transports.Console)(),
-    new (winston.transports.File)({ filename }),
-  ],
+  transports: [new winston.transports.Console(), new winston.transports.File({ filename })],
 });
-logger.info(`Test initialized.`);
+logger.info('Test initialized.');
 
 const testArg = npmArgs.cooked[1] && npmArgs.cooked[1].split('--')[1].toLowerCase();
 
@@ -37,8 +35,7 @@ function addTests(basedir, filename) {
   if (filename === 'test.js') {
     if (
       // If no test variable is passed
-      npmArgs.cooked.length <= 1
-      ||
+      npmArgs.cooked.length <= 1 ||
       // or the test variable matches the current directory
       testArg === basedirArray[basedirArray.length - 2].toLowerCase()
     ) {
