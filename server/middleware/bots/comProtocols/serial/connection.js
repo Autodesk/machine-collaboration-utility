@@ -131,7 +131,8 @@ var SerialConnection = function (
         if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
           logger.debug('read', data);
         }
-        that.returnString += `${data}\n`;
+        const lineBreak = that.returnString.length > 0 ? '\n' : '';
+        that.returnString += `${lineBreak}${data}`;
         if (data.includes('ok')) {
           if (that.timeout !== undefined) {
             clearTimeout(that.timeout);
