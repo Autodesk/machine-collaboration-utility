@@ -6,16 +6,7 @@ try {
 
 const gulp = require('gulp');
 const mocha = require('gulp-mocha');
-
-let sass;
-try {
-  sass = require('gulp-sass');
-} catch (ex) {}
-
-const webpack = require('gulp-webpack');
 const nodemon = require('gulp-nodemon');
-const path = require('path');
-const fs = require('fs-promise');
 
 gulp.task('test', ['default'], () => {
   // Timeout is ugly hack to allow time for the server instance to initialize
