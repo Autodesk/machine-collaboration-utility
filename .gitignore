@@ -9,5 +9,5 @@ addons
 *.tar.gz
 *.zip
 releases
-db.sqlite
+*.sqlite
 src/main.css
