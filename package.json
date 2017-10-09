@@ -8,7 +8,7 @@
     "extends": null
   },
   "scripts": {
-    "install": "npm install sqlite3",
+    "preinstall": "node install_os_dependencies.js",
     "start": "electron .",
     "start-js": "PORT=3000 BROWSER=none react-scripts start",
     "start-electron": "nodemon -w server -w bots node_modules/.bin/electron .",
