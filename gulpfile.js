@@ -36,7 +36,7 @@ gulp.task('develop', () => {
   const nodeArgs = ['--debug'];
 
   const nodemonArgs = {
-    script: 'server/launch.js',
+    script: 'server/launchServer.js',
     ignore: ['./uploads'],
   };
 

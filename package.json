@@ -2,20 +2,21 @@
   "name": "machine-collaboration-utility",
   "version": "1.6.0",
   "private": true,
-  "main": "main.js",
+  "main": "server/launchElectron.js",
   "build": {
     "asar": false,
     "extends": null
   },
   "scripts": {
-    "preinstall": "node install_os_dependencies.js",
+    "preinstall": "node server/install_os_dependencies.js",
     "start": "electron .",
-    "start-js": "PORT=3000 BROWSER=none react-scripts start",
+    "start:js": "PORT=3000 BROWSER=none react-scripts start",
     "start-electron": "nodemon -w server -w bots node_modules/.bin/electron .",
-    "dev": "NODE_ENV=dev npm-run-all -p watch-css start-js start-electron",
+    "dev": "NODE_ENV=dev npm-run-all -p watch:css start:js start-electron",
     "electron": "electron .",
-    "watch-css": "nodemon -e scss -w styles -x 'npm run build:css'",
-    "build": "npm run build:css && react-scripts build",
+    "watch:css": "nodemon -e scss -w styles -x 'npm run build:css'",
+    "build":
+      "rm -rf build && npm run build:css && react-scripts build && mv build server/build",
     "build:css": "postcss src/main.css --use autoprefixer -d src/",
     "prebuild:css": "node-sass styles/main.scss -o src/",
     "test": "node node_modules/gulp/bin/gulp.js test"
