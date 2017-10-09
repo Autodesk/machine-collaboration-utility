@@ -168,7 +168,6 @@ class Bots {
   * Core functions
   ***************************************************************************** */
   async createPersistentBot(inputSettings = {}) {
-    console.log('input settings', inputSettings);
     const newBot = this.createBot(inputSettings);
     const dbBotSettings = Object.assign({}, newBot.settings);
 
