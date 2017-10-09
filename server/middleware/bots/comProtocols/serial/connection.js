@@ -1,20 +1,18 @@
 /* global logger */
-/*******************************************************************************
+/** *****************************************************************************
  * serialConnection.js
  *
  * A class to manage opening, maintaining, and closing a serial connection.
  * This class wraps a serialport connection and mostly cleanly handles the data
  * stream following open so that we settle into a clean state to match commands
  * with responses.
- ******************************************************************************/
-var _ = require('lodash'),
-    Heartbeat = require('heartbeater');
+ ***************************************************************************** */
+const Heartbeat = require('heartbeater');
 
+let SerialPort;
 if (process.env.NODE_ENV !== 'test') {
-    var SerialPort = require('serialport');     // NEEDS LIBUSB Binaries to work
+  SerialPort = require('serialport'); // NEEDS LIBUSB Binaries to work
 }
-var winston = require('winston');
-var path = require('path');
 
 /**
  * SerialConnection()
@@ -38,7 +36,6 @@ var path = require('path');
  *                           connected
  * Return: N/A
  */
-
 
 const roundAxis = function roundAxis(command, axis, self) {
   let roundedCommand = command;
@@ -78,102 +75,103 @@ const roundGcode = function roundGcode(inGcode, self) {
   return gcode;
 };
 
-var SerialConnection = function(
+var SerialConnection = function (
   app,
   inComName,
   inBaud,
   inOpenPrimeStr,
   inBot,
   inInitDataFunc,
-  inConnectedFunc
+  inConnectedFunc,
 ) {
-    this.app = app;
-    this.io = app.io;
-    var that = this;
-    var portParams = {
-      baudrate: inBaud,
-      parser: SerialPort.parsers.readline('\n'),
-      autoOpen: false,
-    };
+  this.app = app;
+  this.io = app.io;
+  this.bot = inBot;
 
-    this.mPort = new SerialPort(inComName, portParams);
-    this.mConnectedFunc = inConnectedFunc;
+  const that = this;
+  const portParams = {
+    baudrate: inBaud,
+    parser: SerialPort.parsers.readline('\n'),
+    autoOpen: false,
+  };
 
-    // User configurable data callback and close notification.  Our initial
-    // data function handles the open sequence.
-    this.mDataFunc = _.bind(this.receiveOpenResponse, this);
-    this.mOpenPrimeStr = inOpenPrimeStr;
-    this.mInitDataFunc = inInitDataFunc;
-    this.mCloseFunc = undefined;
-    this.mErrorFunc = undefined;
+  this.mPort = new SerialPort(inComName, portParams);
+  this.mConnectedFunc = inConnectedFunc;
 
-    this.mState = SerialConnection.State.OPENED;
-    this.mWait = SerialConnection.WAIT_COUNT;
-    this.mRetries = SerialConnection.MAX_RETRIES;
+  // User configurable data callback and close notification.  Our initial
+  // data function handles the open sequence.
+  this.mDataFunc = this.receiveOpenResponse.bind(this);
+  this.mOpenPrimeStr = inOpenPrimeStr;
+  this.mInitDataFunc = inInitDataFunc;
+  this.mCloseFunc = undefined;
+  this.mErrorFunc = undefined;
 
-    this.mHeartbeat = new Heartbeat();
-    this.mHeartbeat.interval(SerialConnection.HEART_BEAT_INTERVAL);
-    this.mHeartbeat.add(_.bind(this.heartbeat, this));
-    this.mHeartbeat.start();
-    this.returnString = '';
+  this.mState = SerialConnection.State.OPENED;
+  this.mWait = SerialConnection.WAIT_COUNT;
+  this.mRetries = SerialConnection.MAX_RETRIES;
 
-    // Variables used for repeating a command if no reply is received
-    this.timeoutAmount = 10 * 60 * 1000; // aka wait 10 minutes before sending again
-    this.timeout = undefined; // The timeout function we will use to send the command again
+  this.mHeartbeat = new Heartbeat();
+  this.mHeartbeat.interval(SerialConnection.HEART_BEAT_INTERVAL);
+  this.mHeartbeat.add(this.heartbeat.bind(this));
+  this.mHeartbeat.start();
+  this.returnString = '';
 
-    // Open our port and register our stub handers
-    this.mPort.open(function(error) {
-        logger.info('Serial port opened');
-        if (error) {
-            logger.warn('Failed to open com port:', inComName, error);
-        } else {
-            that.mPort.on('data', function (inData) {
-              const data = inData.toString();
-              if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                logger.debug('read', data);
-              }
-              that.returnString += data;
-              if (data.includes('ok')) {
-                  if (that.timeout !== undefined) {
-                      clearTimeout(that.timeout);
-                      that.timeout = undefined;
-                  }
-                if (_.isFunction(that.mDataFunc)) {
-                  that.mDataFunc(String(that.returnString));
-                  that.returnString = '';
-                }
-                that.io.broadcast('botReply', data);
-              }
-            });
+  // Variables used for repeating a command if no reply is received
+  this.timeoutAmount = 10 * 60 * 1000; // aka wait 10 minutes before sending again
+  this.timeout = undefined; // The timeout function we will use to send the command again
 
-            that.mPort.on('close', function () {
-                if (_.isFunction(that.mCloseFunc)) {
-                    that.mCloseFunc();
-                }
-            });
-
-            that.mPort.on('error', function (error) {
-                logger.error('Serial error', error);
-                if (_.isFunction(that.mErrorFunc)) {
-                    that.mErrorFunc(arguments);
-                }
-            });
-
-            // Some printers start spewing data on open, some require a prime
-            if (that.mOpenPrimeStr && (that.mOpenPrimeStr !== '')) {
-                that.mPort.write(that.mOpenPrimeStr + '\n');
-                if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-                  logger.debug('write', that.mOpenPrimeStr + '\n');
-                }
-            }
+  // Open our port and register our stub handers
+  this.mPort.open((error) => {
+    logger.info('Serial port opened');
+    if (error) {
+      logger.warn('Failed to open com port:', inComName, error);
+    } else {
+      that.mPort.on('data', (inData) => {
+        const data = inData.toString();
+        if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+          logger.debug('read', data);
         }
-    });
+        that.returnString += `${data}\n`;
+        if (data.includes('ok')) {
+          if (that.timeout !== undefined) {
+            clearTimeout(that.timeout);
+            that.timeout = undefined;
+          }
+          if (typeof that.mDataFunc === 'function') {
+            that.io.broadcast(`botRx${that.bot.settings.uuid}`, that.returnString);
+            that.mDataFunc(String(that.returnString));
+            that.returnString = '';
+          }
+        }
+      });
+
+      that.mPort.on('close', () => {
+        if (typeof that.mCloseFunc === 'function') {
+          that.mCloseFunc();
+        }
+      });
+
+      that.mPort.on('error', function (error) {
+        logger.error('Serial error', error);
+        if (typeof that.mErrorFunc === 'function') {
+          that.mErrorFunc(arguments);
+        }
+      });
+
+      // Some printers start spewing data on open, some require a prime
+      if (that.mOpenPrimeStr && that.mOpenPrimeStr !== '') {
+        that.mPort.write(`${that.mOpenPrimeStr}\n`);
+        if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+          logger.debug('write', `${that.mOpenPrimeStr}\n`);
+        }
+      }
+    }
+  });
 };
 
-
-/*******************************************************************************
+/** *****************************************************************************
  * Public interface
- *******************************************************************************/
+ ****************************************************************************** */
 
 /**
  * setDataFunc(), setCloseFunc, setErrorFunc()
@@ -182,17 +180,17 @@ var SerialConnection = function(
  * close the port or have an error on the port.
  */
 SerialConnection.prototype.setDataFunc = function (inDataFunc) {
-    if (this.mState === SerialConnection.State.CONNECTED) {
-        this.mDataFunc = inDataFunc;
-    } else {
-        logger.error('Cannot set a custom data function until we have connected');
-    }
+  if (this.mState === SerialConnection.State.CONNECTED) {
+    this.mDataFunc = inDataFunc;
+  } else {
+    logger.error('Cannot set a custom data function until we have connected');
+  }
 };
 SerialConnection.prototype.setCloseFunc = function (inCloseFunc) {
-    this.mCloseFunc = inCloseFunc;
+  this.mCloseFunc = inCloseFunc;
 };
 SerialConnection.prototype.setErrorFunc = function (inErrorFunc) {
-    this.mErrorFunc = inErrorFunc;
+  this.mErrorFunc = inErrorFunc;
 };
 
 /**
@@ -204,39 +202,39 @@ SerialConnection.prototype.setErrorFunc = function (inErrorFunc) {
  * Return: N/A
  */
 SerialConnection.prototype.send = function (inCommandStr) {
-    const that = this;
-    let gcode = roundGcode(inCommandStr);
-    var error = undefined;
-    var commandSent = false;
+  const that = this;
+  let gcode = roundGcode(inCommandStr);
+  let error;
+  let commandSent = false;
 
-    if (that.mState === SerialConnection.State.CONNECTED) {
-        try {
-            // TODO add GCODE Validation regex
-            // Add a line break if it isn't in there yet
-            if (gcode.indexOf('\n') === -1) {
-              gcode += '\n';
-            }
-            that.mPort.write(gcode);
-            that.io.broadcast('botSent', gcode);
-            function sendAgain() {
-              logger.error('ComError', gcode);
-              that.mPort.write(gcode);
-            }
-            // Prepare to send the gcode line again in <t> milliseconds
-            that.timeout = setTimeout(sendAgain, that.timeoutAmount);
+  if (that.mState === SerialConnection.State.CONNECTED) {
+    try {
+      // TODO add GCODE Validation regex
+      // Add a line break if it isn't in there yet
+      if (gcode.indexOf('\n') === -1) {
+        gcode += '\n';
+      }
+      that.mPort.write(gcode);
+      that.io.broadcast(`botTx${that.bot.settings.uuid}`, gcode);
+      function sendAgain() {
+        logger.error('ComError', gcode);
+        that.mPort.write(gcode);
+      }
+      // Prepare to send the gcode line again in <t> milliseconds
+      that.timeout = setTimeout(sendAgain, that.timeoutAmount);
 
-            if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-              logger.debug('write', gcode);
-            }
-            commandSent = true;
-        } catch (inError) {
-            error = inError;
-        }
+      if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+        logger.debug('write', gcode);
+      }
+      commandSent = true;
+    } catch (inError) {
+      error = inError;
     }
+  }
 
-    if (!commandSent) {
-        logger.error('Cannot send commands if not connected:', this.mState, error);
-    }
+  if (!commandSent) {
+    logger.error('Cannot send commands if not connected:', this.mState, error);
+  }
 };
 
 /**
@@ -248,34 +246,30 @@ SerialConnection.prototype.send = function (inCommandStr) {
  * Return: N/A
  */
 SerialConnection.prototype.close = function () {
-    this.mPort.close(function(err) {
-        logger.info('Serialport is now closed');
-        if (err) {
-            logger.error('Failed closing the port', err);
-        }
-    });
+  this.mPort.close((err) => {
+    logger.info('Serialport is now closed');
+    if (err) {
+      logger.error('Failed closing the port', err);
+    }
+  });
 };
 
-
-
-
-/*******************************************************************************
+/** *****************************************************************************
  * Internal implementation
- *******************************************************************************/
+ ****************************************************************************** */
 
 // constants
 SerialConnection.HEART_BEAT_INTERVAL = 2000;
 SerialConnection.WAIT_COUNT = 5;
 SerialConnection.MAX_RETRIES = 10;
 SerialConnection.State = {
-    OPENED        : 'opened',
-    DATA_EXPECTED : 'data is expected',
-    DATA_RECEIVED : 'data was received',
-    M115_SENT     : 'M115 sent',
-    M115_RECEIVED : 'M115 received',
-    CONNECTED     : 'connected'
+  OPENED: 'opened',
+  DATA_EXPECTED: 'data is expected',
+  DATA_RECEIVED: 'data was received',
+  M115_SENT: 'M115 sent',
+  M115_RECEIVED: 'M115 received',
+  CONNECTED: 'connected',
 };
-
 
 /**
  * Periodic check to see if we have stopped receiving data from the initial
@@ -285,67 +279,66 @@ SerialConnection.State = {
  * we can't consider this a functioning response and should not clean up.
  */
 SerialConnection.prototype.heartbeat = function () {
-    switch (this.mState) {
+  switch (this.mState) {
     case SerialConnection.State.DATA_RECEIVED:
-        // This is the common case after opening, we've received data and
-        // may expect more.
-        this.mState = SerialConnection.State.DATA_EXPECTED;
-        this.mWait = SerialConnection.WAIT_COUNT; // refresh our wait count
-        return; // keep our heartbeat going
+      // This is the common case after opening, we've received data and
+      // may expect more.
+      this.mState = SerialConnection.State.DATA_EXPECTED;
+      this.mWait = SerialConnection.WAIT_COUNT; // refresh our wait count
+      return; // keep our heartbeat going
 
     case SerialConnection.State.DATA_EXPECTED:
-        // We were expecting data from the open, but it finally stopped.
-        // Issue the M115
-        this.mPort.write('M115\n'); // can't use 'send()' until connected
-        if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
-          logger.debug('write', 'M115\n');
-        }
-        logger.debug('Wrote M115 to serialport');
-        this.mState = SerialConnection.State.M115_SENT;
-        this.mWait = SerialConnection.WAIT_COUNT; // refresh our wait count
-        return;
+      // We were expecting data from the open, but it finally stopped.
+      // Issue the M115
+      this.mPort.write('M115\n'); // can't use 'send()' until connected
+      if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
+        logger.debug('write', 'M115\n');
+      }
+      logger.debug('Wrote M115 to serialport');
+      this.mState = SerialConnection.State.M115_SENT;
+      this.mWait = SerialConnection.WAIT_COUNT; // refresh our wait count
+      return;
 
     case SerialConnection.State.M115_RECEIVED:
-        // OK, we have a clean handshake, our connection has been initialized
-        this.mHeartbeat.clear();
-        this.mState = SerialConnection.State.CONNECTED;
-        this.mDataFunc = undefined;
-        this.mConnectedFunc(this);
-        return;
+      // OK, we have a clean handshake, our connection has been initialized
+      this.mHeartbeat.clear();
+      this.mState = SerialConnection.State.CONNECTED;
+      this.mDataFunc = undefined;
+      this.mConnectedFunc(this);
+      return;
 
     case SerialConnection.State.OPENED:
     case SerialConnection.State.M115_SENT:
-        // We expect responses when in these states.  Not receiving them
-        // promptly indicates a problem, and we should not emit our 'deviceUp'.
-        if (--this.mWait > 0) {
-            return; // wait a bit longer
-        }
+      // We expect responses when in these states.  Not receiving them
+      // promptly indicates a problem, and we should not emit our 'deviceUp'.
+      if (--this.mWait > 0) {
+        return; // wait a bit longer
+      }
 
-        // Sometimes the printer is in an odd state, so we want to retry the M115
-        // a few times before we give up
-        if (--this.mRetries > 0) {
-            this.mState = SerialConnection.State.DATA_EXPECTED;
-            return; // retry the M115 again
-        }
+      // Sometimes the printer is in an odd state, so we want to retry the M115
+      // a few times before we give up
+      if (--this.mRetries > 0) {
+        this.mState = SerialConnection.State.DATA_EXPECTED;
+        return; // retry the M115 again
+      }
 
-        // logger.warn('Failed to receive responses opening or after M115, ignoring port:', this.mPort.fd);
-        break; // no love.  Fall through to cleanup and give up on this port
+      // logger.warn('Failed to receive responses opening or after M115, ignoring port:', this.mPort.fd);
+      break; // no love.  Fall through to cleanup and give up on this port
 
     default:
-        // logger.error('This indicates a broken serialDiscovery SerialConnection state engine');
-        break;
+      // logger.error('This indicates a broken serialDiscovery SerialConnection state engine');
+      break;
+  }
+
+  // Cleanup the heartbeat and close our port
+  this.mHeartbeat.clear();
+  this.mPort.close((err) => {
+    logger.debug('Serial port closed');
+    if (err) {
+      logger.error('Failed closing the port', err);
     }
-
-    // Cleanup the heartbeat and close our port
-    this.mHeartbeat.clear();
-    this.mPort.close(function(err) {
-        logger.debug('Serial port closed');
-        if (err) {
-            logger.error('Failed closing the port', err);
-        }
-    });
+  });
 };
-
 
 /**
  * receiveOpenResponse()
@@ -354,31 +347,30 @@ SerialConnection.prototype.heartbeat = function () {
  * achieve a steady state.
  */
 SerialConnection.prototype.receiveOpenResponse = function (inData) {
-    var dataStr = inData.toString('utf8');
-    // Allow our creator to parse this data
-    if (_.isFunction(this.mInitDataFunc)) {
-        this.mInitDataFunc(dataStr);
-    }
+  const dataStr = inData.toString('utf8');
+  // Allow our creator to parse this data
+  if (typeof this.mInitDataFunc === 'function') {
+    this.mInitDataFunc(dataStr);
+  }
 
-    // Now depending manage our state based on our existing state and data received
-    switch (this.mState) {
+  // Now depending manage our state based on our existing state and data received
+  switch (this.mState) {
     case SerialConnection.State.OPENED:
-        // Good to know we are receiving data, but more is expected
-        this.mState = SerialConnection.State.DATA_EXPECTED;
-        break;
+      // Good to know we are receiving data, but more is expected
+      this.mState = SerialConnection.State.DATA_EXPECTED;
+      break;
 
     case SerialConnection.State.DATA_EXPECTED:
-        // A common case, data was expected and has now been received
-        this.mState = SerialConnection.State.DATA_RECEIVED;
-        break;
+      // A common case, data was expected and has now been received
+      this.mState = SerialConnection.State.DATA_RECEIVED;
+      break;
 
     case SerialConnection.State.M115_SENT:
-        if (dataStr.indexOf('ok') !== -1) {
-            this.mState = SerialConnection.State.M115_RECEIVED;
-        }
-        break;
-    }
+      if (dataStr.indexOf('ok') !== -1) {
+        this.mState = SerialConnection.State.M115_RECEIVED;
+      }
+      break;
+  }
 };
-
 
 module.exports = SerialConnection;
