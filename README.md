@@ -10,4 +10,4 @@ There are two ways to start using MCU
 Download the Raspberry Pi image [here](https://drive.google.com/uc?id=0B7k-k73S74JBUVBVNDQ4ZndkaHM&export=download) (mcu_v1.5.0.zip)  
 
 ### Build it from scratch
-Interested in building from scratch? Check out instructions [here](BUILDING.md)
+Interested in building from scratch? Check out instructions [here](documentation/BUILDING.md)
