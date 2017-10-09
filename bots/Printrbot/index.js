@@ -1,3 +1,4 @@
+const path = require('path');
 const _ = require('lodash');
 
 const VirtualBot = require('../Virtual');
@@ -7,7 +8,7 @@ const info = {
   fileTypes: ['.gcode'],
   vidPid: [
     {
-      vid: 0x16C0,
+      vid: 0x16c0,
       pid: 0x0483,
     },
     {
@@ -24,11 +25,10 @@ const info = {
 
 const settings = {
   name: 'Printrbot',
-  model: __dirname.split('/')[__dirname.split('/').length - 1],
+  model: 'Printrbot',
 };
 
-const commands = {
-};
+const commands = {};
 
 module.exports = {
   info: _.extend(Object.assign({}, VirtualBot.info), info),

@@ -2,6 +2,7 @@
 const convert = require('koa-convert');
 const body = require('koa-body');
 const fs = require('fs-promise');
+const bluebird = require('bluebird');
 
 const Response = require('../helpers/response');
 
@@ -29,23 +30,23 @@ const uploadFile = (self) => {
         }
         // Rename each file to be its filename plus a uuid
         // Iterate through every single file in the 'files' object
-        await Promise.map(
+        await bluebird.map(
           Object.keys(files),
           async (theFile) => {
             // If multiple files are passed with the same key, they are an Array
             if (Array.isArray(files[theFile])) {
-              await Promise.map(
+              await bluebird.map(
                 files[theFile],
                 async (file) => {
                   uploadedFiles.push(await self.createFile(file));
                 },
-                { concurrency: 5 }
+                { concurrency: 5 },
               );
             } else {
               uploadedFiles.push(await self.createFile(files[theFile]));
             }
           },
-          { concurrency: 5 }
+          { concurrency: 5 },
         );
         ctx.status = 200;
         ctx.body = new Response(ctx, requestDescription, uploadedFiles);
@@ -54,7 +55,7 @@ const uploadFile = (self) => {
         ctx.body = new Response(ctx, requestDescription, ex);
         logger.error(ex);
       }
-    }
+    },
   );
 };
 

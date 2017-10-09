@@ -18,5 +18,6 @@ module.exports = function connect(self) {
     // Not sure where to put connect fail
     // self.fsm.connectFail();
   }
+
   return self.getBot();
 };

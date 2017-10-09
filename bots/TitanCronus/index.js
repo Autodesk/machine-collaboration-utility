@@ -1,3 +1,4 @@
+const path = require('path');
 const _ = require('lodash');
 
 const VirtualBot = require('../Virtual');
@@ -11,7 +12,7 @@ const info = {
   fileTypes: ['.gcode'],
   vidPid: [
     {
-      vid: 0x1D50,
+      vid: 0x1d50,
       pid: 0x6015,
     },
   ],
@@ -20,7 +21,7 @@ const info = {
 
 const settings = {
   name: 'Cronus Bot',
-  model: __dirname.split('/')[__dirname.split('/').length - 1],
+  model: 'TitanCronus',
 };
 
 const commands = {

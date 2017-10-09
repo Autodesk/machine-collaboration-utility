@@ -6,15 +6,19 @@ module.exports = function generateUnparkCommands(self) {
 
   commandArray.push(self.info.clearBufferCommand);
   commandArray.push({
-    postCallback: () => { self.parked = false; },
+    postCallback: () => {
+      self.parked = false;
+    },
   });
 
-  const purgeCheck = [{
-    postCallback: () => {
-      if (self.parked) {
-        self.queue.queueSequentialCommands(commandArray);
-      }
+  const purgeCheck = [
+    {
+      postCallback: () => {
+        if (self.parked) {
+          self.queue.queueSequentialCommands(commandArray);
+        }
+      },
     },
-  }];
+  ];
   return purgeCheck;
 };

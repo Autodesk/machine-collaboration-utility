@@ -1,5 +1,6 @@
 /* global logger */
 const request = require('request-promise');
+const bluebird = require('bluebird');
 
 async function checkPause(self) {
   if (self.fsm.current === 'paused') {
@@ -8,21 +9,25 @@ async function checkPause(self) {
   // ping each bot
   // If they're all connected, then we are done connecting
   let pauseDone = true;
-  await Promise.map(self.settings.custom.players, async (player) => {
-    const checkParams = {
-      method: 'GET',
-      uri: player.endpoint,
-      json: true,
-    };
+  await bluebird
+    .map(self.settings.custom.players, async (player) => {
+      const checkParams = {
+        method: 'GET',
+        uri: player.endpoint,
+        json: true,
+      };
 
-    const reply = await request(checkParams)
-    .catch((ex) => { logger.error('Check pause player error', ex); });
+      const reply = await request(checkParams).catch((ex) => {
+        logger.error('Check pause player error', ex);
+      });
 
-    if (reply.data.state !== 'paused') {
-      pauseDone = false;
-    }
-  })
-  .catch((ex) => { logger.error('Get players pause info error', ex); });
+      if (reply.data.state !== 'paused') {
+        pauseDone = false;
+      }
+    })
+    .catch((ex) => {
+      logger.error('Get players pause info error', ex);
+    });
 
   if (self.fsm.current === 'paused') {
     return;
@@ -33,11 +38,10 @@ async function checkPause(self) {
     self.fsm.pauseDone();
   } else {
     // Wait 2 seconds before checking again if it is paused
-    await Promise.delay(2000);
+    await bluebird.delay(2000);
     checkPause(self);
   }
 }
-
 
 module.exports = async function pause(self) {
   // TODO should not be able to pause unless all players are running
@@ -55,7 +59,7 @@ module.exports = async function pause(self) {
     self.pauseableState = self.fsm.current;
     self.fsm.pause();
     const players = self.settings.custom.players;
-    await Promise.map(players, async (player) => {
+    await bluebird.map(players, async (player) => {
       // Ping each job for status
       const pauseParams = {
         method: 'POST',
@@ -64,8 +68,9 @@ module.exports = async function pause(self) {
         json: true,
       };
 
-      const pauseReply = await request(pauseParams)
-      .catch((ex) => { logger.error('Pause fail', ex); });
+      const pauseReply = await request(pauseParams).catch((ex) => {
+        logger.error('Pause fail', ex);
+      });
 
       checkPause(self);
       logger.info('Paused bot', player, pauseReply);

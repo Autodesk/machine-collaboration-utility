@@ -19,7 +19,7 @@ const jobModel = require('./model');
  *
  * @returns {Object} - A new Jobs server object
  */
-const Jobs = function(app, routeEndpoint) {
+const Jobs = function (app, routeEndpoint) {
   app.context.jobs = this; // External app reference variable
 
   this.app = app;
@@ -59,7 +59,7 @@ Jobs.prototype.initialize = async function initialize() {
       const botUuid = job.dataValues.botUuid;
       const jobUuid = job.dataValues.uuid;
       const fileUuid = job.dataValues.fileUuid;
-      let state = job.dataValues.state;
+      const state = job.dataValues.state;
 
       // // Make some code here to change the state of old jobs when the server is restarted
       // switch (state) {

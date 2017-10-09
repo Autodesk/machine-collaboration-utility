@@ -1,10 +1,18 @@
-dist
-node_modules
+# OS files
 .DS_STORE
-*.log
+
+# Build dependencies
+node_modules
+dist
+build
+server/build
+releases
+src/main.css
+
+# Files generated through MCU
 .env
 uploads
-addons
+*.log
 *.tar.gz
 *.zip
-server/build
+*.sqlite

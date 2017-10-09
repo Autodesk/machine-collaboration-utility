@@ -9,9 +9,7 @@ function removeWarning(self, params) {
   // if it does, remove it
   let removedWarning = null;
 
-  const warningIndex = self.warnings.findIndex((warning) => {
-    return warning.type === params.warning;
-  });
+  const warningIndex = self.warnings.findIndex(warning => warning.type === params.warning);
 
   if (warningIndex !== undefined) {
     removedWarning = self.warnings.splice(warningIndex, 1)[0];

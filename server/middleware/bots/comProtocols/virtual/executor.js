@@ -1,4 +1,4 @@
-/*******************************************************************************
+/** *****************************************************************************
  * FakeMarlinExecutor()
  *
  * This class mimics Marlin Firmware. All commands are accessed vai the executor
@@ -8,10 +8,11 @@
 const VirtualConnection = require('./connection');
 
 class VirtualExecutor {
-  constructor(app) {
+  constructor(app, bot) {
     this.connection = undefined;
     this.commandsProcessed = undefined;
     this.app = app;
+    this.bot = bot;
   }
 
   /**
@@ -23,7 +24,6 @@ class VirtualExecutor {
     return this.commandsProcessed;
   }
 
-
   /**
    * open()
    *
@@ -34,10 +34,9 @@ class VirtualExecutor {
    * Return: N/A
    */
   open(doneFunc) {
-    this.connection = new VirtualConnection(
-      this.app,
-      () => { doneFunc(true); }
-    );
+    this.connection = new VirtualConnection(this.app, this.bot, () => {
+      doneFunc(true);
+    });
     this.commandsProcessed = 0;
   }
 

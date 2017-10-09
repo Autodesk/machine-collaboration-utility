@@ -15,5 +15,6 @@ module.exports = function resolveWarning(self, params) {
   } catch (ex) {
     throw ex;
   }
+
   return self.getBot();
 };

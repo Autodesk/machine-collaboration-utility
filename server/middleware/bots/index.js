@@ -3,6 +3,7 @@ const router = require('koa-router')();
 const fs = require('fs-promise');
 const path = require('path');
 const _ = require('lodash');
+const bluebird = require('bluebird');
 
 const botsRoutes = require('./routes');
 const botModel = require('./model');
@@ -33,9 +34,9 @@ class Bots {
     this.botList = {};
   }
 
-  /*******************************************************************************
+  /** *****************************************************************************
    * Initialization functions
-   ******************************************************************************/
+   ***************************************************************************** */
   /**
    * initialize the bots endpoint
    */
@@ -69,7 +70,8 @@ class Bots {
           // Don't or Do, respectively, add Serial printers
           if (process.env.ONLY_CONDUCT === 'true') {
             try {
-              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
+              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info
+                .connectionType;
               if (connectionType !== 'serial') {
                 this.createBot(dbBot.dataValues);
               }
@@ -78,7 +80,8 @@ class Bots {
             }
           } else if (process.env.ONLY_SERIAL === 'true') {
             try {
-              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
+              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info
+                .connectionType;
               if (connectionType === 'serial') {
                 this.createBot(dbBot.dataValues);
               }
@@ -96,7 +99,7 @@ class Bots {
       // Start scanning for all bots
       // Do not use usb if testing
       if (process.env.ONLY_CONDUCT !== 'true' && process.env.NODE_ENV !== 'test') {
-        await Promise.delay(1000);
+        await bluebird.delay(1000);
         this.setupDiscovery();
       }
 
@@ -146,7 +149,7 @@ class Bots {
   async loadBotPresetList() {
     const botDirectory = path.join(process.env.PWD, './bots');
     const files = await fs.readdir(botDirectory);
-    const botPresets = await Promise.filter(files, async (file) => {
+    const botPresets = await bluebird.filter(files, async (file) => {
       const stat = await fs.stat(path.join(botDirectory, file));
       return stat.isDirectory();
     });
@@ -161,11 +164,11 @@ class Bots {
     logger.info('Done loading presets');
   }
 
-
-  /*******************************************************************************
+  /** *****************************************************************************
   * Core functions
-  ******************************************************************************/
+  ***************************************************************************** */
   async createPersistentBot(inputSettings = {}) {
+    console.log('input settings', inputSettings);
     const newBot = this.createBot(inputSettings);
     const dbBotSettings = Object.assign({}, newBot.settings);
 
@@ -181,12 +184,10 @@ class Bots {
   createBot(inputSettings = {}) {
     // Load presets based on the model
     // If no model is passed, or if the model does not exist use the default presets
-    const botPresets = (
-      inputSettings.model === undefined ||
-      this.botPresetList[inputSettings.model] === undefined
-    ) ?
-    this.botPresetList.Virtual :
-    this.botPresetList[inputSettings.model];
+    const botPresets =
+      inputSettings.model === undefined || this.botPresetList[inputSettings.model] === undefined
+        ? this.botPresetList.Virtual
+        : this.botPresetList[inputSettings.model];
     // Mixin all input settings into the bot object
     const newBot = new Bot(this.app, botPresets, inputSettings);
 
@@ -214,7 +215,7 @@ class Bots {
       const bots = await this.BotModel.findAll();
       let deleted = false;
 
-      await Promise.map(bots, async (dbBot) => {
+      await bluebird.map(bots, async (dbBot) => {
         const dbBotUuid = dbBot.dataValues.uuid;
         if (uuid === dbBotUuid) {
           await dbBot.destroy();
@@ -226,7 +227,7 @@ class Bots {
 
       if (!deleted) {
         throw new Error(
-          `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`
+          `Bot "${uuid}" was not deleted from the database because it cound not be found in the database.`,
         );
       }
 
@@ -243,9 +244,9 @@ class Bots {
     }
   }
 
-  /*******************************************************************************
+  /** *****************************************************************************
   * Utility functions
-  ******************************************************************************/
+  ***************************************************************************** */
   /*
   * get a json friendly description of the Bots
   */

@@ -1,14 +1,18 @@
 /* global logger */
 const request = require('request-promise');
 const path = require('path');
+const bluebird = require('bluebird');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
 
 async function checkDisconnection(self) {
   // ping each bot
   // If they're all connected, then we are done connecting
   let disconnectionDone = true;
-  await Promise.map(self.settings.custom.players, async (player) => {
+  await bluebird.map(self.settings.custom.players, async (player) => {
     const checkParams = {
       method: 'GET',
       uri: player.endpoint,
@@ -16,8 +20,7 @@ async function checkDisconnection(self) {
     };
     const reply = await request(checkParams);
     if (
-      botFsmDefinitions.metaStates.connected.includes(reply.data.state)
-      ||
+      botFsmDefinitions.metaStates.connected.includes(reply.data.state) ||
       reply.data.state === 'disconnecting'
     ) {
       disconnectionDone = false;
@@ -28,7 +31,7 @@ async function checkDisconnection(self) {
     // Then you're done
     self.fsm.disconnectDone();
   } else {
-    await Promise.delay(2000);
+    await bluebird.delay(2000);
     checkDisconnection(self);
   }
 }

@@ -4,7 +4,7 @@ module.exports = async function block(self) {
     if (self.fsm.current === 'blocked') {
       logger.info('Attempting to resume file read here');
       return;
-      //return self.lr.resume();
+      // return self.lr.resume();
     }
 
     if (self.fsm.current !== 'executingJob') {

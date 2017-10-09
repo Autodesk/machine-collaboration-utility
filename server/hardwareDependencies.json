@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "serialport": "^4.0.3",
+    "usb": "^1.2.0"
+  }
+}

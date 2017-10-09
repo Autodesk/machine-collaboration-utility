@@ -1,9 +1,10 @@
 /* global logger */
 const request = require('request-promise');
+const bluebird = require('bluebird');
 
 module.exports = async function updatePlayers(self) {
   try {
-    await Promise.map(self.settings.custom.players, async (player) => {
+    await bluebird.map(self.settings.custom.players, async (player) => {
       const updatePlayerParams = {
         method: 'POST',
         uri: player.endpoint,

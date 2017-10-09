@@ -11,10 +11,10 @@ module.exports = function checkPrecursors(self) {
     if (blockingBotCurrentCheckpoint > self.status.blocker.checkpoint) {
       self.status.blocker = undefined;
       if (self.fsm.current === 'executingJob' || self.fsm.current === 'blocked') {
-      // If ready to accept new lines of code, then do so immediately
+        // If ready to accept new lines of code, then do so immediately
         self.lr.resume();
       } else if (self.fsm.current === 'blocking') {
-      // If not ready for a new line yet, queue to resume after done blocking
+        // If not ready for a new line yet, queue to resume after done blocking
         self.queue.queueCommands({
           postCallback: () => {
             self.lr.resume();

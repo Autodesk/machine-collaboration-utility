@@ -1,8 +1,8 @@
-/*******************************************************************************
+/** *****************************************************************************
  * connection.js
  *
  * A class to manage opening, maintaining, and closing a telnet connection.
- ******************************************************************************/
+ ***************************************************************************** */
 const _ = require('lodash');
 const net = require('net');
 
@@ -32,12 +32,15 @@ class TelnetConnection {
     this.mDataFunc = undefined;
     this.mCloseFunc = undefined;
     this.mErrorFunc = undefined;
-    this.mPort = net.createConnection({
-      port: 23,
-      host: this.externalEndpoint,
-    }, () => {
-      doneFunction(this);
-    });
+    this.mPort = net.createConnection(
+      {
+        port: 23,
+        host: this.externalEndpoint,
+      },
+      () => {
+        doneFunction(this);
+      },
+    );
 
     this.mPort.on('data', (data) => {
       if (_.isFunction(this.mDataFunc)) {
@@ -46,9 +49,9 @@ class TelnetConnection {
     });
   }
 
-  /*******************************************************************************
+  /** *****************************************************************************
    * Public interface
-   *******************************************************************************/
+   ****************************************************************************** */
   /**
    * setDataFunc(), setCloseFunc, setErrorFunc()
    *

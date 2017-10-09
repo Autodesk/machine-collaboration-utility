@@ -1,13 +1,10 @@
 /* global logger */
-require('source-map-support').install();
-
 try {
   require('dotenv').config();
 } catch (ex) {
   console.log('No .env file found', ex);
 }
 
-global.Promise = require('bluebird');
 const path = require('path');
 const http = require('http');
 const fs = require('fs-promise');
@@ -50,11 +47,8 @@ const loggerTransport = new winston.transports.DailyRotateFile({
   maxFiles: 7,
 });
 
-global.logger = new (winston.Logger)({
-  transports: [
-    new (winston.transports.Console)(),
-    loggerTransport,
-  ],
+global.logger = new winston.Logger({
+  transports: [new winston.transports.Console(), loggerTransport],
 });
 
 logger.info('Logger initialized');
@@ -98,4 +92,4 @@ async function setupApp() {
   }
 }
 
-setupApp();
+module.exports = setupApp;

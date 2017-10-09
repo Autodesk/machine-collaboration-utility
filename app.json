@@ -1,8 +1,0 @@
-{
-  "name": "machine-collaboration-utility",
-  "description": "A Gcode Client app",
-  "repository": "",
-  "logo": "",
-  "keywords": [],
-  "image": "heroku/nodejs"
-}

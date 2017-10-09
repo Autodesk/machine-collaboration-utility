@@ -1,4 +1,4 @@
-/*******************************************************************************
+/** *****************************************************************************
  * SerialCommandExecutor()
  *
  * Constructor for the SerialCommandExecutor.  The command queue requests to
@@ -13,9 +13,9 @@
  *         inOpenPrimeStr - function a string of commands to send to prime the conn
  */
 
-var SerialConnection = require('./connection');
+const SerialConnection = require('./connection');
 
-var SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr, bot) {
+const SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr, bot) {
   this.mComName = inComName;
   this.mBaud = inBaud;
   this.mOpenPrimeStr = inOpenPrimeStr;
@@ -32,7 +32,7 @@ var SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr, bo
  * Accessor
  */
 SerialCommandExecutor.prototype.getCommandsProcessed = function () {
-    return this.mCommandsProcessed;
+  return this.mCommandsProcessed;
 };
 
 /**
@@ -51,12 +51,12 @@ SerialCommandExecutor.prototype.open = function (inDoneFunc) {
     this.mBaud,
     this.mOpenPrimeStr,
     this.bot,
-    function (inData) {
+    (inData) => {
       // console.log('Serial Port Initial Data', inData);
     },
-    function () {
+    () => {
       inDoneFunc(true);
-    }
+    },
   );
   // ****** WHAT TO DO IF OPEN FAILS???? ********//
   this.mCommandsProcessed = 0;
@@ -71,12 +71,11 @@ SerialCommandExecutor.prototype.open = function (inDoneFunc) {
  * Return: N/A
  */
 SerialCommandExecutor.prototype.close = function (inDoneFunc) {
-    var that = this;
-    that.mConnection.close();
-    inDoneFunc(true);
-    that.mCommandsProcessed = undefined;
+  const that = this;
+  that.mConnection.close();
+  inDoneFunc(true);
+  that.mCommandsProcessed = undefined;
 };
-
 
 /**
  * execute()
@@ -88,16 +87,12 @@ SerialCommandExecutor.prototype.close = function (inDoneFunc) {
  *         inDataFunc - function to call with response data
  *         inDoneFunc - function to call if the command will have no response
  */
-SerialCommandExecutor.prototype.execute = function (
-    inRawCode,
-    inDataFunc,
-    inDoneFunc
-) {
-    var that = this;
+SerialCommandExecutor.prototype.execute = function (inRawCode, inDataFunc, inDoneFunc) {
+  const that = this;
 
-    that.mConnection.setDataFunc(inDataFunc);
-    that.mConnection.send(inRawCode);
-    that.mCommandsProcessed++;
+  that.mConnection.setDataFunc(inDataFunc);
+  that.mConnection.send(inRawCode);
+  that.mCommandsProcessed++;
 };
 
 module.exports = SerialCommandExecutor;

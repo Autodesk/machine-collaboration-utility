@@ -1,8 +1,9 @@
 let usb;
 let SerialPort;
+const bluebird = require('bluebird');
 
 if (process.env.NODE_ENV !== 'test') {
-  usb = Promise.promisifyAll(require('usb'));
+  usb = bluebird.promisifyAll(require('usb'));
   SerialPort = require('serialport');
 }
 
@@ -10,7 +11,7 @@ const _ = require('lodash');
 
 const Bot = require('../bot');
 
-const UsbDiscovery = function(app) {
+const UsbDiscovery = function (app) {
   this.app = app;
   this.config = app.context.config;
 
@@ -18,7 +19,7 @@ const UsbDiscovery = function(app) {
   this.ports = {};
 };
 
-UsbDiscovery.prototype.substituteSerialNumberForPnpId = function(port) {
+UsbDiscovery.prototype.substituteSerialNumberForPnpId = function (port) {
   if (port.pnpId === undefined) {
     if (port.serialNumber !== undefined) {
       port.pnpId = port.serialNumber;
@@ -31,7 +32,7 @@ UsbDiscovery.prototype.initialize = async function initialize() {
   const self = this;
   usb.on('attach', async () => {
     // Need to wait arbitrary amount of time for Serialport list to update
-    await Promise.delay(100);
+    await bluebird.delay(2000);
     SerialPort.list((err, ports) => {
       ports = ports.map(this.substituteSerialNumberForPnpId);
       // Compare every available port against every known port
@@ -50,27 +51,23 @@ UsbDiscovery.prototype.initialize = async function initialize() {
 
   usb.on('detach', async () => {
     // Need to wait arbitrary amount of time for Serialport list to update
-    await Promise.delay(100);
+    await bluebird.delay(2000);
     const portsToRemove = [];
     SerialPort.list(async (err, ports) => {
       ports = ports.map(this.substituteSerialNumberForPnpId);
       // Go through every known port
       for (const [portKey, listedPort] of _.entries(self.ports)) {
-        const foundPort = ports.find((port) => {
-          return (
+        const foundPort = ports.find(port => (
             port.comName === listedPort.comName &&
             port.vendorId !== undefined &&
             port.productId !== undefined
-          );
-        });
+          ));
 
         // If the listedPort isn't in the serial port's available ports
         // we know that that port was removed
         // Now do all the steps to remove it
         if (foundPort === undefined) {
-          const removedBot = _.find(self.app.context.bots.botList, (bot) => {
-            return bot.port === listedPort.comName;
-          });
+          const removedBot = _.find(self.app.context.bots.botList, bot => bot.port === listedPort.comName);
           if (removedBot !== undefined) {
             portsToRemove.push(portKey);
             await removedBot.commands.unplug(removedBot);
@@ -115,7 +112,6 @@ UsbDiscovery.prototype.detectPort = async function detectPort(port) {
   const pid = parseInt(port.productId, 16);
 
   for (const [botPresetKey, botPresets] of _.entries(this.app.context.bots.botPresetList)) {
-
     if (botPresets.info.connectionType === 'serial') {
       for (const vidPid of botPresets.info.vidPid) {
         // Don't process a greedy, undefined vid pid
@@ -132,9 +128,13 @@ UsbDiscovery.prototype.detectPort = async function detectPort(port) {
           const persistentCheck = await this.checkForPersistentSettings(port, botPresets);
           let botObject;
           if (persistentCheck.original) {
-            botObject = await this.app.context.bots.createPersistentBot(persistentCheck.foundPresets.settings);
+            botObject = await this.app.context.bots.createPersistentBot(
+              persistentCheck.foundPresets.settings,
+            );
           } else {
-            botObject = await this.app.context.bots.createBot(persistentCheck.foundPresets.settings);
+            botObject = await this.app.context.bots.createBot(
+              persistentCheck.foundPresets.settings,
+            );
           }
           botObject.setPort(port.comName);
           botObject.discover({ realHardware: true });
@@ -147,13 +147,14 @@ UsbDiscovery.prototype.detectPort = async function detectPort(port) {
 
 // compare the bot's pnpId with all of the bots in our database
 // if a pnpId exists, lost the bot with those settings, otherwise pull from a generic bot
-UsbDiscovery.prototype.checkForPersistentSettings = async function checkForPersistentSettings(port, botPresets) {
-  let foundPresets = undefined;
+UsbDiscovery.prototype.checkForPersistentSettings = async function checkForPersistentSettings(
+  port,
+  botPresets,
+) {
+  let foundPresets;
   let original = false;
   const availableBots = await this.app.context.bots.BotModel.findAll();
-  const savedDbProfile = availableBots.find((bot) => {
-    return port.pnpId && bot.dataValues.endpoint === port.pnpId;
-  });
+  const savedDbProfile = availableBots.find(bot => port.pnpId && bot.dataValues.endpoint === port.pnpId);
 
   if (savedDbProfile !== undefined) {
     foundPresets = await this.app.context.bots.createBot(savedDbProfile.dataValues);

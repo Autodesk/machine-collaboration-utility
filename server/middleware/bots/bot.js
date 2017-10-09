@@ -9,7 +9,10 @@ const TelnetExecutor = require('./comProtocols/telnet/executor');
 const VirtualExecutor = require('./comProtocols/virtual/executor');
 const CommandQueue = require('./commandQueue');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
 
 /**
  * This is a Bot class representing hardware that can process jobs.
@@ -45,14 +48,17 @@ class Bot {
     const fsm = StateMachine.create({
       initial: 'uninitialized',
       error: (one, two) => {
-        const errorMessage = `Invalid ${this.settings.name} bot state change action "${one}". State at "${two}".`;
+        const errorMessage = `Invalid ${this.settings
+          .name} bot state change action "${one}". State at "${two}".`;
         logger.error(errorMessage);
         throw new Error(errorMessage);
       },
       events: botFsmDefinitions.fsmEvents,
       callbacks: {
         onenterstate: (event, from, to) => {
-          logger.info(`Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`);
+          logger.info(
+            `Bot ${this.settings.name} event ${event}: Transitioning from ${from} to ${to}.`,
+          );
           try {
             this.app.io.broadcast('botEvent', {
               uuid: this.settings.uuid,
@@ -72,9 +78,15 @@ class Bot {
   * get a json friendly description of the Bot
   */
   getBot() {
-    const currentJob = this.currentJob === undefined ? undefined : this.currentJob.getJob();
+    let currentJob;
+    if (this.settings.model !== 'Remote') {
+      currentJob = this.currentJob === undefined ? undefined : this.currentJob.getJob();
+    } else {
+      currentJob = this.currentJob;
+    }
     return {
-      state: (this.fsm !== undefined && this.fsm.current !== undefined) ? this.fsm.current : 'unavailable',
+      state:
+        this.fsm !== undefined && this.fsm.current !== undefined ? this.fsm.current : 'unavailable',
       status: this.status,
       settings: this.settings,
       info: this.info,
@@ -105,13 +117,15 @@ class Bot {
 
     // If the bot is persistent, then update the database with new settings
     const dbBots = await this.app.context.bots.BotModel.findAll();
-    const dbBot = _.find(dbBots, (bot) => {
-      return bot.dataValues.uuid === this.settings.uuid;
-    });
+    const dbBot = _.find(dbBots, bot => bot.dataValues.uuid === this.settings.uuid);
 
     // Update the database
     if (dbBot !== undefined) {
-      logger.info(`About to update bot ${this.settings.name} settings from ${JSON.stringify(this.settings)} to ${JSON.stringify(settingsToUpdate)}`);
+      logger.info(
+        `About to update bot ${this.settings.name} settings from ${JSON.stringify(
+          this.settings,
+        )} to ${JSON.stringify(settingsToUpdate)}`,
+      );
       await dbBot.update(settingsToUpdate);
     }
 
@@ -179,28 +193,31 @@ class Bot {
         // Set up the validator and executor
         switch (this.info.connectionType) {
           case 'serial': {
-            const openPrime = this.settings.openString == undefined ? 'M501' : this.settings.openString;
+            const openPrime =
+              this.settings.openString == undefined ? 'M501' : this.settings.openString;
             executor = new SerialCommandExecutor(
               this.app,
               this.port,
               this.info.baudrate,
               openPrime,
-              this
+              this,
             );
             validator = this.validateSerialReply;
             break;
           }
           case 'virtual':
           case 'conductor': {
+            executor = new VirtualExecutor(this.app, this);
+            validator = this.validateSerialReply;
+            break;
+          }
+          case 'remote': {
             executor = new VirtualExecutor(this.app);
             validator = this.validateSerialReply;
             break;
           }
           case 'telnet': {
-            executor = new TelnetExecutor(
-              this.app,
-              this.port
-            );
+            executor = new TelnetExecutor(this.app, this.port);
             validator = this.validateSerialReply;
             break;
           }
@@ -211,11 +228,7 @@ class Bot {
         }
 
         // Set up the bot's command queue
-        this.queue = new CommandQueue(
-          executor,
-          this.expandCode,
-          _.bind(validator, this)
-        );
+        this.queue = new CommandQueue(executor, this.expandCode, _.bind(validator, this));
 
         this.fsm.initializationDone();
       } catch (ex) {

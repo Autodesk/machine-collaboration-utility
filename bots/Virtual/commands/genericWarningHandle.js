@@ -10,9 +10,7 @@ function addWarning(self) {
     state: String(self.fsm.current),
   };
 
-  const existingWarning = self.warnings.find((warning) => {
-    return warning.type === warningObject.type;
-  });
+  const existingWarning = self.warnings.find(warning => warning.type === warningObject.type);
 
   if (!existingWarning) {
     self.warnings.push(warningObject);
@@ -32,6 +30,7 @@ module.exports = function genericWarningHandle(self) {
       self.commands.pause(self);
       break;
     }
+
     case 'blocking':
     case 'unblocking':
     case 'resuming': {

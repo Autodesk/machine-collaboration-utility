@@ -1,7 +1,10 @@
 /* global logger */
 const path = require('path');
 
-const botFsmDefinitions = require(path.join(process.env.PWD, 'react/modules/Bots/botFsmDefinitions'));
+const botFsmDefinitions = require(path.join(
+  process.env.PWD,
+  'server/middleware/bots/botFsmDefinitions',
+));
 
 module.exports = function updateRoutine(self, params) {
   if (botFsmDefinitions.metaStates.connected.includes(self.fsm.current)) {
@@ -14,12 +17,32 @@ module.exports = function updateRoutine(self, params) {
       },
       sensors: {
         t0: {
-          temperature: (self.status && self.status.sensors && self.status.sensors.t0 && self.status.sensors.t0.temperature) || undefined,
-          setpoint: (self.status && self.status.sensors && self.status.sensors.t0 && self.status.sensors.t0.setpoint) || undefined,
+          temperature:
+            (self.status &&
+              self.status.sensors &&
+              self.status.sensors.t0 &&
+              self.status.sensors.t0.temperature) ||
+            undefined,
+          setpoint:
+            (self.status &&
+              self.status.sensors &&
+              self.status.sensors.t0 &&
+              self.status.sensors.t0.setpoint) ||
+            undefined,
         },
         b0: {
-          temperature: (self.status && self.status.sensors && self.status.sensors.b0 && self.status.sensors.b0.temperature) || undefined,
-          setpoint: (self.status && self.status.sensors && self.status.sensors.b0 && self.status.sensors.b0.setpoint) || undefined,
+          temperature:
+            (self.status &&
+              self.status.sensors &&
+              self.status.sensors.b0 &&
+              self.status.sensors.b0.temperature) ||
+            undefined,
+          setpoint:
+            (self.status &&
+              self.status.sensors &&
+              self.status.sensors.b0 &&
+              self.status.sensors.b0.setpoint) ||
+            undefined,
         },
       },
       checkpoint: self.status && self.status.checkpoint,
@@ -38,9 +61,15 @@ module.exports = function updateRoutine(self, params) {
           e: undefined,
         };
         try {
-          newPosition.x = Number(Number(reply.split('X:')[1].split('Y')[0]) - Number(self.settings.offsetX)).toFixed(3);
-          newPosition.y = Number(Number(reply.split('Y:')[1].split('Z')[0]) - Number(self.settings.offsetY)).toFixed(3);
-          newPosition.z = Number(Number(reply.split('Z:')[1].split('E')[0]) - Number(self.settings.offsetZ)).toFixed(3);
+          newPosition.x = Number(
+            Number(reply.split('X:')[1].split('Y')[0]) - Number(self.settings.offsetX),
+          ).toFixed(3);
+          newPosition.y = Number(
+            Number(reply.split('Y:')[1].split('Z')[0]) - Number(self.settings.offsetY),
+          ).toFixed(3);
+          newPosition.z = Number(
+            Number(reply.split('Z:')[1].split('E')[0]) - Number(self.settings.offsetZ),
+          ).toFixed(3);
           newPosition.e = reply.split('E:')[1].split(' ')[0];
           self.status.position = newPosition;
         } catch (ex) {
@@ -63,14 +92,20 @@ module.exports = function updateRoutine(self, params) {
 
         try {
           self.status.sensors.t0.temperature = reply.split('T:')[1].split(' ')[0];
-          self.status.sensors.t0.setpoint = reply.split('T:')[1].split('/')[1].split(' ')[0];
+          self.status.sensors.t0.setpoint = reply
+            .split('T:')[1]
+            .split('/')[1]
+            .split(' ')[0];
         } catch (ex) {
           // logger.info('Failed to parse nozzle temp');
         }
 
         try {
           self.status.sensors.b0.temperature = reply.split('B:')[1].split(' ')[0];
-          self.status.sensors.b0.setpoint = reply.split('B:')[1].split('/')[1].split(' ')[0];
+          self.status.sensors.b0.setpoint = reply
+            .split('B:')[1]
+            .split('/')[1]
+            .split(' ')[0];
         } catch (ex) {
           // logger.info('Failed to parse bed temp');
         }

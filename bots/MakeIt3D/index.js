@@ -1,3 +1,4 @@
+const path = require('path');
 const _ = require('lodash');
 
 const VirtualBot = require('../Virtual');
@@ -20,7 +21,7 @@ const info = {
 
 const settings = {
   name: 'MakeIt-3D',
-  model: __dirname.split('/')[__dirname.split('/').length - 1],
+  model: 'MakeIt3D',
 };
 
 const commands = {
