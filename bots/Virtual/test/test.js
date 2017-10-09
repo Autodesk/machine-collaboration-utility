@@ -14,13 +14,6 @@ const logger = new winston.Logger({
   transports: [new winston.transports.Console(), new winston.transports.File({ filename })],
 });
 
-async function debugCount(seconds) {
-  for (let i = 0; i < seconds; i++) {
-    console.log(i);
-    await bluebird.delay(1000);
-  }
-}
-
 module.exports = function botsTests() {
   describe('Bot unit test', () => {
     let job;

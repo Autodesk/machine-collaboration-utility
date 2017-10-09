@@ -228,7 +228,7 @@ module.exports = function botsTests() {
         },
         json: true,
       }).catch((err) => {
-        console.log('start printing .esh error', err);
+        logger.error('start printing .esh error', err);
       });
 
       jobUuid = startReply.data.currentJob.uuid;
@@ -249,7 +249,7 @@ module.exports = function botsTests() {
         body: { command: 'pause' },
         json: true,
       }).catch((err) => {
-        console.log('pause printing .esh error', err);
+        logger.error('pause printing .esh error', err);
       });
 
       should(pauseReply.data.state).equal('pausing');
@@ -266,7 +266,7 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         json: true,
       }).catch((err) => {
-        console.log('pause printing .esh error', err);
+        logger.error('pause printing .esh error', err);
       });
 
       should(getReply.data.state).equal('paused');
@@ -283,7 +283,7 @@ module.exports = function botsTests() {
         body: { command: 'resume' },
         json: true,
       }).catch((err) => {
-        console.log('resume printing .esh error', err);
+        logger.error('resume printing .esh error', err);
       });
 
       should(resumeReply.data.state).equal('resuming');
@@ -300,7 +300,7 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         json: true,
       }).catch((err) => {
-        console.log('resuming printing .esh error', err);
+        logger.error('resuming printing .esh error', err);
       });
 
       should(getReply.data.state).equal('executingJob');
@@ -336,7 +336,7 @@ module.exports = function botsTests() {
         },
         json: true,
       }).catch((err) => {
-        console.log('start printing .esh error', err);
+        logger.error('start printing .esh error', err);
       });
 
       jobUuid = startReply.data.currentJob.uuid;
@@ -354,7 +354,7 @@ module.exports = function botsTests() {
         body: { command: 'cancel' },
         json: true,
       }).catch((err) => {
-        console.log('cancel printing .esh error', err);
+        logger.error('cancel printing .esh error', err);
       });
 
       // TODO, check in on the job and verify that it is currently in a state of canceled
@@ -372,7 +372,7 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         json: true,
       }).catch((err) => {
-        console.log('get conductor error', err);
+        logger.error('get conductor error', err);
       });
 
       // TODO, check in on the job and verify that it is currently in a state of canceled
@@ -389,7 +389,7 @@ module.exports = function botsTests() {
         },
         json: true,
       }).catch((err) => {
-        console.log('disconnec conductor error', err);
+        logger.error('disconnec conductor error', err);
       });
 
       should(disconnectReply.data.state).equal('disconnecting');
@@ -406,7 +406,7 @@ module.exports = function botsTests() {
         uri: `http://localhost:9000/v1/bots/${conductorUuid}`,
         json: true,
       }).catch((err) => {
-        console.log('disconnec conductor error', err);
+        logger.error('disconnec conductor error', err);
       });
 
       should(getReply.data.state).equal('ready');
@@ -424,7 +424,7 @@ module.exports = function botsTests() {
         json: true,
       };
       const removePlayerReply = await request(requestParams).catch((err) => {
-        console.log('remove conductor player error', err);
+        logger.error('remove conductor player error', err);
       });
 
       const replyPlayers = removePlayerReply.data.settings.custom.players;

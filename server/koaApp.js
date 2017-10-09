@@ -202,7 +202,7 @@ async function koaApp(config) {
       try {
         app.context.bots.botList[botUuid].processCommand(command, args);
       } catch (ex) {
-        console.log('Command error', ex);
+        logger.error('Command error', ex);
       }
     }
   });
