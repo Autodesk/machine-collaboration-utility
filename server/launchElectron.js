@@ -2,7 +2,7 @@ const path = require('path');
 const url = require('url');
 const electron = require('electron');
 
-const server = require('./server');
+const server = require('./index');
 
 // Module to control application life.
 const app = electron.app;

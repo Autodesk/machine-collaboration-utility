@@ -9,7 +9,7 @@
   },
   "scripts": {
     "preinstall": "node server/install_os_dependencies.js",
-    "start": "electron .",
+    "start": "electron server/launchElectron.js",
     "start:js": "PORT=3000 BROWSER=none react-scripts start",
     "start-electron": "nodemon -w server -w bots node_modules/.bin/electron .",
     "dev": "NODE_ENV=dev npm-run-all -p watch:css start:js start-electron",
