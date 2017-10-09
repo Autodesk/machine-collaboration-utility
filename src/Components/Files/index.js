@@ -5,6 +5,7 @@ import _ from 'lodash';
 import Dropzone from 'react-dropzone';
 import autobind from 'react-autobind';
 import request from 'superagent';
+import { Redirect } from 'react-router-dom';
 
 import File from './File';
 
@@ -16,6 +17,7 @@ export default class Files extends React.Component {
       showModal: false,
       fileUuid: undefined,
       fileName: undefined,
+      redirectBotUuid: null,
     };
 
     autobind(this);
@@ -76,22 +78,21 @@ export default class Files extends React.Component {
   async startJob() {
     // // Grab the currently selected value from the select form
     const botUuid = document.getElementById('process-file-modal').value;
-    if (botUuid == undefined) {
+    if (botUuid == null) {
       return;
     }
 
     // TODO, upload the file before requesting the job to start, if kicking off a remote job
 
     const commandObject = {
-      botId: botUuid,
-      botUuid: this.props.endpoint,
+      botUuid,
       command: 'startJob',
       fileUuid: this.state.fileUuid,
     };
 
     this.props.client.emit('command', commandObject);
-
     this.close();
+    this.setState({ redirectBotUuid: botUuid });
   }
 
   renderModal() {
@@ -128,6 +129,9 @@ export default class Files extends React.Component {
   }
 
   render() {
+    if (this.state.redirectBotUuid != null) {
+      return <Redirect to={`/${this.state.redirectBotUuid}`} />;
+    }
     const fileListArray = _.entries(this.props.files);
 
     // Sort the files so the most recently used is first
@@ -136,30 +140,35 @@ export default class Files extends React.Component {
     );
 
     const files = fileListArray.map(([fileKey, file]) => (
-      <File clickable={false} key={file.uuid} file={file} handleProcessFile={this.handleProcessFile} />
+      <File
+        clickable={false}
+        key={file.uuid}
+        file={file}
+        handleProcessFile={this.handleProcessFile}
+      />
     ));
 
     const modal = this.renderModal();
 
     return (
-        // <Dropzone ref={dropzone => this.dropzone = dropzone}>
+      // <Dropzone ref={dropzone => this.dropzone = dropzone}>
       <div>
         {modal}
-          <Dropzone
-            id="files"
-            className="container"
-            onDrop={this.onDrop}
-            ref={dropzone => this.dropzone = dropzone}
-            disableClick
-          >
-            <h1>Files</h1>
-            <button className="upload" onClick={this.openDropzone}>
-              Upload File
-            </button>
-            <br />
-            <br />
-            <div>{files}</div>
-          </Dropzone>
+        <Dropzone
+          id="files"
+          className="container"
+          onDrop={this.onDrop}
+          ref={dropzone => (this.dropzone = dropzone)}
+          disableClick
+        >
+          <h1>Files</h1>
+          <button className="upload" onClick={this.openDropzone}>
+            Upload File
+          </button>
+          <br />
+          <br />
+          <div>{files}</div>
+        </Dropzone>
       </div>
     );
   }

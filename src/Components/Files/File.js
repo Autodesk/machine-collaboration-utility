@@ -1,11 +1,12 @@
 import React from 'react';
 import request from 'superagent';
+import autobind from 'react-autobind';
 
 export default class File extends React.Component {
   constructor(props) {
     super(props);
-    this.deleteFile = this.deleteFile.bind(this);
-    this.processFile = this.processFile.bind(this);
+
+    autobind(this);
   }
 
   deleteFile() {
