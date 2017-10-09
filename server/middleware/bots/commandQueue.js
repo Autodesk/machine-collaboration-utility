@@ -66,7 +66,6 @@
  * command.  With no rawCode to execute, this is simply a callback sychronized
  * between commands (with the expected node event queue delays)
  ***************************************************************************** */
-const _ = require('underscore');
 const uuidv4 = require('uuid/v4');
 const bluebird = require('bluebird');
 
@@ -154,7 +153,7 @@ CommandQueue.prototype.pause = function () {
  */
 CommandQueue.prototype.resume = function () {
   this.mProcessing = true;
-  setImmediate(_.bind(this.nextCommand, this));
+  setImmediate(this.nextCommand.bind(this));
 };
 
 /**
@@ -344,9 +343,9 @@ CommandQueue.prototype.expandCommands = function () {
     command = arguments[argIndex];
 
     // Simple string is converted to a command object with a rawCode
-    if (_.isString(command)) {
+    if (typeof command === 'string') {
       commandArray = commandArray.concat(this.expandCommands({ code: command })); // upconvert to simple command
-    } else if (_.isArray(command)) {
+    } else if (Array.isArray(command)) {
       // For an array, process each command in order
       for (arrayIndex = 0; arrayIndex < command.length; arrayIndex++) {
         commandArray = commandArray.concat(this.expandCommands(command[arrayIndex]));
@@ -431,7 +430,7 @@ CommandQueue.prototype.sendCommand = async function () {
   }
 
   // Call any preCall back functions before we send the command to the executor
-  if (_.isFunction(command.preCallback)) {
+  if (typeof command.preCallback === 'function') {
     // logger.debug('calling preCallback:');
     command.preCallback(command);
   }
@@ -445,9 +444,9 @@ CommandQueue.prototype.sendCommand = async function () {
   }
 
   if (command.open) {
-    this.mExecutor.open(_.bind(this.openProcessed, this, command));
+    this.mExecutor.open(this.openProcessed.bind(this, command));
   } else if (command.close) {
-    this.mExecutor.close(_.bind(this.closeProcessed, this, command));
+    this.mExecutor.close(this.closeProcessed.bind(this, command));
   } else if (command.delay) {
     await bluebird.delay(command.delay);
     await this.commandProcessed(command);
@@ -456,8 +455,8 @@ CommandQueue.prototype.sendCommand = async function () {
     // response is responsible for calling commandProcessed()
     rawCode = command.rawCode;
     // logger.debug('sending command:', rawCode.split('\n')[0]);
-    const dataFunc = _.bind(this.processData, this, command);
-    const doneFunc = _.bind(this.commandProcessed, this, command);
+    const dataFunc = this.processData.bind(this, command);
+    const doneFunc = this.commandProcessed.bind(this, command);
     this.mExecutor.execute(rawCode, dataFunc, doneFunc);
     if (command.noData) {
       await this.commandProcessed(command);
@@ -523,7 +522,7 @@ CommandQueue.prototype.commandProcessed = async function (inCommand) {
   }
 
   // Now call our postCallback
-  if (this.mCurrentCommand && _.isFunction(this.mCurrentCommand.postCallback)) {
+  if (this.mCurrentCommand && typeof this.mCurrentCommand.postCallback === 'function') {
     // logger.debug('calling postCallback:');
     await this.mCurrentCommand.postCallback(inCommand);
   }
