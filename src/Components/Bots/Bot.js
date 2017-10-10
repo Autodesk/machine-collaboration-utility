@@ -8,6 +8,7 @@ import _ from 'lodash';
 
 import Dashboard from './Dashboard';
 import Terminal from './Terminal';
+import Camera from './Camera';
 import Settings from './Settings';
 
 export default class Bot extends React.Component {
@@ -56,9 +57,24 @@ export default class Bot extends React.Component {
             />
           </Tab>
           <Tab eventKey={2} title="Terminal">
-            <Terminal bot={this.props.bot} open={this.state.selectedTab === 2} client={this.props.client} endpoint={endpoint} bot={this.props.bot} />
+            <Terminal
+              bot={this.props.bot}
+              open={this.state.selectedTab === 2}
+              client={this.props.client}
+              endpoint={endpoint}
+              bot={this.props.bot}
+            />
           </Tab>
-          <Tab eventKey={3} title="Settings">
+          <Tab eventKey={3} title="Camera">
+            <Camera
+              bot={this.props.bot}
+              open={this.state.selectedTab === 3}
+              client={this.props.client}
+              endpoint={endpoint}
+              bot={this.props.bot}
+            />
+          </Tab>
+          <Tab eventKey={4} title="Settings">
             <Settings client={this.props.client} endpoint={endpoint} bot={this.props.bot} />
           </Tab>
         </Tabs>

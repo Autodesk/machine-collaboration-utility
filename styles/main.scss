@@ -430,7 +430,8 @@ a {
   background-color: $primary-super-light;
   padding-top: $standard-padding/2;
   > li {
-    width: calc(100% / 3);
+    width: calc(100% / 4);
+    border: 1px solid #666666;
     text-align: center;
     &.active {
       > a {
