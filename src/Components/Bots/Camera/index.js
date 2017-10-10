@@ -8,7 +8,9 @@ export default class Camera extends React.Component {
       // TODO add handling if remote mcu hosted at port other than 80
     }
     return (
-      <div style={{ width: '100%' }}>{this.props.open ? <img src={cameraEndpoint} /> : null}</div>
+      <div style={{ width: '100%' }}>
+        {this.props.open ? <img style={{ width: '100%' }} src={cameraEndpoint} /> : null}
+      </div>
     );
   }
 }
