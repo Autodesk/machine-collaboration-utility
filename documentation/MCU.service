@@ -4,7 +4,7 @@ Description=Machine Collaboration Service
 After=network.target
 
 [Service]
-ExecStart=/home/pi/.nvm/versions/node/v7.9.0/bin/node /home/pi/machine-collaboration-utility/server/index.js
+ExecStart=/home/pi/.nvm/versions/node/v8.6.0/bin/node /home/pi/machine-collaboration-utility/server/launchServer.js
 Restart=always
 WorkingDirectory=/home/pi/mcu
 

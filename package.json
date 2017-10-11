@@ -8,18 +8,19 @@
     "extends": null
   },
   "scripts": {
-    "preinstall": "node server/install_os_dependencies.js",
-    "start": "electron server/launchElectron.js",
+    "electron": "npm-run-all -p start:css start:headless-js start:electron",
+    "start": "NODE_ENV=dev npm-run-all -p start:css start:js start:server",
     "start:server": "nodemon -w bots -w server server/launchServer.js",
     "start:js": "PORT=3000 react-scripts start",
-    "start-electron": "nodemon -w server -w bots node_modules/.bin/electron .",
-    "dev": "NODE_ENV=dev npm-run-all -p watch:css start:js start:server",
-    "electron": "electron .",
-    "watch:css": "nodemon -e scss -w styles -x 'npm run build:css'",
-    "build":
-      "rm -rf build && rm -rf server/build && npm run build:css && react-scripts build && mv build server/build",
-    "build:css": "postcss src/main.css --use autoprefixer -d src/",
+    "start:headless-js": "BROWSER=NONE PORT=3000 react-scripts start",
+    "start:electron": "nodemon -w server -w bots node_modules/.bin/electron .",
+    "start:css": "nodemon -e scss -w styles -x 'npm run build:css'",
+    "build": "npm run build:cleanup && npm run build:css && npm run build:js && mv build server/build",
+    "build:js": "react-scripts build",
+    "build:cleanup": "rm -rf build && rm -rf server/build",
+    "build:css": "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
     "prebuild:css": "node-sass styles/main.scss -o src/",
+    "postinstall": "node server/install_os_dependencies.js",
     "test": "node node_modules/gulp/bin/gulp.js test"
   },
   "licenses": [
