@@ -48,7 +48,7 @@ SerialCommandExecutor.prototype.open = function (inDoneFunc) {
   const connectionObject = {
     app: this.app,
     comName: this.mComName,
-    baudrate: this.mBaudrate,
+    baudrate: this.mBaud,
     openPrimeStr: this.mOpenPrimeStr,
     bot: this.bot,
     connectedFunc: () => {
