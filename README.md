@@ -11,3 +11,8 @@ Download the Raspberry Pi image [here](https://drive.google.com/uc?id=0B7k-k73S7
 
 ### Build it from scratch
 Interested in building from scratch? Check out instructions [here](documentation/BUILDING.md)
+
+### Join the conversation
+For questions, feedback, or anything else, join the conversation on [Slack](https://mcu-community.herokuapp.com/)  
+<br/>
+<a href="https://mcu-community.herokuapp.com/"><img width="200px" src="https://brandfolder.com/slack/logo/slack-primary-logo.png"/></a>
