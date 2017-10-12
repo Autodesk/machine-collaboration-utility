@@ -225,6 +225,11 @@ module.exports = async function startJob(self, params) {
 
     self.fsm.startJob();
     try {
+      // Reset line count
+      if (self.info.checksumSupport) {
+        self.queue.queueCommands('M110 N0');
+      }
+
       // Create a job
       const jobMiddleware = self.app.context.jobs;
       const botUuid = self.settings.uuid;

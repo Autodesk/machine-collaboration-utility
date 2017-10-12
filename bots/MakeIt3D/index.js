@@ -17,6 +17,7 @@ const info = {
     },
   ],
   baudrate: 250000,
+  checksumSupport: false,
 };
 
 const settings = {

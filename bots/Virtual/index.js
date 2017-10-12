@@ -28,6 +28,7 @@ const info = {
   connectionType: 'virtual',
   fileTypes: ['.gcode'],
   clearBufferCommand: 'M400',
+  checksumSupport: false,
 };
 
 const settings = {

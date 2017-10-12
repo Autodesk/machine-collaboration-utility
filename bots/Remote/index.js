@@ -16,6 +16,7 @@ const startJob = require('./commands/startJob');
 const info = {
   connectionType: 'remote',
   fileTypes: ['.gcode'],
+  checksumSupport: false,
 };
 
 const settings = {

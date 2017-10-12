@@ -492,10 +492,10 @@ CommandQueue.prototype.processData = async function (inCommand, inData) {
   }
   let commandComplete = true; // if no data processor, we're done
 
-  const processDataFunc = this.mCurrentCommand.processData || this.mResponseFunc;
-  if (processDataFunc) {
-    logger.debug('calling processData:', inCommand.commandId, inData);
-    commandComplete = processDataFunc(inCommand, inData);
+  commandComplete = await this.mResponseFunc(inCommand, inData);
+
+  if (typeof this.mCurrentCommand.processData === 'function') {
+    commandComplete = await this.mCurrentCommand.processData(inCommand, inData);
   }
 
   if (commandComplete) {

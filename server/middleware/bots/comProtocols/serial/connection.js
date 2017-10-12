@@ -88,7 +88,6 @@ var SerialConnection = function (connectionObject) {
   };
 
   this.mLineNumber = 0; // Used to track line number for checksum
-  this.mLastLineSent = '';
 
   this.mPort = new SerialPort(connectionObject.comName, portParams);
   this.mConnectedFunc = connectionObject.connectedFunc;
@@ -129,6 +128,9 @@ var SerialConnection = function (connectionObject) {
         const lineBreak = that.returnString.length > 0 ? '\n' : '';
         that.returnString += `${lineBreak}${data}`;
         if (data.includes('ok')) {
+          if (that.bot.info.checksumSupport && that.returnString.toLowerCase().includes('resend')) {
+            that.mLineNumber -= 1;
+          }
           // TODO Check for resend message
 
           // Handle serial resets
@@ -179,11 +181,17 @@ var SerialConnection = function (connectionObject) {
  */
 SerialConnection.prototype.checksum = function (inLine) {
   let checksum = 0;
-  let line = `N${this.mLineNumber} ${inLine}`;
+  let line = inLine;
+  line = `N${this.mLineNumber} ${inLine}`;
   line.split('').forEach((char) => {
     checksum ^= char.charCodeAt(0);
   });
+  // For testing: Make this fail 10% of the time
+  // if (Date.now() % 10 === 0) {
+  //   checksum += 1;
+  // }
   line += `*${checksum}`;
+
   return line;
 };
 
@@ -224,9 +232,19 @@ SerialConnection.prototype.send = function (inCommandStr) {
 
   if (that.mState === SerialConnection.State.CONNECTED) {
     try {
-      gcode = that.checksum(gcode);
-      that.mLineNumber += 1;
-      that.mLastLineSent = String(gcode);
+      // Don't add checksum if it's already there
+      if (that.bot.info.checksumSupport) {
+        if (!gcode.includes('*')) {
+          gcode = that.checksum(gcode.split('\n')[0]);
+        }
+
+        // Reset current line number
+        if (gcode.includes('M110')) {
+          that.mLineNumber = parseInt(gcode.split('N')[2].split('*')[0], 10);
+        }
+
+        that.mLineNumber += 1;
+      }
 
       // TODO add GCODE Validation regex
       // Add a line break if it isn't in there yet

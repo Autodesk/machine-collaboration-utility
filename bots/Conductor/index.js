@@ -19,6 +19,7 @@ const removePlayer = require('./commands/removePlayer');
 const info = {
   connectionType: 'conductor',
   fileTypes: ['.esh'],
+  checksumSupport: false,
 };
 
 const settings = {

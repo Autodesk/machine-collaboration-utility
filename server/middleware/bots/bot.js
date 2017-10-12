@@ -273,6 +273,11 @@ class Bot {
     } catch (ex) {
       logger.error('Bot validate serial reply error', reply, ex);
     }
+
+    if (this.info.checksumSupport && reply.toLowerCase().includes('resend')) {
+      this.queue.prependCommands(command.code);
+    }
+    // If there was a snag, prepend the command and try again
     return ok;
   }
 
