@@ -75,34 +75,29 @@ const roundGcode = function roundGcode(inGcode, self) {
   return gcode;
 };
 
-var SerialConnection = function (
-  app,
-  inComName,
-  inBaud,
-  inOpenPrimeStr,
-  inBot,
-  inInitDataFunc,
-  inConnectedFunc,
-) {
-  this.app = app;
-  this.io = app.io;
-  this.bot = inBot;
+var SerialConnection = function (connectionObject) {
+  this.app = connectionObject.app;
+  this.io = connectionObject.app.io;
+  this.bot = connectionObject.bot;
 
   const that = this;
   const portParams = {
-    baudrate: inBaud,
+    baudrate: connectionObject.baudrate,
     parser: SerialPort.parsers.readline('\n'),
     autoOpen: false,
   };
 
-  this.mPort = new SerialPort(inComName, portParams);
-  this.mConnectedFunc = inConnectedFunc;
+  this.mLineNumber = 0; // Used to track line number for checksum
+  this.mLastLineSent = '';
+
+  this.mPort = new SerialPort(connectionObject.comName, portParams);
+  this.mConnectedFunc = connectionObject.connectedFunc;
 
   // User configurable data callback and close notification.  Our initial
   // data function handles the open sequence.
   this.mDataFunc = this.receiveOpenResponse.bind(this);
-  this.mOpenPrimeStr = inOpenPrimeStr;
-  this.mInitDataFunc = inInitDataFunc;
+  this.mOpenPrimeStr = connectionObject.openPrimeStr;
+  this.mInitDataFunc = connectionObject.dataFunc;
   this.mCloseFunc = undefined;
   this.mErrorFunc = undefined;
 
@@ -134,6 +129,9 @@ var SerialConnection = function (
         const lineBreak = that.returnString.length > 0 ? '\n' : '';
         that.returnString += `${lineBreak}${data}`;
         if (data.includes('ok')) {
+          // TODO Check for resend message
+
+          // Handle serial resets
           if (that.timeout !== undefined) {
             clearTimeout(that.timeout);
             that.timeout = undefined;
@@ -152,7 +150,7 @@ var SerialConnection = function (
         }
       });
 
-      that.mPort.on('error', function (error) {
+      that.mPort.on('error', (error) => {
         logger.error('Serial error', error);
         if (typeof that.mErrorFunc === 'function') {
           that.mErrorFunc(arguments);
@@ -175,6 +173,21 @@ var SerialConnection = function (
  ****************************************************************************** */
 
 /**
+ * checksum
+ *
+ * Calculate the checksum for each line
+ */
+SerialConnection.prototype.checksum = function (inLine) {
+  let checksum = 0;
+  let line = `N${this.mLineNumber} ${inLine}`;
+  line.split('').forEach((char) => {
+    checksum ^= char.charCodeAt(0);
+  });
+  line += `*${checksum}`;
+  return line;
+};
+
+/**
  * setDataFunc(), setCloseFunc, setErrorFunc()
  *
  * Set the user configurable functions to call when we receive data,
@@ -187,6 +200,7 @@ SerialConnection.prototype.setDataFunc = function (inDataFunc) {
     logger.error('Cannot set a custom data function until we have connected');
   }
 };
+
 SerialConnection.prototype.setCloseFunc = function (inCloseFunc) {
   this.mCloseFunc = inCloseFunc;
 };
@@ -210,12 +224,17 @@ SerialConnection.prototype.send = function (inCommandStr) {
 
   if (that.mState === SerialConnection.State.CONNECTED) {
     try {
+      gcode = that.checksum(gcode);
+      that.mLineNumber += 1;
+      that.mLastLineSent = String(gcode);
+
       // TODO add GCODE Validation regex
       // Add a line break if it isn't in there yet
       if (gcode.indexOf('\n') === -1) {
         gcode += '\n';
       }
       that.mPort.write(gcode);
+
       that.io.broadcast(`botTx${that.bot.settings.uuid}`, gcode);
       function sendAgain() {
         logger.error('ComError', gcode);

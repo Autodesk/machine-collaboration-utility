@@ -192,29 +192,39 @@ class Bot {
           case 'serial': {
             const openPrime =
               this.settings.openString == undefined ? 'M501' : this.settings.openString;
-            executor = new SerialCommandExecutor(
-              this.app,
-              this.port,
-              this.info.baudrate,
+
+            const executorObject = {
+              app: this.app,
+              port: this.port,
+              baudrate: this.info.baudrate,
               openPrime,
-              this,
-            );
+              bot: this,
+            };
+            executor = new SerialCommandExecutor(executorObject);
+
             validator = this.validateSerialReply;
             break;
           }
           case 'virtual':
           case 'conductor': {
-            executor = new VirtualExecutor(this.app, this);
+            const executorObject = {
+              app: this.app,
+              bot: this,
+            };
+            executor = new VirtualExecutor(executorObject);
             validator = this.validateSerialReply;
             break;
           }
           case 'remote': {
-            executor = new VirtualExecutor(this.app);
+            executor = new VirtualExecutor({ app: this.app });
             validator = this.validateSerialReply;
             break;
           }
           case 'telnet': {
-            executor = new TelnetExecutor(this.app, this.port);
+            executor = new TelnetExecutor({
+              app: this.app,
+              externalEndpoint: this.settings.endpoint,
+            });
             validator = this.validateSerialReply;
             break;
           }
