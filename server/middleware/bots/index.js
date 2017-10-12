@@ -147,7 +147,7 @@ class Bots {
   }
 
   async loadBotPresetList() {
-    const botDirectory = path.join(process.env.PWD, './bots');
+    const botDirectory = path.join(__dirname, '../../../bots');
     const files = await fs.readdir(botDirectory);
     const botPresets = await bluebird.filter(files, async (file) => {
       const stat = await fs.stat(path.join(botDirectory, file));

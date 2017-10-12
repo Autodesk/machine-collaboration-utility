@@ -1,9 +1,9 @@
 /* global logger */
-try {
-  require('dotenv').config();
-} catch (ex) {
-  console.log('No .env file found', ex);
-}
+// try {
+//   require('dotenv').config();
+// } catch (ex) {
+//   console.log('No .env file found', ex);
+// }
 
 const path = require('path');
 const http = require('http');
@@ -71,7 +71,7 @@ async function clearOldLogs() {
   logFiles.reverse();
   logFiles.forEach((logFile, i) => {
     if (i >= 7) {
-      const filePath = path.join(process.env.PWD, `logs/${logFile}`);
+      const filePath = path.join('../', `logs/${logFile}`);
       fs.unlink(filePath);
     }
   });

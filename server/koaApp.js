@@ -145,8 +145,8 @@ async function koaApp(config) {
   router.get('/download-logs', async (ctx) => {
     try {
       await new Promise((resolve, reject) => {
-        pack(path.join(process.env.PWD, 'logs'))
-          .pipe(write(`${process.env.PWD}/mcu-logs.tar.gz`))
+        pack(path.join(__dirname, '../logs'))
+          .pipe(write(`${path.join(__dirname, '../')}/mcu-logs.tar.gz`))
           .on('error', (zipError) => {
             logger.error(zipError);
             reject();
@@ -157,7 +157,7 @@ async function koaApp(config) {
       });
 
       ctx.res.setHeader('Content-disposition', 'attachment; filename=mcu-logs.tar.gz');
-      ctx.body = fs.createReadStream(`${process.env.PWD}/mcu-logs.tar.gz`);
+      ctx.body = fs.createReadStream(path.join(__dirname, '../mcu-logs.tar.gz'));
     } catch (ex) {
       ctx.status = 500;
       ctx.body = `Download logs failure: ${ex}`;

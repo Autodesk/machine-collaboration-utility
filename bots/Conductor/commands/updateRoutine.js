@@ -3,8 +3,8 @@ const request = require('request-promise');
 const bluebird = require('bluebird');
 
 const botFsmDefinitions = require(path.join(
-  process.env.PWD,
-  'server/middleware/bots/botFsmDefinitions',
+  __dirname,
+  '../../../server/middleware/bots/botFsmDefinitions',
 ));
 
 const delay = bluebird.delay;
@@ -63,8 +63,8 @@ module.exports = async function updateRoutine(self, params) {
         self.currentJob.percentComplete = 0;
       } else {
         self.currentJob.percentComplete = Number(
-            accumulatePercentComplete / self.settings.custom.players.length,
-          ).toFixed(3);
+          accumulatePercentComplete / self.settings.custom.players.length,
+        ).toFixed(3);
       }
     }
   }

@@ -4,8 +4,8 @@ const path = require('path');
 const bluebird = require('bluebird');
 
 const botFsmDefinitions = require(path.join(
-  process.env.PWD,
-  'server/middleware/bots/botFsmDefinitions',
+  __dirname,
+  '../../../server/middleware/bots/botFsmDefinitions',
 ));
 
 function capitalizeFirstLetter(string) {

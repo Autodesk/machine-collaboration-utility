@@ -2,12 +2,12 @@
 const path = require('path');
 
 const sendTwilioUpdate = require(path.join(
-  process.env.PWD,
-  'server/middleware/helpers/sendTwilioUpdate',
+  __dirname,
+  '../../../server/middleware/helpers/sendTwilioUpdate',
 ));
 const botFsmDefinitions = require(path.join(
-  process.env.PWD,
-  'server/middleware/bots/botFsmDefinitions',
+  __dirname,
+  '../../../server/middleware/bots/botFsmDefinitions',
 ));
 
 module.exports = async function pause(self) {

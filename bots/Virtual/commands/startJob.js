@@ -9,8 +9,8 @@ const path = require('path');
 const bluebird = require('bluebird');
 
 const sendTwilioUpdate = require(path.join(
-  process.env.PWD,
-  'server/middleware/helpers/sendTwilioUpdate',
+  __dirname,
+  '../../../server/middleware/helpers/sendTwilioUpdate',
 ));
 
 async function processCommentTag(gcodeObject, self) {

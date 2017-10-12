@@ -4,12 +4,12 @@ const path = require('path');
 const bluebird = require('bluebird');
 
 const botFsmDefinitions = require(path.join(
-  process.env.PWD,
-  'server/middleware/bots/botFsmDefinitions',
+  __dirname,
+  '../../../server/middleware/bots/botFsmDefinitions',
 ));
 const jobFsmDefinitions = require(path.join(
-  process.env.PWD,
-  'server/middleware/jobs/jobFsmDefinitions',
+  __dirname,
+  '../../../server/middleware/jobs/jobFsmDefinitions',
 ));
 
 async function checkCancel(self) {

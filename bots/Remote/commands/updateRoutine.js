@@ -3,8 +3,8 @@ const path = require('path');
 const request = require('request-promise');
 
 const botFsmDefinitions = require(path.join(
-  process.env.PWD,
-  'server/middleware/bots/botFsmDefinitions',
+  __dirname,
+  '../../../server/middleware/bots/botFsmDefinitions',
 ));
 
 module.exports = async function updateRoutine(self, params) {

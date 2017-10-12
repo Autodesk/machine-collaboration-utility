@@ -1,8 +1,8 @@
 const path = require('path');
 
 const botFsmDefinitions = require(path.join(
-  process.env.PWD,
-  'server/middleware/bots/botFsmDefinitions',
+  __dirname,
+  '../../../server/middleware/bots/botFsmDefinitions',
 ));
 
 module.exports = function disconnect(self) {
