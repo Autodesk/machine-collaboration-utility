@@ -15,12 +15,13 @@
     "start:headless-js": "BROWSER=NONE PORT=3000 react-scripts start",
     "start:electron": "nodemon -w server -w bots node_modules/.bin/electron .",
     "start:css": "nodemon -e scss -w styles -x 'npm run build:css'",
-    "build": "npm run build:cleanup && npm run build:css && npm run build:js && mv build server/build",
+    "build":
+      "npm run build:cleanup && npm run build:css && npm run build:js && mv build server/build",
     "build:js": "react-scripts build",
     "build:cleanup": "rm -rf build && rm -rf server/build",
-    "build:css": "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
+    "build:css":
+      "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
     "prebuild:css": "node-sass styles/main.scss -o src/",
-    "preinstall": "node server/install_os_dependencies.js",
     "test": "node node_modules/gulp/bin/gulp.js test"
   },
   "licenses": [
