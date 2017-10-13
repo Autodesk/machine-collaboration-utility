@@ -179,20 +179,25 @@ var SerialConnection = function (connectionObject) {
  *
  * Calculate the checksum for each line
  */
-SerialConnection.prototype.checksum = function (inLine) {
+SerialConnection.prototype.checksum = function (inGcodeLine) {
+  // Add line number, if it's not already in the line to be send
+  let gcodeLine = inGcodeLine;
+  if (gcodeLine[0] !== 'N') {
+    gcodeLine = `N${this.mLineNumber} ${gcodeLine}`;
+  }
+
+  // Calculate the checksum
   let checksum = 0;
-  let line = inLine;
-  line = `N${this.mLineNumber} ${inLine}`;
-  line.split('').forEach((char) => {
+  gcodeLine.split('').forEach((char) => {
     checksum ^= char.charCodeAt(0);
   });
   // For testing: Make this fail 10% of the time
-  // if (Date.now() % 10 === 0) {
+  // if (parseInt(Math.random() * 10, 10) === 0) {
   //   checksum += 1;
   // }
-  line += `*${checksum}`;
+  gcodeLine += `*${checksum}`;
 
-  return line;
+  return gcodeLine;
 };
 
 /**
@@ -233,7 +238,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
   if (that.mState === SerialConnection.State.CONNECTED) {
     try {
       // Don't add checksum if it's already there
-      if (that.bot.info.checksumSupport) {
+      if (that.bot.info.checksumSupport && !that.bot.checksumRunaway) {
         if (!gcode.includes('*')) {
           gcode = that.checksum(gcode.split('\n')[0]);
         }

@@ -38,6 +38,12 @@ class Bot {
     this.commands.initialize(this);
 
     this.fsm = this.createStateMachine();
+
+    this.checksumRunaway = false; // Variable to keep track of when a checksum creates an infinite loop
+    this.checksumFailCount = 0;
+    this.checksumFailThreshold = 100; // Number of failures to count before calling it a runaway
+    this.checksumFailWindow = 2000; // Time before resetting a fail count
+
     this.discover();
   }
 
@@ -274,8 +280,24 @@ class Bot {
       logger.error('Bot validate serial reply error', reply, ex);
     }
 
-    if (this.info.checksumSupport && reply.toLowerCase().includes('resend')) {
+    if (
+      this.info.checksumSupport &&
+      reply.toLowerCase().includes('resend') &&
+      !this.checksumRunaway
+    ) {
+      // Try to send the command again
       this.queue.prependCommands(command.code);
+
+      // Keep track of how many times we've tried to resend
+      this.checksumFailCount += 1;
+      setTimeout(() => {
+        this.checksumFailCount -= 1;
+      }, this.checksumFailWindow);
+
+      if (this.checksumFailCount > this.checksumFailThreshold) {
+        this.checksumRunaway = true;
+        logger.error('Warning, checksum runaway. No longer sending lines with checksum');
+      }
     }
     // If there was a snag, prepend the command and try again
     return ok;
