@@ -2,7 +2,5 @@ language: node_js
 node_js: 8
 before_script:
   - echo "PORT=9000" >> .env
-  - sed -i '/serialport/d' ./package.json
-  - sed -i '/usb/d' ./infile
 env:
   - username=postgres password="" dbname=postgres
