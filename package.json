@@ -20,7 +20,7 @@
     "build:cleanup": "rm -rf build && rm -rf server/build",
     "build:css": "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
     "prebuild:css": "node-sass styles/main.scss -o src/",
-    "postinstall": "node server/install_os_dependencies.js",
+    "preinstall": "node server/install_os_dependencies.js",
     "test": "node node_modules/gulp/bin/gulp.js test"
   },
   "licenses": [
