@@ -71,7 +71,7 @@ async function clearOldLogs() {
   logFiles.reverse();
   logFiles.forEach((logFile, i) => {
     if (i >= 7) {
-      const filePath = path.join('../', `logs/${logFile}`);
+      const filePath = path.join(__dirname, `../logs/${logFile}`);
       fs.unlink(filePath);
     }
   });
