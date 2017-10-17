@@ -38,6 +38,12 @@ class Bot {
     this.commands.initialize(this);
 
     this.fsm = this.createStateMachine();
+
+    this.checksumRunaway = false; // Variable to keep track of when a checksum creates an infinite loop
+    this.checksumFailCount = 0;
+    this.checksumFailThreshold = 100; // Number of failures to count before calling it a runaway
+    this.checksumFailWindow = 2000; // Time before resetting a fail count
+
     this.discover();
   }
 
@@ -192,29 +198,39 @@ class Bot {
           case 'serial': {
             const openPrime =
               this.settings.openString == undefined ? 'M501' : this.settings.openString;
-            executor = new SerialCommandExecutor(
-              this.app,
-              this.port,
-              this.info.baudrate,
+
+            const executorObject = {
+              app: this.app,
+              port: this.port,
+              baudrate: this.info.baudrate,
               openPrime,
-              this,
-            );
+              bot: this,
+            };
+            executor = new SerialCommandExecutor(executorObject);
+
             validator = this.validateSerialReply;
             break;
           }
           case 'virtual':
           case 'conductor': {
-            executor = new VirtualExecutor(this.app, this);
+            const executorObject = {
+              app: this.app,
+              bot: this,
+            };
+            executor = new VirtualExecutor(executorObject);
             validator = this.validateSerialReply;
             break;
           }
           case 'remote': {
-            executor = new VirtualExecutor(this.app);
+            executor = new VirtualExecutor({ app: this.app });
             validator = this.validateSerialReply;
             break;
           }
           case 'telnet': {
-            executor = new TelnetExecutor(this.app, this.port);
+            executor = new TelnetExecutor({
+              app: this.app,
+              externalEndpoint: this.settings.endpoint,
+            });
             validator = this.validateSerialReply;
             break;
           }
@@ -256,12 +272,35 @@ class Bot {
    * Return: true if the last line was 'ok'
    */
   validateSerialReply(command, reply) {
-    const lines = reply.toString().split('\n');
     let ok;
     try {
-      ok = _.last(lines).indexOf('ok') !== -1;
+      // In case of line break between ok
+      // TODO consider more stringent parsing of ok
+      ok = reply.replace('\n', '').includes('ok');
     } catch (ex) {
       logger.error('Bot validate serial reply error', reply, ex);
+    }
+
+    if (
+      this.info.checksumSupport &&
+      (reply.toLowerCase().includes('resend') || reply.substring(0, 2) === 'rs') &&
+      !this.checksumRunaway
+    ) {
+      // If there was a snag, prepend the command and try again
+      // Try to send the command again
+      this.queue.prependCommands(command.code);
+
+      // Keep track of how many times we've tried to resend
+      this.checksumFailCount += 1;
+      setTimeout(() => {
+        this.checksumFailCount -= 1;
+      }, this.checksumFailWindow);
+
+      if (this.checksumFailCount > this.checksumFailThreshold) {
+        this.checksumRunaway = true;
+        logger.error('Warning, checksum runaway. No longer sending lines with checksum');
+      }
+      return true;
     }
     return ok;
   }

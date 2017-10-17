@@ -15,15 +15,15 @@
 
 const SerialConnection = require('./connection');
 
-const SerialCommandExecutor = function (app, inComName, inBaud, inOpenPrimeStr, bot) {
-  this.mComName = inComName;
-  this.mBaud = inBaud;
-  this.mOpenPrimeStr = inOpenPrimeStr;
+const SerialCommandExecutor = function (executorObject) {
+  this.mComName = executorObject.port;
+  this.mBaud = executorObject.baudrate;
+  this.mOpenPrimeStr = executorObject.openPrime;
+  this.app = executorObject.app;
+  this.io = executorObject.app.io;
+  this.bot = executorObject.bot;
   this.mConnection = undefined;
   this.mCommandsProcessed = undefined;
-  this.app = app;
-  this.io = app.io;
-  this.bot = bot;
 };
 
 /**
@@ -45,19 +45,22 @@ SerialCommandExecutor.prototype.getCommandsProcessed = function () {
  * Return: N/A
  */
 SerialCommandExecutor.prototype.open = function (inDoneFunc) {
-  this.mConnection = new SerialConnection(
-    this.app,
-    this.mComName,
-    this.mBaud,
-    this.mOpenPrimeStr,
-    this.bot,
-    (inData) => {
-      // console.log('Serial Port Initial Data', inData);
-    },
-    () => {
+  const connectionObject = {
+    app: this.app,
+    comName: this.mComName,
+    baudrate: this.mBaud,
+    openPrimeStr: this.mOpenPrimeStr,
+    bot: this.bot,
+    connectedFunc: () => {
       inDoneFunc(true);
     },
-  );
+    dataFunc: (inData) => {
+      // console.log('Serial Port Initial Data', inData);
+    },
+  };
+
+  this.mConnection = new SerialConnection(connectionObject);
+
   // ****** WHAT TO DO IF OPEN FAILS???? ********//
   this.mCommandsProcessed = 0;
 };

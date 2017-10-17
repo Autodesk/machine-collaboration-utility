@@ -18,6 +18,7 @@ const info = {
   ],
   baudrate: 115200,
   clearBufferCommand: 'G4 P0',
+  checksumSupport: false,
 };
 
 const settings = {

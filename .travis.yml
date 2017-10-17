@@ -1,9 +1,9 @@
 language: node_js
 node_js: 8
+before_install:
+  - sed -i '/serialport/d' ./package.json
+  - sed -i '/usb/d' ./package.json
 before_script:
   - echo "PORT=9000" >> .env
-  - psql -c 'create database travis_ci_test;' -U postgres
-services:
-  - postgresql
 env:
   - username=postgres password="" dbname=postgres

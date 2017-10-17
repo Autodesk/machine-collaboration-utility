@@ -1,6 +1,8 @@
 /* global logger */
 const delay = require('bluebird').delay;
 
+const checksumReset = require('../helpers/checksumReset');
+
 module.exports = function connect(self) {
   try {
     if (self.fsm.current !== 'ready') {
@@ -14,6 +16,10 @@ module.exports = function connect(self) {
         await delay(100); // Fake connecting delay
         self.commands.toggleUpdater(self, { update: true });
         self.fsm.connectDone();
+        if (self.info.checksumSupport) {
+          const checksumResetCommand = checksumReset(self);
+          self.queue.prependCommands(checksumResetCommand);
+        }
       },
     });
   } catch (ex) {

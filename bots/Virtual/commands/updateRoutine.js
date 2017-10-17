@@ -61,17 +61,23 @@ module.exports = function updateRoutine(self, params) {
           e: undefined,
         };
         try {
-          newPosition.x = Number(
-            Number(reply.split('X:')[1].split('Y')[0]) - Number(self.settings.offsetX),
-          ).toFixed(3);
-          newPosition.y = Number(
-            Number(reply.split('Y:')[1].split('Z')[0]) - Number(self.settings.offsetY),
-          ).toFixed(3);
-          newPosition.z = Number(
-            Number(reply.split('Z:')[1].split('E')[0]) - Number(self.settings.offsetZ),
-          ).toFixed(3);
-          newPosition.e = reply.split('E:')[1].split(' ')[0];
-          self.status.position = newPosition;
+          // Don't parse M114 if there is a checksum error
+          if (
+            !reply.toLowerCase().includes('resend') &&
+            reply.toLowerCase().substring(0, 2) !== 'rs'
+          ) {
+            newPosition.x = Number(
+              Number(reply.split('X:')[1].split('Y')[0]) - Number(self.settings.offsetX),
+            ).toFixed(3);
+            newPosition.y = Number(
+              Number(reply.split('Y:')[1].split('Z')[0]) - Number(self.settings.offsetY),
+            ).toFixed(3);
+            newPosition.z = Number(
+              Number(reply.split('Z:')[1].split('E')[0]) - Number(self.settings.offsetZ),
+            ).toFixed(3);
+            newPosition.e = reply.split('E:')[1].split(' ')[0];
+            self.status.position = newPosition;
+          }
         } catch (ex) {
           logger.error('Failed to set position', reply, ex);
         }
@@ -81,40 +87,49 @@ module.exports = function updateRoutine(self, params) {
     commandArray.push({
       code: 'M105',
       processData: (command, reply) => {
-        self.status.sensors.t0 = {
-          temperature: '?',
-          setpoint: '?',
-        };
-        self.status.sensors.b0 = {
-          temperature: '?',
-          setpoint: '?',
-        };
-
         try {
-          self.status.sensors.t0.temperature = reply.split('T:')[1].split(' ')[0];
-          self.status.sensors.t0.setpoint = reply
-            .split('T:')[1]
-            .split('/')[1]
-            .split(' ')[0];
-        } catch (ex) {
-          // logger.info('Failed to parse nozzle temp');
-        }
+          // Don't parse M105 if there is a checksum error
+          if (
+            !reply.toLowerCase().includes('resend') &&
+            reply.toLowerCase().substring(0, 2) !== 'rs'
+          ) {
+            try {
+              self.status.sensors.t0 = {
+                temperature: '?',
+                setpoint: '?',
+              };
+              self.status.sensors.b0 = {
+                temperature: '?',
+                setpoint: '?',
+              };
+              self.status.sensors.t0.temperature = reply.split('T:')[1].split(' ')[0];
+              self.status.sensors.t0.setpoint = reply
+                .split('T:')[1]
+                .split('/')[1]
+                .split(' ')[0];
+            } catch (ex) {
+              // logger.info('Failed to parse nozzle temp');
+            }
 
-        try {
-          self.status.sensors.b0.temperature = reply.split('B:')[1].split(' ')[0];
-          self.status.sensors.b0.setpoint = reply
-            .split('B:')[1]
-            .split('/')[1]
-            .split(' ')[0];
-        } catch (ex) {
-          // logger.info('Failed to parse bed temp');
-        }
+            try {
+              self.status.sensors.b0.temperature = reply.split('B:')[1].split(' ')[0];
+              self.status.sensors.b0.setpoint = reply
+                .split('B:')[1]
+                .split('/')[1]
+                .split(' ')[0];
+            } catch (ex) {
+              // logger.info('Failed to parse bed temp');
+            }
 
-        self.app.io.broadcast('botEvent', {
-          uuid: self.settings.uuid,
-          event: 'update',
-          data: self.getBot(),
-        });
+            self.app.io.broadcast('botEvent', {
+              uuid: self.settings.uuid,
+              event: 'update',
+              data: self.getBot(),
+            });
+          }
+        } catch (ex) {
+          logger.error('Parse reply error', ex);
+        }
         return true;
       },
     });

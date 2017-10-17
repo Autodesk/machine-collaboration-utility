@@ -64,18 +64,18 @@ const roundGcode = function roundGcode(inGcode, self) {
  *                           connected
  * Return: N/A
  */
-const VirtualConnection = function VirtualConnection(app, bot, connectedFunc) {
-  this.app = app;
-  this.bot = bot;
+const VirtualConnection = function VirtualConnection(connectionObject) {
+  this.app = connectionObject.app;
+  this.bot = connectionObject.bot;
   this.mce = new MCE();
   this.mCloseFunc = undefined;
   this.mErrorFunc = undefined;
-  this.mDataFunc = connectedFunc;
+  this.mDataFunc = connectionObject.connectedFunc;
   this.returnString = '';
-  this.io = app.io;
+  this.io = connectionObject.app.io;
 
   this.mce.open(() => {}).then(() => {
-    connectedFunc(this);
+    connectionObject.connectedFunc(this);
   });
 };
 

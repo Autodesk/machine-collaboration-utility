@@ -12,9 +12,9 @@
 
 const TelnetConnection = require('./connection');
 
-const TelnetCommandExecutor = function (app, externalEndpoint) {
-  this.app = app;
-  this.externalEndpoint = externalEndpoint;
+const TelnetCommandExecutor = function (executorObject) {
+  this.app = executorObject.app;
+  this.externalEndpoint = executorObject.externalEndpoint;
   this.mConnection = undefined;
   this.mCommandsProcessed = undefined;
 };

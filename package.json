@@ -4,7 +4,7 @@
   "private": true,
   "main": "server/launchElectron.js",
   "build": {
-    "asar": false,
+    "asar": true,
     "extends": null
   },
   "scripts": {
@@ -15,12 +15,13 @@
     "start:headless-js": "BROWSER=NONE PORT=3000 react-scripts start",
     "start:electron": "nodemon -w server -w bots node_modules/.bin/electron .",
     "start:css": "nodemon -e scss -w styles -x 'npm run build:css'",
-    "build": "npm run build:cleanup && npm run build:css && npm run build:js && mv build server/build",
+    "build":
+      "npm run build:cleanup && npm run build:css && npm run build:js && mv build server/build",
     "build:js": "react-scripts build",
     "build:cleanup": "rm -rf build && rm -rf server/build",
-    "build:css": "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
+    "build:css":
+      "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
     "prebuild:css": "node-sass styles/main.scss -o src/",
-    "postinstall": "node server/install_os_dependencies.js",
     "test": "node node_modules/gulp/bin/gulp.js test"
   },
   "licenses": [
@@ -59,6 +60,7 @@
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
     "sequelize": "^3.30.4",
+    "serialport": "^6.0.0",
     "should": "^11.1.0",
     "source-map-support": "^0.5.0",
     "sqlite3": "^3.1.13",
@@ -67,6 +69,7 @@
     "timer-stopwatch": "^0.2.0",
     "twilio": "^3.6.5",
     "unzip2": "^0.2.5",
+    "usb": "^1.2.0",
     "uuid": "^3.0.1",
     "winston": "^2.2.0",
     "winston-daily-rotate-file": "^1.4.6"
@@ -77,8 +80,8 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.2.2",
-    "electron": "^1.7.8",
-    "electron-builder": "^19.33.0",
+    "electron": "^1.7.9",
+    "electron-builder": "^19.36.0",
     "electron-installer-dmg": "^0.2.1",
     "electron-packager": "^9.1.0",
     "electron-rebuild": "^1.6.0",

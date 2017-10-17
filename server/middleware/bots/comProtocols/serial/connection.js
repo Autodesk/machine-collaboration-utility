@@ -44,7 +44,8 @@ const roundAxis = function roundAxis(command, axis, self) {
       const axisArray = roundedCommand.split(axis);
       const before = axisArray[0];
       const splitArray = axisArray[1].split(' ');
-      const middle = axis + Number(splitArray[0]).toFixed(4);
+      const middle =
+        axis === 'F' ? axis + parseInt(splitArray[0], 10) : axis + Number(splitArray[0]).toFixed(4);
       let end = '';
       if (splitArray.length > 1) {
         for (let i = 1; i < splitArray.length; i++) {
@@ -75,34 +76,30 @@ const roundGcode = function roundGcode(inGcode, self) {
   return gcode;
 };
 
-var SerialConnection = function (
-  app,
-  inComName,
-  inBaud,
-  inOpenPrimeStr,
-  inBot,
-  inInitDataFunc,
-  inConnectedFunc,
-) {
-  this.app = app;
-  this.io = app.io;
-  this.bot = inBot;
+var SerialConnection = function (connectionObject) {
+  this.app = connectionObject.app;
+  this.io = connectionObject.app.io;
+  this.bot = connectionObject.bot;
 
   const that = this;
+  const Regex = SerialPort.parsers.Regex;
   const portParams = {
-    baudrate: inBaud,
-    parser: SerialPort.parsers.readline('\n'),
+    baudRate: connectionObject.baudrate,
     autoOpen: false,
   };
 
-  this.mPort = new SerialPort(inComName, portParams);
-  this.mConnectedFunc = inConnectedFunc;
+  this.mLineNumber = 0; // Used to track line number for checksum
+
+  this.mPort = new SerialPort(connectionObject.comName, portParams);
+  // Pipe received data to this variable for parsing
+  this.mParser = this.mPort.pipe(new Regex({ regex: /\r?\n|\r/ }));
+  this.mConnectedFunc = connectionObject.connectedFunc;
 
   // User configurable data callback and close notification.  Our initial
   // data function handles the open sequence.
   this.mDataFunc = this.receiveOpenResponse.bind(this);
-  this.mOpenPrimeStr = inOpenPrimeStr;
-  this.mInitDataFunc = inInitDataFunc;
+  this.mOpenPrimeStr = connectionObject.openPrimeStr;
+  this.mInitDataFunc = connectionObject.dataFunc;
   this.mCloseFunc = undefined;
   this.mErrorFunc = undefined;
 
@@ -126,14 +123,29 @@ var SerialConnection = function (
     if (error) {
       logger.warn('Failed to open com port:', inComName, error);
     } else {
-      that.mPort.on('data', (inData) => {
+      that.mParser.on('data', (inData) => {
         const data = inData.toString();
+        logger.info('RX:', data);
         if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
           logger.debug('read', data);
         }
         const lineBreak = that.returnString.length > 0 ? '\n' : '';
         that.returnString += `${lineBreak}${data}`;
-        if (data.includes('ok')) {
+        // If we have an 'ok' or the firmware has registered a checksum error
+        if (
+          that.returnString.includes('ok') ||
+          that.returnString.toLowerCase().substring(0, 2) === 'rs' // smoothieware doesn't reply with 'ok'
+        ) {
+          // If the firmware has said that there is an error
+          if (
+            that.bot.info.checksumSupport &&
+            (that.returnString.toLowerCase().includes('resend') || // for marlin checksum
+              that.returnString.toLowerCase().substring(0, 2) === 'rs') // for smoothieware checksum
+          ) {
+            that.mLineNumber -= 1;
+          }
+
+          // Handle serial resets
           if (that.timeout !== undefined) {
             clearTimeout(that.timeout);
             that.timeout = undefined;
@@ -152,7 +164,7 @@ var SerialConnection = function (
         }
       });
 
-      that.mPort.on('error', function (error) {
+      that.mPort.on('error', (error) => {
         logger.error('Serial error', error);
         if (typeof that.mErrorFunc === 'function') {
           that.mErrorFunc(arguments);
@@ -175,6 +187,35 @@ var SerialConnection = function (
  ****************************************************************************** */
 
 /**
+ * checksum
+ *
+ * Calculate the checksum for each line
+ */
+SerialConnection.prototype.checksum = function (inGcodeLine) {
+  // Handle M110
+  // Handle N<i> M110
+  // Handle normal gcode
+  // Add line number, if it's not already in the line to be send
+
+  let gcodeLine = inGcodeLine;
+
+  if (!gcodeLine.includes('M110')) {
+    gcodeLine = `N${this.mLineNumber} ${gcodeLine}`;
+    // Calculate the checksum
+    let checksum = 0;
+    gcodeLine.split('').forEach((char) => {
+      checksum ^= char.charCodeAt(0);
+    });
+    // For testing: Make this fail 10% of the time
+    // if (parseInt(Math.random() * 10, 10) === 0) {
+    //   checksum += 1;
+    // }
+    gcodeLine += `*${checksum}`;
+  }
+  return gcodeLine;
+};
+
+/**
  * setDataFunc(), setCloseFunc, setErrorFunc()
  *
  * Set the user configurable functions to call when we receive data,
@@ -187,6 +228,7 @@ SerialConnection.prototype.setDataFunc = function (inDataFunc) {
     logger.error('Cannot set a custom data function until we have connected');
   }
 };
+
 SerialConnection.prototype.setCloseFunc = function (inCloseFunc) {
   this.mCloseFunc = inCloseFunc;
 };
@@ -210,12 +252,34 @@ SerialConnection.prototype.send = function (inCommandStr) {
 
   if (that.mState === SerialConnection.State.CONNECTED) {
     try {
+      // Don't add checksum if it's already there
+      if (that.bot.info.checksumSupport && !that.bot.checksumRunaway) {
+        if (!gcode.includes('*')) {
+          gcode = that.checksum(gcode.split('\n')[0]);
+        }
+
+        // Reset current line number
+        if (gcode.includes('M110')) {
+          if (gcode.split('N').length > 2) {
+            that.mLineNumber = parseInt(gcode.split('N')[2].split('*')[0], 10);
+          } else if (gcode.includes('N')) {
+            that.mLineNumber = parseInt(gcode.split('N')[1].split('*')[0], 10);
+          } else {
+            that.mLineNumber = 0;
+          }
+          logger.info('Resetting line count to', that.mLineNumber);
+        }
+        that.mLineNumber += 1;
+      }
+
       // TODO add GCODE Validation regex
       // Add a line break if it isn't in there yet
       if (gcode.indexOf('\n') === -1) {
         gcode += '\n';
       }
+      logger.info('TX:', gcode);
       that.mPort.write(gcode);
+
       that.io.broadcast(`botTx${that.bot.settings.uuid}`, gcode);
       function sendAgain() {
         logger.error('ComError', gcode);
@@ -247,6 +311,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
  * Return: N/A
  */
 SerialConnection.prototype.close = function () {
+  logger.info('Serialport about to close');
   this.mPort.close((err) => {
     logger.info('Serialport is now closed');
     if (err) {

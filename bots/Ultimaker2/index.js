@@ -12,19 +12,19 @@ const info = {
   fileTypes: ['.gcode'],
   vidPid: [
     {
-      vid: 0x2a03,
-      pid: 0x0042,
+      vid: 0x2341,
+      pid: 0x0010,
     },
   ],
-  baudrate: 115200,
-  checksumSupport: true,
+  baudrate: 250000,
+  checksumSupport: false,
 };
 
 const settings = {
-  name: 'Clever',
+  name: 'Ultimaker 2',
   tempE: 220,
   tempB: 55,
-  model: 'Clever',
+  model: 'Ultimaker2',
 };
 
 const commands = {

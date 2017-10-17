@@ -57,17 +57,21 @@ UsbDiscovery.prototype.initialize = async function initialize() {
       ports = ports.map(this.substituteSerialNumberForPnpId);
       // Go through every known port
       for (const [portKey, listedPort] of _.entries(self.ports)) {
-        const foundPort = ports.find(port => (
+        const foundPort = ports.find(
+          port =>
             port.comName === listedPort.comName &&
             port.vendorId !== undefined &&
-            port.productId !== undefined
-          ));
+            port.productId !== undefined,
+        );
 
         // If the listedPort isn't in the serial port's available ports
         // we know that that port was removed
         // Now do all the steps to remove it
         if (foundPort === undefined) {
-          const removedBot = _.find(self.app.context.bots.botList, bot => bot.port === listedPort.comName);
+          const removedBot = _.find(
+            self.app.context.bots.botList,
+            bot => bot.port === listedPort.comName,
+          );
           if (removedBot !== undefined) {
             portsToRemove.push(portKey);
             await removedBot.commands.unplug(removedBot);
@@ -154,7 +158,9 @@ UsbDiscovery.prototype.checkForPersistentSettings = async function checkForPersi
   let foundPresets;
   let original = false;
   const availableBots = await this.app.context.bots.BotModel.findAll();
-  const savedDbProfile = availableBots.find(bot => port.pnpId && bot.dataValues.endpoint === port.pnpId);
+  const savedDbProfile = availableBots.find(
+    bot => port.pnpId && bot.dataValues.endpoint === port.pnpId,
+  );
 
   if (savedDbProfile !== undefined) {
     foundPresets = await this.app.context.bots.createBot(savedDbProfile.dataValues);
