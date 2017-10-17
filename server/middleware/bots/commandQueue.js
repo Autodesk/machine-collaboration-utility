@@ -494,7 +494,7 @@ CommandQueue.prototype.processData = async function (inCommand, inData) {
 
   commandComplete = await this.mResponseFunc(inCommand, inData);
 
-  if (typeof this.mCurrentCommand.processData === 'function') {
+  if (this.mCurrentCommand && typeof this.mCurrentCommand.processData === 'function') {
     commandComplete = await this.mCurrentCommand.processData(inCommand, inData);
   }
 

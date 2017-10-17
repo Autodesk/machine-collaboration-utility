@@ -133,15 +133,14 @@ var SerialConnection = function (connectionObject) {
         that.returnString += `${lineBreak}${data}`;
         // If we have an 'ok' or the firmware has registered a checksum error
         if (
-          that.returnString.includes('ok') || // in case ok is cut into 2 lines
-          that.returnString.toLowerCase().substring(0, 2) === 'rs' || // for smoothieware checksum
-          that.returnString.toLowerCase().includes('resend') // for marlin checksum
+          that.returnString.includes('ok') ||
+          that.returnString.toLowerCase().substring(0, 2) === 'rs' // smoothieware doesn't reply with 'ok'
         ) {
           // If the firmware has said that there is an error
           if (
             that.bot.info.checksumSupport &&
-            (that.returnString.toLowerCase().includes('resend') ||
-              that.returnString.toLowerCase().substring(0, 2) === 'rs')
+            (that.returnString.toLowerCase().includes('resend') || // for marlin checksum
+              that.returnString.toLowerCase().substring(0, 2) === 'rs') // for smoothieware checksum
           ) {
             that.mLineNumber -= 1;
           }
@@ -208,10 +207,10 @@ SerialConnection.prototype.checksum = function (inGcodeLine) {
       checksum ^= char.charCodeAt(0);
     });
     // For testing: Make this fail 10% of the time
-    if (parseInt(Math.random() * 10, 10) === 0) {
-      checksum += 1;
-    }
-    gcodeLine += `*${checksum}`;
+    // if (parseInt(Math.random() * 10, 10) === 0) {
+    //   checksum += 1;
+    // }
+    // gcodeLine += `*${checksum}`;
   }
   return gcodeLine;
 };
