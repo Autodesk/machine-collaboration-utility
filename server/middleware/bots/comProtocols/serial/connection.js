@@ -210,7 +210,7 @@ SerialConnection.prototype.checksum = function (inGcodeLine) {
     // if (parseInt(Math.random() * 10, 10) === 0) {
     //   checksum += 1;
     // }
-    // gcodeLine += `*${checksum}`;
+    gcodeLine += `*${checksum}`;
   }
   return gcodeLine;
 };
