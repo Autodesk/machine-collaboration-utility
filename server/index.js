@@ -1,9 +1,9 @@
 /* global logger */
-try {
-  require('dotenv').config();
-} catch (ex) {
-  console.log('No .env file found', ex);
-}
+//try {
+//  require('dotenv').config();
+//} catch (ex) {
+//  console.log('No .env file found', ex);
+//}
 
 const path = require('path');
 const http = require('http');
