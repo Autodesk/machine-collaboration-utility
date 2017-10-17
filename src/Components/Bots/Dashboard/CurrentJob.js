@@ -78,14 +78,14 @@ export default class CurrentJob extends React.Component {
           <button
             className="disconnect"
             onClick={() => {
-              const disconnect = true;
               if (this.props.bot.currentJob) {
-                {
-                  /* disconnect = confirm('Are you sure you want to disconnect?\n Disconnecting will cancel the current job.'); */
+                // eslint-disable-next-line no-restricted-globals
+                const disconnect = confirm(
+                  'Are you sure you want to disconnect?\n Disconnecting will cancel the current job.',
+                );
+                if (disconnect) {
+                  this.sendCommand('disconnect');
                 }
-              }
-              if (disconnect) {
-                this.sendCommand('disconnect');
               }
             }}
           >
@@ -135,7 +135,13 @@ export default class CurrentJob extends React.Component {
             <button
               className="pause"
               onClick={() => {
-                this.sendCommand('pause');
+                if (this.props.bot.currentJob) {
+                  // eslint-disable-next-line no-restricted-globals
+                  const pause = confirm('Are you sure you want to pause?');
+                  if (pause) {
+                    this.sendCommand('pause');
+                  }
+                }
               }}
             >
               Pause
