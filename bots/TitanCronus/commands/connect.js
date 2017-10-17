@@ -1,4 +1,6 @@
 /* global logger */
+const checksumReset = require('../../Virtual/helpers/checksumReset');
+
 module.exports = function connect(self) {
   try {
     if (self.fsm.current !== 'ready') {
@@ -11,6 +13,11 @@ module.exports = function connect(self) {
       postCallback: async () => {
         self.commands.toggleUpdater(self, { update: true });
         self.fsm.connectDone();
+
+        if (self.info.checksumSupport) {
+          const checksumResetCommand = checksumReset(self);
+          self.queue.prependCommands(checksumResetCommand);
+        }
       },
     });
   } catch (ex) {

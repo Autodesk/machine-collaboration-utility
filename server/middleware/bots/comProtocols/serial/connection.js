@@ -44,7 +44,8 @@ const roundAxis = function roundAxis(command, axis, self) {
       const axisArray = roundedCommand.split(axis);
       const before = axisArray[0];
       const splitArray = axisArray[1].split(' ');
-      const middle = axis + Number(splitArray[0]).toFixed(4);
+      const middle =
+        axis === 'F' ? axis + parseInt(splitArray[0], 10) : axis + Number(splitArray[0]).toFixed(4);
       let end = '';
       if (splitArray.length > 1) {
         for (let i = 1; i < splitArray.length; i++) {
@@ -81,15 +82,17 @@ var SerialConnection = function (connectionObject) {
   this.bot = connectionObject.bot;
 
   const that = this;
+  const Regex = SerialPort.parsers.Regex;
   const portParams = {
-    baudrate: connectionObject.baudrate,
-    parser: SerialPort.parsers.readline('\n'),
+    baudRate: connectionObject.baudrate,
     autoOpen: false,
   };
 
   this.mLineNumber = 0; // Used to track line number for checksum
 
   this.mPort = new SerialPort(connectionObject.comName, portParams);
+  // Pipe received data to this variable for parsing
+  this.mParser = this.mPort.pipe(new Regex({ regex: /\r?\n|\r/ }));
   this.mConnectedFunc = connectionObject.connectedFunc;
 
   // User configurable data callback and close notification.  Our initial
@@ -120,18 +123,28 @@ var SerialConnection = function (connectionObject) {
     if (error) {
       logger.warn('Failed to open com port:', inComName, error);
     } else {
-      that.mPort.on('data', (inData) => {
+      that.mParser.on('data', (inData) => {
         const data = inData.toString();
+        logger.info('RX:', data);
         if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
           logger.debug('read', data);
         }
         const lineBreak = that.returnString.length > 0 ? '\n' : '';
         that.returnString += `${lineBreak}${data}`;
-        if (data.includes('ok')) {
-          if (that.bot.info.checksumSupport && that.returnString.toLowerCase().includes('resend')) {
+        // If we have an 'ok' or the firmware has registered a checksum error
+        if (
+          that.returnString.includes('ok') || // in case ok is cut into 2 lines
+          that.returnString.toLowerCase().substring(0, 2) === 'rs' || // for smoothieware checksum
+          that.returnString.toLowerCase().includes('resend') // for marlin checksum
+        ) {
+          // If the firmware has said that there is an error
+          if (
+            that.bot.info.checksumSupport &&
+            (that.returnString.toLowerCase().includes('resend') ||
+              that.returnString.toLowerCase().substring(0, 2) === 'rs')
+          ) {
             that.mLineNumber -= 1;
           }
-          // TODO Check for resend message
 
           // Handle serial resets
           if (that.timeout !== undefined) {
@@ -180,23 +193,26 @@ var SerialConnection = function (connectionObject) {
  * Calculate the checksum for each line
  */
 SerialConnection.prototype.checksum = function (inGcodeLine) {
+  // Handle M110
+  // Handle N<i> M110
+  // Handle normal gcode
   // Add line number, if it's not already in the line to be send
+
   let gcodeLine = inGcodeLine;
-  if (gcodeLine[0] !== 'N') {
+
+  if (!gcodeLine.includes('M110')) {
     gcodeLine = `N${this.mLineNumber} ${gcodeLine}`;
+    // Calculate the checksum
+    let checksum = 0;
+    gcodeLine.split('').forEach((char) => {
+      checksum ^= char.charCodeAt(0);
+    });
+    // For testing: Make this fail 10% of the time
+    if (parseInt(Math.random() * 10, 10) === 0) {
+      checksum += 1;
+    }
+    gcodeLine += `*${checksum}`;
   }
-
-  // Calculate the checksum
-  let checksum = 0;
-  gcodeLine.split('').forEach((char) => {
-    checksum ^= char.charCodeAt(0);
-  });
-  // For testing: Make this fail 10% of the time
-  // if (parseInt(Math.random() * 10, 10) === 0) {
-  //   checksum += 1;
-  // }
-  gcodeLine += `*${checksum}`;
-
   return gcodeLine;
 };
 
@@ -245,9 +261,15 @@ SerialConnection.prototype.send = function (inCommandStr) {
 
         // Reset current line number
         if (gcode.includes('M110')) {
-          that.mLineNumber = parseInt(gcode.split('N')[2].split('*')[0], 10);
+          if (gcode.split('N').length > 2) {
+            that.mLineNumber = parseInt(gcode.split('N')[2].split('*')[0], 10);
+          } else if (gcode.includes('N')) {
+            that.mLineNumber = parseInt(gcode.split('N')[1].split('*')[0], 10);
+          } else {
+            that.mLineNumber = 0;
+          }
+          logger.info('Resetting line count to', that.mLineNumber);
         }
-
         that.mLineNumber += 1;
       }
 
@@ -256,6 +278,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
       if (gcode.indexOf('\n') === -1) {
         gcode += '\n';
       }
+      logger.info('TX:', gcode);
       that.mPort.write(gcode);
 
       that.io.broadcast(`botTx${that.bot.settings.uuid}`, gcode);
@@ -289,6 +312,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
  * Return: N/A
  */
 SerialConnection.prototype.close = function () {
+  logger.info('Serialport about to close');
   this.mPort.close((err) => {
     logger.info('Serialport is now closed');
     if (err) {

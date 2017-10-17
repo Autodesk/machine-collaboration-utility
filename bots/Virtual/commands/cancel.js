@@ -1,6 +1,8 @@
 /* global logger */
 const path = require('path');
 
+const checksumReset = require('../helpers/checksumReset');
+
 const botFsmDefinitions = require(path.join(
   __dirname,
   '../../../server/middleware/bots/botFsmDefinitions',
@@ -51,6 +53,10 @@ module.exports = function cancel(self) {
           event: 'update',
           data: self.getBot(),
         });
+        if (self.info.checksumSupport) {
+          const checksumResetCommand = checksumReset(self);
+          self.queue.prependCommands(checksumResetCommand);
+        }
       },
     });
 

@@ -272,19 +272,21 @@ class Bot {
    * Return: true if the last line was 'ok'
    */
   validateSerialReply(command, reply) {
-    const lines = reply.toString().split('\n');
     let ok;
     try {
-      ok = _.last(lines).indexOf('ok') !== -1;
+      // In case of line break between ok
+      // TODO consider more stringent parsing of ok
+      ok = reply.replace('\n', '').includes('ok');
     } catch (ex) {
       logger.error('Bot validate serial reply error', reply, ex);
     }
 
     if (
       this.info.checksumSupport &&
-      reply.toLowerCase().includes('resend') &&
+      (reply.toLowerCase().includes('resend') || reply.substring(0, 2) === 'rs') &&
       !this.checksumRunaway
     ) {
+      // If there was a snag, prepend the command and try again
       // Try to send the command again
       this.queue.prependCommands(command.code);
 
@@ -298,8 +300,8 @@ class Bot {
         this.checksumRunaway = true;
         logger.error('Warning, checksum runaway. No longer sending lines with checksum');
       }
+      return true;
     }
-    // If there was a snag, prepend the command and try again
     return ok;
   }
 

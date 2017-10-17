@@ -8,6 +8,8 @@ const request = require('request-promise');
 const path = require('path');
 const bluebird = require('bluebird');
 
+const checksumReset = require('../helpers/checksumReset');
+
 const sendTwilioUpdate = require(path.join(
   __dirname,
   '../../../server/middleware/helpers/sendTwilioUpdate',
@@ -161,6 +163,10 @@ async function processFileEnd(self, theFile) {
           data: self.getBot(),
         });
       }, 2000);
+      if (self.info.checksumSupport) {
+        const checksumResetCommand = checksumReset(self);
+        self.queue.prependCommands(checksumResetCommand);
+      }
     },
   });
 }
@@ -227,7 +233,8 @@ module.exports = async function startJob(self, params) {
     try {
       // Reset line count
       if (self.info.checksumSupport) {
-        self.queue.queueCommands('M110 N0');
+        const checksumResetCommand = checksumReset(self);
+        self.queue.prependCommands(checksumResetCommand);
       }
 
       // Create a job
@@ -256,6 +263,7 @@ module.exports = async function startJob(self, params) {
 
       sendTwilioUpdate(`${self.settings.name} job is starting.`);
     } catch (ex) {
+      logger.error('Start Job Fail', ex);
       self.fsm.startJobFail();
     }
   } catch (ex) {
