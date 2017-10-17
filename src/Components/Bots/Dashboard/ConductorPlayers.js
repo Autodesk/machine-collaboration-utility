@@ -1,6 +1,5 @@
 import React from 'react';
 import request from 'superagent';
-import _ from 'lodash';
 
 export default class ConductorPlayers extends React.Component {
   constructor(props) {

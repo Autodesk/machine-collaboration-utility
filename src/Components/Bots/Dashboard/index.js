@@ -1,5 +1,4 @@
 import React from 'react';
-import ProgressBar from 'react-bootstrap/lib/ProgressBar';
 
 import JogPanel from './JogPanel';
 import CurrentJob from './CurrentJob';
@@ -12,10 +11,6 @@ import ConductorPlayers from './ConductorPlayers';
 import Warnings from './Warnings';
 
 export default class Dashboard extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     const isConductorBot = this.props.bot.settings.model.toLowerCase().includes('conductor');
     let conductorPlayers = '';

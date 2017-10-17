@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
 
-import { metaStates as botMetaStates } from '../botFsmDefinitions';
 import HoverAndClick from './HoverAndClick';
 
 export default class HomeAxes extends React.Component {

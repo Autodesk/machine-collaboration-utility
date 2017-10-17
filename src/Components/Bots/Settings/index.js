@@ -11,7 +11,7 @@ export default class Settings extends React.Component {
     // Replace any undefined or null with a blank string
     const settings = props.bot.settings;
     for (const [settingKey, setting] of _.entries(settings)) {
-      if (setting == undefined) {
+      if (setting == null) {
         settings[settingKey] = '';
       }
     }
@@ -31,9 +31,9 @@ export default class Settings extends React.Component {
     let updateSettings = false;
 
     for (const [settingKey, setting] of _.entries(settings)) {
-      const newSetting = setting == undefined ? '' : setting;
+      const newSetting = setting == null ? '' : setting;
       const oldSetting =
-        this.props.bot.settings[settingKey] == undefined ? '' : this.props.bot.settings[settingKey];
+        this.props.bot.settings[settingKey] == null ? '' : this.props.bot.settings[settingKey];
       if (newSetting !== oldSetting) {
         updateSettings = true;
       }
@@ -51,7 +51,7 @@ export default class Settings extends React.Component {
     const endpoint = `/v1/bots/${this.props.bot.settings.uuid}`;
     let update = request.put(endpoint);
     const paramJson = {};
-    for (const [settingKey, setting] of _.entries(this.state.settings)) {
+    Object.keys(this.state.settings).forEach((settingKey) => {
       // add the setting if we aren't a player,
       // or if we are a player and the setting is neither "name" nor "endpoint"
       try {
@@ -65,7 +65,8 @@ export default class Settings extends React.Component {
       } catch (ex) {
         // Value not listed as a part of the input form, don't add it
       }
-    }
+    });
+
     update = update.send(paramJson);
     update = update.set('Accept', 'application/json');
     try {
@@ -112,7 +113,7 @@ export default class Settings extends React.Component {
 
   renderSettingInput(settingKey, setting) {
     // Set undefined and null to an empty string
-    const settingValue = setting == undefined ? '' : setting;
+    const settingValue = setting == null ? '' : setting;
 
     return (
       <div key={settingKey} className="row">

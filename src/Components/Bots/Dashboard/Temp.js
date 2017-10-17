@@ -1,7 +1,6 @@
 import React from 'react';
 
 import HoverAndClick from './HoverAndClick';
-import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
 export default class Temp extends React.Component {
   constructor(props) {

@@ -1,10 +1,6 @@
 import React from 'react';
-import Button from 'react-bootstrap/lib/Button';
-import Modal from 'react-bootstrap/lib/Modal';
 import Tab from 'react-bootstrap/lib/Tab';
 import Tabs from 'react-bootstrap/lib/Tabs';
-import { Link } from 'react-router';
-import _ from 'lodash';
 
 import Dashboard from './Dashboard';
 import Terminal from './Terminal';
@@ -62,7 +58,6 @@ export default class Bot extends React.Component {
               open={this.state.selectedTab === 2}
               client={this.props.client}
               endpoint={endpoint}
-              bot={this.props.bot}
             />
           </Tab>
           <Tab eventKey={3} title="Camera">
@@ -71,7 +66,6 @@ export default class Bot extends React.Component {
               open={this.state.selectedTab === 3}
               client={this.props.client}
               endpoint={endpoint}
-              bot={this.props.bot}
             />
           </Tab>
           <Tab eventKey={4} title="Settings">

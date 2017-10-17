@@ -1,8 +1,6 @@
 import React from 'react';
 import path from 'path';
 
-import { metaStates as botMetaStates } from '../botFsmDefinitions';
-
 class Polygon extends React.Component {
   constructor(props) {
     super(props);
@@ -73,7 +71,7 @@ class Polygon extends React.Component {
   render() {
     let x = 0;
     let y = 0;
-    this.props.points.split(' ').map((xy) => {
+    this.props.points.split(' ').forEach((xy) => {
       const xyArray = xy.split(',');
       x += Number(xyArray[0]);
       y += Number(xyArray[1]);
@@ -113,10 +111,6 @@ class Polygon extends React.Component {
 }
 
 export default class JogPanel extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     const jogable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
     const botSaturation = jogable ? 40 : 5;

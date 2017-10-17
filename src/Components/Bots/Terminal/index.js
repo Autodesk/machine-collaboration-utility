@@ -1,7 +1,6 @@
 import React from 'react';
 import uuidv4 from 'uuid/v4';
 import autobind from 'react-autobind';
-import request from 'request';
 
 import Reply from './Reply';
 

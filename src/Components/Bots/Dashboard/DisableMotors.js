@@ -1,14 +1,9 @@
 import React from 'react';
 import _ from 'lodash';
 
-import { metaStates as botMetaStates } from '../botFsmDefinitions';
 import HoverAndClick from './HoverAndClick';
 
 export default class DisableMotors extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   disableAxes(inputAxes) {
     const axes = { x: false, y: false, z: false, e: false };
     _.extend(axes, inputAxes);

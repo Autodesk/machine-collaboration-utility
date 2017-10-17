@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { metaStates as botMetaStates } from '../botFsmDefinitions';
 import HoverAndClick from './HoverAndClick';
 
 export default class SendGcode extends React.Component {

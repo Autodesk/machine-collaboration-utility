@@ -9,7 +9,9 @@ export default class Camera extends React.Component {
     }
     return (
       <div style={{ width: '100%' }}>
-        {this.props.open ? <img style={{ width: '100%' }} src={cameraEndpoint} /> : null}
+        {this.props.open ? (
+          <img alt="video-stream" style={{ width: '100%' }} src={cameraEndpoint} />
+        ) : null}
       </div>
     );
   }

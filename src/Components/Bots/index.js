@@ -1,7 +1,5 @@
 import React from 'react';
 import Modal from 'react-bootstrap/lib/Modal';
-import FormGroup from 'react-bootstrap/lib/FormGroup';
-import Radio from 'react-bootstrap/lib/Radio';
 import Button from 'react-bootstrap/lib/Button';
 import request from 'superagent';
 import _ from 'lodash';
@@ -107,7 +105,7 @@ export default class Bots extends React.Component {
       switch (botPreset.info.connectionType) {
         case undefined:
         case 'serial':
-          return;
+          return null;
         default:
           break;
       }
@@ -209,21 +207,19 @@ export default class Bots extends React.Component {
     }
 
     // if the user hasn't selected a bot, redirect them to the first available bot
-    const redirectToBot = this.props.location.pathname === "/" && selectedBot !== undefined ;
+    const redirectToBot = this.props.location.pathname === '/' && selectedBot !== undefined;
     if (redirectToBot) {
       return <Redirect to={`/${selectedBot.settings.uuid}`} />;
     }
 
     // if the bot doesn't exist, we want to redirect the user...
-    const redirectHome = selectedBot === undefined && this.props.location.pathname !== "/";
+    const redirectHome = selectedBot === undefined && this.props.location.pathname !== '/';
     if (redirectHome) {
       return <Redirect to="/" />;
     }
 
     const daBot =
-      selectedBot === undefined ? (
-        null
-      ) : (
+      selectedBot === undefined ? null : (
         <Bot
           appColor={this.props.appColor}
           files={this.props.files}
@@ -257,6 +253,7 @@ export default class Bots extends React.Component {
           <p>
             Have Feedback?{' '}
             <a
+              rel="noopener noreferrer"
               target="_blank"
               href="https://docs.google.com/forms/d/e/1FAIpQLSfWv_jzLw819N7jnKGL18rci2eeHfI9-EUeIiZQ5kpwH01Neg/viewform"
             >
