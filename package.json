@@ -21,7 +21,7 @@
     "build:cleanup": "rm -rf build && rm -rf server/build",
     "build:css":
       "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
-    "package": "npm run build && electron-builder",
+    "package": "npm run build && electron-rebuild && electron-builder",
     "prebuild:css": "node-sass styles/main.scss -o src/",
     "test": "node node_modules/gulp/bin/gulp.js test"
   },
