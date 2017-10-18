@@ -102,3 +102,13 @@
   * Added "force" flag to process-gcode to allow gcode commands mid-print
   * Added ability to send-receive text updates if Twilio ENV setup
   
+## 1.7.0 (2017-10-17)
+  * Updated documentation to match the current environment
+  * Added socket replies to the bot terminal window
+  * Added support for a camera via mjpeg streamer on pis
+  * Refactored app for building with electron
+  * Added a "Remote" bot for registering a remote MCU instance
+  * Added checksum support
+  * Updated Serialport to v6
+  * UI now build with create-react-app library
+  
