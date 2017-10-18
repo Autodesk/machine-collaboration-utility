@@ -19,10 +19,11 @@ export default class Bots extends React.Component {
     this.handleSelectBot = this.handleSelectBot.bind(this);
     this.updateText = this.updateText.bind(this);
 
+    console.log(props.botPresets);
     this.state = {
       showModal: false,
       selectedBot: this.findSelectedBot(props),
-      selectedPreset: (props.botPresets && props.botPresets.Conductor) || null,
+      selectedPreset: (props.botPresets && props.botPresets.Remote) || null,
     };
   }
 
@@ -116,6 +117,13 @@ export default class Bots extends React.Component {
       );
     });
 
+    // Set Remote to be the first option
+    options.forEach((option, i) => {
+      if (option && option.key === 'Remote') {
+        options.splice(0, 0, options.splice(i, 1)[0]);
+      }
+    });
+
     return (
       <select onChange={this.updateSelectedPreset} name="botList" form="newBotForm">
         {options}
@@ -190,8 +198,8 @@ export default class Bots extends React.Component {
       this.setState({ selectedBot: newBotState });
     }
 
-    if (!this.state.selectedPreset && nextProps.botPresets && nextProps.botPresets.Conductor) {
-      this.setState({ selectedPreset: nextProps.botPresets.Conductor });
+    if (!this.state.selectedPreset && nextProps.botPresets && nextProps.botPresets.Remote) {
+      this.setState({ selectedPreset: nextProps.botPresets.Remote });
     }
   }
 
