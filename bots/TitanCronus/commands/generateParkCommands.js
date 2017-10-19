@@ -26,16 +26,8 @@ module.exports = function generateParkCommands(self) {
       return true;
     },
     postCallback: () => {
-      const offsetY = Number(Number(self.settings.offsetY).toFixed(2));
       const parkCommandArray = ['G92 E0', 'G1 E-2 F3000'];
-      if (self.parkedPosition.z < 500 - parkLift) {
-        parkCommandArray.push(`G1 Z${(self.parkedPosition.z + parkLift).toFixed(2)} F1000`);
-      }
-      if (self.parkedPosition.y > offsetY) {
-        parkCommandArray.push(`G1 Y${offsetY} F10000`); // Scrub
-      }
-      const scrubEnd = 10;
-      parkCommandArray.push(`G1 Y${scrubEnd} F2000`); // Drag Y across the purge
+      parkCommandArray.push(`G1 Z${(self.parkedPosition.z + parkLift).toFixed(2)} F1000`);
       parkCommandArray.push({
         code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
         postCallback: () => {
