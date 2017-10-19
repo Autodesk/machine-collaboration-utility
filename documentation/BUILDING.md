@@ -28,10 +28,6 @@ nvm install v8
 ```
 npm install
 ```
-### Install hardware specific dependencies:
-```
-npm install usb@^1.2.0 serialport@^4.0.7
-```
 
 Create a '.env' file in the project's root folder with the following information:  
 ```
