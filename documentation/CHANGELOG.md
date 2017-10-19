@@ -112,3 +112,5 @@
   * Updated Serialport to v6
   * UI now build with create-react-app library
   
+## 1.7.1 (2017-10-19)
+  * Titan park routine moves up 10mm in Z
