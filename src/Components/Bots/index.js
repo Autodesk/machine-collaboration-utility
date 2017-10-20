@@ -19,7 +19,6 @@ export default class Bots extends React.Component {
     this.handleSelectBot = this.handleSelectBot.bind(this);
     this.updateText = this.updateText.bind(this);
 
-    console.log(props.botPresets);
     this.state = {
       showModal: false,
       selectedBot: this.findSelectedBot(props),
