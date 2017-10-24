@@ -39,7 +39,7 @@ export default class Settings extends React.Component {
     // eslint-disable-next-line no-restricted-globals
     const reset = confirm('Are you sure you want to restart MCU?');
     if (reset) {
-      request.post('/restart').end();
+      request.post('/reset').end();
       this.setState({
         showRestartIcon: true,
       });
