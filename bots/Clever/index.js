@@ -12,6 +12,10 @@ const info = {
   fileTypes: ['.gcode'],
   vidPid: [
     {
+      vid: 0x2341,
+      pid: 0x0042,
+    },
+    {
       vid: 0x2a03,
       pid: 0x0042,
     },
