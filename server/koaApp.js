@@ -19,7 +19,7 @@ const Jobs = require('./middleware/jobs');
 const Bots = require('./middleware/bots');
 
 async function getHostname() {
-  if (process.env.PWD !== '/home/pi/machine-collaboration-utility/') {
+  if (__dirname !== '/home/pi/machine-collaboration-utility/server') {
     return null;
   }
 
@@ -111,6 +111,55 @@ async function koaApp(config) {
     app.context.db = sequelize;
   }
 
+  router.get('/download-logs', async (ctx) => {
+    try {
+      await new Promise((resolve, reject) => {
+        pack(path.join(__dirname, '../logs'))
+          .pipe(write(`${path.join(__dirname, '../')}/mcu-logs.tar.gz`))
+          .on('error', (zipError) => {
+            logger.error(zipError);
+            reject();
+          })
+          .on('close', () => {
+            resolve();
+          });
+      });
+
+      ctx.res.setHeader('Content-disposition', 'attachment; filename=mcu-logs.tar.gz');
+      ctx.body = fs.createReadStream(path.join(__dirname, '../mcu-logs.tar.gz'));
+    } catch (ex) {
+      ctx.status = 500;
+      ctx.body = `Download logs failure: ${ex}`;
+      logger.error(ex);
+    }
+  });
+
+  router.post('/hostname', async (ctx) => {
+    if (__dirname !== '/home/pi/machine-collaboration-utility/server') {
+      return;
+    }
+
+    const hostname = await getHostname();
+    if (!hostname) {
+      return ctx.redirect('/');
+    }
+
+    if (!ctx.request.body || !ctx.request.body.hostname || ctx.request.body.hostname === hostname) {
+      return ctx.redirect('/');
+    }
+
+    await updateHostname(ctx.request.body.hostname);
+    ctx.redirect('/');
+  });
+
+  router.post('/reset', (ctx) => {
+    process.exit(1);
+    ctx.body = 'Resetting';
+  });
+
+  // Latch the defined routes to the koa app
+  app.use(router.routes(), router.allowedMethods());
+
   // add custom middleware here
   const files = new Files(app, `/${config.apiVersion}/files`);
   try {
@@ -141,55 +190,6 @@ async function koaApp(config) {
     });
     return true;
   }
-
-  router.get('/download-logs', async (ctx) => {
-    try {
-      await new Promise((resolve, reject) => {
-        pack(path.join(__dirname, '../logs'))
-          .pipe(write(`${path.join(__dirname, '../')}/mcu-logs.tar.gz`))
-          .on('error', (zipError) => {
-            logger.error(zipError);
-            reject();
-          })
-          .on('close', () => {
-            resolve();
-          });
-      });
-
-      ctx.res.setHeader('Content-disposition', 'attachment; filename=mcu-logs.tar.gz');
-      ctx.body = fs.createReadStream(path.join(__dirname, '../mcu-logs.tar.gz'));
-    } catch (ex) {
-      ctx.status = 500;
-      ctx.body = `Download logs failure: ${ex}`;
-      logger.error(ex);
-    }
-  });
-
-  router.post('/hostname', async (ctx) => {
-    if (process.env.PWD !== '/home/pi/machine-collaboration-utility/') {
-      return;
-    }
-
-    const hostname = await getHostname();
-    if (!hostname) {
-      return ctx.redirect('/');
-    }
-
-    if (!ctx.request.body || !ctx.request.body.hostname || ctx.request.body.hostname === hostname) {
-      return ctx.redirect('/');
-    }
-
-    await updateHostname(ctx.request.body.hostname);
-    ctx.redirect('/');
-  });
-
-  router.post('/reset', (ctx) => {
-    process.exit(1);
-    ctx.body = 'Resetting';
-  });
-
-  // Latch the defined routes to the koa app
-  app.use(router.routes(), router.allowedMethods());
 
   app.on('error', (error, ctx) => {
     logger.error('server error', error, ctx);
