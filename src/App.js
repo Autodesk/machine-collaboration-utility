@@ -17,6 +17,7 @@ class App extends Component {
       botPresets: {},
       jobs: {},
       files: {},
+      appSettings: {},
       appColor: 210,
     };
 
@@ -98,7 +99,7 @@ class App extends Component {
       const data = await reply.json();
       return data.data;
     } catch (ex) {
-      console.log('Get bots error', ex);
+      console.log('Get files error', ex);
     }
   }
 
@@ -108,7 +109,7 @@ class App extends Component {
       const data = await reply.json();
       return data.data;
     } catch (ex) {
-      console.log('Get bots error', ex);
+      console.log('Get jobs error', ex);
     }
   }
 
@@ -118,14 +119,24 @@ class App extends Component {
       const data = await reply.json();
       return data.data;
     } catch (ex) {
-      console.log('Get bots error', ex);
+      console.log('Get bot presets error', ex);
+    }
+  }
+
+  async getAppSettings() {
+    try {
+      const reply = await fetch('/v1/appSettings');
+      const data = await reply.json();
+      return data;
+    } catch (ex) {
+      console.log('Get App Settings error', ex);
     }
   }
 
   async componentWillMount() {
     try {
       const replies = await bluebird.map(
-        ['getBots', 'getFiles', 'getJobs', 'getBotPresets'],
+        ['getBots', 'getFiles', 'getJobs', 'getBotPresets', 'getAppSettings'],
         async command => await this[command](),
       );
 
@@ -134,6 +145,7 @@ class App extends Component {
         files: replies[1],
         jobs: replies[2],
         botPresets: replies[3],
+        appSettings: replies[4] || {},
       });
     } catch (ex) {
       console.log('Initial load fail', ex);

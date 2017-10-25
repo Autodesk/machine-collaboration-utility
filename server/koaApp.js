@@ -19,10 +19,12 @@ const Jobs = require('./middleware/jobs');
 const Bots = require('./middleware/bots');
 
 async function getHostname() {
+  // Verify that we are on a pi and in the correct directory
   if (__dirname !== '/home/pi/machine-collaboration-utility/server') {
     return null;
   }
 
+  // Query the current hostname
   const reply = await execPromise('cat /etc/hostname | tr -d " \t\n\r"').catch((execError) => {
     logger.error('Get hostname error', execError);
   });
@@ -134,6 +136,15 @@ async function koaApp(config) {
     }
   });
 
+  router.get('/v1/appSettings', async (ctx) => {
+    try {
+      const appSettings = await getAppSettings();
+      ctx.body = appSettings;
+    } catch (ex) {
+      logger.error('Get App Settings error', ex);
+    }
+  });
+
   router.post('/hostname', async (ctx) => {
     if (__dirname !== '/home/pi/machine-collaboration-utility/server') {
       return;
@@ -213,3 +224,4 @@ async function koaApp(config) {
 }
 
 module.exports = koaApp;
+
