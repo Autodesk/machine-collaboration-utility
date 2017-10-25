@@ -152,7 +152,7 @@ export default class Files extends React.Component {
 
     return (
       // <Dropzone ref={dropzone => this.dropzone = dropzone}>
-      <div>
+      <div className="list-area">
         {modal}
         <Dropzone
           id="files"
@@ -161,7 +161,6 @@ export default class Files extends React.Component {
           ref={dropzone => (this.dropzone = dropzone)}
           disableClick
         >
-          <h1>Files</h1>
           <button className="upload" onClick={this.openDropzone}>
             Upload File
           </button>
