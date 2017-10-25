@@ -78,10 +78,10 @@ export default class CurrentJob extends React.Component {
           <button
             className="disconnect"
             onClick={() => {
-              const disconnect = true;
+              let disconnect = true;
               if (this.props.bot.currentJob) {
                 // eslint-disable-next-line no-restricted-globals
-                const disconnect = confirm(
+                disconnect = confirm(
                   'Are you sure you want to disconnect?\n Disconnecting will cancel the current job.',
                 );
               }
