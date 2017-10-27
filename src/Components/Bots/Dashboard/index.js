@@ -6,6 +6,7 @@ import HomeAxes from './HomeAxes';
 import PositionFeedback from './PositionFeedback';
 import DisableMotors from './DisableMotors';
 import Temp from './Temp';
+import Tune from './Tune';
 import SendGcode from './SendGcode';
 import ConductorPlayers from './ConductorPlayers';
 import Warnings from './Warnings';
@@ -50,7 +51,7 @@ export default class Dashboard extends React.Component {
                 />
               </div>
               <div className="area">
-                <HomeAxes
+                <PositionFeedback
                   appColor={this.props.appColor}
                   client={this.props.client}
                   endpoint={this.props.endpoint}
@@ -58,7 +59,7 @@ export default class Dashboard extends React.Component {
                 />
               </div>
               <div className="area">
-                <SendGcode
+                <HomeAxes
                   appColor={this.props.appColor}
                   client={this.props.client}
                   endpoint={this.props.endpoint}
@@ -76,26 +77,34 @@ export default class Dashboard extends React.Component {
                   bot={this.props.bot}
                 />
               </div>
-              <div className="area row">
-                <div className="col-sm-7" style={{ padding: '2px' }}>
-                  <PositionFeedback
-                    appColor={this.props.appColor}
-                    client={this.props.client}
-                    endpoint={this.props.endpoint}
-                    bot={this.props.bot}
-                  />
-                </div>
-                <div className="col-sm-5" style={{ padding: '5px' }}>
-                  <DisableMotors
-                    appColor={this.props.appColor}
-                    client={this.props.client}
-                    endpoint={this.props.endpoint}
-                    bot={this.props.bot}
-                  />
-                </div>
+              <div className="area">
+                <DisableMotors
+                  appColor={this.props.appColor}
+                  client={this.props.client}
+                  endpoint={this.props.endpoint}
+                  bot={this.props.bot}
+                />
               </div>
               <div className="area">
                 <Temp
+                  appColor={this.props.appColor}
+                  client={this.props.client}
+                  endpoint={this.props.endpoint}
+                  bot={this.props.bot}
+                />
+              </div>
+              <div className="area">
+                <Tune
+                  appColor={this.props.appColor}
+                  client={this.props.client}
+                  endpoint={this.props.endpoint}
+                  bot={this.props.bot}
+                  forceJog={this.props.forceJog}
+                  toggleForceJog={this.props.toggleForceJog}
+                />
+              </div>
+              <div className="area">
+                <SendGcode
                   appColor={this.props.appColor}
                   client={this.props.client}
                   endpoint={this.props.endpoint}
