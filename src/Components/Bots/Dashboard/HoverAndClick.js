@@ -6,27 +6,14 @@ export default class HoverAndClick extends React.Component {
 
     this.fadeTime = 150;
 
-    const borderColor = Object.assign({}, props.color);
-    borderColor.l -= 10;
-
     this.state = {
-      color: props.color,
-      borderColor,
+      hovering: false,
+      clicked: false,
     };
 
     this.handleClick = this.handleClick.bind(this);
     this.startHover = this.startHover.bind(this);
     this.leaveHover = this.leaveHover.bind(this);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    const borderColor = Object.assign({}, nextProps.color);
-    borderColor.l -= 10;
-
-    this.setState({
-      color: nextProps.color,
-      borderColor,
-    });
   }
 
   hslToString(hsl) {
@@ -39,25 +26,18 @@ export default class HoverAndClick extends React.Component {
     }
 
     setTimeout(() => {
-      const borderColor = Object.assign({}, this.props.color);
-      borderColor.l -= 10;
-
-      this.setState({ borderColor });
+      this.setState({ clicked: false });
     }, this.fadeTime);
 
-    const borderColor = Object.assign({}, this.props.color);
-    borderColor.l += 80;
-    this.setState({ borderColor });
+    this.setState({ clicked: true });
   }
 
   startHover() {
-    const color = Object.assign({}, this.props.color);
-    color.l += 10;
-    this.setState({ color });
+    this.setState({ hovering: true });
   }
 
   leaveHover() {
-    this.setState({ color: this.props.color });
+    this.setState({ hovering: false });
   }
 
   render() {
@@ -67,15 +47,22 @@ export default class HoverAndClick extends React.Component {
           const extraProps = {
             style: {
               padding: '3px',
-              backgroundColor: this.hslToString(this.state.color),
-              border: `3px solid ${this.hslToString(this.state.borderColor)}`,
+              backgroundColor: this.hslToString(
+                this.state.hovering
+                  ? { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l + 10 }
+                  : this.props.color,
+              ),
+              border: `3px solid ${this.hslToString(
+                this.state.clicked
+                  ? { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l + 80 }
+                  : { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l - 10 },
+              )}`,
               transition: `${this.fadeTime}ms`,
               transitionTimingFunction: 'ease',
             },
             onMouseOut: this.leaveHover,
             onMouseOver: this.startHover,
             onClick: (e) => {
-              this.setState({ color: this.props.color });
               this.handleClick(e);
               if (typeof child.props.onClick === 'function') {
                 child.props.onClick();

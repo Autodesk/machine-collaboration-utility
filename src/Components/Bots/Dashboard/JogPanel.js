@@ -7,24 +7,14 @@ class Polygon extends React.Component {
 
     this.fadeTime = 150;
 
-    const borderColor = Object.assign({}, props.fillColor);
-    borderColor.l -= 10;
-
     this.state = {
-      color: props.fillColor,
-      borderColor,
+      hovering: false,
+      clicked: false,
     };
 
     this.handleClick = this.handleClick.bind(this);
     this.startHover = this.startHover.bind(this);
     this.leaveHover = this.leaveHover.bind(this);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    const borderColor = Object.assign({}, nextProps.fillColor);
-    borderColor.l -= 10;
-
-    this.setState({ color: nextProps.fillColor, borderColor });
   }
 
   hslToString(hsl) {
@@ -46,26 +36,18 @@ class Polygon extends React.Component {
     // this.setState({ color: this.buttonColor });
 
     setTimeout(() => {
-      const borderColor = Object.assign({}, this.props.fillColor);
-      borderColor.l -= 10;
-
-      this.setState({ borderColor });
+      this.setState({ clicked: false });
     }, this.fadeTime);
 
-    const borderColor = Object.assign({}, this.props.fillColor);
-    borderColor.l += 80;
-
-    this.setState({ borderColor });
+    this.setState({ clicked: true });
   }
 
   startHover() {
-    const color = Object.assign({}, this.props.fillColor);
-    color.l += 10;
-    this.setState({ color });
+    this.setState({ hovering: true });
   }
 
   leaveHover() {
-    this.setState({ color: this.props.fillColor });
+    this.setState({ hovering: false });
   }
 
   render() {
@@ -84,8 +66,18 @@ class Polygon extends React.Component {
           {this.props.amount}
         </text>
       );
-    const fill = this.hslToString(this.state.color);
-    const border = this.hslToString(this.state.borderColor);
+
+    const color = this.state.hovering
+      ? { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l + 10 }
+      : this.props.color;
+
+    const fill = this.hslToString(color);
+
+    const border = this.hslToString(
+      this.state.clicked
+        ? { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l + 80 }
+        : { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l - 10 },
+    );
 
     return (
       <g
@@ -139,7 +131,7 @@ export default class JogPanel extends React.Component {
           <g style={{ disabled: true }}>
             <g>
               <Polygon
-                fillColor={primary}
+                color={primary}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -148,7 +140,7 @@ export default class JogPanel extends React.Component {
                 amount={100}
               />
               <Polygon
-                fillColor={primary}
+                color={primary}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -157,7 +149,7 @@ export default class JogPanel extends React.Component {
                 amount={-100}
               />
               <Polygon
-                fillColor={primary}
+                color={primary}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -166,7 +158,7 @@ export default class JogPanel extends React.Component {
                 amount={100}
               />
               <Polygon
-                fillColor={primaryMedium}
+                color={primaryMedium}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -175,7 +167,7 @@ export default class JogPanel extends React.Component {
                 amount={10}
               />
               <Polygon
-                fillColor={primaryMedium}
+                color={primaryMedium}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -184,7 +176,7 @@ export default class JogPanel extends React.Component {
                 amount={-10}
               />
               <Polygon
-                fillColor={primaryMedium}
+                color={primaryMedium}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -193,7 +185,7 @@ export default class JogPanel extends React.Component {
                 amount={10}
               />
               <Polygon
-                fillColor={primaryLight}
+                color={primaryLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -202,7 +194,7 @@ export default class JogPanel extends React.Component {
                 amount={1}
               />
               <Polygon
-                fillColor={primaryLight}
+                color={primaryLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -211,7 +203,7 @@ export default class JogPanel extends React.Component {
                 amount={-1}
               />
               <Polygon
-                fillColor={primaryLight}
+                color={primaryLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -220,7 +212,7 @@ export default class JogPanel extends React.Component {
                 amount={1}
               />
               <Polygon
-                fillColor={primarySuperLight}
+                color={primarySuperLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -229,7 +221,7 @@ export default class JogPanel extends React.Component {
                 amount={0.1}
               />
               <Polygon
-                fillColor={primarySuperLight}
+                color={primarySuperLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -238,7 +230,7 @@ export default class JogPanel extends React.Component {
                 amount={-0.1}
               />
               <Polygon
-                fillColor={primarySuperLight}
+                color={primarySuperLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -247,7 +239,7 @@ export default class JogPanel extends React.Component {
                 amount={0.1}
               />
               <Polygon
-                fillColor={primarySuperLight}
+                color={primarySuperLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -256,7 +248,7 @@ export default class JogPanel extends React.Component {
                 amount={-0.1}
               />
               <Polygon
-                fillColor={primaryLight}
+                color={primaryLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -265,7 +257,7 @@ export default class JogPanel extends React.Component {
                 amount={-1}
               />
               <Polygon
-                fillColor={primaryMedium}
+                color={primaryMedium}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -274,7 +266,7 @@ export default class JogPanel extends React.Component {
                 amount={-10}
               />
               <Polygon
-                fillColor={primary}
+                color={primary}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -284,7 +276,7 @@ export default class JogPanel extends React.Component {
               />
 
               <Polygon
-                fillColor={primary}
+                color={primary}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -293,7 +285,7 @@ export default class JogPanel extends React.Component {
                 amount={-100}
               />
               <Polygon
-                fillColor={primaryMedium}
+                color={primaryMedium}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -302,7 +294,7 @@ export default class JogPanel extends React.Component {
                 amount={-10}
               />
               <Polygon
-                fillColor={primaryLight}
+                color={primaryLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -311,7 +303,7 @@ export default class JogPanel extends React.Component {
                 amount={-1}
               />
               <Polygon
-                fillColor={primarySuperLight}
+                color={primarySuperLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -320,7 +312,7 @@ export default class JogPanel extends React.Component {
                 amount={-0.1}
               />
               <Polygon
-                fillColor={primarySuperLight}
+                color={primarySuperLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -329,7 +321,7 @@ export default class JogPanel extends React.Component {
                 amount={0.1}
               />
               <Polygon
-                fillColor={primaryLight}
+                color={primaryLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -338,7 +330,7 @@ export default class JogPanel extends React.Component {
                 amount={1}
               />
               <Polygon
-                fillColor={primaryMedium}
+                color={primaryMedium}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -347,7 +339,7 @@ export default class JogPanel extends React.Component {
                 amount={10}
               />
               <Polygon
-                fillColor={primary}
+                color={primary}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -357,7 +349,7 @@ export default class JogPanel extends React.Component {
               />
 
               <Polygon
-                fillColor={primary}
+                color={primary}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -366,7 +358,7 @@ export default class JogPanel extends React.Component {
                 amount={100}
               />
               <Polygon
-                fillColor={primaryMedium}
+                color={primaryMedium}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -375,7 +367,7 @@ export default class JogPanel extends React.Component {
                 amount={10}
               />
               <Polygon
-                fillColor={primaryLight}
+                color={primaryLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -384,7 +376,7 @@ export default class JogPanel extends React.Component {
                 amount={1}
               />
               <Polygon
-                fillColor={primarySuperLight}
+                color={primarySuperLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -393,7 +385,7 @@ export default class JogPanel extends React.Component {
                 amount={0.1}
               />
               <Polygon
-                fillColor={primarySuperLight}
+                color={primarySuperLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -402,7 +394,7 @@ export default class JogPanel extends React.Component {
                 amount={-0.1}
               />
               <Polygon
-                fillColor={primaryLight}
+                color={primaryLight}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -411,7 +403,7 @@ export default class JogPanel extends React.Component {
                 amount={-1}
               />
               <Polygon
-                fillColor={primaryMedium}
+                color={primaryMedium}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
@@ -420,7 +412,7 @@ export default class JogPanel extends React.Component {
                 amount={-10}
               />
               <Polygon
-                fillColor={primary}
+                color={primary}
                 client={this.props.client}
                 endpoint={this.props.endpoint}
                 jogable={jogable}
