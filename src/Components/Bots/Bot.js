@@ -1,6 +1,7 @@
 import React from 'react';
 import Tab from 'react-bootstrap/lib/Tab';
 import Tabs from 'react-bootstrap/lib/Tabs';
+import autobind from 'react-autobind';
 
 import Dashboard from './Dashboard';
 import Terminal from './Terminal';
@@ -17,7 +18,10 @@ export default class Bot extends React.Component {
       showModal: false,
       selectedTab: 1,
       updateInterval: null,
+      forceJog: false,
     };
+
+    autobind(this);
   }
 
   tabSelectEvent(key) {
@@ -30,8 +34,13 @@ export default class Bot extends React.Component {
     if (this.props.bot.settings.uuid !== nextProps.bot.settings.uuid) {
       if (this.state.updateInterval) {
         clearInterval(this.state.updateInterval);
+        // May have to reset forcejog param here
       }
     }
+  }
+
+  toggleForceJog() {
+    this.setState({ forceJog: !this.state.forceJog });
   }
 
   render() {
@@ -50,6 +59,8 @@ export default class Bot extends React.Component {
               endpoint={endpoint}
               client={this.props.client}
               bot={this.props.bot}
+              forceJog={this.state.forceJog}
+              toggleForceJog={this.toggleForceJog}
             />
           </Tab>
           <Tab eventKey={2} title="Terminal">
