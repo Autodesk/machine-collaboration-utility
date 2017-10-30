@@ -98,6 +98,7 @@
     "nodemon": "^1.12.1",
     "npm-run-all": "^4.1.1",
     "postcss-cli": "^4.1.1",
+    "rc-slider": "^8.3.5",
     "react": "^15.6.1",
     "react-autobind": "^1.0.6",
     "react-bootstrap": "^0.31.3",
