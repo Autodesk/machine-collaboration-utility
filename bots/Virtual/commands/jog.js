@@ -1,4 +1,9 @@
 module.exports = function jog(self, params) {
+  const force = String(params.force) === 'true';
+  if (self.fsm.current !== 'paused' && self.fsm.current !== 'idle' && !force) {
+    throw new Error(`Cannot jog from state ${self.fsm.current}`);
+  }
+
   const commandArray = [];
   commandArray.push({
     code: 'M114',

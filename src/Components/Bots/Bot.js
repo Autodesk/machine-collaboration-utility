@@ -31,16 +31,32 @@ export default class Bot extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    // When a new bot is selected
     if (this.props.bot.settings.uuid !== nextProps.bot.settings.uuid) {
+      const newState = {};
+
+      // Clear the updater
       if (this.state.updateInterval) {
         clearInterval(this.state.updateInterval);
-        // May have to reset forcejog param here
       }
+
+      // Disable force jog
+      newState.forceJog = false;
+
+      this.setState(newState);
     }
   }
 
   toggleForceJog() {
-    this.setState({ forceJog: !this.state.forceJog });
+    if (this.state.forceJog === false) {
+      // eslint-disable-next-line no-restricted-globals
+      const toggle = confirm('Enable force jog?');
+      if (toggle) {
+        this.setState({ forceJog: !this.state.forceJog });
+      }
+    } else {
+      this.setState({ forceJog: !this.state.forceJog });
+    }
   }
 
   render() {
@@ -68,6 +84,7 @@ export default class Bot extends React.Component {
               bot={this.props.bot}
               open={this.state.selectedTab === 2}
               client={this.props.client}
+              forceJog={this.state.forceJog}
               endpoint={endpoint}
             />
           </Tab>

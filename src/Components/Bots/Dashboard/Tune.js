@@ -6,6 +6,7 @@ import Slider, { Range } from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
 import HoverAndClick from './HoverAndClick';
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
 export default class Tune extends React.Component {
   constructor(props) {
@@ -37,13 +38,28 @@ export default class Tune extends React.Component {
 
   updateSpeed(e) {
     e.preventDefault();
-    this.setState({ lastSentSpeed: this.state.lastKnownSpeed });
+
+    const newSpeed = this.state.lastKnownSpeed;
+    this.setState({ lastSentSpeed: newSpeed });
+
+    const commandObject = {
+      botUuid: this.props.endpoint,
+      command: 'processGcode',
+      gcode: `M220 S${newSpeed}`,
+    };
+
+    if (this.props.forceJog === true) {
+      commandObject.force = true;
+    }
+
+    this.props.client.emit('command', commandObject);
+    this.setState({ showSpeedModal: false });
   }
 
   speedModal() {
     const sliderMarks = {};
     for (let i = 50; i <= 150; i += 10) {
-      sliderMarks[`${i}`] = i;
+      sliderMarks[`${i}`] = `${i}%`;
     }
     return (
       <Modal show={this.state.showSpeedModal} onHide={this.closeSpeedModal}>
@@ -53,8 +69,8 @@ export default class Tune extends React.Component {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Desired speed: {this.state.lastKnownSpeed}</p>
-          <p>Current speed: {this.state.lastSentSpeed}</p>
+          <p>Target speed: {this.state.lastKnownSpeed}%</p>
+          <p>Current speed: {this.state.lastSentSpeed}%</p>
           <form onSubmit={this.updateSpeed}>
             <Slider
               min={50}
@@ -64,7 +80,7 @@ export default class Tune extends React.Component {
               onChange={this.updateSpeedSlider}
               value={this.state.lastKnownSpeed}
             />
-            <input type="submit" value="Update Flowrate" />
+            <input type="submit" value="Update Speed" />
             <br />
             <br />
           </form>
@@ -87,13 +103,27 @@ export default class Tune extends React.Component {
 
   updateFlowrate(e) {
     e.preventDefault();
-    this.setState({ lastSentFlowrate: this.state.lastKnownFlowrate });
+    const newFlowrate = this.state.lastKnownFlowrate;
+    this.setState({ lastSentFlowrate: newFlowrate });
+
+    const commandObject = {
+      botUuid: this.props.endpoint,
+      command: 'processGcode',
+      gcode: `M221 S${newFlowrate}`,
+    };
+
+    if (this.props.forceJog === true) {
+      commandObject.force = true;
+    }
+
+    this.props.client.emit('command', commandObject);
+    this.setState({ showFlowrateModal: false });
   }
 
   flowrateModal() {
     const sliderMarks = {};
     for (let i = 50; i <= 150; i += 10) {
-      sliderMarks[`${i}`] = i;
+      sliderMarks[`${i}`] = `${i}%`;
     }
     return (
       <Modal show={this.state.showFlowrateModal} onHide={this.closeFlowrateModal}>
@@ -103,8 +133,8 @@ export default class Tune extends React.Component {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Desired flowrate: {this.state.lastKnownFlowrate}</p>
-          <p>Current flowrate: {this.state.lastSentFlowrate}</p>
+          <p>Target flowrate: {this.state.lastKnownFlowrate}%</p>
+          <p>Current flowrate: {this.state.lastSentFlowrate}%</p>
           <form onSubmit={this.updateFlowrate}>
             <Slider
               min={50}
@@ -124,6 +154,11 @@ export default class Tune extends React.Component {
   }
 
   render() {
+    const tuneable =
+      this.props.bot.state === 'idle' ||
+      this.props.bot.state === 'paused' ||
+      (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state));
+
     return (
       <div>
         {this.flowrateModal()}
@@ -131,19 +166,21 @@ export default class Tune extends React.Component {
         <div className="row">
           <div className="area-padding home-area max-area-width">
             <div className="col-xs-4 no-padding">
-              <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }}>
-                <button onClick={this.tuneFlowrate}>Adjust Flowrate</button>
+              <HoverAndClick color={{ h: this.props.appColor, s: tuneable ? 40 : 5, l: 40 }}>
+                <button disabled={!tuneable} onClick={this.tuneFlowrate}>
+                  Adjust Flowrate
+                </button>
               </HoverAndClick>
             </div>
             <div className="col-xs-4 no-padding">
-              <HoverAndClick color={{ h: this.props.appColor, s: 40, l: 40 }}>
-                <button onClick={this.tuneSpeed}>Adjust Speed</button>
+              <HoverAndClick color={{ h: this.props.appColor, s: tuneable ? 40 : 5, l: 40 }}>
+                <button disabled={!tuneable} onClick={this.tuneSpeed}>
+                  Adjust Speed
+                </button>
               </HoverAndClick>
             </div>
             <div className="col-xs-4 no-padding">
-              <HoverAndClick
-                color={{ h: this.props.appColor, s: this.props.forceJog ? 40 : 5, l: 40 }}
-              >
+              <HoverAndClick color={{ h: this.props.forceJog ? 120 : 0, s: 40, l: 40 }}>
                 <button
                   onClick={() => {
                     this.props.toggleForceJog();

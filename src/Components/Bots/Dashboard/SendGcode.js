@@ -1,6 +1,7 @@
 import React from 'react';
 
 import HoverAndClick from './HoverAndClick';
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
 export default class SendGcode extends React.Component {
   constructor(props) {
@@ -19,13 +20,20 @@ export default class SendGcode extends React.Component {
       gcode,
     };
 
+    if (this.props.forceJog === true) {
+      commandObject.force = true;
+    }
+
     this.props.client.emit('command', commandObject);
 
     this.gcodeInput.value = '';
   }
 
   render() {
-    const gcodeable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
+    const gcodeable =
+      this.props.bot.state === 'idle' ||
+      this.props.bot.state === 'paused' ||
+      (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state));
 
     return (
       <div className="send-gcode">

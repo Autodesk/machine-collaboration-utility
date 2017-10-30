@@ -2,6 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 
 import HoverAndClick from './HoverAndClick';
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
 export default class HomeAxes extends React.Component {
   startHover() {
@@ -67,11 +68,18 @@ export default class HomeAxes extends React.Component {
       gcode,
     };
 
+    if (this.props.forceJog === true) {
+      commandObject.force = true;
+    }
+
     this.props.client.emit('command', commandObject);
   }
 
   render() {
-    const homeable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
+    const homeable =
+      this.props.bot.state === 'idle' ||
+      this.props.bot.state === 'paused' ||
+      (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state));
 
     return (
       <div>

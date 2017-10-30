@@ -1,6 +1,8 @@
 import React from 'react';
 import path from 'path';
 
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
+
 class Polygon extends React.Component {
   constructor(props) {
     super(props);
@@ -30,6 +32,10 @@ class Polygon extends React.Component {
       amount: this.props.amount,
       axis: this.props.axis,
     };
+
+    if (this.props.forceJog === true) {
+      commandObject.force = true;
+    }
 
     this.props.client.emit('command', commandObject);
     // On mobile, should reset color after click
@@ -104,7 +110,11 @@ class Polygon extends React.Component {
 
 export default class JogPanel extends React.Component {
   render() {
-    const jogable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
+    const jogable =
+      this.props.bot.state === 'idle' ||
+      this.props.bot.state === 'paused' ||
+      (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state));
+
     const botSaturation = jogable ? 40 : 5;
 
     const primary = { h: this.props.appColor, s: botSaturation, l: 40 };
@@ -138,6 +148,7 @@ export default class JogPanel extends React.Component {
                 points="329.5,27.1 38.9,27.1 66.9,55.1 301.5,55.1"
                 axis={'y'}
                 amount={100}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primary}
@@ -147,6 +158,7 @@ export default class JogPanel extends React.Component {
                 points="61.9,294.7 61.9,60 34,32.1 34,322.6"
                 axis={'x'}
                 amount={-100}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primary}
@@ -156,6 +168,7 @@ export default class JogPanel extends React.Component {
                 points="334.4,32.1 306.5,60 306.5,294.7 334.4,322.6"
                 axis={'x'}
                 amount={100}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryMedium}
@@ -165,6 +178,7 @@ export default class JogPanel extends React.Component {
                 points="294.5,62.1 73.8,62.1 101.8,90 266.6,90"
                 axis={'y'}
                 amount={10}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryMedium}
@@ -174,6 +188,7 @@ export default class JogPanel extends React.Component {
                 points="96.9,259.8 96.9,95 68.9,67 68.9,287.7"
                 axis={'x'}
                 amount={-10}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryMedium}
@@ -183,6 +198,7 @@ export default class JogPanel extends React.Component {
                 points="299.5,67 271.5,95 271.5,259.8 299.5,287.7"
                 axis={'x'}
                 amount={10}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryLight}
@@ -192,6 +208,7 @@ export default class JogPanel extends React.Component {
                 points="259.6,97 108.8,97 136.7,125 231.7,125"
                 axis={'y'}
                 amount={1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryLight}
@@ -201,6 +218,7 @@ export default class JogPanel extends React.Component {
                 points="131.8,224.8 131.8,129.9 103.8,102 103.8,252.8"
                 axis={'x'}
                 amount={-1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryLight}
@@ -210,6 +228,7 @@ export default class JogPanel extends React.Component {
                 points="264.5,102 236.6,129.9 236.6,224.8 264.5,252.8"
                 axis={'x'}
                 amount={1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primarySuperLight}
@@ -219,6 +238,7 @@ export default class JogPanel extends React.Component {
                 points="224.7,131.9 143.7,131.9 171.7,159.9 196.7,159.9"
                 axis={'y'}
                 amount={0.1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primarySuperLight}
@@ -228,6 +248,7 @@ export default class JogPanel extends React.Component {
                 points="166.7,189.9 166.7,164.8 138.8,136.9 138.8,217.8"
                 axis={'x'}
                 amount={-0.1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primarySuperLight}
@@ -237,6 +258,7 @@ export default class JogPanel extends React.Component {
                 points="229.6,136.9 201.7,164.8 201.7,189.9 229.6,217.8"
                 axis={'x'}
                 amount={0.1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primarySuperLight}
@@ -246,6 +268,7 @@ export default class JogPanel extends React.Component {
                 points="196.7,194.8 171.7,194.8 143.7,222.8 224.7,222.8"
                 axis={'y'}
                 amount={-0.1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryLight}
@@ -255,6 +278,7 @@ export default class JogPanel extends React.Component {
                 points="231.7,229.8 136.7,229.8 108.8,257.7 259.6,257.7"
                 axis={'y'}
                 amount={-1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryMedium}
@@ -264,6 +288,7 @@ export default class JogPanel extends React.Component {
                 points="266.6,264.7 101.8,264.7 73.8,292.7 294.5,292.7"
                 axis={'y'}
                 amount={-10}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primary}
@@ -273,6 +298,7 @@ export default class JogPanel extends React.Component {
                 points="301.5,299.6 66.9,299.6 38.9,327.6 329.5,327.6"
                 axis={'y'}
                 amount={-100}
+                forceJog={this.props.forceJog}
               />
 
               <Polygon
@@ -283,6 +309,7 @@ export default class JogPanel extends React.Component {
                 points="380.1,301.1 380.1,329.1 442.7,329.1 442.7,301.1"
                 axis={'z'}
                 amount={-100}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryMedium}
@@ -292,6 +319,7 @@ export default class JogPanel extends React.Component {
                 points="380.1,266 380.1,294 442.7,294 442.7,266"
                 axis={'z'}
                 amount={-10}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryLight}
@@ -301,6 +329,7 @@ export default class JogPanel extends React.Component {
                 points="380.1,231 380.1,259 442.7,259 442.7,231"
                 axis={'z'}
                 amount={-1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primarySuperLight}
@@ -310,6 +339,7 @@ export default class JogPanel extends React.Component {
                 points="380.1,195.9 380.1,223.9 442.7,223.9 442.7,195.9"
                 axis={'z'}
                 amount={-0.1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primarySuperLight}
@@ -319,6 +349,7 @@ export default class JogPanel extends React.Component {
                 points="380.1,132.9 380.1,160.9 442.7,160.9 442.7,132.9"
                 axis={'z'}
                 amount={0.1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryLight}
@@ -328,6 +359,7 @@ export default class JogPanel extends React.Component {
                 points="380.1,97.8 380.1,125.8 442.7,125.8 442.7,97.8"
                 axis={'z'}
                 amount={1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryMedium}
@@ -337,6 +369,7 @@ export default class JogPanel extends React.Component {
                 points="380.1,62.8 380.1,90.8 442.7,90.8 442.7,62.8"
                 axis={'z'}
                 amount={10}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primary}
@@ -346,6 +379,7 @@ export default class JogPanel extends React.Component {
                 points="380.1,27.8 380.1,55.8 442.7,55.8 442.7,27.8"
                 axis={'z'}
                 amount={100}
+                forceJog={this.props.forceJog}
               />
 
               <Polygon
@@ -356,6 +390,7 @@ export default class JogPanel extends React.Component {
                 points="461.2,301.1 461.2,329.1 523.8,329.1 523.8,301.1"
                 axis={'e'}
                 amount={100}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryMedium}
@@ -365,6 +400,7 @@ export default class JogPanel extends React.Component {
                 points="461.2,266 461.2,294 523.8,294 523.8,266"
                 axis={'e'}
                 amount={10}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryLight}
@@ -374,6 +410,7 @@ export default class JogPanel extends React.Component {
                 points="461.2,231 461.2,259 523.8,259 523.8,231"
                 axis={'e'}
                 amount={1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primarySuperLight}
@@ -383,6 +420,7 @@ export default class JogPanel extends React.Component {
                 points="461.2,195.9 461.2,223.9 523.8,223.9 523.8,195.9"
                 axis={'e'}
                 amount={0.1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primarySuperLight}
@@ -392,6 +430,7 @@ export default class JogPanel extends React.Component {
                 points="461.2,132.9 461.2,160.9 523.8,160.9 523.8,132.9"
                 axis={'e'}
                 amount={-0.1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryLight}
@@ -401,6 +440,7 @@ export default class JogPanel extends React.Component {
                 points="461.2,97.8 461.2,125.8 523.8,125.8 523.8,97.8"
                 axis={'e'}
                 amount={-1}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primaryMedium}
@@ -410,6 +450,7 @@ export default class JogPanel extends React.Component {
                 points="461.2,62.8 461.2,90.8 523.8,90.8 523.8,62.8"
                 axis={'e'}
                 amount={-10}
+                forceJog={this.props.forceJog}
               />
               <Polygon
                 color={primary}
@@ -419,6 +460,7 @@ export default class JogPanel extends React.Component {
                 points="461.2,27.8 461.2,55.8 523.8,55.8 523.8,27.8"
                 axis={'e'}
                 amount={-100}
+                forceJog={this.props.forceJog}
               />
             </g>
             <g>

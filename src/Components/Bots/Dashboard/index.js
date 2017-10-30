@@ -48,6 +48,7 @@ export default class Dashboard extends React.Component {
                   client={this.props.client}
                   endpoint={this.props.endpoint}
                   bot={this.props.bot}
+                  forceJog={this.props.forceJog}
                 />
               </div>
               <div className="area">
@@ -56,6 +57,7 @@ export default class Dashboard extends React.Component {
                   client={this.props.client}
                   endpoint={this.props.endpoint}
                   bot={this.props.bot}
+                  forceJog={this.props.forceJog}
                 />
               </div>
               <div className="area">
@@ -64,6 +66,7 @@ export default class Dashboard extends React.Component {
                   client={this.props.client}
                   endpoint={this.props.endpoint}
                   bot={this.props.bot}
+                  forceJog={this.props.forceJog}
                 />
               </div>
             </div>
@@ -75,6 +78,7 @@ export default class Dashboard extends React.Component {
                   client={this.props.client}
                   endpoint={this.props.endpoint}
                   bot={this.props.bot}
+                  forceJog={this.props.forceJog}
                 />
               </div>
               <div className="area">
@@ -83,6 +87,7 @@ export default class Dashboard extends React.Component {
                   client={this.props.client}
                   endpoint={this.props.endpoint}
                   bot={this.props.bot}
+                  forceJog={this.props.forceJog}
                 />
               </div>
               <div className="area">
@@ -91,6 +96,7 @@ export default class Dashboard extends React.Component {
                   client={this.props.client}
                   endpoint={this.props.endpoint}
                   bot={this.props.bot}
+                  forceJog={this.props.forceJog}
                 />
               </div>
               <div className="area">
@@ -109,6 +115,7 @@ export default class Dashboard extends React.Component {
                   client={this.props.client}
                   endpoint={this.props.endpoint}
                   bot={this.props.bot}
+                  forceJog={this.props.forceJog}
                 />
               </div>
             </div>

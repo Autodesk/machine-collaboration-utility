@@ -2,6 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 
 import HoverAndClick from './HoverAndClick';
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
 export default class DisableMotors extends React.Component {
   disableAxes(inputAxes) {
@@ -27,11 +28,18 @@ export default class DisableMotors extends React.Component {
       gcode,
     };
 
+    if (this.props.forceJog === true) {
+      commandObject.force = true;
+    }
+
     this.props.client.emit('command', commandObject);
   }
 
   render() {
-    const disableable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
+    const disableable =
+      this.props.bot.state === 'idle' ||
+      this.props.bot.state === 'paused' ||
+      (this.props.forceJog && botMetaStates.connected.includes(this.props.bot.state));
 
     return (
       <div className="disable-motors">
