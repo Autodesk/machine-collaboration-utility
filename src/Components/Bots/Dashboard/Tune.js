@@ -46,14 +46,15 @@ export default class Tune extends React.Component {
       botUuid: this.props.endpoint,
       command: 'processGcode',
       gcode: `M220 S${newSpeed}`,
+      force: true,
     };
 
-    if (this.props.forceJog === true) {
-      commandObject.force = true;
-    }
+    // if (this.props.forceJog === true) {
+    //   commandObject.force = true;
+    // }
 
     this.props.client.emit('command', commandObject);
-    this.setState({ showSpeedModal: false });
+    setTimeout(this.closeSpeedModal, 200);
   }
 
   speedModal() {
@@ -62,7 +63,7 @@ export default class Tune extends React.Component {
       sliderMarks[`${i}`] = `${i}%`;
     }
     return (
-      <Modal show={this.state.showSpeedModal} onHide={this.closeSpeedModal}>
+      <Modal backdrop={'static'} show={this.state.showSpeedModal} onHide={this.closeSpeedModal}>
         <Modal.Header closeButton>
           <Modal.Title>
             <h1>Adjust speed</h1>
@@ -110,14 +111,15 @@ export default class Tune extends React.Component {
       botUuid: this.props.endpoint,
       command: 'processGcode',
       gcode: `M221 S${newFlowrate}`,
+      force: true,
     };
 
-    if (this.props.forceJog === true) {
-      commandObject.force = true;
-    }
+    // if (this.props.forceJog === true) {
+    //   commandObject.force = true;
+    // }
 
     this.props.client.emit('command', commandObject);
-    this.setState({ showFlowrateModal: false });
+    setTimeout(this.closeFlowrateModal, 200);
   }
 
   flowrateModal() {
@@ -126,7 +128,11 @@ export default class Tune extends React.Component {
       sliderMarks[`${i}`] = `${i}%`;
     }
     return (
-      <Modal show={this.state.showFlowrateModal} onHide={this.closeFlowrateModal}>
+      <Modal
+        backdrop={'static'}
+        show={this.state.showFlowrateModal}
+        onHide={this.closeFlowrateModal}
+      >
         <Modal.Header closeButton>
           <Modal.Title>
             <h1>Adjust flowrate</h1>
@@ -154,10 +160,10 @@ export default class Tune extends React.Component {
   }
 
   render() {
-    const tuneable =
-      this.props.bot.state === 'idle' ||
-      this.props.bot.state === 'paused' ||
-      (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state));
+    const tuneable = botMetaStates.connected.includes(this.props.bot.state);
+    // this.props.bot.state === 'idle' ||
+    // this.props.bot.state === 'paused' ||
+    // (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state));
 
     return (
       <div>
@@ -186,7 +192,7 @@ export default class Tune extends React.Component {
                     this.props.toggleForceJog();
                   }}
                 >
-                  Force Jog
+                  {this.props.forceJog ? 'Disable Live Jog' : 'Enable Live Jog'}
                 </button>
               </HoverAndClick>
             </div>
