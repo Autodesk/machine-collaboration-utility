@@ -87,6 +87,7 @@ export default class Bot extends React.Component {
               open={this.state.selectedTab === 2}
               client={this.props.client}
               forceJog={this.state.forceJog}
+              toggleForceJog={this.toggleForceJog}
               endpoint={endpoint}
             />
           </Tab>
