@@ -248,11 +248,6 @@ a {
       button {
         width: 100%;
       }
-      input {
-        background-color: $white;
-        border: none;
-        padding-left: $standard-padding/2;
-      }
       .temp-title,
       .temp-fraction {
         padding-top: $standard-padding/2;
@@ -333,11 +328,6 @@ a {
       &[type="submit"] {
         margin-top: 0;
       }
-      &[type="text"] {
-        background: #ffffff;
-        border: none;
-        padding-left: $standard-padding/2;
-      }
     }
   }
 }
@@ -347,9 +337,9 @@ a {
 }
 
 .positioning--text {
-  background: white;
+  // background: white;
   padding: 5px;
-  border: 3px solid rgb(72, 76, 80);
+  // border: 3px solid rgb(72, 76, 80);
 }
 
 .bot-list-area {
@@ -362,6 +352,27 @@ a {
   background-color: $primary-super-light;
   height: 100%;
   padding-top: 85px;
+}
+
+.terminal--buttons {
+  padding-top: 10px;
+}
+
+.terminal--button {
+  width: 100%;
+  background-color: $button-color;
+  border: solid 1px #ececeb;
+  padding: $standard-padding/3 $standard-padding/2;
+  border-radius: 0;
+  color: white;
+  letter-spacing: 1px;
+  @media screen and (max-width: $screen-xs-max) {
+    padding: $standard-padding/3;
+  }
+}
+
+.button--padding {
+  padding: 0 3px;
 }
 
 .progress-area {
@@ -836,4 +847,11 @@ label {
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none; /* Non-prefixed version, currently
                                   not supported by any browser */
+  cursor: default;
+}
+
+.text-input {
+  background: #ffffff;
+  padding-left: $standard-padding/2;
+  border: 2px solid black;
 }

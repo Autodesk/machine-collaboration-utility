@@ -1,4 +1,5 @@
 import React from 'react';
+import autobind from 'react-autobind';
 
 import HoverAndClick from './HoverAndClick';
 import { metaStates as botMetaStates } from '../botFsmDefinitions';
@@ -7,7 +8,11 @@ export default class SendGcode extends React.Component {
   constructor(props) {
     super(props);
 
-    this.processGcode = this.processGcode.bind(this);
+    this.state = {
+      gcodeInput: '',
+    };
+
+    autobind(this);
   }
 
   processGcode(event) {
@@ -26,14 +31,19 @@ export default class SendGcode extends React.Component {
 
     this.props.client.emit('command', commandObject);
 
-    this.gcodeInput.value = '';
+    this.setState({ gcodeInput: '' });
+  }
+
+  updateGcodeInput(e) {
+    this.setState({ gcodeInput: e.target.value.toUpperCase() });
   }
 
   render() {
-    const gcodeable =
-      this.props.bot.state === 'idle' ||
-      this.props.bot.state === 'paused' ||
-      (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state));
+    const commandable =
+      this.state.gcodeInput.length > 0 &&
+      (this.props.bot.state === 'idle' ||
+        this.props.bot.state === 'paused' ||
+        (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state)));
 
     return (
       <div className="send-gcode">
@@ -41,22 +51,22 @@ export default class SendGcode extends React.Component {
           <div className="row">
             <div className="col-sm-7 no-padding-right">
               <input
-                disabled={!gcodeable}
-                ref={(gcodeInput) => {
-                  this.gcodeInput = gcodeInput;
-                }}
-                placeholder="type gcode here"
-                type="text"
                 name="gcode"
+                className="text-input"
+                value={this.state.gcodeInput}
+                default=""
+                placeholder="Enter Gcode Here"
+                onChange={this.updateGcodeInput}
+                type="text"
               />
             </div>
             <div className="col-sm-5">
               <HoverAndClick
                 allowDefault
-                disabled={!gcodeable}
-                color={{ h: this.props.appColor, s: gcodeable ? 40 : 5, l: 40 }}
+                disabled={!commandable}
+                color={{ h: 120, s: commandable ? 40 : 5, l: 40 }}
               >
-                <input disabled={!gcodeable} type="submit" value="SEND GCODE" />
+                <input disabled={!commandable} type="submit" value="SEND GCODE" />
               </HoverAndClick>
             </div>
           </div>

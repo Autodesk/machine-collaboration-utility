@@ -2,7 +2,9 @@ import React from 'react';
 import uuidv4 from 'uuid/v4';
 import autobind from 'react-autobind';
 
+import HoverAndClick from '../Dashboard/HoverAndClick';
 import Reply from './Reply';
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
 export default class Terminal extends React.Component {
   constructor(props) {
@@ -27,9 +29,9 @@ export default class Terminal extends React.Component {
     const commandObject = { sent, command, time: Date.now(), id: uuidv4() };
     const newCommands = Object.assign([], this.state.commands);
     if (newCommands.length > this.maxReplies) {
-      newCommands.pop();
+      newCommands.shift();
     }
-    newCommands.unshift(commandObject);
+    newCommands.push(commandObject);
     this.setState({ commands: newCommands });
   }
 
@@ -80,6 +82,10 @@ export default class Terminal extends React.Component {
       gcode,
     };
 
+    if (this.props.forceJog === true) {
+      commandObject.force = true;
+    }
+
     // request gcode input to be processed by bot
     this.props.client.emit('command', commandObject);
 
@@ -88,18 +94,53 @@ export default class Terminal extends React.Component {
   }
 
   render() {
+    const commandable =
+      this.state.gcodeInput.length > 0 &&
+      (this.props.bot.state === 'idle' ||
+        this.props.bot.state === 'paused' ||
+        (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state)));
+
     return (
-      <div className="terminal__scroll-wrapper">
+      <div className="terminal__scroll-wrapper container-fluid">
+        <div className="terminal--buttons row">
+          <div className="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+            <form onSubmit={this.submitGcode}>
+              <input
+                name="gcode"
+                className="text-input"
+                value={this.state.gcodeInput}
+                default=""
+                placeholder="Enter Gcode Here"
+                onChange={this.updateGcodeInput}
+                type="text"
+              />
+            </form>
+          </div>
+          <div className="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+            <HoverAndClick color={{ h: 120, s: commandable ? 40 : 5, l: 40 }}>
+              <button
+                className="terminal--button"
+                disabled={!commandable}
+                onClick={this.submitGcode}
+              >
+                Send Gcode
+              </button>
+            </HoverAndClick>
+          </div>
+          <div className="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+            <HoverAndClick color={{ h: this.props.forceJog ? 120 : 0, s: 40, l: 40 }}>
+              <button
+                className="terminal--button"
+                onClick={() => {
+                  this.props.toggleForceJog();
+                }}
+              >
+                {this.props.forceJog ? 'Disable Live Jog' : 'Enable Live Jog'}
+              </button>
+            </HoverAndClick>
+          </div>
+        </div>
         <div className="terminal__window">
-          <form onSubmit={this.submitGcode}>
-            <input
-              value={this.state.gcodeInput}
-              default=""
-              onChange={this.updateGcodeInput}
-              type="text"
-            />
-            <button onClick={this.submitGcode}>Send Gcode</button>
-          </form>
           {this.state.commands.map(reply => <Reply key={reply.id} reply={reply} />)}
         </div>
       </div>
