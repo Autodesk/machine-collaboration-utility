@@ -1,6 +1,7 @@
 import React from 'react';
 
 import HoverAndClick from './HoverAndClick';
+import { metaStates as botMetaStates } from '../botFsmDefinitions';
 
 export default class Temp extends React.Component {
   constructor(props) {
@@ -62,7 +63,7 @@ export default class Temp extends React.Component {
   }
 
   renderNozzleOnOff() {
-    const editable = true; // this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
+    const editable = botMetaStates.connected.includes(this.props.bot.state);
 
     const t0 =
       this.props.bot.status.sensors.t0 === undefined
@@ -86,7 +87,7 @@ export default class Temp extends React.Component {
       return (
         <HoverAndClick color={{ h: 0, s: editable ? 40 : 5, l: 40 }}>
           <button
-            // disabled={!editable}
+            disabled={!editable}
             onClick={() => {
               this.processGcode('M104 S0');
             }}
@@ -104,7 +105,7 @@ export default class Temp extends React.Component {
   }
 
   renderBedOnOff() {
-    const editable = true; // this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
+    const editable = botMetaStates.connected.includes(this.props.bot.state);
 
     const b0 =
       this.props.bot.status.sensors.b0 === undefined
@@ -128,7 +129,7 @@ export default class Temp extends React.Component {
       return (
         <HoverAndClick color={{ h: 0, s: editable ? 40 : 5, l: 40 }}>
           <button
-            // disabled={!editable}
+            disabled={!editable}
             onClick={() => {
               this.processGcode('M140 S0');
             }}
@@ -151,7 +152,7 @@ export default class Temp extends React.Component {
   }
 
   render() {
-    const editable = this.props.bot.state === 'idle' || this.props.bot.state === 'paused';
+    const editable = botMetaStates.connected.includes(this.props.bot.state);
 
     const t0Disabled =
       this.props.bot.status.sensors.t0 === undefined ||
@@ -185,13 +186,13 @@ export default class Temp extends React.Component {
                   placeholder="X°C"
                   name="setpoint"
                   className="text-input"
-                  // disabled={!editable || t0Disabled}
+                  disabled={!editable || t0Disabled}
                 />
                 <input
                   type="hidden"
                   value=""
                   className="col-sm-1"
-                  // disabled={!editable || t0Disabled}
+                  disabled={!editable || t0Disabled}
                 />
               </div>
             </form>
@@ -223,13 +224,13 @@ export default class Temp extends React.Component {
                   placeholder="X°C"
                   name="setpoint"
                   className="text-input"
-                  // disabled={!editable || b0Disabled}
+                  disabled={!editable || b0Disabled}
                 />
                 <input
                   type="hidden"
                   value=""
                   className="col-sm-1 fa fa-repeat"
-                  // disabled={!editable || b0Disabled}
+                  disabled={!editable || b0Disabled}
                 />
               </div>
             </form>
