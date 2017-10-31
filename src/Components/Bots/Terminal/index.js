@@ -128,7 +128,7 @@ export default class Terminal extends React.Component {
             </HoverAndClick>
           </div>
           <div className="col-xs-2 col-sm-2 col-md-2 col-lg-2">
-            <HoverAndClick color={{ h: this.props.forceJog ? 120 : 0, s: 40, l: 40 }}>
+            <HoverAndClick color={{ h: this.props.forceJog ? 0 : 120, s: 40, l: 40 }}>
               <button
                 className="terminal--button"
                 onClick={() => {
