@@ -164,10 +164,10 @@ export default class Temp extends React.Component {
     const b0 = b0Disabled ? { temperature: '?', setpoint: '?' } : this.props.bot.status.sensors.b0;
     return (
       <div>
-        <h3>TEMPERATURE CONTROL</h3>
+        <h3 className="no-select">TEMPERATURE CONTROL</h3>
         <div className="row temperature">
           <div className="col-xs-3">
-            <p className="temp-title">
+            <p className="temp-title no-select">
               <span style={{ fontSize: '20px', color: `hsl(0, ${this.isHot(t0) ? 60 : 5}%, 40%)` }}>
                 &#x25cf;
               </span>
@@ -184,7 +184,7 @@ export default class Temp extends React.Component {
                   }}
                   placeholder="X°C"
                   name="setpoint"
-                  className=""
+                  className="text-input"
                   // disabled={!editable || t0Disabled}
                 />
                 <input
@@ -197,7 +197,7 @@ export default class Temp extends React.Component {
             </form>
           </div>
           <div className="col-xs-3 no-padding-right">
-            <p className="temp-fraction">
+            <p className="temp-fraction no-select">
               {t0.temperature} / {t0.setpoint}°C
             </p>
           </div>
@@ -205,7 +205,7 @@ export default class Temp extends React.Component {
         </div>
         <div className="row temperature">
           <div className="col-xs-3">
-            <p className="temp-title">
+            <p className="temp-title no-select">
               <span style={{ fontSize: '20px', color: `hsl(0, ${this.isHot(b0) ? 60 : 5}%, 40%)` }}>
                 &#x25cf;
               </span>
@@ -222,7 +222,7 @@ export default class Temp extends React.Component {
                   }}
                   placeholder="X°C"
                   name="setpoint"
-                  className=""
+                  className="text-input"
                   // disabled={!editable || b0Disabled}
                 />
                 <input
@@ -235,7 +235,7 @@ export default class Temp extends React.Component {
             </form>
           </div>
           <div className="col-xs-3 no-padding-right">
-            <p className="temp-fraction">
+            <p className="temp-fraction no-select">
               {b0.temperature} / {b0.setpoint} °C
             </p>
           </div>

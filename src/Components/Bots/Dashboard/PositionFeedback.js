@@ -3,7 +3,7 @@ import React from 'react';
 const Axis = props => (
   <div className="col-xs-3 no-padding">
     <center>
-      <div>
+      <div className="no-select">
         {props.axis.toUpperCase()}: <span className="positioning--text">{props.position}</span>
       </div>
     </center>
@@ -24,7 +24,7 @@ export default class PositionFeedback extends React.Component {
     return (
       <div className="positioning">
         <div>
-          <h3>POSITION</h3>
+          <h3 className="no-select">POSITION</h3>
         </div>
         <div className="row">
           <Axis axis="x" position={this.parseNumber(position.x)} />

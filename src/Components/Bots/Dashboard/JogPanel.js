@@ -136,8 +136,15 @@ export default class JogPanel extends React.Component {
           st8: { fill: white },
         }}
       >
-        <h3>JOG PANEL</h3>
-        <svg version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 536 360">
+        <h3 className="no-select">JOG PANEL</h3>
+        <svg
+          style={{ width: '100%' }}
+          version="1.1"
+          id="Layer_1"
+          x="0px"
+          y="0px"
+          viewBox="0 0 536 360"
+        >
           <g style={{ disabled: true }}>
             <g>
               <Polygon
