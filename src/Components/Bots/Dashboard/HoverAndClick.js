@@ -42,7 +42,7 @@ export default class HoverAndClick extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="button--padding">
         {React.Children.map(this.props.children, (child) => {
           const extraProps = {
             style: {
