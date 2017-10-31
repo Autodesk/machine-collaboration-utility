@@ -1,6 +1,6 @@
 {
   "name": "machine-collaboration-utility",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "private": true,
   "main": "server/launchElectron.js",
   "build": {

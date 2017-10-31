@@ -114,3 +114,18 @@
   
 ## 1.7.1 (2017-10-19)
   * Titan park routine moves up 10mm in Z
+  
+## 1.8.0 (2017-10-31)
+  * Fixed bug where disconnect wasn't possible unless processing a job
+  * Fixed reset button for raspberry pi
+  * Fixed functionality for updating hostname on the pi
+  * Fixed header padding on UI Files and Settings
+  * Modified disable motors to be a single row
+  * Added ability to tune flowrate and speed
+  * Added "Live Jog" to enable jogging while a job is being processed
+  * Temp commands can be so long as the bot is connected (mid-job temp change is not blocked)
+  * Fixed bug with hovering luminesence resetting itself
+  * Uniform command scheme where green is "GO" and red is "STOP"
+  * Serial bots no longer show up unless they're connected
+
+  
