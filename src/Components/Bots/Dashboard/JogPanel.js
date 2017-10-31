@@ -82,7 +82,7 @@ class Polygon extends React.Component {
     const border = this.hslToString(
       this.state.clicked
         ? { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l + 80 }
-        : { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l - 10 },
+        : { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l },
     );
 
     return (

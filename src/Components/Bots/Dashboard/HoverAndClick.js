@@ -46,16 +46,16 @@ export default class HoverAndClick extends React.Component {
         {React.Children.map(this.props.children, (child) => {
           const extraProps = {
             style: {
-              padding: '3px',
+              padding: '2px',
               backgroundColor: this.hslToString(
                 this.state.hovering
                   ? { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l + 10 }
                   : this.props.color,
               ),
-              border: `3px solid ${this.hslToString(
+              border: `2px solid ${this.hslToString(
                 this.state.clicked
                   ? { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l + 80 }
-                  : { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l - 10 },
+                  : { h: this.props.color.h, s: this.props.color.s, l: this.props.color.l },
               )}`,
               transition: `${this.fadeTime}ms`,
               transitionTimingFunction: 'ease',
