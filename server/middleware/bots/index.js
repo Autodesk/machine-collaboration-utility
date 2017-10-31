@@ -89,7 +89,11 @@ class Bots {
               logger.error('Could not retreive connectionType', ex);
             }
           } else {
-            this.createBot(dbBot.dataValues);
+            // Let the discovery script create serial bots
+            const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
+            if (connectionType !== 'serial') {
+              this.createBot(dbBot.dataValues);
+            }
           }
         } catch (ex) {
           logger.error(`Failed to create bot. ${ex}`);
