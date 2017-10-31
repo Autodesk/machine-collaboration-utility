@@ -186,7 +186,7 @@ export default class Tune extends React.Component {
               </HoverAndClick>
             </div>
             <div className="col-xs-4 no-padding">
-              <HoverAndClick color={{ h: this.props.forceJog ? 120 : 0, s: 40, l: 40 }}>
+              <HoverAndClick color={{ h: this.props.forceJog ? 0 : 120, s: 40, l: 40 }}>
                 <button
                   onClick={() => {
                     this.props.toggleForceJog();
