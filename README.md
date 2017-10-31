@@ -7,7 +7,7 @@ Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible fo
 There are two ways to start using MCU
 
 ### Download the Raspberry Pi image  
-Download the Raspberry Pi image [here](https://drive.google.com/uc?id=0B7k-k73S74JBb3RnZ1FvNWVEb1E&export=download) (mcu_v1.6.0.zip)  
+Download the Raspberry Pi image [here](https://drive.google.com/uc?id=0B7k-k73S74JBNzdTR3BOZzk3NjQ&export=download) (mcu_v1.8.0.zip)  
 
 ### Build it from scratch
 Interested in building from scratch? Check out instructions [here](documentation/BUILDING.md)
