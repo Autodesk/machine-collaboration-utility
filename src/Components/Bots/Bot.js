@@ -50,7 +50,9 @@ export default class Bot extends React.Component {
   toggleForceJog() {
     if (this.state.forceJog === false) {
       // eslint-disable-next-line no-restricted-globals
-      const toggle = confirm('Enable force jog?');
+      const toggle = confirm(
+        'Enable Live Jog? This will allow you to send GCode while a job is being processed.',
+      );
       if (toggle) {
         this.setState({ forceJog: !this.state.forceJog });
       }
