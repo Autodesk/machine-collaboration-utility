@@ -71,7 +71,7 @@ export default class Temp extends React.Component {
 
     if (Number(t0.setpoint) === 0) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }}>
+        <HoverAndClick color={{ h: 120, s: editable ? 40 : 5, l: 40 }}>
           <button
             disabled={!editable}
             onClick={() => {
@@ -84,7 +84,7 @@ export default class Temp extends React.Component {
       );
     } else if (Number(t0.setpoint) > 0 || Number(t0.setpoint < 0)) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }}>
+        <HoverAndClick color={{ h: 0, s: editable ? 40 : 5, l: 40 }}>
           <button
             // disabled={!editable}
             onClick={() => {
@@ -113,7 +113,7 @@ export default class Temp extends React.Component {
 
     if (Number(b0.setpoint) === 0) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }}>
+        <HoverAndClick color={{ h: 120, s: editable ? 40 : 5, l: 40 }}>
           <button
             disabled={!editable}
             onClick={() => {
@@ -126,7 +126,7 @@ export default class Temp extends React.Component {
       );
     } else if (Number(b0.setpoint) > 0 || Number(b0.setpoint < 0)) {
       return (
-        <HoverAndClick color={{ h: this.props.appColor, s: editable ? 40 : 5, l: 40 }}>
+        <HoverAndClick color={{ h: 0, s: editable ? 40 : 5, l: 40 }}>
           <button
             // disabled={!editable}
             onClick={() => {
