@@ -125,7 +125,7 @@ var SerialConnection = function (connectionObject) {
     } else {
       that.mParser.on('data', (inData) => {
         const data = inData.toString();
-        logger.info('RX:', data);
+        logger.debug('RX:', data);
         if (process.env.VERBOSE_SERIAL_LOGGING === 'true') {
           logger.debug('read', data);
         }
@@ -277,7 +277,7 @@ SerialConnection.prototype.send = function (inCommandStr) {
       if (gcode.indexOf('\n') === -1) {
         gcode += '\n';
       }
-      logger.info('TX:', gcode);
+      logger.debug('TX:', gcode);
       that.mPort.write(gcode);
 
       that.io.broadcast(`botTx${that.bot.settings.uuid}`, gcode);
