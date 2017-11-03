@@ -4,7 +4,7 @@
   "private": true,
   "main": "server/launchElectron.js",
   "build": {
-    "asar": false,
+    "asar": true,
     "extends": null
   },
   "scripts": {

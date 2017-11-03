@@ -53,11 +53,13 @@ async function getAppSettings() {
   *
   * @returns {koa object} - App to be used by the server
   */
-async function koaApp(config) {
-  const appSettings = await getAppSettings();
-
+async function koaApp(config, electronApp) {
   const app = new Koa();
   app.context.config = config;
+  app.context.storagePath = electronApp
+    ? electronApp.getPath('userData')
+    : path.join(__dirname, '../');
+  app.context.electronApp = electronApp;
   // Add middleware
   // on 'error' is the first middleware in the koa middleware stack, should this be moved to later?
   app.on('error', (error, ctx) => {
@@ -84,12 +86,12 @@ async function koaApp(config) {
     },
     storage:
       process.env.NODE_ENV === 'test'
-        ? path.join(__dirname, './test.sqlite')
-        : path.join(__dirname, './mcu.sqlite'),
+        ? path.join(app.context.storagePath, './test.sqlite')
+        : path.join(app.context.storagePath, './mcu.sqlite'),
   };
 
   if (process.env.NODE_ENV === 'test') {
-    const testPath = path.join(__dirname, './test.sqlite');
+    const testPath = path.join(app.context.storagePath, './test.sqlite');
     if (fs.existsSync(testPath)) {
       fs.unlinkSync(testPath);
     }
@@ -116,8 +118,8 @@ async function koaApp(config) {
   router.get('/download-logs', async (ctx) => {
     try {
       await new Promise((resolve, reject) => {
-        pack(path.join(__dirname, '../logs'))
-          .pipe(write(`${path.join(__dirname, '../')}/mcu-logs.tar.gz`))
+        pack(path.join(app.context.storagePath, './logs'))
+          .pipe(write(path.join(app.context.storagePath, './mcu-logs.tar.gz')))
           .on('error', (zipError) => {
             logger.error(zipError);
             reject();
@@ -128,7 +130,7 @@ async function koaApp(config) {
       });
 
       ctx.res.setHeader('Content-disposition', 'attachment; filename=mcu-logs.tar.gz');
-      ctx.body = fs.createReadStream(path.join(__dirname, '../mcu-logs.tar.gz'));
+      ctx.body = fs.createReadStream(path.join(app.context.storagePath, './mcu-logs.tar.gz'));
     } catch (ex) {
       ctx.status = 500;
       ctx.body = `Download logs failure: ${ex}`;
@@ -224,4 +226,3 @@ async function koaApp(config) {
 }
 
 module.exports = koaApp;
-

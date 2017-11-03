@@ -25,7 +25,7 @@ class Files {
     this.app = app;
     this.routeEndpoint = routeEndpoint;
     this.router = router;
-    this.uploadDir = path.join(__dirname, '../../../uploads');
+    this.uploadDir = path.join(app.context.storagePath, './uploads');
     this.fileList = {};
   }
 
@@ -132,8 +132,7 @@ class Files {
       const name = file.name;
       const fileStats = await fs.stat(file.path);
       const dateChanged = fileStats.ctime;
-      const filePath =
-        `${this.uploadDir}/${name.split('.')[0]}_${uuid}.${name.split('.')[1]}`;
+      const filePath = `${this.uploadDir}/${name.split('.')[0]}_${uuid}.${name.split('.')[1]}`;
       fileObject = { uuid, name, dateChanged, filePath };
 
       // Rename the file from it's random name to the file's name plus the uuid
