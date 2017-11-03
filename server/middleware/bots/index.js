@@ -70,8 +70,8 @@ class Bots {
           // Don't or Do, respectively, add Serial printers
           if (process.env.ONLY_CONDUCT === 'true') {
             try {
-              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info
-                .connectionType;
+              const connectionType = this.app.context.bots.getBotPresets()[dbBot.dataValues.model]
+                .info.connectionType;
               if (connectionType !== 'serial') {
                 this.createBot(dbBot.dataValues);
               }
@@ -80,8 +80,8 @@ class Bots {
             }
           } else if (process.env.ONLY_SERIAL === 'true') {
             try {
-              const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info
-                .connectionType;
+              const connectionType = this.app.context.bots.getBotPresets()[dbBot.dataValues.model]
+                .info.connectionType;
               if (connectionType === 'serial') {
                 this.createBot(dbBot.dataValues);
               }
@@ -90,7 +90,8 @@ class Bots {
             }
           } else {
             // Let the discovery script create serial bots
-            const connectionType = this.app.context.bots.getBotPresets()[dbBot.model].info.connectionType;
+            const connectionType = this.app.context.bots.getBotPresets()[dbBot.dataValues.model]
+              .info.connectionType;
             if (connectionType !== 'serial') {
               this.createBot(dbBot.dataValues);
             }
