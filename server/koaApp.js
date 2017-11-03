@@ -56,6 +56,9 @@ async function getAppSettings() {
 async function koaApp(config, electronApp) {
   const app = new Koa();
   app.context.config = config;
+
+  // If we're running as an electron app, store data in the OS-appropriate location
+  // If it's just a server, store files in the root of the app
   app.context.storagePath = electronApp
     ? electronApp.getPath('userData')
     : path.join(__dirname, '../');
