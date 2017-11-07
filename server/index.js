@@ -35,8 +35,15 @@ function normalizePort(val) {
   return false;
 }
 
+function getFileStoragePath(electronApp) {
+  if (electronApp) {
+    return electronApp.getPath('userData');
+  }
+  return path.join(__dirname, '../');
+}
+
 async function clearOldLogs(electronApp) {
-  const files = await fs.readdir(path.join(electronApp.getPath('userData'), './logs'));
+  const files = await fs.readdir(path.join(getFileStoragePath(electronApp), './logs'));
   const logFiles = files.filter(file => file.includes('-mcu.log'));
   // Make sure that the files are sorted by date
   // With the newest files first
@@ -45,7 +52,7 @@ async function clearOldLogs(electronApp) {
   logFiles.reverse();
   logFiles.forEach((logFile, i) => {
     if (i >= 7) {
-      const filePath = path.join(electronApp.getPath('userData'), `../logs/${logFile}`);
+      const filePath = path.join(getFileStoragePath(electronApp), `../logs/${logFile}`);
       fs.unlink(filePath);
     }
   });
@@ -54,12 +61,12 @@ async function clearOldLogs(electronApp) {
 // Passing in the electronApp
 async function setupApp(electronApp) {
   try {
-    if (!fs.existsSync(path.join(electronApp.getPath('userData'), './logs'))) {
-      fs.mkdirSync(path.join(electronApp.getPath('userData'), './logs'));
+    if (!fs.existsSync(path.join(getFileStoragePath(electronApp), './logs'))) {
+      fs.mkdirSync(path.join(getFileStoragePath(electronApp), './logs'));
     }
 
     const loggerTransport = new winston.transports.DailyRotateFile({
-      filename: path.join(electronApp.getPath('userData'), './mcu.log'),
+      filename: path.join(getFileStoragePath(electronApp), './mcu.log'),
       datePattern: './logs/yyyy-MM-dd-',
       prepend: true,
       level: process.env.LOG_LEVEL || 'info',
