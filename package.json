@@ -1,13 +1,20 @@
 {
   "name": "machine-collaboration-utility",
+  "productName": "Machine Collaboration Utility",
   "version": "1.8.0",
   "private": true,
+  "description":
+    "An application for controling and managing 3d printers and other CNC hardware",
+  "author": "Matt Hova",
   "main": "server/launchElectron.js",
   "build": {
+    "files": "!build-assets${/*}",
     "asar": true,
     "extends": null
   },
   "scripts": {
+    "build:icons":
+      "electron-icon-maker -i public/images/icon.png -o build/ && mv build/icons/mac/icon.icns build/icon.icns && mv build/icons/win/icon.ico build/icon.ico && rm -rf build/icons",
     "electron": "npm-run-all -p start:css start:headless-js start:electron",
     "start": "NODE_ENV=dev npm-run-all -p start:css start:js start:server",
     "start:server": "nodemon -w bots -w server server/launchServer.js",
@@ -21,7 +28,8 @@
     "build:cleanup": "rm -rf build && rm -rf server/build",
     "build:css":
       "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
-    "package": "npm run build && electron-rebuild && electron-builder",
+    "package":
+      "rm -rf uploads && npm run build && npm run build:icons && electron-rebuild && electron-builder",
     "prebuild:css": "node-sass styles/main.scss -o src/",
     "test": "node node_modules/gulp/bin/gulp.js test"
   },
@@ -83,6 +91,7 @@
     "babel-eslint": "^7.2.2",
     "electron": "^1.7.9",
     "electron-builder": "^19.36.0",
+    "electron-icon-maker": "0.0.4",
     "electron-installer-dmg": "^0.2.1",
     "electron-packager": "^9.1.0",
     "electron-rebuild": "^1.6.0",

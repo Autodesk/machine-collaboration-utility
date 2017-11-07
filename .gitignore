@@ -8,6 +8,7 @@ build
 server/build
 releases
 src/main.css
+build-assets
 
 # Files generated through MCU
 .env
