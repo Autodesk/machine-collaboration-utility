@@ -32,8 +32,10 @@ export default class Dashboard extends React.Component {
     return (
       <div id="dashboard">
         {isConductorBot ? (
-          <div className="container">
+          <div className="area">
             <CurrentJob
+              appColor={this.props.appColor}
+              files={this.props.files}
               client={this.props.client}
               endpoint={this.props.endpoint}
               bot={this.props.bot}
