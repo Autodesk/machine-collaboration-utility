@@ -1,8 +1,7 @@
 import React from 'react';
-import _ from 'lodash';
 import Modal from 'react-bootstrap/lib/Modal';
 import autobind from 'react-autobind';
-import Slider, { Range } from 'rc-slider';
+import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
 import HoverAndClick from './HoverAndClick';
