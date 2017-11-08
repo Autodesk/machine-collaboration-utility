@@ -1,12 +1,27 @@
 import React from 'react';
-import request from 'superagent';
+import autobind from 'react-autobind';
+import SimpleSchema from 'simpl-schema';
+
+import HoverAndClick from './HoverAndClick';
 
 export default class ConductorPlayers extends React.Component {
   constructor(props) {
     super(props);
 
-    this.addPlayer = this.addPlayer.bind(this);
-    this.removePlayer = this.removePlayer.bind(this);
+    this.state = {
+      playerName: '',
+      playerEndpoint: '',
+    };
+
+    autobind(this);
+  }
+
+  updatePlayerName(event) {
+    this.setState({ playerName: event.target.value });
+  }
+
+  updatePlayerEndpoint(event) {
+    this.setState({ playerEndpoint: event.target.value });
   }
 
   createPlayerList() {
@@ -24,58 +39,111 @@ export default class ConductorPlayers extends React.Component {
         <div className="col-md-4">Name: {player.name}</div>
         <div className="col-md-4">Endpoint: {player.endpoint}</div>
         <div className="col-md-4">
-          <button
-            className="cancel"
-            onClick={() => {
-              this.removePlayer(player.name);
-            }}
-          >
-            X
-          </button>
+          <HoverAndClick color={{ h: 0, s: 40, l: 40 }}>
+            <button
+              className="cancel"
+              onClick={() => {
+                this.removePlayer(player.name);
+              }}
+            >
+              X
+            </button>
+          </HoverAndClick>
         </div>
       </div>
     );
   }
 
-  addPlayer(event) {
-    event.preventDefault();
-    request
-      .post(this.props.endpoint)
-      .send({ command: 'addPlayer' })
-      .send({ name: event.target.name.value })
-      .send({ endpoint: event.target.endpoint.value })
-      .set('Accept', 'application/json')
-      .end();
+  addPlayer() {
+    if (this.validInput()) {
+      try {
+        const commandObject = {
+          botUuid: this.props.endpoint,
+          command: 'addPlayer',
+          name: this.state.playerName,
+          endpoint: this.state.playerEndpoint,
+        };
+
+        this.props.client.emit('command', commandObject);
+      } catch (ex) {
+        console.log('error', ex);
+      }
+    }
   }
 
   removePlayer(name) {
-    request
-      .post(this.props.endpoint)
-      .send({ command: 'removePlayer' })
-      .send({ name })
-      .set('Accept', 'application/json')
-      .end();
+    try {
+      const commandObject = {
+        botUuid: this.props.endpoint,
+        command: 'removePlayer',
+        name,
+      };
+
+      this.props.client.emit('command', commandObject);
+    } catch (ex) {
+      console.log('error', ex);
+    }
+  }
+
+  validInput() {
+    try {
+      const schema = new SimpleSchema({
+        name: {
+          type: String,
+          min: 1,
+          label: 'Player name',
+        },
+        endpoint: {
+          type: String,
+          regEx: SimpleSchema.RegEx.Url,
+          label: 'Player endpoint',
+        },
+      });
+
+      // If validation does not throw an error, return true
+      schema.validate({
+        name: this.state.playerName,
+        endpoint: this.state.playerEndpoint,
+      });
+
+      return true;
+    } catch (ex) {
+      return false;
+    }
   }
 
   createNewPlayerForm() {
     return (
-      <form className="form" onSubmit={this.addPlayer}>
+      <form className="form">
         <div className="row">
           <div className="col-md-4">
             <label htmlFor="name">Player Name:</label>
-            <input className="conductor-form-text" type="textarea" name="name" defaultValue="" />
+            <input
+              onChange={this.updatePlayerName}
+              className="conductor-form-text"
+              type="textarea"
+              name="name"
+              value={this.state.playerName}
+            />
           </div>
           <div className="col-md-4">
             <label htmlFor="endpoint">Player Endpoint:</label>
             <input
+              onChange={this.updatePlayerEndpoint}
               className="conductor-form-text"
               type="textarea"
               name="endpoint"
-              defaultValue=""
+              value={this.state.playerEndpoint}
             />
           </div>
           <div className="col-md-4">
-            <input className="green-plz" type="submit" value="Add Player" />
+            <div style={{ paddingTop: '30px' }}>
+              <HoverAndClick color={{ h: 120, s: this.validInput() ? 40 : 5, l: 40 }}>
+                <button disabled={!this.validInput()} onClick={this.addPlayer}>
+                  Add Player
+                </button>
+              </HoverAndClick>
+            </div>
           </div>
         </div>
       </form>
