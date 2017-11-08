@@ -15,12 +15,10 @@
     "start:headless-js": "BROWSER=NONE PORT=3000 react-scripts start",
     "start:electron": "nodemon -w server -w bots node_modules/.bin/electron .",
     "start:css": "nodemon -e scss -w styles -x 'npm run build:css'",
-    "build":
-      "npm run build:cleanup && npm run build:css && npm run build:js && mv build server/build",
+    "build": "npm run build:cleanup && npm run build:css && npm run build:js && mv build server/build",
     "build:js": "react-scripts build",
     "build:cleanup": "rm -rf build && rm -rf server/build",
-    "build:css":
-      "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
+    "build:css": "npm run prebuild:css && postcss src/main.css --use autoprefixer -d src/",
     "package": "npm run build && electron-rebuild && electron-builder",
     "prebuild:css": "node-sass styles/main.scss -o src/",
     "test": "node node_modules/gulp/bin/gulp.js test"
@@ -63,6 +61,7 @@
     "sequelize": "^3.30.4",
     "serialport": "^6.0.0",
     "should": "^11.1.0",
+    "simpl-schema": "^0.4.0",
     "source-map-support": "^0.5.0",
     "sqlite3": "^3.1.13",
     "superagent": "^3.6.2",
