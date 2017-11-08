@@ -128,4 +128,7 @@
   * Uniform command scheme where green is "GO" and red is "STOP"
   * Serial bots no longer show up unless they're connected
 
-  
+## 1.8.1 (2017-11-08)
+  * Fixed Conductor "Add Player" functionality
+  * Fixed Remote bot crash issue
+  * Disabled editing or sending text when not connected
