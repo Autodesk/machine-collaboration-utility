@@ -94,11 +94,12 @@ export default class Terminal extends React.Component {
   }
 
   render() {
-    const commandable =
-      this.state.gcodeInput.length > 0 &&
-      (this.props.bot.state === 'idle' ||
-        this.props.bot.state === 'paused' ||
-        (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state)));
+    const gcodeable =
+      this.props.bot.state === 'idle' ||
+      this.props.bot.state === 'paused' ||
+      (this.props.forceJog === true && botMetaStates.connected.includes(this.props.bot.state));
+
+    const commandable = this.state.gcodeInput.length > 0 && gcodeable;
 
     return (
       <div className="terminal__scroll-wrapper container-fluid">
@@ -106,10 +107,12 @@ export default class Terminal extends React.Component {
           <div className="col-xs-8 col-sm-8 col-md-8 col-lg-8">
             <form onSubmit={this.submitGcode}>
               <input
+                style={{ background: gcodeable ? '#ffffff' : '#cccccc' }}
                 name="gcode"
-                className="text-input"
+                className={`text-input ${gcodeable ? '' : 'no-select'}`}
                 value={this.state.gcodeInput}
                 default=""
+                disabled={!gcodeable}
                 placeholder="Enter Gcode Here"
                 onChange={this.updateGcodeInput}
                 type="text"

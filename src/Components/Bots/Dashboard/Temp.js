@@ -185,7 +185,8 @@ export default class Temp extends React.Component {
                   }}
                   placeholder="X°C"
                   name="setpoint"
-                  className="text-input"
+                  style={{ background: editable ? '#ffffff' : '#cccccc' }}
+                  className={`text-input ${editable ? '' : 'no-select'}`}
                   disabled={!editable || t0Disabled}
                 />
                 <input
@@ -223,7 +224,8 @@ export default class Temp extends React.Component {
                   }}
                   placeholder="X°C"
                   name="setpoint"
-                  className="text-input"
+                  style={{ background: editable ? '#ffffff' : '#cccccc' }}
+                  className={`text-input ${editable ? '' : 'no-select'}`}
                   disabled={!editable || b0Disabled}
                 />
                 <input
