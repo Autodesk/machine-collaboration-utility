@@ -24,6 +24,6 @@ module.exports = async function updateRoutine(self, params) {
       data: self.getBot(),
     });
   } catch (ex) {
-    logger.error('Remote update error', ex);
+    logger.error('Remote update error', ex.message);
   }
 };
