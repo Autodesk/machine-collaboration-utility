@@ -3,6 +3,7 @@ import React from 'react';
 import request from 'superagent';
 import autoBind from 'react-autobind';
 import Button from 'react-bootstrap/lib/Button';
+import isElectron from 'is-electron';
 
 export default class Settings extends React.Component {
   constructor(props) {
@@ -56,6 +57,23 @@ export default class Settings extends React.Component {
           <div>
             <i className="fa fa-spinner fa-pulse fa-3x fa-fw" />
             <br />Restarting
+          </div>
+        ) : null}
+        <br />
+        <br />
+        {isElectron() ? (
+          <div>
+            <Button
+              style={{ width: '200px' }}
+              onClick={() => {
+                const ipcRenderer = window.require('electron').ipcRenderer;
+                ipcRenderer.send('open-etcher', true);
+              }}
+            >
+              Create MCU image for for Raspberry Pi
+            </Button>
+            <br />
+            <br />
           </div>
         ) : null}
         <a href="/download-logs">
