@@ -25,10 +25,10 @@ const info = {
 };
 
 const settings = {
-  name: 'Clever',
+  name: 'Gemini',
   tempE: 220,
   tempB: 55,
-  model: 'Clever',
+  model: 'Gemini',
 };
 
 const commands = {
