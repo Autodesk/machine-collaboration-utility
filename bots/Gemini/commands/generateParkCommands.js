@@ -1,6 +1,5 @@
 /* global logger */
 module.exports = function generateParkCommands(self) {
-  const parkLift = 10;
   const currentPosition = {
     x: undefined,
     y: undefined,
@@ -27,10 +26,7 @@ module.exports = function generateParkCommands(self) {
     },
     postCallback: () => {
       const parkCommandArray = ['G92 E0', 'G1 E-2 F3000'];
-      if (self.parkedPosition.z < 140 - parkLift) {
-        parkCommandArray.push(`G1 Z${(self.parkedPosition.z + parkLift).toFixed(2)} F1000`);
-      }
-      parkCommandArray.push('G1 X0 F2000');
+      parkCommandArray.push('G1 Y430 F2000');
       parkCommandArray.push({
         code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
         postCallback: () => {
