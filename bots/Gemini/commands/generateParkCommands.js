@@ -26,7 +26,8 @@ module.exports = function generateParkCommands(self) {
     },
     postCallback: () => {
       const parkCommandArray = ['G92 E0', 'G1 E-2 F3000'];
-      parkCommandArray.push('G1 Y430 F2000');
+      parkCommandArray.push('G1 Y380 F2000'); // Travel fast to wiper
+      parkCommandArray.push('G1 Y430 F500'); // Travel slowly across wiper
       parkCommandArray.push({
         code: self.info.clearBufferCommand, // Clear motion buffer before saying we're done
         postCallback: () => {
