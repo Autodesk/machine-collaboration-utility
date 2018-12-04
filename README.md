@@ -9,7 +9,7 @@ Built with Raspberry Pi and Arduino (Marlin Firmware) in mind, but extensible fo
 There are two ways to start using MCU
 
 ### Download the Raspberry Pi image  
-Download the Raspberry Pi image [here](https://drive.google.com/uc?id=0B7k-k73S74JBNzdTR3BOZzk3NjQ&export=download) (mcu_v1.8.0.zip)  
+Download the Raspberry Pi image [here](https://github.com/Autodesk/machine-collaboration-utility/releases/download/v1.8.1/mcu_v1.8.1.img.zip) (mcu_v1.8.1.zip)  
 
 ### Build it from scratch
 Interested in building from scratch? Check out instructions [here](documentation/BUILDING.md)
