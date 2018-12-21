@@ -14,6 +14,9 @@ Download the Raspberry Pi image [here](https://github.com/Autodesk/machine-colla
 ### Build it from scratch
 Interested in building from scratch? Check out instructions [here](documentation/BUILDING.md)
 
+### How to set up
+See instructions on the wiki page: https://github.com/Autodesk/machine-collaboration-utility/wiki
+
 ### Join the conversation
 For questions, feedback, or anything else, join the conversation on [Slack](https://mcu-community.herokuapp.com/)  
 <br/>
